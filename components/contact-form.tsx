@@ -57,9 +57,9 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
             onChange={(e) => setFormData({ ...formData, interesse: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-[#311e86] bg-white text-gray-500"
           >
-            <option value="">Selecteer jouw interesse</option>
+            <option value="">Selecteer uw interesse</option>
             <option value="vermogensbeheer">Vermogensbeheer</option>
-            <option value="private-markets">Private markets</option>
+            <option value="non-bancaire-leningen">Non-bancaire leningen</option>
             <option value="beide">Beide</option>
           </select>
         </div>

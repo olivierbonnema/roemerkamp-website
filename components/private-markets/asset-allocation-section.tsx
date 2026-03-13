@@ -15,11 +15,10 @@ const data = [
 export function AssetAllocationSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 items-start">
           {/* Chart */}
           <div>
-            <h3 className="text-lg font-semibold text-[#311e86] mb-6">Asset allocatie (%)</h3>
+            <h3 className="text-lg font-serif font-semibold text-[#311e86] mb-6">Asset allocatie (%)</h3>
             <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -92,7 +91,7 @@ export function AssetAllocationSection() {
           </div>
 
           {/* Right sidebar */}
-          <div className="bg-[#311e86] p-8">
+          <div className="bg-[#1e3a5f] p-8">
             <div className="w-20 h-1.5 bg-[#f75d20] mb-6" />
             <h3 className="text-2xl font-serif text-white mb-8">Hierom kies je voor Roemer Kamp & Partners</h3>
             <ul className="space-y-6 text-white">
@@ -111,7 +110,6 @@ export function AssetAllocationSection() {
             </ul>
           </div>
         </div>
-      </div>
     </section>
   )
 }

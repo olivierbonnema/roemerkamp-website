@@ -3,53 +3,48 @@ import Link from "next/link"
 
 const articles = [
   {
-    id: 2,
-    title: "Investeren in private markten en beurgenoteerde markten samen? Een complexe puzzel die de moeite waard is om op te lossen!",
+    id: 1,
+    title: "Waarom wij denken in generaties, niet in kwartalen",
     excerpt:
-      "Onze collega Ineke Valke schreef voor het State of the Market-magazine van Evercore een bijdrage over de combinatie van private en beursgenoteerde beleggingen.",
-    image: "/images/globe-digital.jpg",
-    slug: "investeren-private-markten-beursgenoteerde-markten",
+      "Bij Roemer Kamp & Partners geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien — met het oog op de toekomst.",
+    image: "/images/bericht-1-boom.jpg",
+    imageStyle: {},
+    slug: "waarom-wij-denken-in-generaties-niet-in-kwartalen",
+  },
+  {
+    id: 2,
+    title: "Non-bancaire leningen: een alternatief met perspectief",
+    excerpt:
+      "Wanneer traditionele banken geen financiering verstrekken, bieden non-bancaire leningen uitkomst. Via ons partnerbedrijf Lange Financieel Advies maken wij deze oplossingen toegankelijk voor cliënten die op zoek zijn naar stabiele maandelijkse inkomsten.",
+    image: "/images/bericht-2-brug.jpg",
+    imageStyle: { objectPosition: "center 55%" },
+    slug: "non-bancaire-leningen-een-alternatief-met-perspectief",
   },
   {
     id: 3,
-    title: "Roemer Kamp & Partners: van alle markten thuis – Kunstmatige intelligentie: een hype of een kans?",
+    title: "Persoonlijk vermogensbeheer vanuit het hart van Haarlem",
     excerpt:
-      "Kunstmatige intelligentie verandert in razend tempo ons leven, werk en beleggingslandschap. Daarmee veranderen ook de risico's, kansen en tegenkrachten.",
-    image: "/images/ai-digital.jpg",
-    slug: "kunstmatige-intelligentie-hype-of-kans",
-  },
-  {
-    id: 4,
-    title: "Maurice Pordon start per 1 januari 2026 als Director Communicatie & Marketing",
-    excerpt:
-      "We zijn verheugd om aan te kondigen dat Maurice Pordon per 1 januari 2026 start als Director Communicatie & Marketing.",
-    image: "/images/professional-portrait.jpg",
-    slug: "maurice-pordon-director-communicatie-marketing",
-  },
-  {
-    id: 5,
-    title: "Small Cap beleggingen: ondergewaardeerde kansen",
-    excerpt:
-      "Small cap aandelen bieden interessante mogelijkheden voor beleggers die op zoek zijn naar groei en diversificatie.",
-    image: "/images/stock-market.jpg",
-    slug: "small-cap-beleggingen-ondergewaardeerde-kansen",
+      "Vanuit ons kantoor aan de Wilhelminastraat in Haarlem bedienen wij een select aantal cliënten. Geen call center, geen wisselende contactpersonen — maar een vast team dat uw situatie, ambities en familie écht kent.",
+    image: "/images/bericht-3-haarlem.jpg",
+    imageStyle: { objectPosition: "center 45%" },
+    slug: "persoonlijk-vermogensbeheer-vanuit-het-hart-van-haarlem",
   },
 ]
 
 export function ArticlesGridSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-20 bg-white">
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8">
-          {articles.map((article, index) => (
+          {articles.map((article) => (
             <article key={article.id} className="group">
               <div className="relative h-[200px] mb-4 overflow-hidden">
                 <Image
                   src={article.image}
                   alt={article.title}
                   fill
-                  priority={index < 4}
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  style={article.imageStyle}
                 />
               </div>
               <h3 className="text-xl font-serif text-[#311e86] mb-3 leading-tight">

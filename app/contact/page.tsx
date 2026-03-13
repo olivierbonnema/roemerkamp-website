@@ -1,7 +1,7 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { ContactHeroSection } from "@/components/contact/hero-section"
 import { ContactInfoSection } from "@/components/contact/contact-info-section"
-import { ContactFormSection } from "@/components/contact/contact-form-section"
 
 export const metadata = {
   title: "Contact | Roemer Kamp & Partners",
@@ -13,8 +13,8 @@ export default function ContactPage() {
     <>
       <Header />
       <main>
+        <ContactHeroSection />
         <ContactInfoSection />
-        <ContactFormSection />
       </main>
       <Footer />
     </>

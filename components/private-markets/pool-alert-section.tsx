@@ -68,7 +68,7 @@ export function PoolAlertSection() {
 
             <button
               type="submit"
-              className="bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#d44d18] transition-colors flex items-center gap-2"
+              className="bg-[#2596be] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#1e7fa0] transition-colors flex items-center gap-2"
             >
               <span>🔔</span> Houd me op de hoogte
             </button>

@@ -1,7 +1,6 @@
 export function BeschrijvingSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-4xl mx-auto px-4">
         <p className="text-gray-700 leading-relaxed mb-6">
           Op basis van het samen afgesproken beleggingsplan creëert en beheert Roemer Kamp & Partners jouw beleggingsportefeuille.
           Wij selecteren na grondige research wereldwijde &apos;best-in-class&apos; beursgenoteerde beleggingen. Hierbij bieden
@@ -17,7 +16,6 @@ export function BeschrijvingSection() {
         <p className="text-sm text-gray-500 italic">
           *Rendement zeer risicodragende portefeuille vanaf 2004.
         </p>
-      </div>
     </section>
   )
 }

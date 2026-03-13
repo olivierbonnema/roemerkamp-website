@@ -42,7 +42,7 @@ const data = [
 export function PrestatiesSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
+      <div>
         <SectionHeading>Onze prestaties</SectionHeading>
 
         <p className="text-gray-700 leading-relaxed mt-6 max-w-4xl">
@@ -53,7 +53,7 @@ export function PrestatiesSection() {
         </p>
 
         <div className="mt-12">
-          <h3 className="text-lg font-semibold text-[#311e86] mb-2">
+          <h3 className="text-lg font-serif font-semibold text-[#311e86] mb-2">
             Track record RKP vanaf 1/9/2004 (€) tot en met januari 2026
           </h3>
           <p className="text-gray-600 mb-6">Rendement voor beheervergoeding RKP</p>
@@ -116,13 +116,13 @@ export function PrestatiesSection() {
         <div className="flex gap-4 mt-8">
           <Link
             href="/vermogensbeheer/alle-rendementen"
-            className="px-6 py-3 border border-[#311e86] text-[#311e86] text-sm font-medium rounded-full hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 border border-[#2596be] text-[#2596be] text-sm font-medium rounded-full hover:bg-gray-50 transition-colors"
           >
             Alle rendementen
           </Link>
           <Link
             href="/contact"
-            className="px-6 py-3 bg-[#f75d20] text-white text-sm font-medium rounded-full hover:bg-[#d44d18] transition-colors"
+            className="px-6 py-3 bg-[#2596be] text-white text-sm font-medium rounded-full hover:bg-[#1e7fa0] transition-colors"
           >
             Neem contact op
           </Link>
