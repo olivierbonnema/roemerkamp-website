@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { PT_Serif, Roboto } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { AuthProvider } from '@/contexts/auth-context'
 import './globals.css'
 
 const ptSerif = PT_Serif({
@@ -16,8 +17,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: 'Roemer Kamp & Partners | Vermogensbeheer',
-  description: 'Roemer Kamp & Partners is een onafhankelijke wealth manager met een ondernemende mentaliteit. Vermogensbeheer en private markets voor vermogende ondernemers.',
+  title: 'Lange & Partners Non-bancair | Vermogensbeheer',
+  description: 'Lange & Partners Non-bancair is een onafhankelijke wealth manager met een ondernemende mentaliteit. Vermogensbeheer en private markets voor vermogende ondernemers.',
   generator: 'v0.app',
   icons: {
     icon: '/favicon.png',
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ptSerif.variable} ${roboto.variable} font-sans antialiased`}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

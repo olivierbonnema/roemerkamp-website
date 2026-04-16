@@ -22,7 +22,7 @@ export function PrivateMarketsHomeSection() {
             <SectionHeading>Over ons</SectionHeading>
             <div className="mt-6 space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                Roemer Kamp &amp; Partners kijkt voortdurend naar mogelijkheden om portefeuilles verder te versterken en goed te spreiden. Daarbij kijken wij niet alleen naar beursgenoteerde beleggingen, maar naar het totaalplaatje van het vermogen. Door verschillende beleggingscategorieën zorgvuldig te combineren ontstaat een portefeuille die minder afhankelijk is van één specifieke markt of ontwikkeling.
+                Lange &amp; Partners Non-bancair kijkt voortdurend naar mogelijkheden om portefeuilles verder te versterken en goed te spreiden. Daarbij kijken wij niet alleen naar beursgenoteerde beleggingen, maar naar het totaalplaatje van het vermogen. Door verschillende beleggingscategorieën zorgvuldig te combineren ontstaat een portefeuille die minder afhankelijk is van één specifieke markt of ontwikkeling.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 Onze aanpak is gericht op de lange termijn. We zoeken beleggingen die passen bij de doelstellingen, de financiële situatie en de risicobereidheid van onze cliënten. Door een evenwichtige spreiding en een gedisciplineerde beleggingsstrategie streven wij naar een portefeuille die stabiliteit kan bieden en op lange termijn kan bijdragen aan een solide vermogensopbouw.

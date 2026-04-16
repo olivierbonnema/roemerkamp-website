@@ -6,8 +6,8 @@ import { TeamGridSection } from "@/components/over-wmp/team-grid-section"
 import { InMemoriamSection } from "@/components/over-wmp/in-memoriam-section"
 
 export const metadata = {
-  title: "Over ons | Roemer Kamp & Partners",
-  description: "Leer meer over Roemer Kamp & Partners - onafhankelijk en ondernemend vermogensbeheer.",
+  title: "Over ons | Lange & Partners Non-bancair",
+  description: "Leer meer over Lange & Partners Non-bancair - onafhankelijk en ondernemend vermogensbeheer.",
 }
 
 export default function OverWMPPage() {

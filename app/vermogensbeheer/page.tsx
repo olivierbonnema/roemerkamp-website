@@ -10,8 +10,8 @@ import { VermogensbeheerMeerWetenSection } from "@/components/vermogensbeheer/me
 import { VermogensbeheerSidebar } from "@/components/vermogensbeheer/sidebar"
 
 export const metadata = {
-  title: "Vermogensbeheer | Roemer Kamp & Partners",
-  description: "Realiseer vermogensgroei passend bij jouw doelstellingen met Roemer Kamp & Partners vermogensbeheer.",
+  title: "Vermogensbeheer | Lange & Partners Non-bancair",
+  description: "Realiseer vermogensgroei passend bij jouw doelstellingen met Lange & Partners Non-bancair vermogensbeheer.",
 }
 
 export default function VermogensbeheerPage() {

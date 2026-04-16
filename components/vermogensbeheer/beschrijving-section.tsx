@@ -2,7 +2,7 @@ export function BeschrijvingSection() {
   return (
     <section className="py-16 bg-white">
         <p className="text-gray-700 leading-relaxed mb-6">
-          Op basis van het samen afgesproken beleggingsplan creëert en beheert Roemer Kamp & Partners jouw beleggingsportefeuille.
+          Op basis van het samen afgesproken beleggingsplan creëert en beheert Lange & Partners Non-bancair jouw beleggingsportefeuille.
           Wij selecteren na grondige research wereldwijde &apos;best-in-class&apos; beursgenoteerde beleggingen. Hierbij bieden
           we een mix van onafhankelijke beheeroplossingen die passen bij jouw persoonlijke doelstellingen. Een
           portefeuille kan bestaan uit indextrackers, actieve beleggingsfondsen, duurzame fondsen en/of combinaties

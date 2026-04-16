@@ -5,7 +5,7 @@ export function IetsVoorJouSection() {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-screen-2xl mx-auto px-4">
-        <SectionHeading>Roemer Kamp & Partners iets voor jou?</SectionHeading>
+        <SectionHeading>Lange & Partners Non-bancair iets voor jou?</SectionHeading>
 
         <p className="text-gray-700 leading-relaxed mt-6 max-w-4xl">
           Onze klanten zijn succesvolle ondernemers die zich in onze mentaliteit en werkwijze herkennen. Wij koesteren met hen jarenlange partnerships die gebaseerd zijn op respect, vertrouwen en
@@ -13,7 +13,7 @@ export function IetsVoorJouSection() {
         </p>
 
         <p className="text-gray-700 leading-relaxed mt-6 max-w-4xl">
-          Streef jij naar beheerste groei van je vermogen en een financieel zekere toekomst voor jezelf en je familie? Kom gewoon eens praten. Roemer Kamp & Partners is exclusief en intensief. Onze aanpak komt het
+          Streef jij naar beheerste groei van je vermogen en een financieel zekere toekomst voor jezelf en je familie? Kom gewoon eens praten. Lange & Partners Non-bancair is exclusief en intensief. Onze aanpak komt het
           meest tot zijn recht bij te beheren vermogens vanaf € 5 miljoen.
         </p>
 

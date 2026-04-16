@@ -12,10 +12,10 @@ export function WatWeNietDoenSection() {
           Omdat het risico aanzienlijk afneemt naarmate beleggingen de tijd krijgen om te groeien — en het risico op korte termijn groot is — beleggen wij uitsluitend met gelden die cliënten minimaal vijf jaar kunnen missen.
         </p>
         <p className="text-gray-700 leading-relaxed">
-          Bij Roemer Kamp & Partners werken we niet met een call center. Of met vaak wisselende account managers. Wij kiezen bewust voor exclusieve, persoonlijke dienstverlening. Onze cliënten werken altijd rechtstreeks met één van de vaste partners - ervaren deskundigen die hun vermogen, doelen en familiesituatie écht kennen. Voor wie waarde hecht aan continuïteit, korte lijnen en een vast contactpersoon, biedt Roemer Kamp & Partners de kwaliteit en toewijding die elders zeldzaam is.
+          Bij Lange & Partners Non-bancair werken we niet met een call center. Of met vaak wisselende account managers. Wij kiezen bewust voor exclusieve, persoonlijke dienstverlening. Onze cliënten werken altijd rechtstreeks met één van de vaste partners - ervaren deskundigen die hun vermogen, doelen en familiesituatie écht kennen. Voor wie waarde hecht aan continuïteit, korte lijnen en een vast contactpersoon, biedt Lange & Partners Non-bancair de kwaliteit en toewijding die elders zeldzaam is.
         </p>
         <p className="text-gray-700 leading-relaxed">
-          Over rendementen spreken zonder de risico&apos;s te benoemen? Daar doen wij niet aan. Bij Roemer Kamp & Partners weten wij dat rendementen altijd gepaard gaan met risico&apos;s. De bekende waarschuwing &quot;behaalde resultaten in het verleden zijn geen garantie voor de toekomst&quot; is absoluut waar — maar je kunt er wél op anticiperen.
+          Over rendementen spreken zonder de risico&apos;s te benoemen? Daar doen wij niet aan. Bij Lange & Partners Non-bancair weten wij dat rendementen altijd gepaard gaan met risico&apos;s. De bekende waarschuwing &quot;behaalde resultaten in het verleden zijn geen garantie voor de toekomst&quot; is absoluut waar — maar je kunt er wél op anticiperen.
         </p>
       </div>
     </section>

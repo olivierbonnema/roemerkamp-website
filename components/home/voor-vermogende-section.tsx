@@ -10,7 +10,7 @@ export function VoorVermogendeSection() {
         <div className="grid md:grid-cols-2 gap-12 mt-8">
           <div className="space-y-4">
             <p className="text-gray-700 leading-relaxed">
-              Bij Roemer Kamp &amp; Partners gaan we altijd uit van een win-winsituatie: zowel onze cliënten als wijzelf moeten een goed gevoel hebben bij de samenwerking. Vermogensbeheer draait voor ons niet alleen om rendement, maar vooral om vertrouwen, transparantie en een aanpak die past bij de lange termijn doelen van onze cliënten.
+              Bij Lange &amp; Partners Non-bancair gaan we altijd uit van een win-winsituatie: zowel onze cliënten als wijzelf moeten een goed gevoel hebben bij de samenwerking. Vermogensbeheer draait voor ons niet alleen om rendement, maar vooral om vertrouwen, transparantie en een aanpak die past bij de lange termijn doelen van onze cliënten.
             </p>
             <p className="text-gray-700 leading-relaxed">
               We kunnen u veel vertellen over onze manier van werken en wie wij zijn. Dat doen we uiteraard graag. Tegelijkertijd begrijpen we ook dat het soms waardevoller is om dat te horen van iemand die zelf ervaring heeft met ons vermogensbeheer. Vraag daarom gerust naar een referentie; veel van onze cliënten delen hun ervaringen graag.

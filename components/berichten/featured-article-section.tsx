@@ -5,7 +5,7 @@ const featuredArticle = {
   id: 1,
   title: "Succesvolle eerste close van RKP Pool N2C-2026!",
   excerpt:
-    "Met veel plezier kondigen wij de eerste close aan van de RKP Pool N2C-2026. In deze close is ruim € 112 miljoen toegezegd door relaties van Roemer Kamp & Partners. Wij zijn trots op dit resultaat en danken onze relaties voor het vertrouwen in ons en in deze strategie.",
+    "Met veel plezier kondigen wij de eerste close aan van de RKP Pool N2C-2026. In deze close is ruim € 112 miljoen toegezegd door relaties van Lange & Partners Non-bancair. Wij zijn trots op dit resultaat en danken onze relaties voor het vertrouwen in ons en in deze strategie.",
   image: "/images/nyc-skyline.jpg",
   slug: "succesvolle-eerste-close-wmp-pool-n2c-2026",
 }

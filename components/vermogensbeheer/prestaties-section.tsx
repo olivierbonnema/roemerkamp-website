@@ -108,7 +108,7 @@ export function PrestatiesSection() {
         </div>
 
         <p className="text-gray-600 text-sm mt-8 max-w-4xl">
-          De kosten van onderliggende fondsmanagers, het beheerloon van Roemer Kamp & Partners, bewaarloon en
+          De kosten van onderliggende fondsmanagers, het beheerloon van Lange & Partners Non-bancair, bewaarloon en
           transactiekosten (wanneer van toepassing) en mogelijke andere kosten zijn van invloed
           op het uiteindelijke netto rendement.
         </p>

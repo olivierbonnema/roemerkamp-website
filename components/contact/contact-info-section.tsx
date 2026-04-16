@@ -21,7 +21,7 @@ export function ContactInfoSection() {
           {/* Right — contact details */}
           <div className="space-y-8">
             <div>
-              <p className="font-semibold text-[#1e3a5f]">Roemer Kamp &amp; Partners</p>
+              <p className="font-semibold text-[#1e3a5f]">Lange &amp; Partners Non-bancair</p>
               <p className="text-gray-700">Wilhelminastraat 50</p>
               <p className="text-gray-700">2011 VN Haarlem</p>
               <p className="text-gray-700">Nederland</p>

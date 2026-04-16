@@ -93,7 +93,7 @@ export function AssetAllocationSection() {
           {/* Right sidebar */}
           <div className="bg-[#1e3a5f] p-8">
             <div className="w-20 h-1.5 bg-[#f75d20] mb-6" />
-            <h3 className="text-2xl font-serif text-white mb-8">Hierom kies je voor Roemer Kamp & Partners</h3>
+            <h3 className="text-2xl font-serif text-white mb-8">Hierom kies je voor Lange & Partners Non-bancair</h3>
             <ul className="space-y-6 text-white">
               <li>
                 <span className="font-semibold text-[#f75d20]">• Onafhankelijk:</span>{" "}

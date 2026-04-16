@@ -6,7 +6,7 @@ const articles = [
     id: 1,
     title: "Waarom wij denken in generaties, niet in kwartalen",
     excerpt:
-      "Bij Roemer Kamp & Partners geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien — met het oog op de toekomst.",
+      "Bij Lange & Partners Non-bancair geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien — met het oog op de toekomst.",
     image: "/images/bericht-1-boom.jpg",
     imageStyle: {},
     slug: "waarom-wij-denken-in-generaties-niet-in-kwartalen",

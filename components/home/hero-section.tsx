@@ -7,7 +7,9 @@ export function HeroSection() {
         <div className="grid md:grid-cols-2 gap-8 items-center">
           {/* Left content */}
           <div className="py-10 md:py-14 pr-4">
-            <h1 className="text-[45px] md:text-[56px] font-serif font-normal text-white mb-2">Roemer Kamp & Partners</h1>
+            <h1 className="text-[45px] md:text-[56px] font-serif font-normal text-white mb-2 leading-tight">
+              Lange &amp; Partners<br />Non-bancair
+            </h1>
             <div className="w-16 h-1.5 bg-[#f75d20] my-4" />
             <p className="text-[30px] md:text-[36px] font-serif text-white">Velen praten over een lange termijn strategie. Slechts weinigen handelen ernaar.</p>
             <p className="text-[30px] md:text-[36px] font-serif text-white mt-6">Wij worden er graag op afgerekend.</p>

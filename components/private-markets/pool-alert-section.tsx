@@ -56,7 +56,7 @@ export function PoolAlertSection() {
 
             <p className="text-sm text-gray-600 leading-relaxed">
               Door je naam en e-mailadres in te vullen en op &apos;Houd me op de hoogte&apos; te klikken,
-              geef je toestemming aan Roemer Kamp & Partners om periodieke alerts te sturen over onze Pools. Jouw
+              geef je toestemming aan Lange & Partners Non-bancair om periodieke alerts te sturen over onze Pools. Jouw
               privacy is belangrijk voor ons. Je kunt je op elk moment afmelden via de &apos;Afmelden&apos;
               link onderaan onze periodieke alerts. Voor meer informatie over ons privacybeleid
               verwijzen wij naar onze{" "}
