@@ -25,7 +25,7 @@ export function PortalDashboard() {
           </div>
           <Link
             href="/mijn-aanvragen"
-            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full bg-[#311e86] text-white hover:bg-[#26175e] transition-colors"
+            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
           >
             Bekijken →
           </Link>
@@ -38,7 +38,7 @@ export function PortalDashboard() {
           </div>
           <Link
             href="/financieringsaanvraag"
-            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86] text-[#311e86] hover:bg-[#311e86]/5 transition-colors"
+            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
           >
             Starten →
           </Link>
@@ -51,7 +51,7 @@ export function PortalDashboard() {
           </div>
           <Link
             href="/account"
-            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:border-gray-400 transition-colors"
+            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
           >
             Instellingen →
           </Link>
@@ -65,7 +65,7 @@ export function PortalDashboard() {
             </div>
             <Link
               href="/admin"
-              className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:border-gray-400 transition-colors"
+              className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
             >
               Beheer →
             </Link>
