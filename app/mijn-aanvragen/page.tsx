@@ -1,5 +1,5 @@
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { PortalFooter } from "@/components/portal-footer"
 import { AuthGuard } from "@/components/auth-guard"
 import { RequestsList } from "@/components/mijn-aanvragen/requests-list"
 
@@ -31,7 +31,7 @@ export default function MijnAanvragenPage() {
           </AuthGuard>
         </section>
       </main>
-      <Footer />
+      <PortalFooter />
     </>
   )
 }

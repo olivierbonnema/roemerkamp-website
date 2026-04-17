@@ -1,5 +1,5 @@
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { PortalFooter } from "@/components/portal-footer"
 import { AdminGuard } from "@/components/auth-guard"
 import { AdminPanel } from "@/components/admin/admin-panel"
 
@@ -30,7 +30,7 @@ export default function AdminPage() {
           </AdminGuard>
         </section>
       </main>
-      <Footer />
+      <PortalFooter />
     </>
   )
 }

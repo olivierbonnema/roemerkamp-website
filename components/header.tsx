@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { ShieldCheck } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -83,45 +84,52 @@ export function Header() {
   if (isPortalPage && !loading && user) {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="max-w-screen-2xl mx-auto px-4 py-6">
+        <div className="max-w-screen-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-8">
               <Link href="/" className="flex items-center flex-shrink-0">
                 <Image
                   src="/images/lange-logo.svg"
                   alt="Lange & Partners Non-bancair"
                   width={340}
                   height={85}
-                  className="h-[72px] w-auto -mt-4"
+                  className="h-[52px] w-auto"
                   priority
                 />
               </Link>
 
-              {/* Portal nav — where regular nav sits */}
-              <nav className="hidden md:flex items-center gap-10">
+              {/* Portal nav */}
+              <nav className="hidden md:flex items-center gap-1">
                 <Link
                   href="/mijn-aanvragen"
-                  className={`text-[13px] font-medium transition-colors hover:text-[#311e86] ${
-                    pathname === "/mijn-aanvragen" ? "text-[#311e86] font-semibold" : "text-gray-700"
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+                    pathname === "/mijn-aanvragen"
+                      ? "bg-[#311e86]/10 text-[#311e86]"
+                      : "text-gray-600 hover:text-[#311e86] hover:bg-gray-50"
                   }`}
                 >
                   Mijn aanvragen
                 </Link>
-                <button
-                  onClick={() => router.push("/financieringsaanvraag")}
-                  className={`text-[13px] font-medium transition-colors hover:text-[#311e86] cursor-pointer bg-transparent border-none p-0 ${
-                    pathname === "/financieringsaanvraag" ? "text-[#311e86] font-semibold" : "text-gray-700"
+                <Link
+                  href="/financieringsaanvraag"
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+                    pathname === "/financieringsaanvraag"
+                      ? "bg-[#311e86] text-white"
+                      : "bg-[#311e86] text-white hover:bg-[#26175e]"
                   }`}
                 >
                   Aanvraag indienen
-                </button>
+                </Link>
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className={`text-[13px] font-medium transition-colors hover:text-[#311e86] ${
-                      pathname?.startsWith("/admin") ? "text-[#311e86] font-semibold" : "text-gray-700"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+                      pathname?.startsWith("/admin")
+                        ? "bg-gray-100 text-gray-700"
+                        : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
                     }`}
                   >
+                    <ShieldCheck size={13} />
                     Admin
                   </Link>
                 )}
@@ -130,7 +138,7 @@ export function Header() {
 
             <button
               onClick={async () => { await logout(); router.push("/") }}
-              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-full hover:border-gray-400 transition-colors"
+              className="px-4 py-1.5 text-sm font-medium text-gray-500 border border-gray-200 rounded-full hover:border-gray-300 hover:text-gray-700 transition-colors font-sans"
             >
               Uitloggen
             </button>

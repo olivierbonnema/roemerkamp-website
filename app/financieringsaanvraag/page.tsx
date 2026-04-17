@@ -1,5 +1,5 @@
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { PortalFooter } from "@/components/portal-footer"
 import { FinancingForm } from "@/components/financieringsaanvraag/financing-form"
 import { AuthGuard } from "@/components/auth-guard"
 
@@ -34,7 +34,7 @@ export default function FinancieringsaanvraagPage() {
           </AuthGuard>
         </section>
       </main>
-      <Footer />
+      <PortalFooter />
     </>
   )
 }
