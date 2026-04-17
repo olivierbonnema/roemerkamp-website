@@ -124,20 +124,20 @@ export function LoginForm() {
 
       <div className="space-y-3">
         <a
-          href="https://rkp.portfolio.saxo"
+          href="https://www.geldvoorelkaar.nl/langefinancieeladvies/mijn-gegevens/"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center w-full py-3 text-sm font-medium font-sans border border-gray-300 rounded-full text-gray-900 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors"
         >
-          Login bij Saxo Bank
+          Login bij Geld voor Elkaar
         </a>
         <a
-          href="https://client.roemerkamppartners.onperformativ.com/"
+          href="https://www.collincrowdfund.nl/mijn-collin/"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center w-full py-3 text-sm font-medium font-sans border border-gray-300 rounded-full text-gray-900 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors"
         >
-          Login bij AFS
+          Login bij Collin Crowdfund
         </a>
       </div>
     </form>

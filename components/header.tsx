@@ -56,8 +56,8 @@ export function Header() {
   ]
 
   const loginDropdown: DropdownItem[] = [
-    { href: "https://rkp.portfolio.saxo", label: "Login bij Saxo Bank", external: true },
-    { href: "https://client.roemerkamppartners.onperformativ.com/", label: "Login bij AFS", external: true },
+    { href: "https://www.geldvoorelkaar.nl/langefinancieeladvies/mijn-gegevens/", label: "Login bij Geld voor Elkaar", external: true },
+    { href: "https://www.collincrowdfund.nl/mijn-collin/", label: "Login bij Collin Crowdfund", external: true },
   ]
 
   /* ── Mode A: Login page — logo only ── */
