@@ -84,16 +84,16 @@ export function Header() {
   if (isPortalPage && !loading && user) {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="max-w-screen-2xl mx-auto px-4 py-4">
+        <div className="max-w-screen-2xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-10">
               <Link href="/" className="flex items-center flex-shrink-0">
                 <Image
                   src="/images/lange-logo.svg"
                   alt="Lange & Partners Non-bancair"
                   width={340}
                   height={85}
-                  className="h-[52px] w-auto"
+                  className="h-[72px] w-auto -mt-4"
                   priority
                 />
               </Link>
@@ -202,20 +202,37 @@ export function Header() {
           {/* Right side */}
           <div className="flex items-center gap-3">
             {!loading && user ? (
-              /* Logged in on a non-portal page — show portal shortcut */
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/mijn-aanvragen"
-                  className="text-[13px] font-medium text-gray-700 transition-colors hover:text-[#311e86]"
-                >
-                  Mijn aanvragen
-                </Link>
-                <button
-                  onClick={async () => { await logout(); router.push("/") }}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-full hover:border-gray-400 transition-colors"
-                >
-                  Uitloggen
+              /* Logged in — Account dropdown */
+              <div className="relative group">
+                <button className="px-4 py-2 text-sm font-medium text-[#311e86] border border-[#311e86] rounded-full hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                  Account
+                  <svg className="w-3 h-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
+                <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out z-50">
+                  <div className="bg-white rounded-md shadow-lg border border-gray-100 py-2 min-w-[200px]">
+                    <Link href="/mijn-aanvragen" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                      Huidige aanvragen
+                    </Link>
+                    <Link href="/financieringsaanvraag" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                      Nieuwe aanvraag
+                    </Link>
+                    {isAdmin && (
+                      <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                        Beheer
+                      </Link>
+                    )}
+                    <div className="border-t border-gray-100 mt-1 pt-1">
+                      <button
+                        onClick={async () => { await logout(); router.push("/") }}
+                        className="w-full text-left block px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-colors"
+                      >
+                        Uitloggen
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : !loading ? (
               /* Not logged in */

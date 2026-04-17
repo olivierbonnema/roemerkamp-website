@@ -6,16 +6,14 @@ export function PortalFooter() {
 
   return (
     <footer className="border-t border-gray-100 bg-white mt-auto">
-      <div className="max-w-screen-2xl mx-auto px-4 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Image
-            src="/images/lange-logo.svg"
-            alt="Lange & Partners"
-            width={120}
-            height={30}
-            className="h-[28px] w-auto opacity-60"
-          />
-        </div>
+      <div className="max-w-screen-2xl mx-auto px-4 py-6 flex items-center justify-between">
+        <Image
+          src="/images/lange-logo.svg"
+          alt="Lange & Partners"
+          width={340}
+          height={85}
+          className="h-[72px] w-auto -mt-4"
+        />
         <div className="flex items-center gap-6">
           <span className="text-xs text-gray-400 font-sans">
             © {year} Lange & Partners Non-bancair
