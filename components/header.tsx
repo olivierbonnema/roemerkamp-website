@@ -102,6 +102,16 @@ export function Header() {
               {/* Portal nav */}
               <nav className="hidden md:flex items-center gap-3">
                 <Link
+                  href="/portaal"
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors border ${
+                    pathname === "/portaal"
+                      ? "bg-[#311e86] text-white border-[#311e86]"
+                      : "text-[#311e86] border-[#311e86]/40 hover:bg-[#311e86]/10"
+                  }`}
+                >
+                  Home
+                </Link>
+                <Link
                   href="/mijn-aanvragen"
                   className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors border ${
                     pathname === "/mijn-aanvragen"
