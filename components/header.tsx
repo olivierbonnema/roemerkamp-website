@@ -18,7 +18,7 @@ interface NavItem {
   dropdown?: DropdownItem[]
 }
 
-const PORTAL_PATHS = ["/mijn-aanvragen", "/financieringsaanvraag", "/admin"]
+const PORTAL_PATHS = ["/mijn-aanvragen", "/financieringsaanvraag", "/admin", "/account"]
 
 export function Header() {
   const pathname = usePathname()
@@ -99,7 +99,7 @@ export function Header() {
               </Link>
 
               {/* Portal nav */}
-              <nav className="hidden md:flex items-center gap-1">
+              <nav className="hidden md:flex items-center gap-3">
                 <Link
                   href="/mijn-aanvragen"
                   className={`px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
@@ -112,10 +112,10 @@ export function Header() {
                 </Link>
                 <Link
                   href="/financieringsaanvraag"
-                  className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors border ${
                     pathname === "/financieringsaanvraag"
-                      ? "bg-[#311e86] text-white"
-                      : "bg-[#311e86] text-white hover:bg-[#26175e]"
+                      ? "bg-[#311e86]/10 text-[#311e86] border-[#311e86]/30"
+                      : "text-[#311e86] border-[#311e86]/30 hover:bg-[#311e86]/10"
                   }`}
                 >
                   Aanvraag indienen
@@ -136,12 +136,30 @@ export function Header() {
               </nav>
             </div>
 
-            <button
-              onClick={async () => { await logout(); router.push("/") }}
-              className="px-4 py-1.5 text-sm font-medium text-gray-500 border border-gray-200 rounded-full hover:border-gray-300 hover:text-gray-700 transition-colors font-sans"
-            >
-              Uitloggen
-            </button>
+            {/* Account dropdown */}
+            <div className="relative group">
+              <button className="px-4 py-2 text-sm font-medium text-[#311e86] border border-[#311e86] rounded-full hover:bg-gray-50 transition-colors flex items-center gap-1.5 font-sans">
+                Account
+                <svg className="w-3 h-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out z-50">
+                <div className="bg-white rounded-md shadow-lg border border-gray-100 py-2 min-w-[200px]">
+                  <Link href="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                    Accountinstellingen
+                  </Link>
+                  <div className="border-t border-gray-100 mt-1 pt-1">
+                    <button
+                      onClick={async () => { await logout(); router.push("/") }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-colors"
+                    >
+                      Uitloggen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -223,10 +241,13 @@ export function Header() {
                         Beheer
                       </Link>
                     )}
+                    <Link href="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                      Accountinstellingen
+                    </Link>
                     <div className="border-t border-gray-100 mt-1 pt-1">
                       <button
                         onClick={async () => { await logout(); router.push("/") }}
-                        className="w-full text-left block px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-colors"
                       >
                         Uitloggen
                       </button>

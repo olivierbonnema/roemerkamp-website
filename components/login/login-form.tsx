@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { sendPasswordResetEmail } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 import { useAuth } from "@/contexts/auth-context"
 
 export function LoginForm() {
@@ -11,6 +13,25 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Vul eerst uw e-mailadres in.")
+      return
+    }
+    setResetLoading(true)
+    setError("")
+    try {
+      await sendPasswordResetEmail(auth, email)
+      setResetSent(true)
+    } catch {
+      setError("Kon geen resetmail versturen. Controleer uw e-mailadres.")
+    } finally {
+      setResetLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,9 +76,19 @@ export function LoginForm() {
       </div>
 
       <div>
-        <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">
-          Wachtwoord <span className="text-[#F75D20]">*</span>
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-[13px] font-medium text-gray-900 font-sans">
+            Wachtwoord <span className="text-[#F75D20]">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            disabled={resetLoading}
+            className="text-[12px] text-[#311e86] hover:underline font-sans disabled:opacity-50"
+          >
+            {resetLoading ? "Versturen…" : "Wachtwoord vergeten?"}
+          </button>
+        </div>
         <input
           type="password"
           value={password}
@@ -66,6 +97,12 @@ export function LoginForm() {
           className="w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
         />
       </div>
+
+      {resetSent && (
+        <p className="text-sm text-green-600 font-sans">
+          Resetlink verzonden — controleer uw inbox.
+        </p>
+      )}
 
       {error && (
         <p className="text-sm text-red-500 font-sans">{error}</p>
