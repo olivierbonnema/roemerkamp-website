@@ -21,6 +21,11 @@ const AuthContext = createContext<AuthContextValue>({
 })
 
 const ADMIN_DOMAIN = (process.env.NEXT_PUBLIC_ADMIN_DOMAIN || "").toLowerCase()
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+  .toLowerCase()
+  .split(",")
+  .map((e) => e.trim())
+  .filter(Boolean)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -42,7 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth)
   }
 
-  const isAdmin = !!user?.email && !!ADMIN_DOMAIN && user.email.toLowerCase().endsWith(`@${ADMIN_DOMAIN}`)
+  const email = user?.email?.toLowerCase() ?? ""
+  const isAdmin =
+    !!email &&
+    ((!!ADMIN_DOMAIN && email.endsWith(`@${ADMIN_DOMAIN}`)) ||
+      ADMIN_EMAILS.includes(email))
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
