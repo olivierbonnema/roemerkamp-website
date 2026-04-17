@@ -45,7 +45,7 @@ export function LoginForm() {
     setLoading(true)
     try {
       await login(email, password)
-      router.push("/financieringsaanvraag")
+      router.push("/portaal")
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
       if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
@@ -76,10 +76,17 @@ export function LoginForm() {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-[13px] font-medium text-gray-900 font-sans">
-            Wachtwoord <span className="text-[#F75D20]">*</span>
-          </label>
+        <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">
+          Wachtwoord <span className="text-[#F75D20]">*</span>
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
+        />
+        <div className="mt-2 text-right">
           <button
             type="button"
             onClick={handleForgotPassword}
@@ -89,20 +96,12 @@ export function LoginForm() {
             {resetLoading ? "Versturen…" : "Wachtwoord vergeten?"}
           </button>
         </div>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className="w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
-        />
+        {resetSent && (
+          <p className="text-xs text-green-600 font-sans mt-1">
+            Resetlink verzonden — controleer uw inbox.
+          </p>
+        )}
       </div>
-
-      {resetSent && (
-        <p className="text-sm text-green-600 font-sans">
-          Resetlink verzonden — controleer uw inbox.
-        </p>
-      )}
 
       {error && (
         <p className="text-sm text-red-500 font-sans">{error}</p>

@@ -15,6 +15,19 @@ async function verifyAdmin(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await verifyAdmin(req)
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { id } = await params
+  try {
+    await adminDb.collection("aanvragen").doc(id).delete()
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: "Aanvraag verwijderen mislukt." }, { status: 500 })
+  }
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

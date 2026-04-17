@@ -18,7 +18,7 @@ interface NavItem {
   dropdown?: DropdownItem[]
 }
 
-const PORTAL_PATHS = ["/mijn-aanvragen", "/financieringsaanvraag", "/admin", "/account"]
+const PORTAL_PATHS = ["/mijn-aanvragen", "/financieringsaanvraag", "/admin", "/account", "/portaal"]
 
 export function Header() {
   const pathname = usePathname()
@@ -56,6 +56,7 @@ export function Header() {
   ]
 
   const loginDropdown: DropdownItem[] = [
+    { href: "/login", label: "Login bij het aanvragenportaal" },
     { href: "https://www.geldvoorelkaar.nl/langefinancieeladvies/mijn-gegevens/", label: "Login bij Geld voor Elkaar", external: true },
     { href: "https://www.collincrowdfund.nl/mijn-collin/", label: "Login bij Collin Crowdfund", external: true },
   ]
@@ -102,10 +103,10 @@ export function Header() {
               <nav className="hidden md:flex items-center gap-3">
                 <Link
                   href="/mijn-aanvragen"
-                  className={`px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors border ${
                     pathname === "/mijn-aanvragen"
-                      ? "bg-[#311e86]/10 text-[#311e86]"
-                      : "text-gray-600 hover:text-[#311e86] hover:bg-gray-50"
+                      ? "bg-[#311e86] text-white border-[#311e86]"
+                      : "text-[#311e86] border-[#311e86]/40 hover:bg-[#311e86]/10"
                   }`}
                 >
                   Mijn aanvragen
@@ -114,8 +115,8 @@ export function Header() {
                   href="/financieringsaanvraag"
                   className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors border ${
                     pathname === "/financieringsaanvraag"
-                      ? "bg-[#311e86]/10 text-[#311e86] border-[#311e86]/30"
-                      : "text-[#311e86] border-[#311e86]/30 hover:bg-[#311e86]/10"
+                      ? "bg-[#311e86] text-white border-[#311e86]"
+                      : "text-[#311e86] border-[#311e86]/40 hover:bg-[#311e86]/10"
                   }`}
                 >
                   Aanvraag indienen
@@ -265,18 +266,20 @@ export function Header() {
                   Login
                 </Link>
                 <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
-                  <div className="bg-white rounded-md shadow-lg border border-gray-100 py-2 min-w-[200px]">
-                    {loginDropdown.map((item) => (
-                      <a
-                        key={item.href}
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
+                  <div className="bg-white rounded-md shadow-lg border border-gray-100 py-2 min-w-[220px]">
+                    {loginDropdown.map((item) =>
+                      item.external ? (
+                        <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link key={item.href} href={item.href}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#311e86] transition-colors">
+                          {item.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
