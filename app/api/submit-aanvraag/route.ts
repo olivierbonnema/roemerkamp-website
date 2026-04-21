@@ -270,18 +270,18 @@ export async function POST(req: NextRequest) {
     </div>`
 
   const emailFooter = `
-    <div style="border-top:1px solid #e5e7eb;padding:20px 40px;background:#f9fafb;">
+    <div style="background:#1E3A5F;padding:24px 40px;">
       <table style="width:100%;border-collapse:collapse;">
         <tr>
-          <td style="font-size:12px;color:#9ca3af;line-height:1.8;font-family:sans-serif;">
-            <span style="color:#6b7280;font-weight:500;">Lange &amp; Partners Non-bancair</span><br>
+          <td style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.9;font-family:sans-serif;">
+            <span style="color:#fff;font-weight:500;font-size:13px;">Lange &amp; Partners Non-bancair</span><br>
             Wilhelminastraat 50 &nbsp;&middot;&nbsp; 2011 VN Haarlem<br>
-            <a href="tel:+31235173106" style="color:#9ca3af;text-decoration:none;">(023) 517 31 06</a>
+            <a href="tel:+31235173106" style="color:rgba(255,255,255,0.6);text-decoration:none;">(023) 517 31 06</a>
             &nbsp;&middot;&nbsp;
-            <a href="mailto:info@langefa.nl" style="color:#9ca3af;text-decoration:none;">info@langefa.nl</a>
+            <a href="mailto:info@langefa.nl" style="color:rgba(255,255,255,0.6);text-decoration:none;">info@langefa.nl</a>
           </td>
-          <td style="text-align:right;vertical-align:bottom;">
-            <a href="https://langefa.nl" style="font-size:11px;color:#d1d5db;text-decoration:none;letter-spacing:0.5px;font-family:sans-serif;">langefa.nl</a>
+          <td style="text-align:right;vertical-align:middle;">
+            <a href="https://langefa.nl" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;letter-spacing:0.5px;font-family:sans-serif;">langefa.nl</a>
           </td>
         </tr>
       </table>
