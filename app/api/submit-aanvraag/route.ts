@@ -257,90 +257,108 @@ export async function POST(req: NextRequest) {
   let driveFolderUrl = ""
   let folderId = ""
 
+  /* ── Email layout helpers ── */
+  const emailHeader = (title: string, subtitle?: string) => `
+    <div style="border-top:3px solid #F75D20;background:#1E3A5F;padding:28px 40px 24px;">
+      <div style="color:#fff;font-size:13px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;opacity:0.6;margin-bottom:8px;">Lange &amp; Partners Non-bancair</div>
+      <div style="color:#fff;font-size:22px;font-weight:300;line-height:1.3;">${title}</div>
+      ${subtitle ? `<div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:6px;">${subtitle}</div>` : ""}
+    </div>`
+
+  const emailFooter = `
+    <div style="border-top:1px solid #e5e7eb;padding:20px 40px;background:#f9fafb;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="font-size:12px;color:#9ca3af;line-height:1.8;">
+            <span style="color:#6b7280;font-weight:500;">Lange &amp; Partners Non-bancair</span><br>
+            Spaarne 17 &nbsp;&middot;&nbsp; 2011 CD Haarlem<br>
+            <a href="tel:+31235173106" style="color:#9ca3af;text-decoration:none;">(023) 517 31 06</a>
+            &nbsp;&middot;&nbsp;
+            <a href="mailto:info@langefa.nl" style="color:#9ca3af;text-decoration:none;">info@langefa.nl</a>
+          </td>
+          <td style="text-align:right;vertical-align:bottom;">
+            <a href="https://www.langefa.nl" style="font-size:11px;color:#d1d5db;text-decoration:none;letter-spacing:0.5px;">langefa.nl</a>
+          </td>
+        </tr>
+      </table>
+    </div>`
+
   /* ── Emails ── */
   const confirmationHtml = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827;">
-      <div style="background:#1E3A5F;padding:32px 32px 24px;">
-        <div style="width:40px;height:3px;background:#F75D20;border-radius:2px;margin-bottom:16px;"></div>
-        <h1 style="color:#fff;font-size:24px;margin:0;font-weight:400;">Bedankt voor uw aanvraag</h1>
-      </div>
-      <div style="padding:32px;">
-        <p style="font-size:15px;line-height:1.6;color:#374151;">Beste ${naam || "relatie"},</p>
-        <p style="font-size:15px;line-height:1.6;color:#374151;">
-          Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag
-          en neemt zo spoedig mogelijk contact met u op.
-        </p>
-        <p style="font-size:15px;line-height:1.6;color:#374151;">
-          U kunt rekenen op een eerste reactie binnen twee werkdagen.
-        </p>
-        <p style="font-size:15px;line-height:1.6;color:#374151;">
-          Met vriendelijke groet,<br/>
-          <strong>Lange &amp; Partners Non-bancair</strong>
-        </p>
-      </div>
-      <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
-        <p style="font-size:12px;color:#9ca3af;margin:0;">Lange &amp; Partners Non-bancair — Vermogensbeheer &amp; Private Markets</p>
+    <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
+        ${emailHeader("Bedankt voor uw aanvraag")}
+        <div style="padding:36px 40px;">
+          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">Beste ${naam || "relatie"},</p>
+          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">
+            Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op.
+          </p>
+          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 32px;">
+            U kunt rekenen op een eerste reactie binnen twee werkdagen.
+          </p>
+          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0;">
+            Met vriendelijke groet,<br>
+            <strong style="color:#1E3A5F;">Lange &amp; Partners Non-bancair</strong>
+          </p>
+        </div>
+        ${emailFooter}
       </div>
     </div>`
 
   const notificationHtml = `
-    <div style="font-family:sans-serif;max-width:620px;margin:0 auto;color:#111827;">
-      <div style="background:#1E3A5F;padding:32px 32px 24px;">
-        <div style="width:40px;height:3px;background:#F75D20;border-radius:2px;margin-bottom:16px;"></div>
-        <h1 style="color:#fff;font-size:22px;margin:0;font-weight:400;">Nieuwe financieringsaanvraag</h1>
-        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:8px 0 0;">Ontvangen via de website</p>
-      </div>
-      <div style="padding:24px 32px;">
-        ${driveFolderUrl ? `
-        <a href="${driveFolderUrl}" style="display:inline-block;margin-bottom:12px;margin-right:8px;padding:10px 20px;background:#311E86;color:#fff;border-radius:999px;font-size:13px;text-decoration:none;font-weight:500;">
-          Bekijk documenten in OneDrive →
-        </a>` : ""}
-        ${folderId ? (() => {
-          const token = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback").update(folderId).digest("hex")
-          const triggerUrl = `${process.env.PORTAL_BASE_URL || ""}/api/trigger-analysis?folderId=${folderId}&token=${token}`
-          return `<a href="${triggerUrl}" style="display:inline-block;margin-bottom:24px;padding:10px 20px;background:#F75D20;color:#fff;border-radius:999px;font-size:13px;text-decoration:none;font-weight:500;">
-          ▶ Start AI Analyse
-        </a>`
-        })() : ""}
-        <table style="width:100%;border-collapse:collapse;">
-          ${section("Aanvrager", [
-            row("Type aanvrager", fmt(aanvragerType)),
-            row("Naam", fmt(naam)),
-            row("Bedrijfsnaam", bedrijfsnaam),
-            row("KvK-nummer", kvkNummer),
-            row("E-mail", fmt(email)),
-            row("Telefoon", fmt(telefoon)),
-            row("Adres", adres),
-            row("Geboortedatum", geboortedatum),
-            row("Burgerlijke staat", burgerlijkStaat),
-            row("Medeaanvrager", medeNaam),
-          ].join(""))}
-          ${objects.map((obj, i) => section(objects.length > 1 ? `Object ${i + 1}` : "Object", [
-            row("Type vastgoed", fmt(obj.type)),
-            row("Adres", fmt(obj.adres)),
-            row("Postcode / Plaats", [obj.postcode, obj.plaats].filter(Boolean).join(" ") || "—"),
-            row("Marktwaarde", fmtEur(obj.waarde)),
-            row("Huurinkomsten", obj.huurinkomsten ? `€ ${obj.huurinkomsten} / maand` : ""),
-          ].join(""))).join("")}
-          ${section("Financiering", [
-            row("Doel", fmt(leningDoel)),
-            row("Gewenst bedrag", fmtEur(leningBedrag)),
-            row("Looptijd", fmt(looptijd)),
-            row("Aflossingstype", aflossingstype),
-            row("Financiering nodig op", wanneerNodig),
-            row("Eigen inbreng", fmtEur(eigenInbreng)),
-            row("Bestaande schulden", fmtEur(bestaandeSchulden)),
-            row("Exit strategy", uitstrategie),
-            row("Toelichting", toelichting),
-          ].join(""))}
-          ${section("Documenten", [
-            row("Aantal bestanden", `${allFiles.length}`),
-            row("Details", filesSummary),
-          ].join(""))}
-        </table>
-      </div>
-      <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
-        <p style="font-size:12px;color:#9ca3af;margin:0;">Lange &amp; Partners Non-bancair — interne notificatie</p>
+    <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
+      <div style="max-width:620px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
+        ${emailHeader("Nieuwe financieringsaanvraag", `${naam || email} &nbsp;&middot;&nbsp; ${new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}`)}
+        <div style="padding:24px 40px 32px;">
+          ${driveFolderUrl ? `
+          <a href="${driveFolderUrl}" style="display:inline-block;margin-bottom:12px;margin-right:8px;padding:9px 18px;background:#311E86;color:#fff;border-radius:4px;font-size:13px;text-decoration:none;font-weight:500;">
+            Documenten in OneDrive →
+          </a>` : ""}
+          ${folderId ? (() => {
+            const token = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback").update(folderId).digest("hex")
+            const triggerUrl = `${process.env.PORTAL_BASE_URL || ""}/api/trigger-analysis?folderId=${folderId}&token=${token}`
+            return `<a href="${triggerUrl}" style="display:inline-block;margin-bottom:24px;padding:9px 18px;background:#F75D20;color:#fff;border-radius:4px;font-size:13px;text-decoration:none;font-weight:500;">
+            ▶ Start AI Analyse
+          </a>`
+          })() : ""}
+          <table style="width:100%;border-collapse:collapse;">
+            ${section("Aanvrager", [
+              row("Type aanvrager", fmt(aanvragerType)),
+              row("Naam", fmt(naam)),
+              row("Bedrijfsnaam", bedrijfsnaam),
+              row("KvK-nummer", kvkNummer),
+              row("E-mail", fmt(email)),
+              row("Telefoon", fmt(telefoon)),
+              row("Adres", adres),
+              row("Geboortedatum", geboortedatum),
+              row("Burgerlijke staat", burgerlijkStaat),
+              row("Medeaanvrager", medeNaam),
+            ].join(""))}
+            ${objects.map((obj, i) => section(objects.length > 1 ? `Object ${i + 1}` : "Object", [
+              row("Type vastgoed", fmt(obj.type)),
+              row("Adres", fmt(obj.adres)),
+              row("Postcode / Plaats", [obj.postcode, obj.plaats].filter(Boolean).join(" ") || "—"),
+              row("Marktwaarde", fmtEur(obj.waarde)),
+              row("Huurinkomsten", obj.huurinkomsten ? `€ ${obj.huurinkomsten} / maand` : ""),
+            ].join(""))).join("")}
+            ${section("Financiering", [
+              row("Doel", fmt(leningDoel)),
+              row("Gewenst bedrag", fmtEur(leningBedrag)),
+              row("Looptijd", fmt(looptijd)),
+              row("Aflossingstype", aflossingstype),
+              row("Financiering nodig op", wanneerNodig),
+              row("Eigen inbreng", fmtEur(eigenInbreng)),
+              row("Bestaande schulden", fmtEur(bestaandeSchulden)),
+              row("Exit strategy", uitstrategie),
+              row("Toelichting", toelichting),
+            ].join(""))}
+            ${section("Documenten", [
+              row("Aantal bestanden", `${allFiles.length}`),
+              row("Details", filesSummary),
+            ].join(""))}
+          </table>
+        </div>
+        ${emailFooter}
       </div>
     </div>`
 
