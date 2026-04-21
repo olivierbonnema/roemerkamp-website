@@ -242,7 +242,7 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
         </div>
       </div>
 
-      {a.driveFolderUrl && (
+      {isAdmin && a.driveFolderUrl && (
         <div className="mt-4 pt-4 border-t border-gray-100">
           <a
             href={a.driveFolderUrl}
