@@ -258,11 +258,13 @@ export async function POST(req: NextRequest) {
   let folderId = ""
 
   /* ── Email layout helpers ── */
+  const BASE_URL = process.env.PORTAL_BASE_URL || "https://lange-partners-portal.vercel.app"
+
   const emailHeader = (title: string, subtitle?: string) => `
-    <div style="border-top:3px solid #F75D20;background:#1E3A5F;padding:28px 40px 24px;">
-      <div style="color:#fff;font-size:13px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;opacity:0.6;margin-bottom:8px;">Lange &amp; Partners Non-bancair</div>
-      <div style="color:#fff;font-size:22px;font-weight:300;line-height:1.3;">${title}</div>
-      ${subtitle ? `<div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:6px;">${subtitle}</div>` : ""}
+    <div style="border-top:3px solid #F75D20;background:#1E3A5F;padding:24px 40px 20px;">
+      <img src="${BASE_URL}/images/lange-logo.png" alt="Lange &amp; Partners Non-bancair" style="height:52px;width:auto;display:block;margin-bottom:16px;" />
+      <div style="color:#fff;font-size:22px;font-weight:400;line-height:1.3;font-family:'PT Serif',Georgia,serif;">${title}</div>
+      ${subtitle ? `<div style="color:rgba(255,255,255,0.55);font-size:13px;margin-top:6px;font-family:sans-serif;">${subtitle}</div>` : ""}
     </div>`
 
   const emailFooter = `
@@ -271,13 +273,13 @@ export async function POST(req: NextRequest) {
         <tr>
           <td style="font-size:12px;color:#9ca3af;line-height:1.8;">
             <span style="color:#6b7280;font-weight:500;">Lange &amp; Partners Non-bancair</span><br>
-            Spaarne 17 &nbsp;&middot;&nbsp; 2011 CD Haarlem<br>
+            Wilhelminastraat 50 &nbsp;&middot;&nbsp; 2011 VN Haarlem<br>
             <a href="tel:+31235173106" style="color:#9ca3af;text-decoration:none;">(023) 517 31 06</a>
             &nbsp;&middot;&nbsp;
             <a href="mailto:info@langefa.nl" style="color:#9ca3af;text-decoration:none;">info@langefa.nl</a>
           </td>
           <td style="text-align:right;vertical-align:bottom;">
-            <a href="https://www.langefa.nl" style="font-size:11px;color:#d1d5db;text-decoration:none;letter-spacing:0.5px;">langefa.nl</a>
+            <a href="https://lange-partners-portal.vercel.app" style="font-size:11px;color:#d1d5db;text-decoration:none;letter-spacing:0.5px;">langefa.nl</a>
           </td>
         </tr>
       </table>
@@ -285,18 +287,18 @@ export async function POST(req: NextRequest) {
 
   /* ── Emails ── */
   const confirmationHtml = `
-    <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
+    <div style="background:#f3f4f6;padding:32px 16px;font-family:'PT Serif',Georgia,serif;">
       <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
         ${emailHeader("Bedankt voor uw aanvraag")}
         <div style="padding:36px 40px;">
-          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">Beste ${naam || "relatie"},</p>
-          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">
+          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0 0 16px;">Beste ${naam || "relatie"},</p>
+          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0 0 16px;">
             Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op.
           </p>
-          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 32px;">
+          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0 0 32px;">
             U kunt rekenen op een eerste reactie binnen twee werkdagen.
           </p>
-          <p style="font-size:15px;line-height:1.7;color:#374151;margin:0;">
+          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0;">
             Met vriendelijke groet,<br>
             <strong style="color:#1E3A5F;">Lange &amp; Partners Non-bancair</strong>
           </p>
