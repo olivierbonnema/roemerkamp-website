@@ -16,18 +16,19 @@ export async function GET(req: NextRequest) {
   }
 
   let uid: string
+  let email: string
   try {
     const decoded = await adminAuth.verifyIdToken(auth.slice(7))
     uid = decoded.uid
+    email = decoded.email ?? ""
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    const snap = await adminDb
-      .collection("aanvragen")
-      .where("userId", "==", uid)
-      .get()
+    const snap = isAdminEmail(email)
+      ? await adminDb.collection("aanvragen").get()
+      : await adminDb.collection("aanvragen").where("userId", "==", uid).get()
 
     const aanvragen = snap.docs
       .map((doc) => {

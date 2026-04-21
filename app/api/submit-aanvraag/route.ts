@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse, after } from "next/server"
 import { Resend } from "resend"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
@@ -142,7 +142,57 @@ export async function POST(req: NextRequest) {
     .map(([cat, f]) => `${cat}: ${f.map(f => f.name).join(", ")}`)
     .join(" | ") || "Geen documenten"
 
-  /* ── Save to Firestore first (before potentially slow OneDrive upload) ── */
+  // Pre-read all file buffers while the request is still open
+  const fileBuffers = await Promise.all(allFiles.map(async (file) => ({
+    name: file.name,
+    type: file.type || "application/octet-stream",
+    buffer: Buffer.from(await file.arrayBuffer()),
+  })))
+
+  const summaryText = [
+    "=== FINANCIERINGSAANVRAAG — FORMULIERGEGEVENS ===",
+    `Datum: ${new Date().toLocaleString("nl-NL")}`,
+    "",
+    "--- AANVRAGER ---",
+    `Type aanvrager: ${aanvragerType}`,
+    `Naam: ${naam}`,
+    `E-mail: ${email}`,
+    `Telefoon: ${telefoon}`,
+    `Adres: ${adres}`,
+    bedrijfsnaam    ? `Bedrijfsnaam: ${bedrijfsnaam}` : "",
+    kvkNummer       ? `KvK-nummer: ${kvkNummer}` : "",
+    geboortedatum   ? `Geboortedatum: ${geboortedatum}` : "",
+    burgerlijkStaat ? `Burgerlijke staat: ${burgerlijkStaat}` : "",
+    medeNaam        ? `Medeaanvrager: ${medeNaam}` : "",
+    medeEmail       ? `E-mail medeaanvrager: ${medeEmail}` : "",
+    "",
+    ...objects.map((obj, i) => [
+      objects.length > 1 ? `--- OBJECT ${i + 1} ---` : "--- OBJECT ---",
+      `Type vastgoed: ${obj.type}`,
+      `Adres: ${obj.adres}`,
+      `Postcode: ${obj.postcode}`,
+      `Plaats: ${obj.plaats}`,
+      `Geschatte marktwaarde: €${obj.waarde}`,
+      obj.huurinkomsten ? `Huurinkomsten: €${obj.huurinkomsten} per maand` : "",
+      "",
+    ].filter(Boolean)).flat(),
+    "--- FINANCIERING ---",
+    `Doel: ${leningDoel}`,
+    `Gewenst leningbedrag: €${leningBedrag}`,
+    `Looptijd: ${looptijd}`,
+    aflossingstype    ? `Aflossingstype: ${aflossingstype}` : "",
+    wanneerNodig      ? `Financiering nodig op: ${wanneerNodig}` : "",
+    eigenInbreng      ? `Eigen inbreng: €${eigenInbreng}` : "",
+    bestaandeSchulden ? `Bestaande schulden: €${bestaandeSchulden}` : "",
+    uitstrategie      ? `Exit strategy: ${uitstrategie}` : "",
+    toelichting       ? `Toelichting: ${toelichting}` : "",
+    "",
+    "--- DOCUMENTEN ---",
+    `Aantal bestanden: ${allFiles.length}`,
+    filesSummary,
+  ].filter(line => line !== "").join("\n")
+
+  /* ── Save to Firestore immediately ── */
   let docRef: FirebaseFirestore.DocumentReference | null = null
   try {
     docRef = await adminDb.collection("aanvragen").add({
@@ -184,73 +234,28 @@ export async function POST(req: NextRequest) {
     console.error("Firestore save error:", err)
   }
 
-  /* ── Upload to OneDrive, then update Firestore with URL ── */
+  /* ── Upload to OneDrive after the response is sent ── */
+  const date = new Date().toISOString().slice(0, 10)
+  const folderName = `${date} — ${naam || email}`
+
+  after(async () => {
+    try {
+      const token = await getMsToken()
+      const { id, webUrl } = await createOneDriveFolder(token, folderName)
+      await uploadToOneDrive(token, id, "aanvraag-samenvatting.txt", Buffer.from(summaryText, "utf-8"), "text/plain")
+      for (const file of fileBuffers) {
+        await uploadToOneDrive(token, id, file.name, file.buffer, file.type)
+      }
+      if (docRef) {
+        await docRef.update({ driveFolderUrl: webUrl, driveFolderId: id })
+      }
+    } catch (err) {
+      console.error("OneDrive upload error:", err)
+    }
+  })
+
   let driveFolderUrl = ""
   let folderId = ""
-  try {
-    const token = await getMsToken()
-    const date = new Date().toISOString().slice(0, 10)
-    const folderName = `${date} — ${naam || email}`
-    const { id, webUrl } = await createOneDriveFolder(token, folderName)
-    folderId = id
-    driveFolderUrl = webUrl
-
-    const summary = [
-      "=== FINANCIERINGSAANVRAAG — FORMULIERGEGEVENS ===",
-      `Datum: ${new Date().toLocaleString("nl-NL")}`,
-      "",
-      "--- AANVRAGER ---",
-      `Type aanvrager: ${aanvragerType}`,
-      `Naam: ${naam}`,
-      `E-mail: ${email}`,
-      `Telefoon: ${telefoon}`,
-      `Adres: ${adres}`,
-      bedrijfsnaam    ? `Bedrijfsnaam: ${bedrijfsnaam}` : "",
-      kvkNummer       ? `KvK-nummer: ${kvkNummer}` : "",
-      geboortedatum   ? `Geboortedatum: ${geboortedatum}` : "",
-      burgerlijkStaat ? `Burgerlijke staat: ${burgerlijkStaat}` : "",
-      medeNaam        ? `Medeaanvrager: ${medeNaam}` : "",
-      medeEmail       ? `E-mail medeaanvrager: ${medeEmail}` : "",
-      "",
-      ...objects.map((obj, i) => [
-        objects.length > 1 ? `--- OBJECT ${i + 1} ---` : "--- OBJECT ---",
-        `Type vastgoed: ${obj.type}`,
-        `Adres: ${obj.adres}`,
-        `Postcode: ${obj.postcode}`,
-        `Plaats: ${obj.plaats}`,
-        `Geschatte marktwaarde: €${obj.waarde}`,
-        obj.huurinkomsten ? `Huurinkomsten: €${obj.huurinkomsten} per maand` : "",
-        "",
-      ].filter(Boolean)).flat(),
-      "--- FINANCIERING ---",
-      `Doel: ${leningDoel}`,
-      `Gewenst leningbedrag: €${leningBedrag}`,
-      `Looptijd: ${looptijd}`,
-      aflossingstype    ? `Aflossingstype: ${aflossingstype}` : "",
-      wanneerNodig      ? `Financiering nodig op: ${wanneerNodig}` : "",
-      eigenInbreng      ? `Eigen inbreng: €${eigenInbreng}` : "",
-      bestaandeSchulden ? `Bestaande schulden: €${bestaandeSchulden}` : "",
-      uitstrategie      ? `Exit strategy: ${uitstrategie}` : "",
-      toelichting       ? `Toelichting: ${toelichting}` : "",
-      "",
-      "--- DOCUMENTEN ---",
-      `Aantal bestanden: ${allFiles.length}`,
-      filesSummary,
-    ].filter(line => line !== "").join("\n")
-
-    await uploadToOneDrive(token, folderId, "aanvraag-samenvatting.txt", Buffer.from(summary, "utf-8"), "text/plain")
-    await Promise.all(allFiles.map(async (file) => {
-      const buffer = Buffer.from(await file.arrayBuffer())
-      await uploadToOneDrive(token, folderId, file.name, buffer, file.type || "application/octet-stream")
-    }))
-
-    // Update Firestore doc with OneDrive URL now that upload succeeded
-    if (docRef) {
-      await docRef.update({ driveFolderUrl, driveFolderId: folderId })
-    }
-  } catch (err) {
-    console.error("OneDrive upload error:", err)
-  }
 
   /* ── Emails ── */
   const confirmationHtml = `
