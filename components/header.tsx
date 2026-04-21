@@ -32,15 +32,7 @@ export function Header() {
     { href: "/voor-leningnemers", label: "Voor leningnemers" },
     { href: "/voor-investeerders", label: "Voor investeerders" },
     { href: "/berichten", label: "Berichten" },
-    {
-      href: "/over-wmp",
-      label: "Over ons",
-      dropdown: [
-        { href: "/over-wmp#wat-ons-drijft", label: "Wat ons drijft" },
-        { href: "/over-wmp#wie-we-zijn", label: "Wie we zijn" },
-        { href: "/over-wmp#in-memoriam", label: "In memoriam" },
-      ],
-    },
+    { href: "/over-wmp", label: "Over ons" },
     { href: "/nadere-informatie", label: "Nadere informatie" },
     { href: "/contact", label: "Contact" },
   ]
