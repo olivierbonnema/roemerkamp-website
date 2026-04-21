@@ -71,6 +71,8 @@ function section(title: string, rows: string) {
 function fmt(v: string) { return v || "—" }
 function fmtEur(v: string) { return v ? `€ ${v}` : "—" }
 
+export const maxDuration = 60
+
 /* ── Route handler ── */
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
@@ -140,7 +142,49 @@ export async function POST(req: NextRequest) {
     .map(([cat, f]) => `${cat}: ${f.map(f => f.name).join(", ")}`)
     .join(" | ") || "Geen documenten"
 
-  /* ── Upload to OneDrive ── */
+  /* ── Save to Firestore first (before potentially slow OneDrive upload) ── */
+  let docRef: FirebaseFirestore.DocumentReference | null = null
+  try {
+    docRef = await adminDb.collection("aanvragen").add({
+      userId: userId ?? null,
+      userEmail: userEmail ?? email,
+      status: "ingediend",
+      createdAt: new Date(),
+      naam,
+      aanvragerType,
+      bedrijfsnaam,
+      kvkNummer,
+      telefoon,
+      adres,
+      geboortedatum,
+      burgerlijkStaat,
+      medeNaam,
+      medeEmail,
+      objectType,
+      objectAdres,
+      objectPostcode,
+      objectPlaats,
+      objectWaarde,
+      huurinkomsten,
+      objects,
+      leningDoel,
+      leningBedrag,
+      looptijd,
+      eigenInbreng,
+      bestaandeSchulden,
+      aflossingstype,
+      wanneerNodig,
+      uitstrategie,
+      toelichting,
+      driveFolderUrl: "",
+      driveFolderId: "",
+      aantalBestanden: allFiles.length,
+    })
+  } catch (err) {
+    console.error("Firestore save error:", err)
+  }
+
+  /* ── Upload to OneDrive, then update Firestore with URL ── */
   let driveFolderUrl = ""
   let folderId = ""
   try {
@@ -199,54 +243,13 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer())
       await uploadToOneDrive(token, folderId, file.name, buffer, file.type || "application/octet-stream")
     }))
+
+    // Update Firestore doc with OneDrive URL now that upload succeeded
+    if (docRef) {
+      await docRef.update({ driveFolderUrl, driveFolderId: folderId })
+    }
   } catch (err) {
     console.error("OneDrive upload error:", err)
-    // Don't block the submission — emails still go out
-  }
-
-  /* ── Save to Firestore ── */
-  try {
-    const allFilesLocal = Object.values(filesByCategory).flat()
-    await adminDb.collection("aanvragen").add({
-      userId: userId ?? null,
-      userEmail: userEmail ?? email,
-      status: "ingediend",
-      createdAt: new Date(),
-      naam,
-      aanvragerType,
-      bedrijfsnaam,
-      kvkNummer,
-      telefoon,
-      adres,
-      geboortedatum,
-      burgerlijkStaat,
-      medeNaam,
-      medeEmail,
-      // First object fields (for inbox display)
-      objectType,
-      objectAdres,
-      objectPostcode,
-      objectPlaats,
-      objectWaarde,
-      huurinkomsten,
-      // Full objects array
-      objects,
-      // Financing
-      leningDoel,
-      leningBedrag,
-      looptijd,
-      eigenInbreng,
-      bestaandeSchulden,
-      aflossingstype,
-      wanneerNodig,
-      uitstrategie,
-      toelichting,
-      driveFolderUrl,
-      driveFolderId: folderId,
-      aantalBestanden: allFilesLocal.length,
-    })
-  } catch (err) {
-    console.error("Firestore save error:", err)
   }
 
   /* ── Emails ── */
