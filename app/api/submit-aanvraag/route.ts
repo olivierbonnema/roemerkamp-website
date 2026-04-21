@@ -375,7 +375,7 @@ export async function POST(req: NextRequest) {
         html: confirmationHtml,
       }),
       resend.emails.send({
-        from: `Website <${FROM_EMAIL}>`,
+        from: `Lange & Partners Non-bancair <${FROM_EMAIL}>`,
         to: COMPANY_EMAIL,
         subject: `Nieuwe financieringsaanvraag — ${naam || email}`,
         html: notificationHtml,
