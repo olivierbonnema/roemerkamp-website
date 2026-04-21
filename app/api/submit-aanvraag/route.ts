@@ -261,17 +261,19 @@ export async function POST(req: NextRequest) {
   const BASE_URL = process.env.PORTAL_BASE_URL || "https://lange-partners-portal.vercel.app"
 
   const emailHeader = (title: string, subtitle?: string) => `
-    <div style="border-top:3px solid #F75D20;background:#1E3A5F;padding:24px 40px 20px;">
-      <img src="${BASE_URL}/images/lange-logo.png" alt="Lange &amp; Partners Non-bancair" style="height:52px;width:auto;display:block;margin-bottom:16px;" />
-      <div style="color:#fff;font-size:22px;font-weight:400;line-height:1.3;font-family:'PT Serif',Georgia,serif;">${title}</div>
-      ${subtitle ? `<div style="color:rgba(255,255,255,0.55);font-size:13px;margin-top:6px;font-family:sans-serif;">${subtitle}</div>` : ""}
+    <div style="border-top:4px solid #F75D20;background:#fff;padding:36px 40px 32px;">
+      <img src="${BASE_URL}/images/lange-logo.png" alt="Lange &amp; Partners Non-bancair" style="height:60px;width:auto;display:block;" />
+    </div>
+    <div style="background:#1E3A5F;padding:22px 40px 24px;">
+      <div style="color:#fff;font-size:20px;font-weight:400;line-height:1.3;font-family:'PT Serif',Georgia,serif;">${title}</div>
+      ${subtitle ? `<div style="color:rgba(255,255,255,0.55);font-size:12px;margin-top:5px;font-family:sans-serif;">${subtitle}</div>` : ""}
     </div>`
 
   const emailFooter = `
     <div style="border-top:1px solid #e5e7eb;padding:20px 40px;background:#f9fafb;">
       <table style="width:100%;border-collapse:collapse;">
         <tr>
-          <td style="font-size:12px;color:#9ca3af;line-height:1.8;">
+          <td style="font-size:12px;color:#9ca3af;line-height:1.8;font-family:sans-serif;">
             <span style="color:#6b7280;font-weight:500;">Lange &amp; Partners Non-bancair</span><br>
             Wilhelminastraat 50 &nbsp;&middot;&nbsp; 2011 VN Haarlem<br>
             <a href="tel:+31235173106" style="color:#9ca3af;text-decoration:none;">(023) 517 31 06</a>
@@ -279,7 +281,7 @@ export async function POST(req: NextRequest) {
             <a href="mailto:info@langefa.nl" style="color:#9ca3af;text-decoration:none;">info@langefa.nl</a>
           </td>
           <td style="text-align:right;vertical-align:bottom;">
-            <a href="https://lange-partners-portal.vercel.app" style="font-size:11px;color:#d1d5db;text-decoration:none;letter-spacing:0.5px;">langefa.nl</a>
+            <a href="https://langefa.nl" style="font-size:11px;color:#d1d5db;text-decoration:none;letter-spacing:0.5px;font-family:sans-serif;">langefa.nl</a>
           </td>
         </tr>
       </table>
