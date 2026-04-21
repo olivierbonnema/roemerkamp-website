@@ -289,7 +289,7 @@ export async function POST(req: NextRequest) {
 
   /* ── Emails ── */
   const confirmationHtml = `
-    <div style="background:#f3f4f6;padding:32px 16px;font-family:'PT Serif',Georgia,serif;">
+    <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
       <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
         ${emailHeader("Bedankt voor uw aanvraag")}
         <div style="padding:36px 40px;">
