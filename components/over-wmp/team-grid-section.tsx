@@ -125,10 +125,7 @@ export function TeamGridSection() {
                 </div>
                 <div className="text-center">
                   <p className="font-semibold text-[#1e3a5f] text-sm leading-snug">{member.title}</p>
-                  {member.note && (
-                    <p className="text-gray-500 text-xs mt-1">{member.note}</p>
-                  )}
-                  <div className="mt-2 flex flex-col gap-1">
+<div className="mt-2 flex flex-col gap-1">
                     {member.contact.map((c) => (
                       <a
                         key={c.label}

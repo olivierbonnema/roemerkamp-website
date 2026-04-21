@@ -1,41 +1,56 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
-import { google } from "googleapis"
-import { Readable } from "stream"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@roemerkamppartners.nl"
+const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
 const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev"
-const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID!
+const ONEDRIVE_USER = process.env.ONEDRIVE_USER_EMAIL!
+const ONEDRIVE_FOLDER_PATH = process.env.ONEDRIVE_FOLDER_PATH!
 
-/* ── Google Drive auth ── */
-function getDriveClient() {
-  const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_OAUTH_CLIENT_ID,
-    process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+/* ── Microsoft Graph helpers ── */
+async function getMsToken(): Promise<string> {
+  const res = await fetch(
+    `https://login.microsoftonline.com/${process.env.MICROSOFT_TENANT_ID}/oauth2/v2.0/token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: process.env.MICROSOFT_CLIENT_ID!,
+        client_secret: process.env.MICROSOFT_CLIENT_SECRET!,
+        scope: "https://graph.microsoft.com/.default",
+      }),
+    }
   )
-  auth.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN })
-  return google.drive({ version: "v3", auth })
+  const data = await res.json()
+  return data.access_token
 }
 
-async function createFolder(drive: ReturnType<typeof getDriveClient>, name: string, parentId: string) {
-  const res = await drive.files.create({
-    requestBody: { name, mimeType: "application/vnd.google-apps.folder", parents: [parentId] },
-    fields: "id",
-  })
-  return res.data.id!
+async function createOneDriveFolder(token: string, folderName: string): Promise<{ id: string; webUrl: string }> {
+  const path = ONEDRIVE_FOLDER_PATH.replace(/^\//, "")
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/root:/${encodeURIComponent(path)}:/children`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: folderName, folder: {}, "@microsoft.graph.conflictBehavior": "rename" }),
+    }
+  )
+  const data = await res.json()
+  return { id: data.id, webUrl: data.webUrl }
 }
 
-async function uploadFile(drive: ReturnType<typeof getDriveClient>, file: File, folderId: string) {
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const stream = Readable.from(buffer)
-  await drive.files.create({
-    requestBody: { name: file.name, parents: [folderId] },
-    media: { mimeType: file.type || "application/octet-stream", body: stream },
-    fields: "id",
-  })
+async function uploadToOneDrive(token: string, folderId: string, fileName: string, content: Buffer, mimeType: string) {
+  await fetch(
+    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${folderId}:/${encodeURIComponent(fileName)}:/content`,
+    {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
+      body: content,
+    }
+  )
 }
 
 /* ── Email helpers ── */
@@ -125,17 +140,17 @@ export async function POST(req: NextRequest) {
     .map(([cat, f]) => `${cat}: ${f.map(f => f.name).join(", ")}`)
     .join(" | ") || "Geen documenten"
 
-  /* ── Upload to Google Drive ── */
+  /* ── Upload to OneDrive ── */
   let driveFolderUrl = ""
   let folderId = ""
   try {
-    const drive = getDriveClient()
+    const token = await getMsToken()
     const date = new Date().toISOString().slice(0, 10)
     const folderName = `${date} — ${naam || email}`
-    folderId = await createFolder(drive, folderName, DRIVE_FOLDER_ID)
-    driveFolderUrl = `https://drive.google.com/drive/folders/${folderId}`
+    const { id, webUrl } = await createOneDriveFolder(token, folderName)
+    folderId = id
+    driveFolderUrl = webUrl
 
-    // Save structured form data as a text file so the AI analyser can read it directly
     const summary = [
       "=== FINANCIERINGSAANVRAAG — FORMULIERGEGEVENS ===",
       `Datum: ${new Date().toLocaleString("nl-NL")}`,
@@ -179,15 +194,13 @@ export async function POST(req: NextRequest) {
       filesSummary,
     ].filter(line => line !== "").join("\n")
 
-    await drive.files.create({
-      requestBody: { name: "aanvraag-samenvatting.txt", parents: [folderId] },
-      media: { mimeType: "text/plain", body: Readable.from(Buffer.from(summary, "utf-8")) },
-      fields: "id",
-    })
-
-    await Promise.all(allFiles.map((file) => uploadFile(drive, file, folderId)))
+    await uploadToOneDrive(token, folderId, "aanvraag-samenvatting.txt", Buffer.from(summary, "utf-8"), "text/plain")
+    await Promise.all(allFiles.map(async (file) => {
+      const buffer = Buffer.from(await file.arrayBuffer())
+      await uploadToOneDrive(token, folderId, file.name, buffer, file.type || "application/octet-stream")
+    }))
   } catch (err) {
-    console.error("Google Drive upload error:", err)
+    console.error("OneDrive upload error:", err)
     // Don't block the submission — emails still go out
   }
 
@@ -272,7 +285,7 @@ export async function POST(req: NextRequest) {
       <div style="padding:24px 32px;">
         ${driveFolderUrl ? `
         <a href="${driveFolderUrl}" style="display:inline-block;margin-bottom:12px;margin-right:8px;padding:10px 20px;background:#311E86;color:#fff;border-radius:999px;font-size:13px;text-decoration:none;font-weight:500;">
-          Bekijk documenten in Google Drive →
+          Bekijk documenten in OneDrive →
         </a>` : ""}
         ${folderId ? (() => {
           const token = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback").update(folderId).digest("hex")

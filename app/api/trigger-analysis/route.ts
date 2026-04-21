@@ -1,18 +1,47 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createHmac } from "crypto"
-import { google } from "googleapis"
-import { Readable } from "stream"
 
 const ANALYSIS_MARKER = "_ANALYSE_AANGEVRAAGD_"
 const PROCESSED_MARKER = "_AI_ANALYZED_"
+const ONEDRIVE_USER = process.env.ONEDRIVE_USER_EMAIL!
 
-function getDriveClient() {
-  const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_OAUTH_CLIENT_ID,
-    process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+async function getMsToken(): Promise<string> {
+  const res = await fetch(
+    `https://login.microsoftonline.com/${process.env.MICROSOFT_TENANT_ID}/oauth2/v2.0/token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: process.env.MICROSOFT_CLIENT_ID!,
+        client_secret: process.env.MICROSOFT_CLIENT_SECRET!,
+        scope: "https://graph.microsoft.com/.default",
+      }),
+    }
   )
-  auth.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN })
-  return google.drive({ version: "v3", auth })
+  const data = await res.json()
+  return data.access_token
+}
+
+async function listFolderChildrenNames(token: string, folderId: string): Promise<string[]> {
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${folderId}/children?$select=name`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  const data = await res.json()
+  return (data.value ?? []).map((f: { name: string }) => f.name)
+}
+
+async function createMarkerFile(token: string, folderId: string, name: string) {
+  const content = Buffer.from(`Aangevraagd: ${new Date().toISOString()}`, "utf-8")
+  await fetch(
+    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${folderId}:/${encodeURIComponent(name)}:/content`,
+    {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "text/plain" },
+      body: content,
+    }
+  )
 }
 
 function htmlPage(title: string, body: string) {
@@ -45,10 +74,10 @@ function htmlPage(title: string, body: string) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const folderId = searchParams.get("folderId")
-  const token = searchParams.get("token")
+  const hmacToken = searchParams.get("token")
 
   // Validate inputs
-  if (!folderId || !token) {
+  if (!folderId || !hmacToken) {
     return htmlPage("Ongeldige link", `
       <div class="icon">⚠️</div>
       <h1>Ongeldige link</h1>
@@ -60,22 +89,26 @@ export async function GET(req: NextRequest) {
     .update(folderId)
     .digest("hex")
 
-  if (token !== expected) {
+  if (hmacToken !== expected) {
     return htmlPage("Ongeldige link", `
       <div class="icon">🔒</div>
       <h1>Toegang geweigerd</h1>
       <p>De beveiligingstoken klopt niet. Gebruik de originele link uit de e-mail.</p>`)
   }
 
-  const drive = getDriveClient()
+  let msToken: string
+  try {
+    msToken = await getMsToken()
+  } catch (err) {
+    console.error("MS token error:", err)
+    return htmlPage("Fout", `
+      <div class="icon">❌</div>
+      <h1>Er ging iets mis</h1>
+      <p>Kon de analyse niet starten. Probeer het opnieuw of neem contact op.</p>`)
+  }
 
   // Check if analysis was already requested or completed
-  const existing = await drive.files.list({
-    q: `'${folderId}' in parents and (name = '${ANALYSIS_MARKER}' or name = '${PROCESSED_MARKER}') and trashed = false`,
-    fields: "files(name)",
-  })
-
-  const existingNames = (existing.data.files || []).map(f => f.name)
+  const existingNames = await listFolderChildrenNames(msToken, folderId)
 
   if (existingNames.includes(PROCESSED_MARKER)) {
     return htmlPage("Al verwerkt", `
@@ -91,19 +124,9 @@ export async function GET(req: NextRequest) {
       <p>De AI underwriter staat al klaar om deze aanvraag te verwerken. U ontvangt het rapport zodra de analyse klaar is.</p>`)
   }
 
-  // Create the trigger marker in Drive
+  // Create the trigger marker in OneDrive
   try {
-    await drive.files.create({
-      requestBody: {
-        name: ANALYSIS_MARKER,
-        mimeType: "text/plain",
-        parents: [folderId],
-      },
-      media: {
-        mimeType: "text/plain",
-        body: Readable.from(Buffer.from(`Analyse aangevraagd: ${new Date().toISOString()}`, "utf-8")),
-      },
-    })
+    await createMarkerFile(msToken, folderId, ANALYSIS_MARKER)
   } catch (err) {
     console.error("Trigger marker creation failed:", err)
     return htmlPage("Fout", `

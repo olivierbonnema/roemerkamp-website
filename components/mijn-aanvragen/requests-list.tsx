@@ -204,7 +204,7 @@ function AanvraagCard({ a }: { a: Aanvraag }) {
             rel="noopener noreferrer"
             className="text-xs font-sans text-[#311E86] hover:underline"
           >
-            Documenten bekijken in Google Drive →
+            Documenten bekijken in OneDrive →
           </a>
         </div>
       )}
