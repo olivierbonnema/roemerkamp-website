@@ -293,14 +293,14 @@ export async function POST(req: NextRequest) {
       <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
         ${emailHeader("Bedankt voor uw aanvraag")}
         <div style="padding:36px 40px;">
-          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0 0 16px;">Beste ${naam || "relatie"},</p>
-          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0 0 16px;">
+          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">Beste ${naam || "relatie"},</p>
+          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">
             Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op.
           </p>
-          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0 0 32px;">
+          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 32px;">
             U kunt rekenen op een eerste reactie binnen twee werkdagen.
           </p>
-          <p style="font-size:15px;line-height:1.8;color:#374151;margin:0;">
+          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0;">
             Met vriendelijke groet,<br>
             <strong style="color:#1E3A5F;">Lange &amp; Partners Non-bancair</strong>
           </p>
