@@ -30,27 +30,13 @@ export function NadereInformatieSection() {
 
         <div className="mt-12 space-y-14 max-w-4xl">
 
-          {/* Subsection 1 — Non-bancaire financiering */}
-          <div>
-            <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Non-bancaire financiering</h3>
-            <p className="text-gray-700 leading-relaxed mb-5">
-              Voor nadere informatie over non-bancaire financiering kunt u terecht op onze pagina Non-bancaire leningen.
-            </p>
-            <Link
-              href="/private-markets"
-              className="inline-block bg-[#2596be] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#1e7fa0] transition-colors"
-            >
-              Bekijk non-bancaire leningen
-            </Link>
-          </div>
-
-          {/* Subsection 2 — Duurzaamheid */}
+          {/* Subsection 1 — Duurzaamheid */}
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Duurzaamheid</h3>
             <p className="text-gray-700 leading-relaxed">
               Voor nadere informatie over het duurzaamheidsbeleid van Lange & Partners Non-bancair kunt u contact met ons opnemen via{" "}
-              <a href="mailto:welkom@roemerkamp.nl" className="text-[#2596be] hover:underline">
-                welkom@roemerkamp.nl
+              <a href="mailto:info@langefa.nl" className="text-[#2596be] hover:underline">
+                info@langefa.nl
               </a>
               .
             </p>

@@ -78,42 +78,26 @@ const team = [
   },
   {
     id: 4,
-    image: "/images/team-ernst.jpg",
-    name: "Ernst Jansen (1987)",
-    title: "Ernst Jansen",
+    image: "/images/team-olivier.jpg",
+    name: "Olivier Bonnema",
+    title: "Olivier Bonnema",
     contact: [
-      { label: "+31(0)6 50 734 294", href: "tel:+31650734294" },
-      { label: "ernst@roemerkamp.nl", href: "mailto:ernst@roemerkamp.nl" },
+      { label: "+31(0)6 30 504 084", href: "tel:+31630504084" },
+      { label: "olivier@langefa.nl", href: "mailto:olivier@langefa.nl" },
+      { label: "LinkedIn", href: "https://www.linkedin.com/in/olivierbonnema" },
     ],
     bios: [
       {
-        heading: "Mijn drijfveer is om mensen op een zo goed mogelijke manier te helpen.",
-        text: "Voor mij is het zeer belangrijk om de klanten goed te kennen. Ik wil weten wat er speelt en hoe de relaties in elkaar steken. Ik ben heel direct en open naar mijn klanten. Soms is dat wennen, want ze krijgen van mij geen verkooppraatjes te horen, maar ik leg ze duidelijk uit waar het op staat en wat ze kunnen verwachten. Ook bij mijn andere passie tennis, staat het zorgen voor mensen centraal. Natuurlijk gaat het ook om de sport en ja ik wil echt wel winnen! Maar net zo leuk vind ik het om nieuwe mensen en leden te ontmoeten en ze wegwijs te maken in de club. Ik zorg er graag voor dat mensen zich welkom voelen. Tot slot is humor voor mij erg belangrijk. Ik zie graag dat iedereen die bij ons langs komt of met mij een gesprek heeft gehad, weer met een lach vertrekt, want een dag niet gelachen is voor mij een dag niet geleefd.",
-      },
-    ],
-  },
-  {
-    id: 5,
-    image: "/images/team-thijs.jpg",
-    name: "Thijs van der Kevie (1970)",
-    title: "Drs. Thijs van der Kevie RBA",
-    note: "(kantoor Groningen)",
-    contact: [
-      { label: "+31(0)6 53 420 117", href: "tel:+31653420117" },
-      { label: "thijs@roemerkamp.nl", href: "mailto:thijs@roemerkamp.nl" },
-    ],
-    bios: [
-      {
-        heading: "De waan van de dag verleidt mij niet om mijn strategie los te laten.",
-        text: "Al sinds mijn geboorte heb ik veel van de wereld gezien. Ik ben geboren in Thailand, opgegroeid in Soedan en Oegstgeest en heb mijn tienerjaren doorgebracht in Indonesië. Mijn vader werkte voor de Verenigde Naties en daarna bij Buitenlandse Zaken. Mijn jeugd was onbekommerd, maar dat er grote verschillen zijn tussen arm en rijk is iets wat ik al jong heb meegekregen. Ook op de beurs komen overdreven reacties vaak voor. Maar uiteindelijk wordt het evenwicht weer hersteld en keert de rust terug. Ik ben door mijn verleden nuchterder geworden. Ik ben een stabiele vermogensbeheerder. Laat me niet verleiden om mijn strategie los te laten door de waan van de dag. Zie het als een zeilreis. Als je de oceaan overzeilt weet je dat je één of meerdere stormen tegen gaat komen. Behoud koers, zorg dat je de stormen uit kan zitten en niet terug hoeft naar de haven. Dan bereik je je doel.",
+        heading: "Er is altijd een oplossing",
+        text: "Ik bewandel niet het geijkte pad van opleiding naar werk — en dat geldt zowel figuurlijk als letterlijk. Op mijn zestiende reisde ik alleen naar Amerika om de Appalachian Trail te lopen. Ergens op een afgelegen bergkam werd ik verrast door een sneeuwstorm die dagen aanhield. Geen eten meer, lege accu's, geen contact met thuis. Water kreeg ik door sneeuw te smelten op een kookplaatje. Koud, nat, alleen — maar niet zonder oplossing. Die ervaring heeft me meer geleerd dan wat ook daarna. Niet in paniek raken. Rustig kijken wat er wél mogelijk is. Er is altijd een oplossing.",
       },
       {
-        heading: "Sociaal hart",
-        text: "Door slimmer met je geld om te gaan en te sparen, of beter nog, te gaan beleggen, kun je het leven makkelijker en comfortabeler maken. Het prikkelt mijn sociale hart. Mijn ouders hebben me geleerd respectvol om te gaan met anderen, ook met mensen die het minder hebben. Dat heb ik sterk meegekregen. Ik hou ervan om anderen te helpen beter te worden. Daarnaast ben ik competitief. Ik wil wel winnen. Wat ik doe, wil ik goed doen. Het hoogste rendement halen binnen het toegestane risicobudget, dat is mijn uitgangspunt.",
+        heading: "Mijn eigen weg",
+        text: "Leren gaat me prima af, maar het schoolse systeem paste me niet. Er werd uitgelegd hoe iets werkt, maar zelden waarom. Dan haak ik af. Ik leer het best in de praktijk, dicht bij mensen die echt ondernemen. Kort na mijn terugkeer uit Amerika bracht ik mezelf in de buurt van ondernemers en strategen in de vastgoedwereld — en ontdekte dat ik snel verbanden zie en kennis makkelijk weet toe te passen. Ik weet nu beter waarom ik welke kennis nodig heb. Dat is de reden dat ik inmiddels Bedrijfskunde studeer aan de Open Universiteit. Ik wil blijven groeien. Ik weet goed dat ik nog veel te leren heb — maar dat is geen belemmering. Het is precies wat me drijft.",
       },
       {
-        heading: "Bedachtzaam",
-        text: "Het goed doen voor klanten vind ik belangrijker dan het verdienmodel. Dat is in de financiële wereld niet altijd het geval. Ik heb geleerd om geduldig te zijn. Ook heb ik gezien dat mensen door hun achtergrond op een andere manier naar de wereld kijken. Ik probeer te begrijpen wat de ander wil, zonder daar direct een oordeel op te plakken. Ik ben bedachtzaam. Het lijkt soms of ik wat langer de tijd neem om een keuze te maken, dat komt omdat ik consciëntieus te werk ga, maar tegelijkertijd ben ik wel besluitvaardig. Ik werk vanuit mijn woonplaats Groningen en daarmee is Roemer Kamp uitgebreid naar het noorden.",
+        heading: "Wat ik doe bij Lange Financieel Advies",
+        text: "Lange Financieel Advies heeft een uitstekende naam in de wereld van vastgoedfinanciering. Particuliere financiers (meestal via het zusterbedrijf Roemer Kamp & Partners Vermogensbeheer) brengen hun vermogen graag onder in solide projecten met hypothecaire zekerheid en een vast rendement. Vanwege de groei van het beheerde vermogen zijn we op zoek naar meer goede projecten. Dat is waar ik mij voornamelijk mee bezig ga houden. Ik beweeg me in de vastgoedwereld, signaleer kansen, benader partijen en toets of een project past bij wat Lange Financieel Advies aan oplossingen kan bieden. Geen omwegen — gewoon uitzoeken wat er is, en eerlijk beoordelen of het klopt. Ik zoek totdat ik het gevonden heb. En ik doe wat ik zeg.",
       },
     ],
   },

@@ -1,11 +1,9 @@
 import { ContactForm } from "@/components/contact-form"
 
 const team = [
-  { name: "Jord Roemer", phone: "+31(0)6 11 87 48 93" },
   { name: "Marco Lange", phone: "+31(0)6 24 24 43 75" },
   { name: "Christian de Vries", phone: "+31(0)6 15 25 89 21" },
-  { name: "Ernst Jansen", phone: "+31(0)6 50 73 42 94" },
-  { name: "Thijs van der Kevie", phone: "+31(0)6 53 42 01 17" },
+  { name: "Olivier Bonnema", phone: "+31(0)6 30 50 40 84" },
 ]
 
 export function ContactInfoSection() {
@@ -34,7 +32,7 @@ export function ContactInfoSection() {
               </p>
               <p className="text-gray-700">
                 <span className="font-medium">E-mail:</span>{" "}
-                <a href="mailto:welkom@roemerkamp.nl" className="hover:text-[#311e86]">welkom@roemerkamp.nl</a>
+                <a href="mailto:info@langefa.nl" className="hover:text-[#311e86]">info@langefa.nl</a>
               </p>
             </div>
 

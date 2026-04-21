@@ -5,45 +5,24 @@ export function Footer() {
     <footer className="bg-white border-t border-gray-200 py-10">
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {/* Vermogensbeheer */}
-          <div>
-            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Vermogensbeheer</h3>
-            <ul className="space-y-1.5">
-              <li>
-                <Link href="/vermogensbeheer#wat-we-doen" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Wat we doen
-                </Link>
-              </li>
-              <li>
-                <Link href="/vermogensbeheer#wat-we-niet-doen" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Wat we niet doen
-                </Link>
-              </li>
-              <li>
-                <Link href="/vermogensbeheer#voor-wie" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Voor wie we het doen
-                </Link>
-              </li>
-              <li>
-                <Link href="/vermogensbeheer#vermogensregie" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Vermogensregie
-                </Link>
-              </li>
-              <li>
-                <Link href="/vermogensbeheer#kosten" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Kosten
-                </Link>
-              </li>
-            </ul>
-          </div>
 
-          {/* Non-bancaire leningen */}
+          {/* Voor leningnemers & investeerders */}
           <div>
             <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Non-bancaire leningen</h3>
             <ul className="space-y-1.5">
               <li>
-                <Link href="/private-markets" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Meer informatie
+                <Link href="/voor-leningnemers" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Voor leningnemers
+                </Link>
+              </li>
+              <li>
+                <Link href="/voor-investeerders" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Voor investeerders
+                </Link>
+              </li>
+              <li>
+                <Link href="/berichten" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Berichten
                 </Link>
               </li>
             </ul>
@@ -64,48 +43,63 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/over-wmp#nadere-informatie" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Nadere informatie
+                <Link href="/over-wmp#in-memoriam" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  In memoriam
                 </Link>
               </li>
               <li>
-                <Link href="/over-wmp#in-memoriam" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  In memoriam
+                <Link href="/nadere-informatie" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Nadere informatie
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact & Login */}
+          {/* Portaal */}
           <div>
+            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Portaal</h3>
             <ul className="space-y-1.5">
               <li>
-                <Link href="/contact" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Contact
+                <Link href="/login" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Inloggen
                 </Link>
               </li>
               <li>
-                <a 
-                  href="https://rkp.portfolio.saxo" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <Link href="/financieringsaanvraag" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Aanvraag indienen
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Contact</h3>
+            <ul className="space-y-1.5">
+              <li>
+                <Link href="/contact" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Contactpagina
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:info@langefa.nl"
                   className="text-gray-600 hover:text-[#311e86] text-xs"
                 >
-                  Login bij Saxo Bank
+                  info@langefa.nl
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://client.roemerkamppartners.onperformativ.com/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <a
+                  href="tel:0235173106"
                   className="text-gray-600 hover:text-[#311e86] text-xs"
                 >
-                  Login bij AFS
+                  (023) 517 31 06
                 </a>
               </li>
             </ul>
           </div>
+
         </div>
       </div>
     </footer>

@@ -22,10 +22,10 @@ export function PrivateMarketsHomeSection() {
             <SectionHeading>Over ons</SectionHeading>
             <div className="mt-6 space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                Lange &amp; Partners Non-bancair kijkt voortdurend naar mogelijkheden om portefeuilles verder te versterken en goed te spreiden. Daarbij kijken wij niet alleen naar beursgenoteerde beleggingen, maar naar het totaalplaatje van het vermogen. Door verschillende beleggingscategorieën zorgvuldig te combineren ontstaat een portefeuille die minder afhankelijk is van één specifieke markt of ontwikkeling.
+                Lange &amp; Partners Non-bancair is voortgekomen uit ruim 25 jaar ervaring in de bancaire sector. Die achtergrond vormt de basis van onze werkwijze: we kennen het krediettraject van binnenuit, weten waar banken tegenaan lopen en herkennen de situaties waarin een financiering wél verantwoord is, maar niet binnen het reguliere bancaire kader past. Zes jaar geleden zijn wij begonnen met het verstrekken van non-bancaire leningen, inmiddels hebben wij meer dan 175 miljoen euro aan financieringen verstrekt.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Onze aanpak is gericht op de lange termijn. We zoeken beleggingen die passen bij de doelstellingen, de financiële situatie en de risicobereidheid van onze cliënten. Door een evenwichtige spreiding en een gedisciplineerde beleggingsstrategie streven wij naar een portefeuille die stabiliteit kan bieden en op lange termijn kan bijdragen aan een solide vermogensopbouw.
+                Onze aanpak is gericht op de lange termijn. We nemen de tijd om een aanvraag goed te begrijpen en beoordelen iedere casus op zijn eigen merites — met oog voor de leningnemer, de onderliggende zekerheden en de belangen van onze investeerders. Door korte lijnen, persoonlijk contact en een gedisciplineerde werkwijze streven wij naar financieringen die voor alle betrokken partijen solide en werkbaar zijn.
               </p>
             </div>
             <Link

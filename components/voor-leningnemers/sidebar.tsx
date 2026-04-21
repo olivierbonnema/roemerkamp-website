@@ -1,10 +1,12 @@
+import Link from "next/link"
+
 const stats = [
-  { value: "6,5-8,5%", label: "Verwacht rendement per jaar" },
+  { value: "€200k-5M", label: "Beschikbare leningsbedragen" },
+  { value: "6-60 mnd", label: "Looptijd" },
   { value: "175+", label: "Gefinancierd in € miljoen" },
-  { value: "€200k-5M", label: "Leningsbedragen" },
 ]
 
-export function NonBancaireSidebar() {
+export function LeningnemersSidebar() {
   return (
     <div className="space-y-8">
       {/* Stats circles */}
@@ -19,22 +21,22 @@ export function NonBancaireSidebar() {
         ))}
       </div>
 
-      {/* Hierom kies je card */}
+      {/* CTA card */}
       <div className="bg-[#1e3a5f] p-8">
         <div className="w-16 h-1.5 bg-[#f75d20] mb-6" />
-        <h3 className="text-xl font-serif text-white mb-6">Hierom kies je voor non-bancaire leningen</h3>
+        <h3 className="text-xl font-serif text-white mb-6">Hierom kies je voor een non-bancaire lening</h3>
         <ul className="space-y-4">
           <li>
-            <span className="font-semibold text-[#f75d20]">• Stabiel:</span>{" "}
-            <span className="text-white/90">voorspelbare maandelijkse inkomsten.</span>
+            <span className="font-semibold text-[#f75d20]">• Snel:</span>{" "}
+            <span className="text-white/90">kort doorlooptijd van aanvraag tot uitbetaling.</span>
           </li>
           <li>
-            <span className="font-semibold text-[#f75d20]">• Beschermd:</span>{" "}
-            <span className="text-white/90">zekerheid via recht van hypotheek.</span>
+            <span className="font-semibold text-[#f75d20]">• Flexibel:</span>{" "}
+            <span className="text-white/90">maatwerk op basis van uw situatie en onderpand.</span>
           </li>
           <li>
             <span className="font-semibold text-[#f75d20]">• Transparant:</span>{" "}
-            <span className="text-white/90">duidelijke afspraken en looptijd.</span>
+            <span className="text-white/90">heldere afspraken en vaste looptijd vooraf.</span>
           </li>
         </ul>
       </div>

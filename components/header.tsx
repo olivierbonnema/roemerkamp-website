@@ -29,18 +29,8 @@ export function Header() {
   const isPortalPage = PORTAL_PATHS.some((p) => pathname?.startsWith(p))
 
   const navItems: NavItem[] = [
-    {
-      href: "/vermogensbeheer",
-      label: "Vermogensbeheer",
-      dropdown: [
-        { href: "/vermogensbeheer#wat-we-doen", label: "Wat we doen" },
-        { href: "/vermogensbeheer#wat-we-niet-doen", label: "Wat we niet doen" },
-        { href: "/vermogensbeheer#voor-wie", label: "Voor wie we het doen" },
-        { href: "/vermogensbeheer#vermogensregie", label: "Vermogensregie" },
-        { href: "/vermogensbeheer#kosten", label: "Kosten" },
-      ],
-    },
-    { href: "/private-markets", label: "Non-bancaire leningen" },
+    { href: "/voor-leningnemers", label: "Voor leningnemers" },
+    { href: "/voor-investeerders", label: "Voor investeerders" },
     { href: "/berichten", label: "Berichten" },
     {
       href: "/over-wmp",
