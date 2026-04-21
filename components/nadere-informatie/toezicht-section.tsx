@@ -1,10 +1,8 @@
-import Image from "next/image"
-
 const registraties = [
-  { label: "AFM", logo: "/images/logo-afm.png", href: "https://www.afm.nl/", description: "Autoriteit Financiële Markten" },
-  { label: "DNB", logo: "/images/logo-dnb.png", href: "https://www.dnb.nl/", description: "De Nederlandsche Bank" },
-  { label: "DSI", logo: "/images/logo-dsi.png", href: "https://www.dsi.nl/", description: "Dutch Securities Institute" },
-  { label: "KiFiD", logo: "/images/logo-kifid.png", href: "https://www.kifid.nl/", description: "Klachteninstituut Financiële Dienstverlening" },
+  { label: "AFM", href: "https://www.afm.nl/", description: "Autoriteit Financiële Markten" },
+  { label: "DNB", href: "https://www.dnb.nl/", description: "De Nederlandsche Bank" },
+  { label: "DSI", href: "https://www.dsi.nl/", description: "Dutch Securities Institute" },
+  { label: "KiFiD", href: "https://www.kifid.nl/", description: "Klachteninstituut Financiële Dienstverlening" },
 ]
 
 export function ToezichtSection() {
@@ -28,17 +26,12 @@ export function ToezichtSection() {
                 href={r.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white p-5 flex flex-col items-center justify-center gap-3 hover:bg-gray-50 transition-colors min-h-[120px]"
+                className="bg-white/10 hover:bg-white/20 border border-white/20 p-5 transition-colors group"
               >
-                <div className="relative w-full h-12">
-                  <Image
-                    src={r.logo}
-                    alt={r.label}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <p className="text-gray-400 text-[11px] font-sans text-center leading-snug">{r.description}</p>
+                <p className="font-serif text-2xl text-white font-normal mb-1">{r.label}</p>
+                <p className="text-white/50 text-xs font-sans leading-snug group-hover:text-white/75 transition-colors">
+                  {r.description}
+                </p>
               </a>
             ))}
           </div>
