@@ -1,10 +1,13 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { NadereInformatieSection } from "@/components/over-wmp/nadere-informatie-section"
+import { NadereInformatieHero } from "@/components/nadere-informatie/hero-section"
+import { RaadVanAdviesSection } from "@/components/nadere-informatie/raad-van-advies-section"
+import { ToezichtSection } from "@/components/nadere-informatie/toezicht-section"
+import { OverigeSection } from "@/components/nadere-informatie/overige-section"
 
 export const metadata = {
   title: "Nadere informatie | Lange & Partners Non-bancair",
-  description: "Nadere informatie over Lange & Partners Non-bancair.",
+  description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners Non-bancair.",
 }
 
 export default function NadereInformatiePage() {
@@ -12,7 +15,10 @@ export default function NadereInformatiePage() {
     <>
       <Header />
       <main>
-        <NadereInformatieSection />
+        <NadereInformatieHero />
+        <RaadVanAdviesSection />
+        <ToezichtSection />
+        <OverigeSection />
       </main>
       <Footer />
     </>
