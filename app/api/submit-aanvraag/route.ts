@@ -29,9 +29,9 @@ async function getMsToken(): Promise<string> {
 }
 
 async function createOneDriveFolder(token: string, folderName: string): Promise<{ id: string; webUrl: string }> {
-  const path = ONEDRIVE_FOLDER_PATH.replace(/^\//, "")
+  const encodedPath = ONEDRIVE_FOLDER_PATH.replace(/^\//, "").split("/").map(encodeURIComponent).join("/")
   const res = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/root:/${encodeURIComponent(path)}:/children`,
+    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/root:/${encodedPath}:/children`,
     {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
