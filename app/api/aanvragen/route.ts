@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
+function isAdminEmail(email: string) {
+  const domain = (process.env.ADMIN_DOMAIN || "").toLowerCase()
+  const emails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+    .toLowerCase().split(",").map(e => e.trim()).filter(Boolean)
+  const e = email.toLowerCase()
+  return (!!domain && e.endsWith(`@${domain}`)) || emails.includes(e)
+}
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) {
@@ -39,5 +47,36 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ aanvragen })
   } catch {
     return NextResponse.json({ error: "Aanvragen ophalen mislukt." }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const authHeader = req.headers.get("authorization")
+  if (!authHeader?.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  let email: string
+  try {
+    const decoded = await adminAuth.verifyIdToken(authHeader.slice(7))
+    email = decoded.email ?? ""
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  if (!isAdminEmail(email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const id = new URL(req.url).searchParams.get("id")
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 })
+  }
+
+  try {
+    await adminDb.collection("aanvragen").doc(id).delete()
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: "Verwijderen mislukt." }, { status: 500 })
   }
 }

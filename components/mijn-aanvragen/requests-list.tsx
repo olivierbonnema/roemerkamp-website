@@ -154,7 +154,25 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
   )
 }
 
-function AanvraagCard({ a }: { a: Aanvraag }) {
+function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean; onDelete: () => void }) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const token = await auth.currentUser?.getIdToken()
+      const res = await fetch(`/api/aanvragen?id=${a.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) onDelete()
+    } finally {
+      setDeleting(false)
+      setConfirming(false)
+    }
+  }
+
   return (
     <div className="border border-gray-200 rounded-2xl p-6 bg-white hover:border-[#311E86]/30 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
@@ -162,7 +180,35 @@ function AanvraagCard({ a }: { a: Aanvraag }) {
           <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "—"}</p>
           <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
         </div>
-        <StatusBadge status={a.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={a.status} />
+          {isAdmin && !confirming && (
+            <button
+              onClick={() => setConfirming(true)}
+              className="text-xs font-sans text-gray-400 hover:text-red-500 transition-colors px-2 py-1 rounded"
+            >
+              Verwijderen
+            </button>
+          )}
+          {isAdmin && confirming && (
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-sans text-gray-500">Zeker?</span>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="text-xs font-sans text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded transition-colors disabled:opacity-50"
+              >
+                {deleting ? "…" : "Ja"}
+              </button>
+              <button
+                onClick={() => setConfirming(false)}
+                className="text-xs font-sans text-gray-500 hover:text-gray-700 px-2 py-1 rounded transition-colors"
+              >
+                Nee
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans">
@@ -214,7 +260,7 @@ function AanvraagCard({ a }: { a: Aanvraag }) {
 
 /* ── Main component ── */
 export function RequestsList() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const router = useRouter()
   const [aanvragen, setAanvragen] = useState<Aanvraag[]>([])
   const [drafts, setDrafts] = useState<Draft[]>([])
@@ -349,7 +395,14 @@ export function RequestsList() {
         )}
 
         {/* Submitted requests */}
-        {showIngediend && aanvragen.map((a) => <AanvraagCard key={a.id} a={a} />)}
+        {showIngediend && aanvragen.map((a) => (
+          <AanvraagCard
+            key={a.id}
+            a={a}
+            isAdmin={isAdmin}
+            onDelete={() => setAanvragen(prev => prev.filter(x => x.id !== a.id))}
+          />
+        ))}
 
         {/* Empty state for filtered tab */}
         {!showDrafts && !showIngediend && (
