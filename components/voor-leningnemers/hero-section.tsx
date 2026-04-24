@@ -10,7 +10,7 @@ export function LeningnemersHeroSection() {
             <h1 className="text-[30px] md:text-[36px] font-serif font-normal text-white mb-2 leading-tight">
               Financiering buiten de bank: snel, flexibel en op maat
             </h1>
-            <p className="text-white/90 text-lg font-serif leading-relaxed">
+            <p className="text-white/90 text-lg leading-relaxed">
               Krijgt u geen bancaire financiering, maar is uw onderpand solide? Wij bieden een alternatief.
             </p>
           </div>

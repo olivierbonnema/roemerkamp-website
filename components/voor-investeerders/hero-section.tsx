@@ -10,7 +10,7 @@ export function InvesteerderHeroSection() {
             <h1 className="text-[30px] md:text-[36px] font-serif font-normal text-white mb-2 leading-tight">
               Investeren in non-bancaire vastgoedleningen
             </h1>
-            <p className="text-white/90 text-lg font-serif leading-relaxed">
+            <p className="text-white/90 text-lg leading-relaxed">
               Stabiel rendement van 6,5% tot 8,5% per jaar, gedekt door hypothecaire zekerheid op vastgoed.
             </p>
           </div>
