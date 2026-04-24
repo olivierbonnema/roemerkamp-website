@@ -1,5 +1,5 @@
 const stats = [
-  { value: "6,5-8,5%", label: "Verwacht rendement per jaar" },
+  { value: "6-8%", label: "Verwacht rendement per jaar" },
   { value: "175+", label: "Gefinancierd in € miljoen" },
   { value: "€200k-5M", label: "Leningsbedragen" },
 ]
