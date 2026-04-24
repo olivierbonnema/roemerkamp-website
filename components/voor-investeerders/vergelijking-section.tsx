@@ -1,7 +1,7 @@
 import { SectionHeading } from "@/components/section-heading"
 
 const nblPoints = [
-  "Verwacht rendement van 6,5% tot 8,5% per jaar",
+  "Verwacht rendement van 6% tot 8% per jaar",
   "Geen onderhoudskosten of onverwachte uitgaven",
   "Geen leegstandsrisico",
   "Zekerheid via recht van hypotheek",

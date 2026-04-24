@@ -17,7 +17,7 @@ export function WaaromSection() {
           <SectionHeading>Waarom investeren in non-bancaire leningen?</SectionHeading>
           <div className="mt-6 space-y-4">
             <p className="text-gray-700 leading-relaxed">
-              Voor investeerders die op zoek zijn naar een stabiel en aantrekkelijk rendement, bieden non-bancaire leningen een interessante mogelijkheid. Het verwacht rendement ligt tussen de 6,5% en 8,5% per jaar, afhankelijk van de specifieke lening.
+              Voor investeerders die op zoek zijn naar een stabiel en aantrekkelijk rendement, bieden non-bancaire leningen een interessante mogelijkheid. Het verwacht rendement ligt tussen de 6% en 8% per jaar, afhankelijk van de specifieke lening.
             </p>
             <p className="text-gray-700 leading-relaxed">
               Iedere financieringsaanvraag wordt zorgvuldig beoordeeld. Daarbij wordt gekeken naar de onderliggende zekerheid via een recht van hypotheek, de haalbaarheid van terugbetaling en het perspectief op herfinanciering of aflossing na de looptijd. Leningen variëren van € 200.000 tot € 5.000.000 met een looptijd van 6 maanden tot 5 jaar.

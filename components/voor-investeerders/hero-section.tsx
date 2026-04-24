@@ -11,7 +11,7 @@ export function InvesteerderHeroSection() {
               Investeren in non-bancaire vastgoedleningen
             </h1>
             <p className="text-white/90 text-lg leading-relaxed">
-              Stabiel rendement van 6,5% tot 8,5% per jaar, gedekt door hypothecaire zekerheid op vastgoed.
+              Stabiel rendement van 6% tot 8% per jaar, gedekt door hypothecaire zekerheid op vastgoed.
             </p>
           </div>
           <div className="hidden md:block min-h-[280px]" />
