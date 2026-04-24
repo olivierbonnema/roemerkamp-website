@@ -47,11 +47,6 @@ export function Footer() {
                   In memoriam
                 </Link>
               </li>
-              <li>
-                <Link href="/nadere-informatie" className="text-gray-600 hover:text-[#311e86] text-xs">
-                  Nadere informatie
-                </Link>
-              </li>
             </ul>
           </div>
 

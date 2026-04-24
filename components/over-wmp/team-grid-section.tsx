@@ -4,31 +4,6 @@ import { SectionHeading } from "@/components/section-heading"
 const team = [
   {
     id: 1,
-    image: "/images/team-jord.jpg",
-    name: "Jord Roemer (1969)",
-    title: "mr. Jord Roemer",
-    contact: [
-      { label: "+31(0)6 11 87 48 93", href: "tel:+31611874893" },
-      { label: "jord@roemerkamp.nl", href: "mailto:jord@roemerkamp.nl" },
-      { label: "LinkedIn", href: "https://www.linkedin.com/in/jordroemer" },
-    ],
-    bios: [
-      {
-        heading: "Ik wil mezelf in de spiegel kunnen aankijken",
-        text: "Ik maak al sinds mijn jeugd heel bewuste keuzes. Zo besloot ik op mijn twaalfde vegetariër te worden omdat ik het niet ok vond hoe er met dieren werd omgegaan. Dat is op die leeftijd een atypische keuze. Ik heb sindsdien nooit meer vlees gegeten. Ook in mijn werkende leven zijn mijn principes belangrijk. Zo heb ik op staande voet ontslag genomen toen ik bij een werkgever verplicht werd om dingen te doen die in het nadeel waren van de klant. Ik heb mijn leaseauto laten staan en ben met de trein naar huis gegaan. Ik word letterlijk ziek als ik dingen moet doen waar ik mensen mee benadeel. Dan voel ik me heel slecht. Ik wil mezelf 's morgens in de spiegel kunnen aankijken.",
-      },
-      {
-        heading: "Grootmoeder",
-        text: "Mijn oma heeft altijd een hele belangrijke rol gespeeld in mijn leven. Niet alleen de liefde voor natuur en het bewust genieten van hele kleine dingen heb ik van haar meegekregen. Het gaat veel verder dan dat. Omaatje was heel bijzonder omdat ze altijd aandacht had voor andere mensen en met hen meeleefde ondanks dat ze zelf heel veel gebreken had. Ze gaf meer dan de helft van haar pensioen weg aan goede doelen, ook al moest ze daarvoor heel zuinig leven. Mijn interesse in mensen en het graag naar hen luisteren, heb ik duidelijk van haar.",
-      },
-      {
-        heading: "Twee vaders",
-        text: "Mijn ouders zijn gescheiden toen ik 9 was. Daarna is mijn moeder hertrouwd, waardoor ik twee vaders heb. Die twee zijn heel verschillend. Ik heb van beide veel geleerd. Mijn stiefvader is rationeel, streng en gestructureerd en leerde me hoe de beurs werkt. Dankzij hem ben ik op mijn veertiende begonnen met beleggen. Mijn biologische vader is juist de creatieve, vrije geest die iedereen zichzelf wil laten zijn. De combinatie van beide mannen zit in mij en dat komt bij beleggen goed van pas.",
-      },
-    ],
-  },
-  {
-    id: 2,
     image: "/images/team-marco.jpg",
     name: "Marco Lange (1971)",
     title: "drs. Marco Lange RBA CFP",
@@ -73,6 +48,31 @@ const team = [
       {
         heading: "Keurslijf",
         text: "Voorheen werkte ik als accountmanager Private Banking bij een grootbank. Daar waren de opties beperkt omdat ik nooit naar een andere bank kon. Bij Lange Financieel Advies is er meer ruimte voor creativiteit, waardoor ik nog meer voor de cliënt kan betekenen. Het is heerlijk om niet meer in een keurslijf te zitten. Ik hoop nog lang de dromen van onze cliënten mede te kunnen vormgeven.",
+      },
+    ],
+  },
+  {
+    id: 3,
+    image: "/images/team-jord.jpg",
+    name: "Jord Roemer (1969)",
+    title: "mr. Jord Roemer",
+    contact: [
+      { label: "+31(0)6 11 87 48 93", href: "tel:+31611874893" },
+      { label: "jord@roemerkamp.nl", href: "mailto:jord@roemerkamp.nl" },
+      { label: "LinkedIn", href: "https://www.linkedin.com/in/jordroemer" },
+    ],
+    bios: [
+      {
+        heading: "Ik wil mezelf in de spiegel kunnen aankijken",
+        text: "Ik maak al sinds mijn jeugd heel bewuste keuzes. Zo besloot ik op mijn twaalfde vegetariër te worden omdat ik het niet ok vond hoe er met dieren werd omgegaan. Dat is op die leeftijd een atypische keuze. Ik heb sindsdien nooit meer vlees gegeten. Ook in mijn werkende leven zijn mijn principes belangrijk. Zo heb ik op staande voet ontslag genomen toen ik bij een werkgever verplicht werd om dingen te doen die in het nadeel waren van de klant. Ik heb mijn leaseauto laten staan en ben met de trein naar huis gegaan. Ik word letterlijk ziek als ik dingen moet doen waar ik mensen mee benadeel. Dan voel ik me heel slecht. Ik wil mezelf 's morgens in de spiegel kunnen aankijken.",
+      },
+      {
+        heading: "Grootmoeder",
+        text: "Mijn oma heeft altijd een hele belangrijke rol gespeeld in mijn leven. Niet alleen de liefde voor natuur en het bewust genieten van hele kleine dingen heb ik van haar meegekregen. Het gaat veel verder dan dat. Omaatje was heel bijzonder omdat ze altijd aandacht had voor andere mensen en met hen meeleefde ondanks dat ze zelf heel veel gebreken had. Ze gaf meer dan de helft van haar pensioen weg aan goede doelen, ook al moest ze daarvoor heel zuinig leven. Mijn interesse in mensen en het graag naar hen luisteren, heb ik duidelijk van haar.",
+      },
+      {
+        heading: "Twee vaders",
+        text: "Mijn ouders zijn gescheiden toen ik 9 was. Daarna is mijn moeder hertrouwd, waardoor ik twee vaders heb. Die twee zijn heel verschillend. Ik heb van beide veel geleerd. Mijn stiefvader is rationeel, streng en gestructureerd en leerde me hoe de beurs werkt. Dankzij hem ben ik op mijn veertiende begonnen met beleggen. Mijn biologische vader is juist de creatieve, vrije geest die iedereen zichzelf wil laten zijn. De combinatie van beide mannen zit in mij en dat komt bij beleggen goed van pas.",
       },
     ],
   },

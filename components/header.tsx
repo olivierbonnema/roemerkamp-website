@@ -33,7 +33,6 @@ export function Header() {
     { href: "/voor-investeerders", label: "Voor investeerders" },
     { href: "/berichten", label: "Berichten" },
     { href: "/over-wmp", label: "Over ons" },
-    { href: "/nadere-informatie", label: "Nadere informatie" },
     { href: "/contact", label: "Contact" },
   ]
 
