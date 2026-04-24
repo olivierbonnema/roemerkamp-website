@@ -22,13 +22,13 @@ export function WealthManagementSection() {
             <SectionHeading>Voor leningnemers</SectionHeading>
             <div className="mt-6 space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                Samen werken we vanuit een duidelijke lange termijn visie, met vertrouwen in elkaar — ook wanneer een financiering complex is of snel rond moet komen. Door echt naar het verhaal achter de aanvraag te kijken, ontstaat een financiering op maat die past bij de situatie van de leningnemer en rust kan bieden, ook wanneer een bank niet thuis geeft.
+                Samen werken we vanuit een duidelijke lange termijn visie, met vertrouwen in elkaar, ook wanneer een financiering complex is of snel rond moet komen. Door echt naar het verhaal achter de aanvraag te kijken, ontstaat een financiering op maat die past bij de situatie van de leningnemer en rust kan bieden, ook wanneer een bank niet thuis geeft.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 Om de ambities en plannen van onze leningnemers waar te maken, kijken wij verder dan alleen de cijfers op papier. We denken actief mee over de best passende financieringsvorm en voorwaarden die aansluiten bij de persoonlijke situatie en doelen van de leningnemer, met korte lijnen en snelle besluitvorming.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Of het nu gaat om vastgoedontwikkeling, een bedrijfsovername, overbruggingsfinanciering of een bijzondere situatie waarin maatwerk nodig is: wij begeleiden onze leningnemers zoals wij dat ook voor onze eigen familie zouden doen — persoonlijk, transparant en met oog voor een langdurige relatie.
+                Of het nu gaat om vastgoedontwikkeling, een bedrijfsovername, overbruggingsfinanciering of een bijzondere situatie waarin maatwerk nodig is: wij begeleiden onze leningnemers zoals wij dat ook voor onze eigen familie zouden doen: persoonlijk, transparant en met oog voor een langdurige relatie.
               </p>
             </div>
             <Link

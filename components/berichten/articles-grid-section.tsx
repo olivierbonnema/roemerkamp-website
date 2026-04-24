@@ -6,7 +6,7 @@ const articles = [
     id: 1,
     title: "Waarom wij denken in generaties, niet in kwartalen",
     excerpt:
-      "Bij Lange & Partners geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien — met het oog op de toekomst.",
+      "Bij Lange & Partners geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien, met het oog op de toekomst.",
     image: "/images/bericht-1-boom.jpg",
     imageStyle: {},
     slug: "waarom-wij-denken-in-generaties-niet-in-kwartalen",
@@ -24,7 +24,7 @@ const articles = [
     id: 3,
     title: "Persoonlijk vermogensbeheer vanuit het hart van Haarlem",
     excerpt:
-      "Vanuit ons kantoor aan de Wilhelminastraat in Haarlem bedienen wij een select aantal cliënten. Geen call center, geen wisselende contactpersonen — maar een vast team dat uw situatie, ambities en familie écht kent.",
+      "Vanuit ons kantoor aan de Wilhelminastraat in Haarlem bedienen wij een select aantal cliënten. Geen call center, geen wisselende contactpersonen, maar een vast team dat uw situatie, ambities en familie écht kent.",
     image: "/images/bericht-3-haarlem.jpg",
     imageStyle: { objectPosition: "center 45%" },
     slug: "persoonlijk-vermogensbeheer-vanuit-het-hart-van-haarlem",

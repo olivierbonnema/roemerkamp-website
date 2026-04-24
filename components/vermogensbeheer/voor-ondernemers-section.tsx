@@ -6,7 +6,7 @@ export function VoorOndernemersSection() {
       <SectionHeading>Wat we doen</SectionHeading>
       <div className="mt-6 space-y-4">
         <p className="text-gray-700 leading-relaxed">
-          Altijd handelen vanuit lange termijn doelstellingen, met vertrouwen in de toekomst — ook wanneer de beurzen onrustig zijn. Daar hechten wij grote waarde aan.
+          Altijd handelen vanuit lange termijn doelstellingen, met vertrouwen in de toekomst, ook wanneer de beurzen onrustig zijn. Daar hechten wij grote waarde aan.
         </p>
         <p className="text-gray-700 leading-relaxed">
           Door de brede spreiding binnen onze beleggingen ontstaat een evenwichtige portefeuille die meer rust geeft, ook in volatiele markten.

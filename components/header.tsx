@@ -34,6 +34,7 @@ export function Header() {
     { href: "/berichten", label: "Berichten" },
     { href: "/over-wmp", label: "Over ons" },
     { href: "/contact", label: "Contact" },
+    { href: "/faq", label: "FAQ" },
   ]
 
   const loginDropdown: DropdownItem[] = [

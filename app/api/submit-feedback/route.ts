@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             </table>
           </div>
           <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
-            <p style="font-size:12px;color:#9ca3af;margin:0;">Lange &amp; Partners — portaal feedback</p>
+            <p style="font-size:12px;color:#9ca3af;margin:0;">Lange &amp; Partners, portaal feedback</p>
           </div>
         </div>`,
     })

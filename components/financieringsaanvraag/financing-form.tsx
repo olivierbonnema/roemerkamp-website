@@ -15,12 +15,12 @@ const STEPS = [
 ]
 
 const PROPERTY_TYPES = [
-  "Woning — eengezins",
-  "Woning — meergezins",
-  "Woning — appartement",
-  "Commercieel — kantoor",
-  "Commercieel — retail",
-  "Commercieel — industrieel",
+  "Woning: eengezins",
+  "Woning: meergezins",
+  "Woning: appartement",
+  "Commercieel: kantoor",
+  "Commercieel: retail",
+  "Commercieel: industrieel",
   "Gemengd gebruik",
   "Grond / ontwikkellocatie",
 ]
@@ -798,7 +798,7 @@ export function FinancingForm() {
             </p>
             {feedbackSent ? (
               <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-[#f0f4ff] text-sm text-[#1E3A5F] font-sans font-medium">
-                <span className="text-base">✓</span>Bedankt voor uw feedback — wij nemen dit ter harte.
+                <span className="text-base">✓</span>Bedankt voor uw feedback, wij nemen dit ter harte.
               </div>
             ) : (
               <div className="flex flex-col gap-3">

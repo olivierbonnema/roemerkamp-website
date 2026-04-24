@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
   })))
 
   const summaryText = [
-    "=== FINANCIERINGSAANVRAAG — FORMULIERGEGEVENS ===",
+    "=== FINANCIERINGSAANVRAAG: FORMULIERGEGEVENS ===",
     `Datum: ${new Date().toLocaleString("nl-NL")}`,
     "",
     "--- AANVRAGER ---",
@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
 
   /* ── Upload to OneDrive after the response is sent ── */
   const date = new Date().toISOString().slice(0, 10)
-  const folderName = `${date} — ${naam || email}`
+  const folderName = `${date} - ${naam || email}`
 
   after(async () => {
     try {
@@ -377,7 +377,7 @@ export async function POST(req: NextRequest) {
       resend.emails.send({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: COMPANY_EMAIL,
-        subject: `Nieuwe financieringsaanvraag — ${naam || email}`,
+        subject: `Nieuwe financieringsaanvraag: ${naam || email}`,
         html: notificationHtml,
       }),
     ])

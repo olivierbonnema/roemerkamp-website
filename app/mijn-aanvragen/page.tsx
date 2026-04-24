@@ -20,7 +20,7 @@ export default function MijnAanvragenPage() {
               Mijn aanvragen
             </h1>
             <p className="font-sans text-base text-white/70 max-w-lg">
-              Hier vindt u een overzicht van uw financieringsaanvragen — ingediend én opgeslagen concepten.
+              Hier vindt u een overzicht van uw financieringsaanvragen: ingediend én opgeslagen concepten.
             </p>
           </div>
         </section>

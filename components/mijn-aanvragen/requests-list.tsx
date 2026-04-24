@@ -100,7 +100,7 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
       <div className="mb-4">
         <div className="flex justify-between items-center mb-1.5">
           <span className="text-[11px] text-gray-400 font-sans">
-            Stap {stepsDone} van {stepsTotal} — {STEP_LABELS[draft.step] ?? "Overzicht"}
+            Stap {stepsDone} van {stepsTotal}: {STEP_LABELS[draft.step] ?? "Overzicht"}
           </span>
           <span className="text-[11px] text-gray-400 font-sans">{pct}%</span>
         </div>

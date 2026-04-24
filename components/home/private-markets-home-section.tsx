@@ -25,7 +25,7 @@ export function PrivateMarketsHomeSection() {
                 Lange &amp; Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Die achtergrond vormt de basis van onze werkwijze: we kennen het krediettraject van binnenuit, weten waar banken tegenaan lopen en herkennen de situaties waarin een financiering wél verantwoord is, maar niet binnen het reguliere bancaire kader past. Acht jaar geleden zijn wij begonnen met het verstrekken van non-bancaire leningen, inmiddels hebben wij meer dan 175 miljoen euro aan financieringen verstrekt.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Onze aanpak is gericht op de lange termijn. We nemen de tijd om een aanvraag goed te begrijpen en beoordelen iedere casus op zijn eigen merites — met oog voor de leningnemer, de onderliggende zekerheden en de belangen van onze investeerders. Door korte lijnen, persoonlijk contact en een gedisciplineerde werkwijze streven wij naar financieringen die voor alle betrokken partijen solide en werkbaar zijn.
+                Onze aanpak is gericht op de lange termijn. We nemen de tijd om een aanvraag goed te begrijpen en beoordelen iedere casus op zijn eigen merites, met oog voor de leningnemer, de onderliggende zekerheden en de belangen van onze investeerders. Door korte lijnen, persoonlijk contact en een gedisciplineerde werkwijze streven wij naar financieringen die voor alle betrokken partijen solide en werkbaar zijn.
               </p>
             </div>
             <Link

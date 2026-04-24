@@ -15,7 +15,7 @@ export function VoorWieSection() {
           Voordat wij voor iemand gaan beleggen, nemen we uitgebreid de tijd om de financiële situatie, doelstellingen en risicobereidheid goed in kaart te brengen. Op basis daarvan bepalen we samen een strategie die past bij de lange termijn en zorgen we voor een breed gespreide portefeuille met een solide fundament.
         </p>
         <p className="text-gray-700 leading-relaxed">
-          Onze cliënten zijn tevreden — en dat is ook precies waarom wij vrijwel geen geld aan marketing besteden. Nieuwe cliënten komen in de meeste gevallen via bestaande relaties. Dat zien wij als het grootste compliment dat wij kunnen krijgen.
+          Onze cliënten zijn tevreden, en dat is ook precies waarom wij vrijwel geen geld aan marketing besteden. Nieuwe cliënten komen in de meeste gevallen via bestaande relaties. Dat zien wij als het grootste compliment dat wij kunnen krijgen.
         </p>
       </div>
     </section>

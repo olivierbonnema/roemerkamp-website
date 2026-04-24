@@ -21,7 +21,7 @@ export function VoorVermogendeSection() {
               Voordat wij een lening verstrekken, nemen we uitgebreid de tijd om de financiële situatie, doelstellingen en risicobereidheid goed in kaart te brengen. Op basis daarvan bepalen we samen een financieringsstructuur die past bij de lange termijn en zorgen we voor een solide fundament met passende zekerheden.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Onze cliënten zijn tevreden — en dat is ook precies waarom wij vrijwel geen geld aan marketing besteden. Nieuwe cliënten komen in de meeste gevallen via bestaande relaties. Dat zien wij als het grootste compliment dat wij kunnen krijgen.
+              Onze cliënten zijn tevreden, en dat is ook precies waarom wij vrijwel geen geld aan marketing besteden. Nieuwe cliënten komen in de meeste gevallen via bestaande relaties. Dat zien wij als het grootste compliment dat wij kunnen krijgen.
             </p>
           </div>
         </div>

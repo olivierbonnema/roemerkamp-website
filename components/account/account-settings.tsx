@@ -44,7 +44,7 @@ export function AccountSettings() {
 
           {sent ? (
             <p className="text-sm text-green-600 font-sans">
-              Resetlink verzonden — controleer uw inbox.
+              Resetlink verzonden. Controleer uw inbox.
             </p>
           ) : (
             <>

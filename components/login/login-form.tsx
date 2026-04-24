@@ -98,7 +98,7 @@ export function LoginForm() {
         </div>
         {resetSent && (
           <p className="text-xs text-green-600 font-sans mt-1">
-            Resetlink verzonden — controleer uw inbox.
+            Resetlink verzonden. Controleer uw inbox.
           </p>
         )}
       </div>
