@@ -19,7 +19,7 @@ export function ContactInfoSection() {
           {/* Right — contact details */}
           <div className="space-y-8">
             <div>
-              <p className="font-semibold text-[#1e3a5f]">Lange &amp; Partners Non-bancair</p>
+              <p className="font-semibold text-[#1e3a5f]">Lange &amp; Partners</p>
               <p className="text-gray-700">Wilhelminastraat 50</p>
               <p className="text-gray-700">2011 VN Haarlem</p>
               <p className="text-gray-700">Nederland</p>
@@ -28,7 +28,7 @@ export function ContactInfoSection() {
             <div className="space-y-1">
               <p className="text-gray-700">
                 <span className="font-medium">Telefoon:</span>{" "}
-                <a href="tel:0235173106" className="hover:text-[#311e86]">(023) 517 31 06</a>
+                <a href="tel:0235173100" className="hover:text-[#311e86]">(023) 517 31 00</a>
               </p>
               <p className="text-gray-700">
                 <span className="font-medium">E-mail:</span>{" "}

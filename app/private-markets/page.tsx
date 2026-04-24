@@ -10,7 +10,7 @@ import { NonBancaireSidebar } from "@/components/private-markets/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Non-bancaire leningen | Lange & Partners Non-bancair",
+  title: "Non-bancaire leningen | Lange & Partners",
   description: "Non-bancaire leningen via Lange Financieel Advies — stabiel rendement, solide zekerheden en een transparante structuur.",
 }
 

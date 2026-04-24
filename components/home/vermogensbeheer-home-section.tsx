@@ -15,7 +15,7 @@ export function VermogensbeheerHomeSection() {
                 Non-bancaire leningen vormen een alternatief wanneer traditionele banken geen financiering verstrekken. Door kapitaal van particuliere investeerders te koppelen aan kredietnemers ontstaan mogelijkheden buiten het standaard bancaire kader. Zo kunnen transacties toch doorgaan wanneer snelheid, maatwerk of specifieke omstandigheden maken dat een bankfinanciering niet haalbaar is.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Iedere financieringsaanvraag wordt zorgvuldig beoordeeld. Daarbij wordt gekeken naar de onderliggende zekerheid, de haalbaarheid van terugbetaling en het perspectief op herfinanciering of aflossing. Pas wanneer het geheel — zekerheden, aflossingscapaciteit en exit — naar ons oordeel voldoende solide is, wordt een propositie aan investeerders voorgelegd.
+                Iedere financieringsaanvraag wordt zorgvuldig beoordeeld. Daarbij wordt gekeken naar de onderliggende zekerheid, de betaalbaarheid van maandelijkse rente en kosten en het perspectief op herfinanciering of aflossing. Pas wanneer het geheel (zekerheden, betalingscapaciteit en terugbetaling) naar ons oordeel voldoende solide is, wordt een propositie aan investeerders voorgelegd.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 Of het nu gaat om een overbruggingsfinanciering, de aankoop van vastgoed of een situatie waarin bankcriteria onvoldoende aansluiten bij de werkelijkheid: binnen non-bancaire leningen werken wij met duidelijke afspraken, solide zekerheden en een transparante structuur voor alle betrokken partijen.

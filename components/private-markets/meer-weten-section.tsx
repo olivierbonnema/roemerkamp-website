@@ -14,7 +14,7 @@ export function NblMeerWetenSection() {
               Laat je informeren door één van onze specialisten. We bekijken samen of non-bancaire leningen aansluiten bij jouw (financiële) situatie en wensen.
             </p>
             <p className="text-gray-700 leading-relaxed mt-4 mb-8">
-              Bel (023) 517 31 06 of vul je gegevens in, zodat wij contact met je kunnen opnemen.
+              Bel (023) 517 31 00 of vul je gegevens in, zodat wij contact met je kunnen opnemen.
             </p>
             <ContactForm />
           </div>

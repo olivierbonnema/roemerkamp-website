@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { RequestsList } from "@/components/mijn-aanvragen/requests-list"
 
 export const metadata = {
-  title: "Mijn aanvragen | Lange & Partners Non-bancair",
+  title: "Mijn aanvragen | Lange & Partners",
   description: "Bekijk de status van uw financieringsaanvragen.",
 }
 

@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { AccountSettings } from "@/components/account/account-settings"
 
 export const metadata = {
-  title: "Accountinstellingen | Lange & Partners Non-bancair",
+  title: "Accountinstellingen | Lange & Partners",
 }
 
 export default function AccountPage() {

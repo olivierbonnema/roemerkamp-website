@@ -47,6 +47,11 @@ export function Footer() {
                   In memoriam
                 </Link>
               </li>
+              <li>
+                <Link href="/privacy" className="text-gray-600 hover:text-[#311e86] text-xs">
+                  Privacyverklaring
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -86,10 +91,10 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="tel:0235173106"
+                  href="tel:0235173100"
                   className="text-gray-600 hover:text-[#311e86] text-xs"
                 >
-                  (023) 517 31 06
+                  (023) 517 31 00
                 </a>
               </li>
             </ul>

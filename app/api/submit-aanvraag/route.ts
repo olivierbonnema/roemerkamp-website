@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
 
   const emailHeader = (title: string, subtitle?: string) => `
     <div style="border-top:4px solid #F75D20;background:#fff;padding:36px 40px 32px;">
-      <img src="${BASE_URL}/images/lange-logo.png" alt="Lange &amp; Partners Non-bancair" style="height:60px;width:auto;display:block;" />
+      <img src="${BASE_URL}/images/lange-logo.png" alt="Lange &amp; Partners" style="height:60px;width:auto;display:block;" />
     </div>
     <div style="background:#1E3A5F;padding:22px 40px 24px;">
       <div style="color:#fff;font-size:20px;font-weight:400;line-height:1.3;font-family:'PT Serif',Georgia,serif;">${title}</div>
@@ -274,9 +274,9 @@ export async function POST(req: NextRequest) {
       <table style="width:100%;border-collapse:collapse;">
         <tr>
           <td style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.9;font-family:sans-serif;">
-            <span style="color:#fff;font-weight:500;font-size:13px;">Lange &amp; Partners Non-bancair</span><br>
+            <span style="color:#fff;font-weight:500;font-size:13px;">Lange &amp; Partners</span><br>
             Wilhelminastraat 50 &nbsp;&middot;&nbsp; 2011 VN Haarlem<br>
-            <a href="tel:+31235173106" style="color:rgba(255,255,255,0.6);text-decoration:none;">(023) 517 31 06</a>
+            <a href="tel:+31235173100" style="color:rgba(255,255,255,0.6);text-decoration:none;">(023) 517 31 00</a>
             &nbsp;&middot;&nbsp;
             <a href="mailto:info@langefa.nl" style="color:rgba(255,255,255,0.6);text-decoration:none;">info@langefa.nl</a>
           </td>
@@ -302,7 +302,7 @@ export async function POST(req: NextRequest) {
           </p>
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0;">
             Met vriendelijke groet,<br>
-            <strong style="color:#1E3A5F;">Lange &amp; Partners Non-bancair</strong>
+            <strong style="color:#1E3A5F;">Lange &amp; Partners</strong>
           </p>
         </div>
         ${emailFooter}
@@ -369,13 +369,13 @@ export async function POST(req: NextRequest) {
   try {
     await Promise.all([
       resend.emails.send({
-        from: `Lange & Partners Non-bancair <${FROM_EMAIL}>`,
+        from: `Lange & Partners <${FROM_EMAIL}>`,
         to: email,
         subject: "Bedankt voor uw financieringsaanvraag",
         html: confirmationHtml,
       }),
       resend.emails.send({
-        from: `Lange & Partners Non-bancair <${FROM_EMAIL}>`,
+        from: `Lange & Partners <${FROM_EMAIL}>`,
         to: COMPANY_EMAIL,
         subject: `Nieuwe financieringsaanvraag — ${naam || email}`,
         html: notificationHtml,

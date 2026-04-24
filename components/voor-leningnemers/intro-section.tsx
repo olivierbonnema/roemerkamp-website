@@ -12,7 +12,7 @@ export function LeningnemersIntroSection() {
               Non-bancaire leningen bieden een flexibel alternatief wanneer traditionele banken geen financiering verstrekken. Regelmatig komt het voor dat een transactie niet doorgaat, simpelweg omdat de bank &quot;nee&quot; zegt — ook wanneer de onderliggende zekerheid ruim voldoende is.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Via Lange &amp; Partners Non-bancair koppelen wij particuliere investeerders aan kredietnemers. Zo ontstaan mogelijkheden buiten het standaard bancaire kader. Alle betalingen verlopen via een onafhankelijke Stichting, waardoor geldstromen gewaarborgd blijven totdat de lening is afgelost.
+              Via Lange &amp; Partners koppelen wij particuliere investeerders aan kredietnemers. Zo ontstaan mogelijkheden buiten het standaard bancaire kader. Alle betalingen verlopen via een onafhankelijke Stichting, waardoor geldstromen gewaarborgd blijven totdat de lening is afgelost.
             </p>
           </div>
         </div>

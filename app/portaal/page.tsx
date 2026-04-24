@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { PortalDashboard } from "@/components/portaal/portal-dashboard"
 
 export const metadata = {
-  title: "Mijn portaal | Lange & Partners Non-bancair",
+  title: "Mijn portaal | Lange & Partners",
 }
 
 export default function PortaalPage() {

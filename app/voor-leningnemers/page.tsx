@@ -8,7 +8,7 @@ import { LeningnemersSidebar } from "@/components/voor-leningnemers/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Voor leningnemers | Lange & Partners Non-bancair",
+  title: "Voor leningnemers | Lange & Partners",
   description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000.",
 }
 

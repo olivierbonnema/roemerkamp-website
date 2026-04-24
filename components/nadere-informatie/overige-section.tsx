@@ -8,7 +8,7 @@ export function OverigeSection() {
             <div className="w-8 h-0.5 bg-[#f75d20] mb-4" />
             <h3 className="font-serif text-xl font-normal text-[#1e3a5f] mb-3">Duurzaamheid</h3>
             <p className="text-gray-600 text-sm leading-relaxed font-sans">
-              Voor nadere informatie over het duurzaamheidsbeleid van Lange &amp; Partners Non-bancair kunt u contact met ons opnemen via{" "}
+              Voor nadere informatie over het duurzaamheidsbeleid van Lange &amp; Partners kunt u contact met ons opnemen via{" "}
               <a href="mailto:info@langefa.nl" className="text-[#311e86] hover:underline">
                 info@langefa.nl
               </a>
@@ -20,7 +20,7 @@ export function OverigeSection() {
             <div className="w-8 h-0.5 bg-[#f75d20] mb-4" />
             <h3 className="font-serif text-xl font-normal text-[#1e3a5f] mb-3">Wat wij graag steunen</h3>
             <p className="text-gray-600 text-sm leading-relaxed font-sans">
-              Lange &amp; Partners Non-bancair is corporate friend van{" "}
+              Lange &amp; Partners is corporate friend van{" "}
               <a
                 href="https://www.black-jaguar.org"
                 target="_blank"

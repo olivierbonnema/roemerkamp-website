@@ -4,8 +4,8 @@ import { ContactHeroSection } from "@/components/contact/hero-section"
 import { ContactInfoSection } from "@/components/contact/contact-info-section"
 
 export const metadata = {
-  title: "Contact | Lange & Partners Non-bancair",
-  description: "Neem contact op met Lange & Partners Non-bancair.",
+  title: "Contact | Lange & Partners",
+  description: "Neem contact op met Lange & Partners.",
 }
 
 export default function ContactPage() {

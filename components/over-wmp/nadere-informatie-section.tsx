@@ -34,7 +34,7 @@ export function NadereInformatieSection() {
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Duurzaamheid</h3>
             <p className="text-gray-700 leading-relaxed">
-              Voor nadere informatie over het duurzaamheidsbeleid van Lange & Partners Non-bancair kunt u contact met ons opnemen via{" "}
+              Voor nadere informatie over het duurzaamheidsbeleid van Lange & Partners kunt u contact met ons opnemen via{" "}
               <a href="mailto:info@langefa.nl" className="text-[#2596be] hover:underline">
                 info@langefa.nl
               </a>
@@ -88,7 +88,7 @@ export function NadereInformatieSection() {
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Toezicht &amp; Registratie</h3>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Lange & Partners Non-bancair staat officieel geregistreerd als Vermogensbeheerder bij de Autoriteit Financiële Markten (AFM) en opereert onder toezicht van De Nederlandsche Bank (DNB). Alle partners zijn geregistreerd in één of meerdere registers van het Dutch Securities Institute (DSI). Lange & Partners Non-bancair verklaart uitspraken van KiFiD bindend.
+              Lange & Partners staat officieel geregistreerd als Vermogensbeheerder bij de Autoriteit Financiële Markten (AFM) en opereert onder toezicht van De Nederlandsche Bank (DNB). Alle partners zijn geregistreerd in één of meerdere registers van het Dutch Securities Institute (DSI). Lange & Partners verklaart uitspraken van KiFiD bindend.
             </p>
             <div className="flex flex-wrap gap-3">
               {registraties.map((r) => (

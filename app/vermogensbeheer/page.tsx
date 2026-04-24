@@ -10,8 +10,8 @@ import { VermogensbeheerMeerWetenSection } from "@/components/vermogensbeheer/me
 import { VermogensbeheerSidebar } from "@/components/vermogensbeheer/sidebar"
 
 export const metadata = {
-  title: "Vermogensbeheer | Lange & Partners Non-bancair",
-  description: "Realiseer vermogensgroei passend bij jouw doelstellingen met Lange & Partners Non-bancair vermogensbeheer.",
+  title: "Vermogensbeheer | Lange & Partners",
+  description: "Realiseer vermogensgroei passend bij jouw doelstellingen met Lange & Partners vermogensbeheer.",
 }
 
 export default function VermogensbeheerPage() {

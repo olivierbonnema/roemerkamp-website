@@ -16,7 +16,7 @@ export function ToezichtSection() {
               Toezicht &amp; Registratie
             </h2>
             <p className="text-white/75 text-sm leading-relaxed font-sans">
-              Lange &amp; Partners Non-bancair staat officieel geregistreerd als Vermogensbeheerder bij de Autoriteit Financiële Markten (AFM) en opereert onder toezicht van De Nederlandsche Bank (DNB). Alle partners zijn geregistreerd in één of meerdere registers van het Dutch Securities Institute (DSI). Lange &amp; Partners Non-bancair verklaart uitspraken van KiFiD bindend.
+              Lange &amp; Partners staat officieel geregistreerd als Vermogensbeheerder bij de Autoriteit Financiële Markten (AFM) en opereert onder toezicht van De Nederlandsche Bank (DNB). Alle partners zijn geregistreerd in één of meerdere registers van het Dutch Securities Institute (DSI). Lange &amp; Partners verklaart uitspraken van KiFiD bindend.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4">

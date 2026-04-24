@@ -16,7 +16,7 @@ export function PortalFooter() {
         />
         <div className="flex items-center gap-6">
           <span className="text-xs text-gray-400 font-sans">
-            © {year} Lange & Partners Non-bancair
+            © {year} Lange & Partners
           </span>
           <Link
             href="/"

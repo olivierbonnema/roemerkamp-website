@@ -50,7 +50,7 @@ export function Header() {
           <Link href="/" className="flex items-center flex-shrink-0">
             <Image
               src="/images/lange-logo.svg"
-              alt="Lange & Partners Non-bancair"
+              alt="Lange & Partners"
               width={340}
               height={85}
               className="h-[72px] w-auto -mt-4"
@@ -72,7 +72,7 @@ export function Header() {
               <Link href="/" className="flex items-center flex-shrink-0">
                 <Image
                   src="/images/lange-logo.svg"
-                  alt="Lange & Partners Non-bancair"
+                  alt="Lange & Partners"
                   width={340}
                   height={85}
                   className="h-[72px] w-auto -mt-4"
@@ -168,7 +168,7 @@ export function Header() {
             <Link href="/" className="flex items-center flex-shrink-0">
               <Image
                 src="/images/lange-logo.svg"
-                alt="Lange & Partners Non-bancair"
+                alt="Lange & Partners"
                 width={340}
                 height={85}
                 className="h-[72px] w-auto -mt-4"

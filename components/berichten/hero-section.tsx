@@ -7,7 +7,7 @@ export function BerichtenHeroSection() {
           Berichten
         </h1>
         <p className="text-white/90 text-lg leading-relaxed">
-          Inzichten en updates van Lange &amp; Partners Non-bancair
+          Inzichten en updates van Lange &amp; Partners
         </p>
       </div>
     </section>

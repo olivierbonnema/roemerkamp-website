@@ -3,8 +3,8 @@ import { Footer } from "@/components/footer"
 import { LoginForm } from "@/components/login/login-form"
 
 export const metadata = {
-  title: "Inloggen | Lange & Partners Non-bancair",
-  description: "Log in op uw account bij Lange & Partners Non-bancair.",
+  title: "Inloggen | Lange & Partners",
+  description: "Log in op uw account bij Lange & Partners.",
 }
 
 export default function LoginPage() {

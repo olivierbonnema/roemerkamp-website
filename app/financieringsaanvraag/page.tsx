@@ -4,7 +4,7 @@ import { FinancingForm } from "@/components/financieringsaanvraag/financing-form
 import { AuthGuard } from "@/components/auth-guard"
 
 export const metadata = {
-  title: "Financieringsaanvraag | Lange & Partners Non-bancair",
+  title: "Financieringsaanvraag | Lange & Partners",
   description: "Dien uw financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",
 }
 

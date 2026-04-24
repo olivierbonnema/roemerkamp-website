@@ -17,8 +17,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: 'Lange & Partners Non-bancair | Vermogensbeheer',
-  description: 'Lange & Partners Non-bancair is een onafhankelijke wealth manager met een ondernemende mentaliteit. Vermogensbeheer en private markets voor vermogende ondernemers.',
+  title: 'Lange & Partners | Vermogensbeheer',
+  description: 'Lange & Partners is een onafhankelijke wealth manager met een ondernemende mentaliteit. Vermogensbeheer en private markets voor vermogende ondernemers.',
   generator: 'v0.app',
   icons: {
     icon: '/favicon.png',

@@ -8,7 +8,7 @@ import { NonBancaireSidebar } from "@/components/private-markets/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Voor investeerders | Lange & Partners Non-bancair",
+  title: "Voor investeerders | Lange & Partners",
   description: "Investeer in non-bancaire vastgoedleningen. Stabiel rendement van 6,5% tot 8,5% per jaar met hypothecaire zekerheid.",
 }
 

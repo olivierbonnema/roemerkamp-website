@@ -4,8 +4,8 @@ import { BerichtenHeroSection } from "@/components/berichten/hero-section"
 import { ArticlesGridSection } from "@/components/berichten/articles-grid-section"
 
 export const metadata = {
-  title: "Berichten | Lange & Partners Non-bancair",
-  description: "Inzichten en updates van Lange & Partners Non-bancair.",
+  title: "Berichten | Lange & Partners",
+  description: "Inzichten en updates van Lange & Partners.",
 }
 
 export default function BerichtenPage() {

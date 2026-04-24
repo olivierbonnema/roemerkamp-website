@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   try {
     await resend.emails.send({
-      from: `Lange & Partners Non-bancair <${FROM_EMAIL}>`,
+      from: `Lange & Partners <${FROM_EMAIL}>`,
       to: COMPANY_EMAIL,
       subject: "Portaal feedback ontvangen",
       html: `
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             </table>
           </div>
           <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
-            <p style="font-size:12px;color:#9ca3af;margin:0;">Lange &amp; Partners Non-bancair — portaal feedback</p>
+            <p style="font-size:12px;color:#9ca3af;margin:0;">Lange &amp; Partners — portaal feedback</p>
           </div>
         </div>`,
     })

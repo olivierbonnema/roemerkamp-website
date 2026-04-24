@@ -6,8 +6,8 @@ import { ToezichtSection } from "@/components/nadere-informatie/toezicht-section
 import { OverigeSection } from "@/components/nadere-informatie/overige-section"
 
 export const metadata = {
-  title: "Nadere informatie | Lange & Partners Non-bancair",
-  description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners Non-bancair.",
+  title: "Nadere informatie | Lange & Partners",
+  description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners.",
 }
 
 export default function NadereInformatiePage() {
