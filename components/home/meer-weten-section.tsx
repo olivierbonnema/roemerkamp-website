@@ -23,10 +23,10 @@ export function MeerWetenSection() {
           {/* Right image */}
           <div className="relative h-[600px] hidden md:block">
             <Image
-              src="/images/contact-portrait.jpg"
-              alt="Professional portrait"
+              src="/images/molens-zonsondergang.jpg"
+              alt="Molens bij zonsondergang"
               fill
-              className="object-cover object-[center_15%]"
+              className="object-cover"
             />
           </div>
         </div>
