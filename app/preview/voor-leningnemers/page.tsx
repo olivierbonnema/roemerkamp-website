@@ -217,11 +217,10 @@ export default function PreviewVoorLeningnemersPage() {
               </div>
               <div className="relative h-[600px] hidden md:block">
                 <Image
-                  src="/images/contact-portrait.jpg"
-                  alt="Contact portrait"
+                  src="/images/kantoor-hal.png"
+                  alt="Kantoor hal"
                   fill
                   className="object-cover"
-                  style={{ objectPosition: "center 15%" }}
                 />
               </div>
             </div>
