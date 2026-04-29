@@ -14,6 +14,7 @@ export function PrivateMarketsHomeSection() {
               alt="Over ons"
               fill
               className="object-cover scale-[1.25]"
+              style={{ objectPosition: "center 80%" }}
             />
           </div>
 
