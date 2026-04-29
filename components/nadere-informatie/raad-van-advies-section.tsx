@@ -18,7 +18,7 @@ const advisors = [
 export function RaadVanAdviesSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-10">
+      <div className="max-w-screen-2xl mx-auto px-4">
         <div className="w-12 h-1 bg-[#f75d20] rounded-sm mb-4" />
         <h2 className="font-serif text-[26px] md:text-[32px] font-normal text-[#1e3a5f] mb-10">
           Raad van Advies

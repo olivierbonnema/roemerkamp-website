@@ -13,7 +13,7 @@ const featuredArticle = {
 export function FeaturedArticleSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-10">
+      <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left image */}
           <div className="relative h-[400px]">

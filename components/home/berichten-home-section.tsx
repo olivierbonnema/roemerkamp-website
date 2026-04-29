@@ -35,7 +35,7 @@ const articles = [
 export function BerichtenHomeSection() {
   return (
     <section className="py-20 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-10">
+      <div className="max-w-screen-2xl mx-auto px-4">
         <SectionHeading>Berichten</SectionHeading>
 
         <div className="grid md:grid-cols-3 gap-8 mt-12">

@@ -4,7 +4,7 @@ import { SectionHeading } from "@/components/section-heading"
 export function VoorVermogendeSection() {
   return (
     <section className="py-20 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-10">
+      <div className="max-w-screen-2xl mx-auto px-4">
         <SectionHeading>Voor wie we het doen</SectionHeading>
 
         <div className="grid md:grid-cols-2 gap-12 mt-8">

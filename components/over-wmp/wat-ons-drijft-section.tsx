@@ -3,7 +3,7 @@ import { SectionHeading } from "@/components/section-heading"
 export function WatOnsDrijftSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-10">
+      <div className="max-w-screen-2xl mx-auto px-4">
         <SectionHeading>Wat ons drijft</SectionHeading>
 
         <div className="mt-6 space-y-4 max-w-4xl">
