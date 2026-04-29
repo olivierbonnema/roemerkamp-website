@@ -8,12 +8,12 @@ export function PrivateMarketsHomeSection() {
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left image */}
-          <div className="relative h-[400px]">
+          <div className="relative h-[400px] overflow-hidden">
             <Image
               src="/images/over-ons-section.jpg"
               alt="Over ons"
               fill
-              className="object-cover"
+              className="object-cover scale-[1.25]"
             />
           </div>
 
