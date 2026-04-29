@@ -27,6 +27,7 @@ export function MeerWetenSection() {
               alt="Molens bij zonsondergang"
               fill
               className="object-cover"
+              style={{ objectPosition: "center 25%" }}
             />
           </div>
         </div>
