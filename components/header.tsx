@@ -32,7 +32,7 @@ export function Header() {
     { href: "/voor-leningnemers", label: "Voor leningnemers" },
     { href: "/voor-investeerders", label: "Voor investeerders" },
     { href: "/berichten", label: "Berichten" },
-    { href: "/over-wmp", label: "Over ons" },
+    { href: "/over-ons", label: "Over ons" },
     { href: "/contact", label: "Contact" },
   ]
 

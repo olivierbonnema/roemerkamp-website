@@ -33,17 +33,17 @@ export function Footer() {
             <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Over ons</h3>
             <ul className="space-y-1.5">
               <li>
-                <Link href="/over-wmp#wat-ons-drijft" className="text-gray-600 hover:text-[#311e86] text-xs">
+                <Link href="/over-ons#wat-ons-drijft" className="text-gray-600 hover:text-[#311e86] text-xs">
                   Wat ons drijft
                 </Link>
               </li>
               <li>
-                <Link href="/over-wmp#wie-we-zijn" className="text-gray-600 hover:text-[#311e86] text-xs">
+                <Link href="/over-ons#wie-we-zijn" className="text-gray-600 hover:text-[#311e86] text-xs">
                   Wie we zijn
                 </Link>
               </li>
               <li>
-                <Link href="/over-wmp#in-memoriam" className="text-gray-600 hover:text-[#311e86] text-xs">
+                <Link href="/over-ons#in-memoriam" className="text-gray-600 hover:text-[#311e86] text-xs">
                   In memoriam
                 </Link>
               </li>
