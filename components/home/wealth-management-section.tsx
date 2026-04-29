@@ -10,8 +10,8 @@ export function WealthManagementSection() {
           {/* Left image */}
           <div className="relative h-[400px]">
             <Image
-              src="/images/vermogensbeheer-section.jpg"
-              alt="Team working together"
+              src="/images/voor-leningnemers-home.png"
+              alt="Gesprek over financiering"
               fill
               className="object-cover"
             />
