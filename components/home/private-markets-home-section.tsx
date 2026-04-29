@@ -13,7 +13,7 @@ export function PrivateMarketsHomeSection() {
               src="/images/over-ons-section.jpg"
               alt="Over ons"
               fill
-              className="object-contain"
+              className="object-cover"
             />
           </div>
 
