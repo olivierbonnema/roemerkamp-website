@@ -14,6 +14,7 @@ export function WealthManagementSection() {
               alt="Gesprek over financiering"
               fill
               className="object-cover"
+              style={{ objectPosition: "center 35%" }}
             />
           </div>
 
