@@ -52,7 +52,7 @@ const team = [
     ],
   },
   {
-    id: 3,
+    id: 2,
     image: "/images/team-jord.jpg",
     name: "Jord Roemer (1969)",
     title: "mr. Jord Roemer",
