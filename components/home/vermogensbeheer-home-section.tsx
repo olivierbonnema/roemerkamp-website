@@ -32,12 +32,11 @@ export function VermogensbeheerHomeSection() {
           {/* Right image */}
           <div className="relative h-[400px]">
             <Image
-              src="/images/non-bancaire-section.jpg"
-              alt="Non-bancaire leningen"
+              src="/images/voor-investeerders-home.png"
+              alt="Gesprek met investeerders"
               fill
               priority
               className="object-cover"
-              style={{ objectPosition: 'center bottom' }}
             />
           </div>
         </div>
