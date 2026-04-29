@@ -124,3 +124,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .max-w-screen-2xl {
+    max-width: 1498px;
+  }
+}
