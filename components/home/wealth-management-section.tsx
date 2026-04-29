@@ -8,12 +8,12 @@ export function WealthManagementSection() {
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left image */}
-          <div className="relative h-[400px]">
+          <div className="relative h-[400px] overflow-hidden">
             <Image
               src="/images/voor-leningnemers-home.png"
               alt="Gesprek over financiering"
               fill
-              className="object-cover"
+              className="object-cover scale-[1.2]"
               style={{ objectPosition: "center 35%" }}
             />
           </div>
