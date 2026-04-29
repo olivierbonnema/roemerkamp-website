@@ -22,10 +22,11 @@ export function NblMeerWetenSection() {
           {/* Right image */}
           <div className="relative h-[600px] hidden md:block">
             <Image
-              src="/images/contact-portrait.jpg"
-              alt="Contact portrait"
+              src="/images/molens-zonsondergang.jpg"
+              alt="Molen"
               fill
               className="object-cover"
+              style={{ objectPosition: "center 20%" }}
               style={{ objectPosition: 'center 15%' }}
             />
           </div>
