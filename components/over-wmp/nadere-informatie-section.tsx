@@ -25,7 +25,7 @@ const registraties = [
 export function NadereInformatieSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
+      <div className="max-w-screen-2xl mx-auto px-10">
         <SectionHeading>Nadere informatie</SectionHeading>
 
         <div className="mt-12 space-y-14 max-w-4xl">

@@ -106,7 +106,7 @@ const team = [
 export function TeamGridSection() {
   return (
     <section className="py-20 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
+      <div className="max-w-screen-2xl mx-auto px-10">
         <SectionHeading>Wie we zijn</SectionHeading>
 
         <div className="mt-16 flex flex-col gap-20">

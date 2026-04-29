@@ -8,7 +8,7 @@ const stats = [
 export function StatsSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
+      <div className="max-w-screen-2xl mx-auto px-10">
         <div className="flex flex-col md:flex-row justify-center gap-8 md:gap-16">
           {stats.map((stat, index) => (
             <div key={index} className="flex flex-col items-center text-center">

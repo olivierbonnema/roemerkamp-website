@@ -34,7 +34,7 @@ const articles = [
 export function ArticlesGridSection() {
   return (
     <section className="py-20 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
+      <div className="max-w-screen-2xl mx-auto px-10">
         <div className="grid md:grid-cols-3 gap-8">
           {articles.map((article) => (
             <article key={article.id} className="group">

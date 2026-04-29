@@ -29,7 +29,7 @@ export function PoolAlertSection() {
       </div>
 
       {/* Content overlay */}
-      <div className="relative max-w-screen-2xl mx-auto px-4 py-20">
+      <div className="relative max-w-screen-2xl mx-auto px-10 py-20">
         <div className="max-w-xl bg-white p-8">
           <div className="w-20 h-1.5 bg-[#f75d20] mb-6" />
           <h2 className="text-3xl font-serif text-[#311e86] mb-6">RKP pool alert</h2>

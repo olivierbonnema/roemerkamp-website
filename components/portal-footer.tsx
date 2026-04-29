@@ -6,7 +6,7 @@ export function PortalFooter() {
 
   return (
     <footer className="border-t border-gray-100 bg-white mt-auto">
-      <div className="max-w-screen-2xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div className="max-w-screen-2xl mx-auto px-10 py-6 flex items-center justify-between">
         <Image
           src="/images/lange-logo.svg"
           alt="Lange & Partners"

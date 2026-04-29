@@ -46,7 +46,7 @@ export function Header() {
   if (isLoginPage) {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="max-w-screen-2xl mx-auto px-4 py-6">
+        <div className="max-w-screen-2xl mx-auto px-10 py-6">
           <Link href="/" className="flex items-center flex-shrink-0">
             <Image
               src="/images/lange-logo.svg"
@@ -66,7 +66,7 @@ export function Header() {
   if (isPortalPage && !loading && user) {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="max-w-screen-2xl mx-auto px-4 py-6">
+        <div className="max-w-screen-2xl mx-auto px-10 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-10">
               <Link href="/" className="flex items-center flex-shrink-0">
@@ -161,7 +161,7 @@ export function Header() {
   /* ── Mode C: Default (regular website) ── */
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      <div className="max-w-screen-2xl mx-auto px-4 py-6">
+      <div className="max-w-screen-2xl mx-auto px-10 py-6">
         <div className="flex items-center justify-between">
           {/* Logo and Navigation */}
           <div className="flex items-center gap-10">

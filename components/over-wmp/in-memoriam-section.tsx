@@ -4,7 +4,7 @@ import { SectionHeading } from "@/components/section-heading"
 export function InMemoriamSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-4">
+      <div className="max-w-screen-2xl mx-auto px-10">
         <SectionHeading>In memoriam</SectionHeading>
 
         <div className="mt-10 grid md:grid-cols-[320px_1fr] gap-10 items-start max-w-4xl">
