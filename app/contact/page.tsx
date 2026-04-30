@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ContactHeroSection } from "@/components/contact/hero-section"
@@ -17,9 +18,42 @@ export const metadata = {
   },
 }
 
+const localBusinessJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': 'https://www.nonbancaireleningen.nl/#localbusiness',
+  name: 'Lange & Partners',
+  url: 'https://www.nonbancaireleningen.nl',
+  telephone: '+31235173100',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Wilhelminastraat 50',
+    addressLocality: 'Haarlem',
+    postalCode: '2011 VN',
+    addressCountry: 'NL',
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '09:00',
+      closes: '17:00',
+    },
+  ],
+  areaServed: [
+    { '@type': 'State', name: 'Noord-Holland' },
+    { '@type': 'State', name: 'Zuid-Holland' },
+    { '@type': 'State', name: 'Utrecht' },
+  ],
+}
+
 export default function ContactPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+      />
       <Header />
       <main>
         <ContactHeroSection />
