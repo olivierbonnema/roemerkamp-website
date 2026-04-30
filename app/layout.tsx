@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="nl">
       <body className={`${ptSerif.variable} ${roboto.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}
