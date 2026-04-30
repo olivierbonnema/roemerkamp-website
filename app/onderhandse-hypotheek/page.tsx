@@ -83,7 +83,7 @@ export default function OnderhandseHypotheekPage() {
                 <SectionHeading>Wat is een onderhandse hypotheek?</SectionHeading>
                 <div className="mt-6 space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    Een onderhandse hypotheek is een lening waarbij het geld niet van een bank afkomstig is, maar van een particuliere partij — een investeerder die zijn vermogen wil beleggen in vastgoedleningen. Het woord &ldquo;onderhandse&rdquo; verwijst naar de manier waarop de akte wordt opgesteld: dit is een notarieel verleden akte, maar het gaat buiten de gestandaardiseerde bancaire kanalen om.
+                    Een onderhandse hypotheek is een lening waarbij het geld niet van een bank afkomstig is, maar van een particuliere partij — een investeerder die zijn vermogen wil beleggen in vastgoedleningen. De term &lsquo;onderhands&rsquo; verwijst naar de afspraken tussen partijen, niet naar de wijze van vastlegging. De akte wordt — net als bij een bancaire hypotheek — formeel via een notaris verleden en ingeschreven in het Kadaster.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
                     Net als bij een bancaire hypotheek wordt er een hypotheekrecht ingeschreven bij het Kadaster. Dit geeft de geldverstrekker zekerheid: mocht de lening niet worden terugbetaald, dan kan het onderpand worden verkocht om de lening te voldoen.
