@@ -46,9 +46,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FinancialService',
+    '@id': 'https://www.nonbancaireleningen.nl/#organization',
+    name: 'Lange & Partners',
+    alternateName: 'Lange en Partners',
+    url: 'https://www.nonbancaireleningen.nl',
+    logo: 'https://www.nonbancaireleningen.nl/favicon.png',
+    description: 'Non-bancaire vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers en investeerders in heel Nederland.',
+    parentOrganization: {
+      '@type': 'Organization',
+      name: 'Lange & Partners Financieel Advies B.V.',
+      identifier: 'KvK 34269870',
+    },
+  }
+
   return (
     <html lang="nl">
       <body className={`${ptSerif.variable} ${roboto.variable} font-sans antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <AuthProvider>
           {children}
         </AuthProvider>
