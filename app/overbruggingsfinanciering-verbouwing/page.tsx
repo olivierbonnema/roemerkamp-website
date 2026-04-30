@@ -32,7 +32,7 @@ const situaties = [
   },
   {
     titel: 'Aankoop op veiling',
-    tekst: 'Vastgoed gekocht via een veiling vereist snelle betaling — vaak binnen enkele weken. Een bancaire hypotheek haalt die doorlooptijd nooit. Wij wel.',
+    tekst: 'Vastgoed gekocht via een veiling vereist snelle betaling — vaak binnen enkele weken. Een bancaire hypotheek haalt die doorlooptijd zelden. Wij doorgaans wel.',
   },
   {
     titel: 'Projectontwikkeling',
@@ -79,10 +79,10 @@ export default function OverbruggingsfinancieringVerbouwingPage() {
             <div className="max-w-2xl">
               <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
               <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Overbruggingsfinanciering
+                Overbruggingsfinanciering voor verbouwing en meer
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Tijdelijke financiering bij aankoop, verbouwing of projectontwikkeling. Lange &amp; Partners regelt een overbruggingslening op basis van uw vastgoed — snel en zonder de bureaucratie van een bancaire aanvraag.
+                Verbouwen vóór verkoop, een veiling-aankoop of een project dat doorloopt — Lange &amp; Partners regelt overbruggingsfinanciering snel en zonder de bureaucratie van een bancaire aanvraag.
               </p>
               <div className="mt-8 flex gap-3 flex-wrap">
                 <Link
