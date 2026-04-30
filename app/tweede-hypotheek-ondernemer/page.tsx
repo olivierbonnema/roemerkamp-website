@@ -127,7 +127,7 @@ export default function TweedeHypotheekOndernemer() {
                 'Hoge box-3-schulden of al een bestaande hypotheek',
                 'Wisselende of seizoensgebonden omzet',
                 'Bedrijf maakt (tijdelijk) verlies of heeft een investeringsjaar achter de rug',
-                'BKR-registratie of lopende betalingsregelingen',
+                'Lopende betalingsregelingen die meewegen in de bancaire toets (wij beoordelen dit per situatie)',
               ].map((v) => (
                 <div key={v} className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
                   <span className="text-gray-700 leading-relaxed">{v}</span>
