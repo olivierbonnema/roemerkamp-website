@@ -6,6 +6,7 @@ export const metadata = {
   title: "Veelgestelde vragen | Lange & Partners",
   description:
     "Stel uw vraag aan onze AI-assistent of bekijk de veelgestelde vragen over non-bancaire leningen en investeringen bij Lange & Partners.",
+  robots: { index: false, follow: false },
 }
 
 export default function FaqPage() {

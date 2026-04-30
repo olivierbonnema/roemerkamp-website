@@ -12,6 +12,7 @@ import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-sec
 export const metadata = {
   title: "Non-bancaire leningen | Lange & Partners",
   description: "Non-bancaire leningen via Lange Financieel Advies: stabiel rendement, solide zekerheden en een transparante structuur.",
+  robots: { index: false, follow: false },
 }
 
 export default function PrivateMarketsPage() {

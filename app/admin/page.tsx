@@ -5,6 +5,7 @@ import { AdminPanel } from "@/components/admin/admin-panel"
 
 export const metadata = {
   title: "Beheer | Lange & Partners",
+  robots: { index: false, follow: false },
 }
 
 export default function AdminPage() {

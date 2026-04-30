@@ -5,6 +5,7 @@ import { PortalDashboard } from "@/components/portaal/portal-dashboard"
 
 export const metadata = {
   title: "Mijn portaal | Lange & Partners",
+  robots: { index: false, follow: false },
 }
 
 export default function PortaalPage() {

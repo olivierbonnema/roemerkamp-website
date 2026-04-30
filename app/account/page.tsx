@@ -5,6 +5,7 @@ import { AccountSettings } from "@/components/account/account-settings"
 
 export const metadata = {
   title: "Accountinstellingen | Lange & Partners",
+  robots: { index: false, follow: false },
 }
 
 export default function AccountPage() {

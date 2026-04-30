@@ -6,6 +6,7 @@ import { RequestsList } from "@/components/mijn-aanvragen/requests-list"
 export const metadata = {
   title: "Mijn aanvragen | Lange & Partners",
   description: "Bekijk de status van uw financieringsaanvragen.",
+  robots: { index: false, follow: false },
 }
 
 export default function MijnAanvragenPage() {
