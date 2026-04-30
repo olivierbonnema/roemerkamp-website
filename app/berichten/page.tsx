@@ -5,7 +5,16 @@ import { ArticlesGridSection } from "@/components/berichten/articles-grid-sectio
 
 export const metadata = {
   title: "Berichten | Lange & Partners",
-  description: "Inzichten en updates van Lange & Partners.",
+  description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
+  openGraph: {
+    title: "Berichten | Lange & Partners",
+    description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
+    url: "https://www.nonbancaireleningen.nl/berichten",
+  },
+  twitter: {
+    title: "Berichten | Lange & Partners",
+    description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
+  },
 }
 
 export default function BerichtenPage() {

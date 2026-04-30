@@ -8,8 +8,17 @@ import { LeningnemersSidebar } from "@/components/voor-leningnemers/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Voor leningnemers | Lange & Partners",
-  description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000.",
+  title: "Non-bancaire lening aanvragen | Lange & Partners",
+  description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000. Snel en flexibel.",
+  openGraph: {
+    title: "Non-bancaire lening aanvragen | Lange & Partners",
+    description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000. Snel en flexibel.",
+    url: "https://www.nonbancaireleningen.nl/voor-leningnemers",
+  },
+  twitter: {
+    title: "Non-bancaire lening aanvragen | Lange & Partners",
+    description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000. Snel en flexibel.",
+  },
 }
 
 export default function VoorLeningnemersPage() {

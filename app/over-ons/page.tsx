@@ -7,7 +7,16 @@ import { InMemoriamSection } from "@/components/over-ons/in-memoriam-section"
 
 export const metadata = {
   title: "Over ons | Lange & Partners",
-  description: "Leer meer over Lange & Partners - onafhankelijk en ondernemend vermogensbeheer.",
+  description: "Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Leer ons team kennen en ontdek hoe wij werken.",
+  openGraph: {
+    title: "Over ons | Lange & Partners",
+    description: "Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Leer ons team kennen en ontdek hoe wij werken.",
+    url: "https://www.nonbancaireleningen.nl/over-ons",
+  },
+  twitter: {
+    title: "Over ons | Lange & Partners",
+    description: "Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Leer ons team kennen en ontdek hoe wij werken.",
+  },
 }
 
 export default function OverWMPPage() {

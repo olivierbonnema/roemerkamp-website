@@ -5,7 +5,16 @@ import { AuthGuard } from "@/components/auth-guard"
 
 export const metadata = {
   title: "Financieringsaanvraag | Lange & Partners",
-  description: "Dien uw financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",
+  description: "Dien uw non-bancaire financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",
+  openGraph: {
+    title: "Financieringsaanvraag | Lange & Partners",
+    description: "Dien uw non-bancaire financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",
+    url: "https://www.nonbancaireleningen.nl/financieringsaanvraag",
+  },
+  twitter: {
+    title: "Financieringsaanvraag | Lange & Partners",
+    description: "Dien uw non-bancaire financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",
+  },
 }
 
 export default function FinancieringsaanvraagPage() {

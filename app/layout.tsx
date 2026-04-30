@@ -16,13 +16,28 @@ const roboto = Roboto({
   variable: "--font-droid-sans",
 });
 
+const BASE_URL = 'https://www.nonbancaireleningen.nl'
+
 export const metadata: Metadata = {
-  title: 'Lange & Partners | Vermogensbeheer',
-  description: 'Lange & Partners is een onafhankelijke wealth manager met een ondernemende mentaliteit. Vermogensbeheer en private markets voor vermogende ondernemers.',
-  generator: 'v0.app',
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'Lange & Partners | Non-bancaire vastgoedfinanciering',
+    template: '%s | Lange & Partners',
+  },
+  description: 'Non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers en investeerders in heel Nederland.',
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'nl_NL',
+    siteName: 'Lange & Partners',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630, alt: 'Lange & Partners' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/images/og-default.jpg'],
   },
 }
 

@@ -8,8 +8,17 @@ import { NonBancaireSidebar } from "@/components/private-markets/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Voor investeerders | Lange & Partners",
-  description: "Investeer in non-bancaire vastgoedleningen. Stabiel rendement van 6% tot 8% per jaar met hypothecaire zekerheid.",
+  title: "Investeren in non-bancaire leningen | Lange & Partners",
+  description: "Stabiel rendement van 6% tot 8% per jaar door te investeren in vastgoedleningen met hypothecaire zekerheid. Beheerd via een onafhankelijke Stichting.",
+  openGraph: {
+    title: "Investeren in non-bancaire leningen | Lange & Partners",
+    description: "Stabiel rendement van 6% tot 8% per jaar door te investeren in vastgoedleningen met hypothecaire zekerheid. Beheerd via een onafhankelijke Stichting.",
+    url: "https://www.nonbancaireleningen.nl/voor-investeerders",
+  },
+  twitter: {
+    title: "Investeren in non-bancaire leningen | Lange & Partners",
+    description: "Stabiel rendement van 6% tot 8% per jaar door te investeren in vastgoedleningen met hypothecaire zekerheid. Beheerd via een onafhankelijke Stichting.",
+  },
 }
 
 export default function VoorInvesteerderPage() {

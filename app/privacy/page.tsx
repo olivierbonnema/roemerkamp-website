@@ -4,6 +4,15 @@ import { Footer } from "@/components/footer"
 export const metadata = {
   title: "Privacyverklaring | Lange & Partners",
   description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
+  openGraph: {
+    title: "Privacyverklaring | Lange & Partners",
+    description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
+    url: "https://www.nonbancaireleningen.nl/privacy",
+  },
+  twitter: {
+    title: "Privacyverklaring | Lange & Partners",
+    description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
+  },
 }
 
 export default function PrivacyPage() {
