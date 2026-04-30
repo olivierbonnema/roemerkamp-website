@@ -86,7 +86,7 @@ export default function DgaHypotheekPage() {
                     Als DGA bent u tegelijk ondernemer en werknemer van uw eigen BV. Dat biedt fiscale voordelen, maar bij een hypotheekaanvraag werkt het u tegen. Banken tellen uw salaris én de winst van de onderneming mee, gemiddeld over drie jaar — en verlangen drie jaar volledige jaarrekeningen van de BV.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
-                    DGA&rsquo;s die zichzelf een laag salaris uitkeren om de loonbelasting te beperken, zien dit als nadeel terugkomen in de hypotheektoets. De bank ziet een laag inkomen; u ziet een vermogend bedrijf. Dat verschil leidt regelmatig tot een afwijzing.
+                    DGA&rsquo;s die zichzelf het minimaal gebruikelijke loon toekennen (de DGA-norm) om fiscaal optimaal te ondernemen, zien dit als nadeel terugkomen in de hypotheektoets. De bank ziet een laag inkomen; u ziet een vermogend bedrijf. Dat verschil leidt regelmatig tot een afwijzing.
                   </p>
                 </div>
                 <div className="mt-8 space-y-3">
