@@ -47,6 +47,42 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
+      url: `${BASE}/non-bancaire-hypotheek`,
+      lastModified: new Date('2025-05-01'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE}/tweede-hypotheek-ondernemer`,
+      lastModified: new Date('2025-05-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/onderhandse-hypotheek`,
+      lastModified: new Date('2025-05-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/hypotheek-zonder-jaarcijfers`,
+      lastModified: new Date('2025-05-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/dga-hypotheek`,
+      lastModified: new Date('2025-05-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/overbruggingsfinanciering-verbouwing`,
+      lastModified: new Date('2025-05-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${BASE}/nadere-informatie`,
       lastModified: new Date('2025-05-01'),
       changeFrequency: 'yearly',
