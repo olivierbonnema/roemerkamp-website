@@ -220,6 +220,37 @@ export default function OnderhandseHypotheekPage() {
           </div>
         </section>
 
+        {/* ── Andere financieringsvormen ── */}
+        <section className="py-12 bg-gray-50">
+          <div className="max-w-screen-2xl mx-auto px-4">
+            <SectionHeading>Andere financieringsvormen</SectionHeading>
+            <div className="mt-6 grid md:grid-cols-2 gap-4">
+              {[
+                {
+                  href: '/non-bancaire-hypotheek',
+                  titel: 'Non-bancaire hypotheek',
+                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering — hoe het werkt en voor wie het geschikt is.',
+                },
+                {
+                  href: '/tweede-hypotheek-ondernemer',
+                  titel: 'Tweede hypotheek voor ondernemer',
+                  omschrijving: 'Overwaarde benutten als ondernemer zonder bancaire goedkeuring? Een tweede hypotheek op basis van uw vastgoed biedt uitkomst.',
+                },
+              ].map((p) => (
+                <Link
+                  key={p.href}
+                  href={p.href}
+                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
+                >
+                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
+                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen →</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── Meer weten / contact ── */}
         <section className="py-20 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
