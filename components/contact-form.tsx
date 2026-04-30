@@ -76,8 +76,8 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
         </>
       )}
       <p className="text-sm text-gray-600 leading-relaxed">
-        Door je naam en e-mailadres in te vullen en op verstuur te klikken, geef je Lange & Partners toestemming om je
-        gegevens te verwerken om contact met je te kunnen opnemen over onze dienstverlening. Jouw privacy
+        Door uw naam en e-mailadres in te vullen en op verstuur te klikken, geeft u Lange & Partners toestemming om uw
+        gegevens te verwerken om contact met u te kunnen opnemen over onze dienstverlening. Uw privacy
         is belangrijk voor ons. Voor meer informatie over ons privacybeleid verwijzen wij naar onze{" "}
         <Link href="/privacy" className="text-[#311e86] underline">
           Privacyverklaring
