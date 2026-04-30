@@ -6,6 +6,7 @@ import { AuthGuard } from "@/components/auth-guard"
 export const metadata = {
   title: "Financieringsaanvraag | Lange & Partners",
   description: "Dien uw non-bancaire financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",
+  alternates: { canonical: "https://www.nonbancaireleningen.nl/financieringsaanvraag" },
   openGraph: {
     title: "Financieringsaanvraag | Lange & Partners",
     description: "Dien uw non-bancaire financieringsaanvraag in. Na ontvangst beoordelen wij uw aanvraag en nemen wij contact met u op.",

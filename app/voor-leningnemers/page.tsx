@@ -10,6 +10,7 @@ import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-sec
 export const metadata = {
   title: "Non-bancaire lening aanvragen | Lange & Partners",
   description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000. Snel en flexibel.",
+  alternates: { canonical: "https://www.nonbancaireleningen.nl/voor-leningnemers" },
   openGraph: {
     title: "Non-bancaire lening aanvragen | Lange & Partners",
     description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000. Snel en flexibel.",

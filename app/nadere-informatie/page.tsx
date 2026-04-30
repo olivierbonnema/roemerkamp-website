@@ -8,6 +8,7 @@ import { OverigeSection } from "@/components/nadere-informatie/overige-section"
 export const metadata = {
   title: "Nadere informatie | Lange & Partners",
   description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners.",
+  alternates: { canonical: "https://www.nonbancaireleningen.nl/nadere-informatie" },
   openGraph: {
     title: "Nadere informatie | Lange & Partners",
     description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners.",
