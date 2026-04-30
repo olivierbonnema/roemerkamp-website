@@ -7,7 +7,7 @@ import { SectionHeading } from '@/components/section-heading'
 import { ContactForm } from '@/components/contact-form'
 
 export const metadata: Metadata = {
-  title: 'Tweede hypotheek voor ondernemer | Lange & Partners',
+  title: { absolute: 'Tweede hypotheek voor ondernemer | Lange & Partners' },
   description: 'Als ondernemer extra kapitaal nodig maar de bank wijst af? Lange & Partners verstrekt een tweede hypotheek op basis van uw vastgoed. Bedragen van €200.000 tot €5.000.000.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer' },
   openGraph: {

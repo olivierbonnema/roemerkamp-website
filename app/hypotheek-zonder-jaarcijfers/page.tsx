@@ -7,16 +7,16 @@ import { SectionHeading } from '@/components/section-heading'
 import { ContactForm } from '@/components/contact-form'
 
 export const metadata: Metadata = {
-  title: 'Hypotheek zonder jaarcijfers | Financiering voor ondernemers en starters',
+  title: { absolute: 'Hypotheek zonder jaarcijfers | Lange & Partners' },
   description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief — niet alleen op historisch inkomen.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers' },
   openGraph: {
-    title: 'Hypotheek zonder jaarcijfers | Financiering voor ondernemers en starters',
+    title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
     description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief — niet alleen op historisch inkomen.',
     url: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers',
   },
   twitter: {
-    title: 'Hypotheek zonder jaarcijfers | Financiering voor ondernemers en starters',
+    title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
     description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief — niet alleen op historisch inkomen.',
   },
 }
