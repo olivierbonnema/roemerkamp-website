@@ -200,6 +200,16 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
+        {/* ── Randstad ── */}
+        <section className="py-16 bg-white">
+          <div className="max-w-screen-2xl mx-auto px-4">
+            <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
+            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+            </p>
+          </div>
+        </section>
+
         {/* ── FAQ ── */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">

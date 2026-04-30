@@ -203,6 +203,16 @@ export default function TweedeHypotheekOndernemer() {
           </div>
         </section>
 
+        {/* ── Randstad ── */}
+        <section className="py-16 bg-white">
+          <div className="max-w-screen-2xl mx-auto px-4">
+            <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
+            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+            </p>
+          </div>
+        </section>
+
         {/* ── FAQ ── */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
@@ -213,6 +223,42 @@ export default function TweedeHypotheekOndernemer() {
                   <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
                   <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Andere financieringsvormen ── */}
+        <section className="py-12 bg-gray-50">
+          <div className="max-w-screen-2xl mx-auto px-4">
+            <SectionHeading>Andere financieringsvormen</SectionHeading>
+            <div className="mt-6 grid md:grid-cols-3 gap-4">
+              {[
+                {
+                  href: '/hypotheek-zonder-jaarcijfers',
+                  titel: 'Hypotheek zonder jaarcijfers',
+                  omschrijving: 'Lees meer over een hypotheek zonder jaarcijfers voor ondernemers die nog geen drie jaar financiële overzichten kunnen overleggen.',
+                },
+                {
+                  href: '/dga-hypotheek',
+                  titel: 'DGA hypotheek',
+                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder — op basis van het onderpand, niet alleen het DGA-salaris.',
+                },
+                {
+                  href: '/overbruggingsfinanciering-verbouwing',
+                  titel: 'Overbruggingsfinanciering voor verbouwing en meer',
+                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing — snel geregeld met vastgoed als zekerheid.',
+                },
+              ].map((p) => (
+                <Link
+                  key={p.href}
+                  href={p.href}
+                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
+                >
+                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
+                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen →</span>
+                </Link>
               ))}
             </div>
           </div>
