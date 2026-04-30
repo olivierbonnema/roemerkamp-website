@@ -145,6 +145,12 @@ export default function NonBancaireHypotheekPage() {
                     Lange &amp; Partners verstrekt leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Dit zijn overwegend tijdelijke financieringen — bedoeld als overbrugging, tot een bancaire herfinanciering mogelijk is, of als tussenoplossing bij vastgoedtransacties.
                   </p>
                 </div>
+                <h3 className="font-semibold text-[#1e3a5f] text-lg mb-2 mt-8">
+                  Tijdelijk, tot bancaire herfinanciering mogelijk is
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Een non-bancaire hypotheek is in vrijwel alle gevallen een tijdelijke financiering — looptijden van 6 tot 60 maanden zijn gangbaar. Het doel is doorgaans om de periode te overbruggen tot bancaire herfinanciering mogelijk is, het vastgoed verkocht is, of een ander structureel financieringspunt is bereikt. Dit is een bewuste keuze: non-bancaire financiering is geschikt voor maatwerksituaties, niet als permanente langetermijnoplossing.
+                </p>
               </div>
               <div className="relative h-[350px] hidden md:block overflow-hidden">
                 <Image
@@ -202,12 +208,19 @@ export default function NonBancaireHypotheekPage() {
                 'U wilt een overbruggingslening bij aankoop van nieuw vastgoed',
                 'U woont of werkt in het buitenland',
                 'U financiert een beleggingspand of ontwikkelingsproject',
-                'U heeft een bestaande lening die snel geherfinancierd moet worden',
               ].map((v) => (
                 <div key={v} className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
                   <span className="text-gray-700 leading-relaxed">{v}</span>
                 </div>
               ))}
+              <div className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
+                <span className="text-gray-700 leading-relaxed">
+                  U heeft een bestaande lening die snel geherfinancierd moet worden —{' '}
+                  <Link href="/overbruggingsfinanciering-verbouwing" className="text-[#2596be] hover:underline">
+                    zie onze pagina over overbruggingsfinanciering
+                  </Link>
+                </span>
+              </div>
             </div>
           </div>
         </section>
