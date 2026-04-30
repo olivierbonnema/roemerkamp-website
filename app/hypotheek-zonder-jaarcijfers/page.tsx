@@ -163,6 +163,17 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
+        {/* ── Call-out tijdelijke oplossing ── */}
+        <section className="py-8 bg-white">
+          <div className="max-w-screen-2xl mx-auto px-4">
+            <div className="max-w-2xl p-6 bg-[#f0f7fb] border-l-4 border-[#2596be]">
+              <p className="text-gray-700 leading-relaxed">
+                <span className="font-semibold text-[#1e3a5f]">Goed om te weten:</span> een non-bancaire hypotheek is voor de meeste ondernemers een tijdelijke oplossing. Zodra u aan de bancaire jaarcijfereis voldoet, kunt u doorgaans herfinancieren naar een reguliere hypotheek met lagere rente en langere looptijd.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* ── Dark USP ── */}
         <section className="bg-[#1e3a5f] py-16">
           <div className="max-w-screen-2xl mx-auto px-4">
