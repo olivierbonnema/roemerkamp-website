@@ -1,96 +1,117 @@
 import type { MetadataRoute } from 'next'
+import { execFileSync } from 'child_process'
+import path from 'path'
 
 const BASE = 'https://www.nonbancaireleningen.nl'
+const root = process.cwd()
+
+function gitDate(file: string): Date {
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%cI', '--', file], {
+      encoding: 'utf8',
+      cwd: root,
+    }).trim()
+    if (out) return new Date(out)
+  } catch {
+    // git not available (e.g. shallow clone without history) — fall through
+  }
+  return new Date()
+}
+
+function p(route: string): string {
+  if (route === '') return path.join(root, 'app/page.tsx')
+  return path.join(root, `app/${route}/page.tsx`)
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: BASE,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('')),
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
       url: `${BASE}/voor-leningnemers`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('voor-leningnemers')),
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
       url: `${BASE}/voor-investeerders`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('voor-investeerders')),
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
       url: `${BASE}/financieringsaanvraag`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('financieringsaanvraag')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/contact`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('contact')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/over-ons`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('over-ons')),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${BASE}/berichten`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('berichten')),
       changeFrequency: 'weekly',
       priority: 0.6,
     },
     {
       url: `${BASE}/non-bancaire-hypotheek`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('non-bancaire-hypotheek')),
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
       url: `${BASE}/tweede-hypotheek-ondernemer`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('tweede-hypotheek-ondernemer')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/onderhandse-hypotheek`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('onderhandse-hypotheek')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/hypotheek-zonder-jaarcijfers`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('hypotheek-zonder-jaarcijfers')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/dga-hypotheek`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('dga-hypotheek')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/overbruggingsfinanciering-verbouwing`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('overbruggingsfinanciering-verbouwing')),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE}/nadere-informatie`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('nadere-informatie')),
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${BASE}/privacy`,
-      lastModified: new Date('2025-05-01'),
+      lastModified: gitDate(p('privacy')),
       changeFrequency: 'yearly',
       priority: 0.2,
     },
