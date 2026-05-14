@@ -4,6 +4,7 @@ import { createHmac } from "crypto"
 const ANALYSIS_MARKER = "_ANALYSE_AANGEVRAAGD_"
 const PROCESSED_MARKER = "_AI_ANALYZED_"
 const ONEDRIVE_USER = process.env.ONEDRIVE_USER_EMAIL!
+const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || "https://web-production-bcfbf.up.railway.app"
 
 async function getMsToken(): Promise<string> {
   const res = await fetch(
@@ -44,6 +45,44 @@ async function createMarkerFile(token: string, folderId: string, name: string) {
   )
 }
 
+/**
+ * Fire the Python AI backend — fire-and-forget.
+ * The backend takes ~47 seconds (too long for Vercel's timeout),
+ * so we fire the request and don't await the response.
+ * The backend handles Firestore updates + email reports on its own.
+ *
+ * HMAC signing: signature = HMAC-SHA256(TRIGGER_SECRET, folderId + timestamp)
+ * This matches the verify_signature() function in app/signing.py.
+ */
+function fireBackendAnalysis(folderId: string, applicationId: string): void {
+  const timestamp = Math.floor(Date.now() / 1000).toString()
+
+  // The Python backend sorts non-auth fields alphabetically by key,
+  // concatenates their values, then appends the timestamp.
+  // Fields: applicationId, folderId (alphabetical order)
+  // Payload = applicationId + folderId + timestamp
+  const payload = `${applicationId}${folderId}`
+  const signature = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback")
+    .update(`${payload}${timestamp}`)
+    .digest("hex")
+
+  // Fire-and-forget: intentionally not awaiting
+  // Trailing slash required — FastAPI redirects /analyze → /analyze/ (307)
+  fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      folderId,
+      applicationId,
+      timestamp,
+      signature,
+    }),
+  }).catch((err) => {
+    // Log but don't block — the user already sees the success page
+    console.error("Backend analysis call failed:", err)
+  })
+}
+
 function htmlPage(title: string, body: string) {
   return new NextResponse(
     `<!DOCTYPE html>
@@ -75,6 +114,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const folderId = searchParams.get("folderId")
   const hmacToken = searchParams.get("token")
+  const applicationId = searchParams.get("applicationId") || folderId // fallback to folderId
 
   // Validate inputs
   if (!folderId || !hmacToken) {
@@ -84,7 +124,7 @@ export async function GET(req: NextRequest) {
       <p>De link is onvolledig of verlopen.</p>`)
   }
 
-  // Validate HMAC token
+  // Validate HMAC token (original format: HMAC of just folderId)
   const expected = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback")
     .update(folderId)
     .digest("hex")
@@ -124,7 +164,7 @@ export async function GET(req: NextRequest) {
       <p>De AI underwriter staat al klaar om deze aanvraag te verwerken. U ontvangt het rapport zodra de analyse klaar is.</p>`)
   }
 
-  // Create the trigger marker in OneDrive
+  // Create the trigger marker in OneDrive (blocks re-triggers while backend is running)
   try {
     await createMarkerFile(msToken, folderId, ANALYSIS_MARKER)
   } catch (err) {
@@ -135,9 +175,12 @@ export async function GET(req: NextRequest) {
       <p>Kon de analyse niet starten. Probeer het opnieuw of neem contact op.</p>`)
   }
 
+  // Fire the Python AI backend (fire-and-forget — runs ~47 seconds in background)
+  fireBackendAnalysis(folderId, applicationId!)
+
   return htmlPage("Analyse gestart", `
     <div class="icon">🚀</div>
     <h1>Analyse gestart</h1>
-    <p>De AI underwriter oppikt deze aanvraag bij de eerstvolgende polling (binnen 5 minuten).<br/><br/>
+    <p>De AI underwriter analyseert nu uw aanvraag. Dit duurt ongeveer 1 minuut.<br/><br/>
     U ontvangt automatisch een e-mail met het volledige rapport zodra de analyse klaar is.</p>`)
 }
