@@ -1,5 +1,6 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { LeningnemersHeroSection } from "@/components/voor-leningnemers/hero-section"
 import { LeningnemersIntroSection } from "@/components/voor-leningnemers/intro-section"
 import { LeningnemersVoorbeeldenSection } from "@/components/voor-leningnemers/voorbeelden-section"
@@ -8,7 +9,7 @@ import { LeningnemersSidebar } from "@/components/voor-leningnemers/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Non-bancaire lening aanvragen | Lange & Partners",
+  title: "Non-bancaire lening aanvragen",
   description: "Non-bancaire vastgoedfinanciering voor ondernemers die buiten het bancaire kader vallen. Leningen van €200.000 tot €5.000.000. Snel en flexibel.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/voor-leningnemers" },
   openGraph: {
@@ -25,6 +26,7 @@ export const metadata = {
 export default function VoorLeningnemersPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Voor leningnemers', href: '/voor-leningnemers' }]} />
       <Header />
       <main>
         <LeningnemersHeroSection />

@@ -5,6 +5,8 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { SectionHeading } from '@/components/section-heading'
 import { ContactForm } from '@/components/contact-form'
+import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
+import { FaqSchema } from '@/components/faq-schema'
 
 export const metadata: Metadata = {
   title: 'Overbruggingsfinanciering | Tijdelijke lening bij aankoop of verbouwing',
@@ -70,6 +72,8 @@ const faq = [
 export default function OverbruggingsfinancieringVerbouwingPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Overbruggingsfinanciering', href: '/overbruggingsfinanciering-verbouwing' }]} />
+      <FaqSchema items={faq} />
       <Header />
       <main>
 

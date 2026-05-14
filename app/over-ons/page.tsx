@@ -1,12 +1,13 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { OverOnsHeroSection } from "@/components/over-ons/hero-section"
 import { WatOnsDrijftSection } from "@/components/over-ons/wat-ons-drijft-section"
 import { TeamGridSection } from "@/components/over-ons/team-grid-section"
 import { InMemoriamSection } from "@/components/over-ons/in-memoriam-section"
 
 export const metadata = {
-  title: "Over ons | Lange & Partners",
+  title: "Over ons",
   description: "Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Leer ons team kennen en ontdek hoe wij werken.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/over-ons" },
   openGraph: {
@@ -23,6 +24,7 @@ export const metadata = {
 export default function OverWMPPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Over ons', href: '/over-ons' }]} />
       <Header />
       <main>
         <OverOnsHeroSection />

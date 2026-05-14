@@ -3,9 +3,10 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ContactHeroSection } from "@/components/contact/hero-section"
 import { ContactInfoSection } from "@/components/contact/contact-info-section"
+import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 
 export const metadata = {
-  title: "Contact | Lange & Partners",
+  title: "Contact",
   description: "Neem contact op met Lange & Partners. Bel (023) 517 31 00 of bezoek ons op Wilhelminastraat 50 in Haarlem.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/contact" },
   openGraph: {
@@ -51,6 +52,8 @@ const localBusinessJsonLd = {
 export default function ContactPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Contact', href: '/contact' }]} />
+      {/* JSON.stringify produces safe output for JSON-LD structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}

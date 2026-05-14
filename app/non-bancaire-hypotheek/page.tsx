@@ -5,18 +5,20 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { SectionHeading } from '@/components/section-heading'
 import { ContactForm } from '@/components/contact-form'
+import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
+import { FaqSchema } from '@/components/faq-schema'
 
 export const metadata: Metadata = {
   title: 'Non-bancaire hypotheek | Alternatief voor bancaire financiering',
   description: 'Komt u niet in aanmerking voor een reguliere hypotheek? Lange & Partners verstrekt non-bancaire hypotheken op basis van uw vastgoed. Leningen van €200.000 tot €5.000.000.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/non-bancaire-hypotheek' },
   openGraph: {
-    title: 'Non-bancaire hypotheek | Alternatief voor bancaire financiering',
+    title: 'Non-bancaire hypotheek | Alternatief voor bancaire financiering | Lange & Partners',
     description: 'Komt u niet in aanmerking voor een reguliere hypotheek? Lange & Partners verstrekt non-bancaire hypotheken op basis van uw vastgoed. Leningen van €200.000 tot €5.000.000.',
     url: 'https://www.nonbancaireleningen.nl/non-bancaire-hypotheek',
   },
   twitter: {
-    title: 'Non-bancaire hypotheek | Alternatief voor bancaire financiering',
+    title: 'Non-bancaire hypotheek | Alternatief voor bancaire financiering | Lange & Partners',
     description: 'Komt u niet in aanmerking voor een reguliere hypotheek? Lange & Partners verstrekt non-bancaire hypotheken op basis van uw vastgoed. Leningen van €200.000 tot €5.000.000.',
   },
 }
@@ -81,6 +83,8 @@ const faq = [
 export default function NonBancaireHypotheekPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Non-bancaire hypotheek', href: '/non-bancaire-hypotheek' }]} />
+      <FaqSchema items={faq} />
       <Header />
       <main>
 

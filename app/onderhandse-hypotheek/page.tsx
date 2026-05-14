@@ -5,6 +5,8 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { SectionHeading } from '@/components/section-heading'
 import { ContactForm } from '@/components/contact-form'
+import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
+import { FaqSchema } from '@/components/faq-schema'
 
 export const metadata: Metadata = {
   title: 'Onderhandse hypotheek | Particuliere lening met vastgoedzekerheid',
@@ -43,6 +45,8 @@ const faq = [
 export default function OnderhandseHypotheekPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Onderhandse hypotheek', href: '/onderhandse-hypotheek' }]} />
+      <FaqSchema items={faq} />
       <Header />
       <main>
 

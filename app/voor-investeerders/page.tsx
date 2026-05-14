@@ -1,5 +1,6 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { InvesteerderHeroSection } from "@/components/voor-investeerders/hero-section"
 import { InvesteerderWaaromSection } from "@/components/voor-investeerders/waarom-section"
 import { InvesteerderVergelijkingSection } from "@/components/voor-investeerders/vergelijking-section"
@@ -8,7 +9,7 @@ import { NonBancaireSidebar } from "@/components/private-markets/sidebar"
 import { NblMeerWetenSection } from "@/components/private-markets/meer-weten-section"
 
 export const metadata = {
-  title: "Investeren in non-bancaire leningen | Lange & Partners",
+  title: "Investeren in non-bancaire leningen",
   description: "Stabiel rendement van 6% tot 8% per jaar door te investeren in vastgoedleningen met hypothecaire zekerheid. Beheerd via een onafhankelijke Stichting.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/voor-investeerders" },
   openGraph: {
@@ -25,6 +26,7 @@ export const metadata = {
 export default function VoorInvesteerderPage() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Voor investeerders', href: '/voor-investeerders' }]} />
       <Header />
       <main>
         <InvesteerderHeroSection />

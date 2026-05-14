@@ -5,6 +5,8 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { SectionHeading } from '@/components/section-heading'
 import { ContactForm } from '@/components/contact-form'
+import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
+import { FaqSchema } from '@/components/faq-schema'
 
 export const metadata: Metadata = {
   title: { absolute: 'Tweede hypotheek voor ondernemer | Lange & Partners' },
@@ -43,6 +45,8 @@ const faq = [
 export default function TweedeHypotheekOndernemer() {
   return (
     <>
+      <BreadcrumbSchema items={[{ name: 'Tweede hypotheek ondernemer', href: '/tweede-hypotheek-ondernemer' }]} />
+      <FaqSchema items={faq} />
       <Header />
       <main>
 
