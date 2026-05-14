@@ -104,6 +104,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${BASE}/zzp-hypotheek`,
+      lastModified: gitDate(p('zzp-hypotheek')),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/vastgoedfinanciering-zonder-bank`,
+      lastModified: gitDate(p('vastgoedfinanciering-zonder-bank')),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${BASE}/nadere-informatie`,
       lastModified: gitDate(p('nadere-informatie')),
       changeFrequency: 'yearly',

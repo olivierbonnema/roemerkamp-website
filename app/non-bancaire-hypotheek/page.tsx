@@ -59,6 +59,16 @@ const subpaginas = [
     titel: 'Overbruggingsfinanciering',
     omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing, tot de definitieve lening rond is.',
   },
+  {
+    href: '/zzp-hypotheek',
+    titel: 'ZZP hypotheek',
+    omschrijving: 'Financiering voor zelfstandig ondernemers en freelancers die niet aan de bancaire normen voldoen.',
+  },
+  {
+    href: '/vastgoedfinanciering-zonder-bank',
+    titel: 'Vastgoedfinanciering zonder bank',
+    omschrijving: 'Snel en flexibel vastgoed financieren op basis van het onderpand.',
+  },
 ]
 
 const faq = [
