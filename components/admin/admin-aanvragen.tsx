@@ -317,15 +317,22 @@ export function AdminAanvragen() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full border border-dashed border-gray-300 rounded-lg px-4 py-4 text-sm font-sans text-gray-400 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors flex items-center justify-center gap-2 mb-2"
+              className={`w-full border border-dashed rounded-lg px-4 py-4 text-sm font-sans transition-colors flex items-center justify-center gap-2 ${
+                uploadedFiles.length > 0
+                  ? "border-[#1E3A5F] bg-[#1E3A5F]/5 text-[#1E3A5F]"
+                  : "border-gray-300 text-gray-400 hover:border-[#1E3A5F] hover:text-[#1E3A5F]"
+              }`}
             >
               <Upload size={16} />
-              Klik om bestanden toe te voegen (.pdf, .docx, .eml, .txt)
+              {uploadedFiles.length > 0
+                ? `${uploadedFiles.length} bestand${uploadedFiles.length > 1 ? "en" : ""} geselecteerd — klik om meer toe te voegen`
+                : "Klik om bestanden toe te voegen (.pdf, .docx, .eml, .txt)"
+              }
             </button>
             {uploadedFiles.length > 0 && (
-              <div className="space-y-1.5 mb-4">
+              <div className="space-y-1.5 mt-2 mb-4">
                 {uploadedFiles.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm font-sans">
+                  <div key={i} className="flex items-center justify-between bg-[#1E3A5F]/5 border border-[#1E3A5F]/10 rounded-lg px-3 py-2 text-sm font-sans">
                     <span className="text-gray-700 truncate">{f.name}</span>
                     <button
                       onClick={() => setUploadedFiles(prev => prev.filter((_, j) => j !== i))}
