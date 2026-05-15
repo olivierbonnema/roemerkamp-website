@@ -4,7 +4,7 @@ import { BerichtenHeroSection } from "@/components/berichten/hero-section"
 import { ArticlesGridSection } from "@/components/berichten/articles-grid-section"
 
 export const metadata = {
-  title: "Berichten | Lange & Partners",
+  title: "Berichten",
   description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/berichten" },
   openGraph: {

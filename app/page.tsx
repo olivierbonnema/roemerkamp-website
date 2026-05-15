@@ -10,7 +10,7 @@ import { BerichtenHomeSection } from "@/components/home/berichten-home-section"
 import { MeerWetenSection } from "@/components/home/meer-weten-section"
 
 export const metadata: Metadata = {
-  title: 'Non-bancaire vastgoedfinanciering | Lange & Partners',
+  title: { absolute: 'Non-bancaire vastgoedfinanciering | Lange & Partners' },
   description: 'Lange & Partners verstrekt non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers in heel Nederland.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl' },
   openGraph: {

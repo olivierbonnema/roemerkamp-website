@@ -1,4 +1,21 @@
 {
+  "redirects": [
+    {
+      "source": "/berichten/non-bancaire-leningen-een-alternatief-met-perspectief",
+      "destination": "/berichten",
+      "permanent": true
+    },
+    {
+      "source": "/berichten/waarom-wij-denken-in-generaties-niet-in-kwartalen",
+      "destination": "/berichten",
+      "permanent": true
+    },
+    {
+      "source": "/berichten/persoonlijk-vermogensbeheer-vanuit-het-hart-van-haarlem",
+      "destination": "/berichten",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

@@ -3,7 +3,7 @@ import { Footer } from "@/components/footer"
 import { ChatInterface } from "@/components/faq/chat-interface"
 
 export const metadata = {
-  title: "Veelgestelde vragen | Lange & Partners",
+  title: "Veelgestelde vragen",
   description:
     "Stel uw vraag aan onze AI-assistent of bekijk de veelgestelde vragen over non-bancaire leningen en investeringen bij Lange & Partners.",
   robots: { index: false, follow: false },

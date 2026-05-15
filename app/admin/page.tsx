@@ -4,7 +4,7 @@ import { AdminGuard } from "@/components/auth-guard"
 import { AdminPanel } from "@/components/admin/admin-panel"
 
 export const metadata = {
-  title: "Beheer | Lange & Partners",
+  title: "Beheer",
   robots: { index: false, follow: false },
 }
 

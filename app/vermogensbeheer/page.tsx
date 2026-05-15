@@ -10,7 +10,7 @@ import { VermogensbeheerMeerWetenSection } from "@/components/vermogensbeheer/me
 import { VermogensbeheerSidebar } from "@/components/vermogensbeheer/sidebar"
 
 export const metadata = {
-  title: "Vermogensbeheer | Lange & Partners",
+  title: "Vermogensbeheer",
   description: "Realiseer vermogensgroei passend bij jouw doelstellingen met Lange & Partners vermogensbeheer.",
   robots: { index: false, follow: false },
 }

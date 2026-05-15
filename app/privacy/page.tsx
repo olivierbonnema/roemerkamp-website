@@ -2,7 +2,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
 export const metadata = {
-  title: "Privacyverklaring | Lange & Partners",
+  title: "Privacyverklaring",
   description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/privacy" },
   openGraph: {

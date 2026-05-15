@@ -3,7 +3,7 @@ import { Footer } from "@/components/footer"
 import { LoginForm } from "@/components/login/login-form"
 
 export const metadata = {
-  title: "Inloggen | Lange & Partners",
+  title: "Inloggen",
   description: "Log in op uw account bij Lange & Partners.",
   robots: { index: false, follow: false },
 }

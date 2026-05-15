@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { RequestsList } from "@/components/mijn-aanvragen/requests-list"
 
 export const metadata = {
-  title: "Mijn aanvragen | Lange & Partners",
+  title: "Mijn aanvragen",
   description: "Bekijk de status van uw financieringsaanvragen.",
   robots: { index: false, follow: false },
 }

@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { AccountSettings } from "@/components/account/account-settings"
 
 export const metadata = {
-  title: "Accountinstellingen | Lange & Partners",
+  title: "Accountinstellingen",
   robots: { index: false, follow: false },
 }
 
