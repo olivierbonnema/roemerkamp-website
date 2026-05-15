@@ -4,30 +4,30 @@ import Link from "next/link"
 const articles = [
   {
     id: 1,
-    title: "Waarom wij denken in generaties, niet in kwartalen",
+    title: "Hypotheek afgewezen door de bank? Dit zijn uw opties",
     excerpt:
-      "Bij Lange & Partners geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien, met het oog op de toekomst.",
+      "Een afwijzing is vervelend, maar het is geen eindstation. Ontdek waarom banken afwijzen en welke alternatieven er zijn wanneer u beschikt over vastgoed met overwaarde.",
     image: "/images/bericht-1-boom.jpg",
     imageStyle: {},
-    slug: "waarom-wij-denken-in-generaties-niet-in-kwartalen",
+    slug: "hypotheek-afgewezen-wat-nu",
   },
   {
     id: 2,
-    title: "Non-bancaire leningen: een alternatief met perspectief",
+    title: "Wat is non-bancaire financiering?",
     excerpt:
-      "Wanneer traditionele banken geen financiering verstrekken, bieden non-bancaire leningen uitkomst. Via ons partnerbedrijf Lange Financieel Advies maken wij deze oplossingen toegankelijk voor cliënten die op zoek zijn naar stabiele maandelijkse inkomsten.",
+      "Steeds meer ondernemers komen in aanraking met non-bancaire financiering. Maar wat houdt het precies in? Lees hoe het werkt, welke vormen er zijn en hoe de zekerheden zijn geregeld.",
     image: "/images/bericht-2-brug.jpg",
     imageStyle: { objectPosition: "center 55%" },
-    slug: "non-bancaire-leningen-een-alternatief-met-perspectief",
+    slug: "wat-is-non-bancaire-financiering",
   },
   {
     id: 3,
-    title: "Persoonlijk vermogensbeheer vanuit het hart van Haarlem",
+    title: "Wat kost een non-bancaire hypotheek?",
     excerpt:
-      "Vanuit ons kantoor aan de Wilhelminastraat in Haarlem bedienen wij een select aantal cliënten. Geen call center, geen wisselende contactpersonen, maar een vast team dat uw situatie, ambities en familie écht kent.",
+      "De kosten van een non-bancaire hypotheek zijn anders opgebouwd dan bij een bank. Een transparant overzicht van rentetarieven, afsluitkosten en voorwaarden.",
     image: "/images/bericht-3-haarlem.jpg",
     imageStyle: { objectPosition: "center 45%" },
-    slug: "persoonlijk-vermogensbeheer-vanuit-het-hart-van-haarlem",
+    slug: "kosten-non-bancaire-hypotheek",
   },
 ]
 

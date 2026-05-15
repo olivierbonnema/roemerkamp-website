@@ -116,6 +116,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${BASE}/berichten/hypotheek-afgewezen-wat-nu`,
+      lastModified: gitDate(p('berichten/hypotheek-afgewezen-wat-nu')),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${BASE}/berichten/wat-is-non-bancaire-financiering`,
+      lastModified: gitDate(p('berichten/wat-is-non-bancaire-financiering')),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${BASE}/berichten/kosten-non-bancaire-hypotheek`,
+      lastModified: gitDate(p('berichten/kosten-non-bancaire-hypotheek')),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
       url: `${BASE}/nadere-informatie`,
       lastModified: gitDate(p('nadere-informatie')),
       changeFrequency: 'yearly',
