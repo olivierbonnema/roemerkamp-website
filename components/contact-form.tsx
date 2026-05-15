@@ -25,7 +25,9 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
+        <label htmlFor="contact-naam" className="sr-only">Naam</label>
         <input
+          id="contact-naam"
           type="text"
           placeholder="Naam"
           value={formData.naam}
@@ -34,7 +36,9 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
         />
       </div>
       <div>
+        <label htmlFor="contact-email" className="sr-only">E-mailadres</label>
         <input
+          id="contact-email"
           type="email"
           placeholder="E-mailadres"
           value={formData.email}
@@ -43,7 +47,9 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
         />
       </div>
       <div>
+        <label htmlFor="contact-telefoon" className="sr-only">Telefoonnummer</label>
         <input
+          id="contact-telefoon"
           type="tel"
           placeholder="Telefoonnummer"
           value={formData.telefoon}
@@ -54,7 +60,9 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
       {showInterestSelect && (
         <>
           <div>
+            <label htmlFor="contact-interesse" className="sr-only">Uw interesse</label>
             <select
+              id="contact-interesse"
               value={formData.interesse}
               onChange={(e) => setFormData({ ...formData, interesse: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-[#311e86] bg-white text-gray-500"
@@ -65,7 +73,9 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
             </select>
           </div>
           <div>
+            <label htmlFor="contact-bericht" className="sr-only">Uw bericht</label>
             <textarea
+              id="contact-bericht"
               placeholder="Uw bericht"
               value={formData.bericht}
               onChange={(e) => setFormData({ ...formData, bericht: e.target.value })}

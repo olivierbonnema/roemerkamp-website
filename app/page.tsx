@@ -46,11 +46,10 @@ const localBusinessJsonLd = {
       closes: '17:00',
     },
   ],
-  areaServed: [
-    { '@type': 'State', name: 'Noord-Holland' },
-    { '@type': 'State', name: 'Zuid-Holland' },
-    { '@type': 'State', name: 'Utrecht' },
-  ],
+  areaServed: {
+    '@type': 'Country',
+    name: 'Nederland',
+  },
 }
 
 export default function HomePage() {

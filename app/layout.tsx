@@ -53,13 +53,36 @@ export default function RootLayout({
     name: 'Lange & Partners',
     alternateName: 'Lange en Partners',
     url: 'https://www.nonbancaireleningen.nl',
-    logo: 'https://www.nonbancaireleningen.nl/favicon.png',
+    logo: 'https://www.nonbancaireleningen.nl/images/lange-logo-new.png',
+    image: 'https://www.nonbancaireleningen.nl/images/og-default.jpg',
     description: 'Non-bancaire vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers en investeerders in heel Nederland.',
+    telephone: '+31235173100',
+    email: 'info@langefa.nl',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'Wilhelminastraat 50',
+      addressLocality: 'Haarlem',
+      postalCode: '2011 VN',
+      addressCountry: 'NL',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+31235173100',
+      contactType: 'customer service',
+      availableLanguage: ['Dutch'],
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'Nederland',
+    },
     parentOrganization: {
       '@type': 'Organization',
       name: 'Lange & Partners Financieel Advies B.V.',
       identifier: 'KvK 34269870',
     },
+    sameAs: [
+      'https://www.linkedin.com/company/lange-partners-financieel-advies/',
+    ],
   }
 
   return (
