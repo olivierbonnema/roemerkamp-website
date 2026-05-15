@@ -32,7 +32,7 @@ export function VermogensbeheerHomeSection() {
           {/* Right image */}
           <div className="relative h-[400px]">
             <Image
-              src="/images/voor-investeerders-home.png"
+              src="/images/voor-investeerders-home.jpg"
               alt="Gesprek met investeerders"
               fill
               priority

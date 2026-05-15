@@ -10,7 +10,7 @@ export function WealthManagementSection() {
           {/* Left image */}
           <div className="relative h-[400px] overflow-hidden">
             <Image
-              src="/images/voor-leningnemers-home.png"
+              src="/images/voor-leningnemers-home.jpg"
               alt="Gesprek over financiering"
               fill
               className="object-cover scale-[1.2]"

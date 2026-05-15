@@ -4,6 +4,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
+import { ArticleSchema } from '@/components/article-schema'
 
 export const metadata: Metadata = {
   title: 'Wat is non-bancaire financiering? Uitleg, vormen en werking',
@@ -47,6 +48,14 @@ export default function WatIsNonBancaireFinancieringPage() {
         { name: 'Wat is non-bancaire financiering?', href: '/berichten/wat-is-non-bancaire-financiering' },
       ]} />
       <FaqSchema items={faq} />
+      <ArticleSchema
+        headline="Wat is non-bancaire financiering? Uitleg, vormen en werking"
+        description="Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn en hoe de zekerheden zijn geregeld."
+        url="https://www.nonbancaireleningen.nl/berichten/wat-is-non-bancaire-financiering"
+        datePublished="2026-05-15"
+        dateModified="2026-05-15"
+        authorName="Marco Lange"
+      />
       <Header />
       <main>
 
@@ -66,6 +75,11 @@ export default function WatIsNonBancaireFinancieringPage() {
               <p className="text-white/80 leading-relaxed text-lg">
                 Een groeiend alternatief voor ondernemers die buiten de bancaire criteria vallen &mdash; maar w&eacute;l beschikken over solide onderpand.
               </p>
+              <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
+                <span>Marco Lange</span>
+                <span>·</span>
+                <time dateTime="2026-05-15">15 mei 2026</time>
+              </div>
             </div>
           </div>
         </section>

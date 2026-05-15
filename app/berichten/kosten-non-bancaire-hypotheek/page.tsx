@@ -4,6 +4,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
+import { ArticleSchema } from '@/components/article-schema'
 
 export const metadata: Metadata = {
   title: 'Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden',
@@ -47,6 +48,14 @@ export default function KostenNonBancaireHypotheekPage() {
         { name: 'Kosten non-bancaire hypotheek', href: '/berichten/kosten-non-bancaire-hypotheek' },
       ]} />
       <FaqSchema items={faq} />
+      <ArticleSchema
+        headline="Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden"
+        description="Wat kost een non-bancaire hypotheek? Transparant overzicht van rentetarieven, afsluitkosten en voorwaarden."
+        url="https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek"
+        datePublished="2026-05-15"
+        dateModified="2026-05-15"
+        authorName="Marco Lange"
+      />
       <Header />
       <main>
 
@@ -66,6 +75,11 @@ export default function KostenNonBancaireHypotheekPage() {
               <p className="text-white/80 leading-relaxed text-lg">
                 Een transparant overzicht van de kosten, rentetarieven en voorwaarden bij non-bancaire financiering.
               </p>
+              <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
+                <span>Marco Lange</span>
+                <span>·</span>
+                <time dateTime="2026-05-15">15 mei 2026</time>
+              </div>
             </div>
           </div>
         </section>

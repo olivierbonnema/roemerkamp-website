@@ -4,6 +4,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
+import { ArticleSchema } from '@/components/article-schema'
 
 export const metadata: Metadata = {
   title: 'Hypotheek afgewezen door de bank? Dit zijn uw opties',
@@ -43,6 +44,14 @@ export default function HypotheekAfgewezenPage() {
         { name: 'Hypotheek afgewezen', href: '/berichten/hypotheek-afgewezen-wat-nu' },
       ]} />
       <FaqSchema items={faq} />
+      <ArticleSchema
+        headline="Hypotheek afgewezen door de bank? Dit zijn uw opties"
+        description="Hypotheek afgewezen als ondernemer of ZZP'er? Ontdek waarom banken afwijzen en welke alternatieven er zijn."
+        url="https://www.nonbancaireleningen.nl/berichten/hypotheek-afgewezen-wat-nu"
+        datePublished="2026-05-15"
+        dateModified="2026-05-15"
+        authorName="Marco Lange"
+      />
       <Header />
       <main>
 
@@ -62,6 +71,11 @@ export default function HypotheekAfgewezenPage() {
               <p className="text-white/80 leading-relaxed text-lg">
                 Een afwijzing is vervelend, maar het is geen eindstation. Er zijn concrete alternatieven &mdash; mits u beschikt over vastgoed met overwaarde.
               </p>
+              <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
+                <span>Marco Lange</span>
+                <span>·</span>
+                <time dateTime="2026-05-15">15 mei 2026</time>
+              </div>
             </div>
           </div>
         </section>

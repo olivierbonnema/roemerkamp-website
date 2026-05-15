@@ -49,7 +49,7 @@ export default function PreviewVoorLeningnemersPage() {
           <div className="absolute inset-y-0 right-0 left-[65%] hidden md:block">
             <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#1e3a5f] to-transparent z-10" />
             <Image
-              src="/images/voor-leningnemers-home.png"
+              src="/images/voor-leningnemers-home.jpg"
               alt="Voor leningnemers"
               fill
               className="object-cover object-[center_35%] scale-[1.2]"
@@ -217,7 +217,7 @@ export default function PreviewVoorLeningnemersPage() {
               </div>
               <div className="relative h-[600px] hidden md:block">
                 <Image
-                  src="/images/kantoor-hal.png"
+                  src="/images/kantoor-hal.jpg"
                   alt="Kantoor hal"
                   fill
                   className="object-cover"
