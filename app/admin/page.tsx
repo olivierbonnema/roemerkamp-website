@@ -25,7 +25,7 @@ export default function AdminPage() {
           </div>
         </section>
 
-        <section className="max-w-4xl mx-auto px-4 py-12 pb-24">
+        <section className="max-w-6xl mx-auto px-4 py-12 pb-24">
           <AdminGuard>
             <AdminPanel />
           </AdminGuard>

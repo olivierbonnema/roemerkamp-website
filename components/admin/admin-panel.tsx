@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
+import { AdminAanvragen } from "./admin-aanvragen"
+
+type Tab = "aanvragen" | "accounts"
 
 interface UserRecord {
   uid: string
@@ -14,7 +17,7 @@ async function getToken() {
   return auth.currentUser?.getIdToken()
 }
 
-export function AdminPanel() {
+function UsersTab() {
   const [users, setUsers] = useState<UserRecord[]>([])
   const [usersLoading, setUsersLoading] = useState(true)
   const [usersError, setUsersError] = useState("")
@@ -137,6 +140,39 @@ export function AdminPanel() {
           ))}
         </div>
       </div>
+    </div>
+  )
+}
+
+export function AdminPanel() {
+  const [activeTab, setActiveTab] = useState<Tab>("aanvragen")
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "aanvragen", label: "Aanvragen" },
+    { id: "accounts",  label: "Accounts" },
+  ]
+
+  return (
+    <div>
+      {/* Tab bar */}
+      <div className="flex items-center gap-1 mb-8 border-b border-gray-100 pb-0">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-5 py-2.5 text-sm font-medium font-sans rounded-t-lg transition-colors relative -mb-px ${
+              activeTab === t.id
+                ? "text-[#311E86] border-b-2 border-[#311E86]"
+                : "text-gray-400 hover:text-gray-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "aanvragen" && <AdminAanvragen />}
+      {activeTab === "accounts" && <UsersTab />}
     </div>
   )
 }
