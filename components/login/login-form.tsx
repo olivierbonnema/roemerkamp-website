@@ -139,6 +139,7 @@ export function LoginForm() {
           Login bij Collin Crowdfund
         </a>
       </div>
+
     </form>
   )
 }

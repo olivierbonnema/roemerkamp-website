@@ -38,6 +38,7 @@ export function Header() {
 
   const loginDropdown: DropdownItem[] = [
     { href: "/login", label: "Login bij het aanvragenportaal" },
+    { href: "/admin-login", label: "Admin login" },
     { href: "https://www.geldvoorelkaar.nl/langefinancieeladvies/mijn-gegevens/", label: "Login bij Geld voor Elkaar", external: true },
     { href: "https://www.collincrowdfund.nl/mijn-collin/", label: "Login bij Collin Crowdfund", external: true },
   ]

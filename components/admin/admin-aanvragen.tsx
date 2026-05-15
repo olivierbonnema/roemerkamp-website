@@ -1,8 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
+import { Upload, X } from "lucide-react"
 
 interface Aanvraag {
   id: string
@@ -65,11 +67,17 @@ async function getToken() {
 }
 
 export function AdminAanvragen() {
+  const router = useRouter()
   const [aanvragen, setAanvragen] = useState<Aanvraag[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null)
+  const [extracting, setExtracting] = useState<string | null>(null)
+  const [extraTextModal, setExtraTextModal] = useState<string | null>(null)
+  const [extraText, setExtraText] = useState("")
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadAanvragen() }, [])
 
@@ -103,6 +111,39 @@ export function AdminAanvragen() {
       }
     } finally {
       setStatusUpdating(null)
+    }
+  }
+
+  async function startExtraction(aanvraagId: string) {
+    setExtracting(aanvraagId)
+    try {
+      const token = await getToken()
+      const body = new FormData()
+      body.append("aanvraagId", aanvraagId)
+      if (extraText) body.append("extraText", extraText)
+      for (const file of uploadedFiles) {
+        body.append("files", file)
+      }
+      const res = await fetch("/api/admin/extract-termsheet", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body,
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(`Extractie mislukt: ${data.error || "onbekende fout"}`)
+        return
+      }
+      const data = await res.json()
+      sessionStorage.setItem("termsheet-prefill", JSON.stringify(data.termsheetData))
+      setExtraText("")
+      setUploadedFiles([])
+      setExtraTextModal(null)
+      router.push("/admin/documenten/nieuw?type=termsheet&prefill=1")
+    } catch {
+      alert("Extractie mislukt. Probeer het opnieuw.")
+    } finally {
+      setExtracting(null)
     }
   }
 
@@ -224,6 +265,15 @@ export function AdminAanvragen() {
                 </button>
               )}
 
+              {/* Create termsheet */}
+              <button
+                onClick={() => setExtraTextModal(a.id)}
+                disabled={extracting === a.id}
+                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors disabled:opacity-50"
+              >
+                {extracting === a.id ? "Bezig..." : "Maak termsheet"}
+              </button>
+
               {/* OneDrive link */}
               {a.driveFolderUrl && (
                 <a
@@ -239,6 +289,84 @@ export function AdminAanvragen() {
           </div>
         )
       })}
+
+      {/* Extra text modal */}
+      {extraTextModal && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setExtraTextModal(null); setExtraText(""); setUploadedFiles([]) }}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Termsheet genereren</h3>
+            <p className="text-sm text-gray-400 font-sans mb-5">
+              De gegevens uit de aanvraag en bijbehorende documenten worden automatisch geëxtraheerd.
+            </p>
+
+            {/* File upload */}
+            <label className="text-xs font-medium text-gray-600 font-sans mb-2 block">
+              Extra documenten <span className="text-gray-400 font-normal">(optioneel)</span>
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.docx,.doc,.eml,.txt"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)])
+                e.target.value = ""
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full border border-dashed border-gray-300 rounded-lg px-4 py-4 text-sm font-sans text-gray-400 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors flex items-center justify-center gap-2 mb-2"
+            >
+              <Upload size={16} />
+              Klik om bestanden toe te voegen (.pdf, .docx, .eml, .txt)
+            </button>
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-1.5 mb-4">
+                {uploadedFiles.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm font-sans">
+                    <span className="text-gray-700 truncate">{f.name}</span>
+                    <button
+                      onClick={() => setUploadedFiles(prev => prev.filter((_, j) => j !== i))}
+                      className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <label className="text-xs font-medium text-gray-600 font-sans mb-2 block mt-4">
+              Extra context <span className="text-gray-400 font-normal">(optioneel)</span>
+            </label>
+            <textarea
+              value={extraText}
+              onChange={(e) => setExtraText(e.target.value)}
+              placeholder="Plak hier eventuele notities of aanvullende informatie..."
+              rows={4}
+              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-sans focus:outline-none focus:border-[#1E3A5F] transition-colors resize-none mb-5"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setExtraTextModal(null); setExtraText(""); setUploadedFiles([]) }}
+                className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={() => startExtraction(extraTextModal)}
+                disabled={extracting !== null}
+                className="px-5 py-2.5 text-sm font-medium font-sans bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4d7a] transition-colors disabled:opacity-50"
+              >
+                {extracting ? "Bezig met extraheren..." : "Genereer termsheet"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
