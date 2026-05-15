@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  Newspaper,
 } from "lucide-react"
 
 const NAV_ITEMS = [
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/admin/documenten", label: "Documenten", icon: FileText },
   { href: "/admin/gebruikers", label: "Gebruikers", icon: Users },
   { href: "/admin/activiteit", label: "Activiteit", icon: Activity },
+  { href: "/admin/blog", label: "Blog", icon: Newspaper },
 ]
 
 const BOTTOM_ITEMS = [
