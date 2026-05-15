@@ -310,7 +310,8 @@ export function AdminAanvragen() {
               accept=".pdf,.docx,.doc,.eml,.txt"
               className="hidden"
               onChange={(e) => {
-                if (e.target.files) setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)])
+                const selected = Array.from(e.target.files || [])
+                if (selected.length > 0) setUploadedFiles(prev => [...prev, ...selected])
                 e.target.value = ""
               }}
             />
