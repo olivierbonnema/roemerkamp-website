@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
     if (docRef) {
       const city = adres ? adres.split(",").pop()?.trim() || "" : ""
       const isCompany = aanvragerType !== "Particulier" && bedrijfsnaam
-      const baseUrl = process.env.PORTAL_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
+      const baseUrl = process.env.PORTAL_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
       fetch(`${baseUrl}/api/internal/reputation-scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-internal-secret": process.env.TRIGGER_SECRET || "" },

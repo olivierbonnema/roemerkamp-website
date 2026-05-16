@@ -228,21 +228,23 @@ export function AdminAanvragen() {
 
   async function triggerAnalysis(aanvraagId: string) {
     setTriggeringAnalysis(aanvraagId)
+    setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, analysisStatus: "analyzing" } : a))
     try {
       const token = await getToken()
-      const res = await fetch("/api/admin/trigger-analysis", {
+      fetch("/api/admin/trigger-analysis", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ aanvraagId }),
+      }).then(async res => {
+        if (!res.ok) {
+          const data = await res.json()
+          alert(`Analyse mislukt: ${data.error || "onbekende fout"}`)
+          setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, analysisStatus: "error" } : a))
+        }
+      }).catch(() => {
+        alert("Analyse starten mislukt.")
+        setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, analysisStatus: "error" } : a))
       })
-      if (res.ok) {
-        setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, analysisStatus: "analyzing" } : a))
-      } else {
-        const data = await res.json()
-        alert(`Analyse starten mislukt: ${data.error || "onbekende fout"}`)
-      }
-    } catch {
-      alert("Analyse starten mislukt.")
     } finally {
       setTriggeringAnalysis(null)
     }

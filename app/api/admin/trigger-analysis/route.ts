@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
+export const maxDuration = 60
+
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || "https://web-production-bcfbf.up.railway.app"
 
@@ -39,11 +41,24 @@ export async function POST(req: NextRequest) {
 
   await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "analyzing" })
 
-  fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ folderId, applicationId: aanvraagId, timestamp, signature }),
-  }).catch((err) => console.error("Backend analysis call failed:", err))
+  try {
+    const res = await fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ folderId, applicationId: aanvraagId, timestamp, signature }),
+      signal: AbortSignal.timeout(55000),
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      console.error("Backend analysis error:", res.status, text)
+      await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "error" })
+      return NextResponse.json({ error: `Backend error: ${res.status}` }, { status: 502 })
+    }
+  } catch (err) {
+    console.error("Backend analysis call failed:", err)
+    await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "error" })
+    return NextResponse.json({ error: "Backend unreachable" }, { status: 502 })
+  }
 
   return NextResponse.json({ ok: true })
 }
