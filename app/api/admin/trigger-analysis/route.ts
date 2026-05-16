@@ -40,28 +40,15 @@ export async function POST(req: NextRequest) {
     .update(`${payload}${timestamp}`)
     .digest("hex")
 
-  console.log("HMAC debug — payload:", JSON.stringify(payload), "timestamp:", timestamp, "secret length:", secret.length, "using fallback:", secret === "fallback")
-
   await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "analyzing" })
 
-  try {
-    const res = await fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ folderId, applicationId: aanvraagId, timestamp, signature }),
-      signal: AbortSignal.timeout(55000),
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      console.error("Backend analysis error:", res.status, text)
-      await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "error" })
-      return NextResponse.json({ error: `Backend error: ${res.status} — ${text}` }, { status: 502 })
-    }
-  } catch (err) {
-    console.error("Backend analysis call failed:", err)
-    await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "error" })
-    return NextResponse.json({ error: "Backend unreachable" }, { status: 502 })
-  }
+  // Fire-and-forget: Railway backend writes results to Firestore directly.
+  // We can't await because the analysis takes ~2 min and Vercel Hobby has a 60s limit.
+  fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ folderId, applicationId: aanvraagId, timestamp, signature }),
+  }).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }
