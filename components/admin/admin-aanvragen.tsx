@@ -92,6 +92,40 @@ async function getToken() {
   return auth.currentUser?.getIdToken()
 }
 
+function AnalysisProgressBar({ label, estimatedSeconds }: { label: string; estimatedSeconds: number }) {
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const start = Date.now()
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const progress = Math.min((elapsed / estimatedSeconds) * 100, 95)
+  const remaining = Math.max(estimatedSeconds - elapsed, 0)
+
+  return (
+    <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
+      <div className="flex items-center justify-between text-xs font-sans mb-2">
+        <span className="text-blue-800 font-medium">{label} wordt uitgevoerd...</span>
+        <span className="text-blue-600">
+          {remaining > 0 ? `~${remaining}s resterend` : "Bijna klaar..."}
+        </span>
+      </div>
+      <div className="w-full h-1.5 bg-blue-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-linear"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="flex items-center gap-3 mt-2 text-[11px] font-sans text-blue-500">
+        <span>{elapsed}s verstreken</span>
+        <span>Geschatte kosten: {label === "AI Analyse" ? "~€0,83" : "~€0,15"}</span>
+      </div>
+    </div>
+  )
+}
+
 export function AdminAanvragen() {
   const router = useRouter()
   const [aanvragen, setAanvragen] = useState<Aanvraag[]>([])
@@ -109,6 +143,22 @@ export function AdminAanvragen() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadAanvragen() }, [])
+
+  useEffect(() => {
+    const hasRunning = aanvragen.some(a => a.analysisStatus === "analyzing" || a.reputationScanStatus === "scanning")
+    if (!hasRunning) return
+    const interval = setInterval(async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch("/api/admin/aanvragen", { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setAanvragen(data.aanvragen)
+        }
+      } catch {}
+    }, 8000)
+    return () => clearInterval(interval)
+  }, [aanvragen])
 
   async function loadAanvragen() {
     setLoading(true)
@@ -428,6 +478,16 @@ export function AdminAanvragen() {
               </div>
             </div>
 
+            {/* AI analysis progress (if analyzing) */}
+            {a.analysisStatus === "analyzing" && (
+              <AnalysisProgressBar label="AI Analyse" estimatedSeconds={50} />
+            )}
+
+            {/* Reputation scan progress (if scanning) */}
+            {a.reputationScanStatus === "scanning" && (
+              <AnalysisProgressBar label="Achtergrondcheck" estimatedSeconds={120} />
+            )}
+
             {/* AI analysis summary (if completed) */}
             {a.analysisStatus === "completed" && (
               <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4">
@@ -435,6 +495,7 @@ export function AdminAanvragen() {
                   <span>Risico: <strong className="text-gray-700">{a.analysisRisk || "—"}</strong></span>
                   <span>{a.documentsProcessed ?? 0} docs verwerkt</span>
                   <span>{a.analysisProcessingTime ? `${a.analysisProcessingTime}s` : "—"}</span>
+                  <span className="text-gray-400">~€0,83</span>
                 </div>
               </div>
             )}
