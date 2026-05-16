@@ -65,6 +65,20 @@ interface Props {
 const HYPOTHEEK_RANKS = ["1e", "2e", "3e", "4e"]
 const RANK_LABELS: Record<string, string> = { "1e": "eerste", "2e": "tweede", "3e": "derde", "4e": "vierde" }
 
+function Section({ id, title, isOpen, onToggle, children }: {
+  id: string; title: string; isOpen: boolean; onToggle: (id: string) => void; children: React.ReactNode
+}) {
+  return (
+    <div className="border border-gray-200 rounded-lg mb-3 overflow-hidden">
+      <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(id) }} className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-sm bg-blue-50/60 hover:bg-blue-50 border-l-[3px] border-l-[#1E3A5F] transition-colors">
+        <span className="text-[#1E3A5F]">{title}</span>
+        <span className="text-[#1E3A5F]/40 text-xs">{isOpen ? "▾" : "▸"}</span>
+      </button>
+      {isOpen && <div className="px-4 pb-4 pt-3 space-y-3 border-l-[3px] border-l-[#1E3A5F]/20">{children}</div>}
+    </div>
+  )
+}
+
 const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, settings }, ref) => {
   const d = initialData || {}
   const s = settings || {}
@@ -120,6 +134,10 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [signingDeadline, setSigningDeadline] = useState((d as Record<string, unknown>).signingDeadline as string || addDays(baseDate, 7))
   const [validityDate, setValidityDate] = useState((d as Record<string, unknown>).validityDate as string || addMonths(addDays(baseDate, 7), 1))
 
+  const [zekerhedenText, setZekerhedenText] = useState((d as Record<string, unknown>).zekerhedenText as string || "")
+  const [zekerhedenManual, setZekerhedenManual] = useState(false)
+  const [bepalingen, setBepalingen] = useState<string[]>((d as Record<string, unknown>).bepalingen as string[] || [])
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
   const toggleSection = (key: string) => setOpenSections((prev) => ({ ...prev, [key]: prev[key] === false ? true : prev[key] === undefined ? false : !prev[key] }))
   const isSectionOpen = (key: string) => openSections[key] !== false
@@ -149,8 +167,15 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         }
         return txt
       })
-      .join("\n\n")
+      .join("\n")
   }, [objects, totalLoan])
+
+  // Auto-update zekerheden text when not manually edited
+  useEffect(() => {
+    if (!zekerhedenManual && zekerhedenPreview) {
+      setZekerhedenText(zekerhedenPreview)
+    }
+  }, [zekerhedenPreview, zekerhedenManual])
 
   const berekenTermijn = useCallback(() => {
     const P = totalLoan
@@ -281,6 +306,8 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         extraAflossen,
         betalingswijze,
         verzekering,
+        zekerhedenText,
+        bepalingen: bepalingen.filter((b) => b.trim()),
         condities,
         toepasselijkRecht,
         beschikbaarheid,
@@ -294,16 +321,6 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
     },
   }))
 
-  const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
-    <div className="border border-gray-200 rounded-lg mb-3 overflow-hidden">
-      <button type="button" onClick={() => toggleSection(id)} className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-sm bg-blue-50/60 hover:bg-blue-50 border-l-[3px] border-l-[#1E3A5F] transition-colors">
-        <span className="text-[#1E3A5F]">{title}</span>
-        <span className="text-[#1E3A5F]/40 text-xs">{isSectionOpen(id) ? "▾" : "▸"}</span>
-      </button>
-      {isSectionOpen(id) && <div className="px-4 pb-4 pt-3 space-y-3 border-l-[3px] border-l-[#1E3A5F]/20">{children}</div>}
-    </div>
-  )
-
   const fmtComputed = (n: number) => (n > 0 ? `€ ${n.toFixed(2).replace(".", ",")}` : "")
 
   const [dragIdx, setDragIdx] = useState<number | null>(null)
@@ -311,7 +328,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   return (
     <div className="space-y-2">
       {/* 1. Geldnemers */}
-      <Section id="borrowers" title="Geldnemers & adres">
+      <Section id="borrowers" title="Geldnemers & adres" isOpen={isSectionOpen("borrowers")} onToggle={toggleSection}>
         {borrowers.map((b, i) => (
           <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-3">
@@ -358,7 +375,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       </Section>
 
       {/* 2. Adviseur & referentie */}
-      <Section id="advisor" title="Adviseur & referentie">
+      <Section id="advisor" title="Adviseur & referentie" isOpen={isSectionOpen("advisor")} onToggle={toggleSection}>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Adviseur naam</label>
@@ -394,7 +411,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       </Section>
 
       {/* 3. Onderpanden */}
-      <Section id="objects" title="Onderpanden (zekerheden)">
+      <Section id="objects" title="Onderpanden (zekerheden)" isOpen={isSectionOpen("objects")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">Voer de volledige kadastrale omschrijving in. Kies het recht van hypotheek.</p>
         {objects.map((o, i) => (
           <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
@@ -452,7 +469,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       </Section>
 
       {/* 4. Leningcondities */}
-      <Section id="loan" title="Leningcondities">
+      <Section id="loan" title="Leningcondities" isOpen={isSectionOpen("loan")} onToggle={toggleSection}>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Kredietgever</label>
@@ -589,14 +606,19 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       </Section>
 
       {/* 5. Aanvullende bepalingen */}
-      <Section id="bepalingen" title="Aanvullende bepalingen">
+      <Section id="bepalingen" title="Aanvullende bepalingen" isOpen={isSectionOpen("bepalingen")} onToggle={toggleSection}>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Betalingswijze</label>
           <textarea value={betalingswijze} onChange={(e) => setBetalingswijze(e.target.value)} rows={3} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Zekerheden <span className="font-normal text-gray-400 text-[11px]">(preview — wordt automatisch gegenereerd)</span></label>
-          <textarea readOnly value={zekerhedenPreview} rows={6} className="w-full border rounded px-2 py-1.5 text-sm bg-gray-50 text-gray-500 cursor-default" />
+          <label className="text-xs font-medium text-gray-600 mb-1 block">Zekerheden <span className="font-normal text-gray-400 text-[11px]">(automatisch gegenereerd — bewerkbaar)</span></label>
+          <textarea value={zekerhedenText} onChange={(e) => { setZekerhedenText(e.target.value); setZekerhedenManual(true) }} rows={6} className="w-full border rounded px-2 py-1.5 text-sm" />
+          {zekerhedenManual && (
+            <button type="button" onClick={() => { setZekerhedenManual(false); setZekerhedenText(zekerhedenPreview) }} className="text-xs text-[#2E2060] hover:underline mt-1">
+              Terugzetten naar automatische tekst
+            </button>
+          )}
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Verzekering</label>
@@ -618,10 +640,20 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           <label className="text-xs font-medium text-gray-600 mb-1 block">Overdracht</label>
           <textarea value={overdracht} onChange={(e) => setOverdracht(e.target.value)} rows={2} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1 block">Extra bepalingen</label>
+          {bepalingen.map((b, i) => (
+            <div key={i} className="flex gap-2 mb-2">
+              <input value={b} onChange={(e) => setBepalingen((prev) => prev.map((v, j) => j === i ? e.target.value : v))} placeholder="Extra bepaling..." className="flex-1 border rounded px-2 py-1.5 text-sm" />
+              <button type="button" onClick={() => setBepalingen((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg">×</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => setBepalingen((prev) => [...prev, ""])} className="text-sm text-[#2E2060] hover:underline">+ Bepaling toevoegen</button>
+        </div>
       </Section>
 
       {/* 6. Voorafgaande condities */}
-      <Section id="vooraf" title="Voorafgaande condities">
+      <Section id="vooraf" title="Voorafgaande condities" isOpen={isSectionOpen("vooraf")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">Markeer als &quot;Ontvangen&quot; voor een doorgehaalde weergave. Sleep rijen om de volgorde aan te passen.</p>
         {vooraf.map((c, i) => (
           <div
@@ -645,7 +677,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       </Section>
 
       {/* 7. Afsluiting */}
-      <Section id="afsluiting" title="Afsluiting">
+      <Section id="afsluiting" title="Afsluiting" isOpen={isSectionOpen("afsluiting")} onToggle={toggleSection}>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Notaris</label>

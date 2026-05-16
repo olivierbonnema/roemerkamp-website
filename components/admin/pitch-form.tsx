@@ -52,6 +52,20 @@ interface Props {
   settings?: { companyName?: string }
 }
 
+function PitchSection({ id, title, isOpen, onToggle, children }: {
+  id: string; title: string; isOpen: boolean; onToggle: (id: string) => void; children: React.ReactNode
+}) {
+  return (
+    <div className="border border-gray-200 rounded-lg mb-3 overflow-hidden">
+      <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(id) }} className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-sm bg-violet-50/60 hover:bg-violet-50 border-l-[3px] border-l-[#311E86] transition-colors">
+        <span className="text-[#311E86]">{title}</span>
+        <span className="text-[#311E86]/40 text-xs">{isOpen ? "▾" : "▸"}</span>
+      </button>
+      {isOpen && <div className="px-4 pb-4 pt-3 space-y-3 border-l-[3px] border-l-[#311E86]/20">{children}</div>}
+    </div>
+  )
+}
+
 const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const d = (initialData || {}) as Record<string, unknown>
 
@@ -182,20 +196,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
     },
   }))
 
-  const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
-    <div className="border border-gray-200 rounded-lg mb-3 overflow-hidden">
-      <button type="button" onClick={() => toggleSection(id)} className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-sm bg-violet-50/60 hover:bg-violet-50 border-l-[3px] border-l-[#311E86] transition-colors">
-        <span className="text-[#311E86]">{title}</span>
-        <span className="text-[#311E86]/40 text-xs">{isSectionOpen(id) ? "▾" : "▸"}</span>
-      </button>
-      {isSectionOpen(id) && <div className="px-4 pb-4 pt-3 space-y-3 border-l-[3px] border-l-[#311E86]/20">{children}</div>}
-    </div>
-  )
-
   return (
     <div className="space-y-2">
       {/* 1. Inleidende zin */}
-      <Section id="intro" title="Inleidende zin">
+      <PitchSection id="intro" title="Inleidende zin" isOpen={isSectionOpen("intro")} onToggle={toggleSection}>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Kies openingszin</label>
           <select value={introZinIndex} onChange={(e) => setIntroZinIndex(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
@@ -211,18 +215,18 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             <textarea value={introZinCustom} onChange={(e) => setIntroZinCustom(e.target.value)} rows={2} className="w-full border rounded px-2 py-1.5 text-sm" />
           </div>
         )}
-      </Section>
+      </PitchSection>
 
       {/* 2. Verhaaltekst */}
-      <Section id="verhaal" title="Verhaaltekst (leendoel & situatie)">
+      <PitchSection id="verhaal" title="Verhaaltekst (leendoel & situatie)" isOpen={isSectionOpen("verhaal")} onToggle={toggleSection}>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Narratief</label>
           <textarea value={introParagraph} onChange={(e) => setIntroParagraph(e.target.value)} rows={9} placeholder="Beschrijf de geldnemer(s): naam, leeftijd, beroep, reden voor de lening..." className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
-      </Section>
+      </PitchSection>
 
       {/* 3. Financieringsopzet */}
-      <Section id="fin" title="Financieringsopzet">
+      <PitchSection id="fin" title="Financieringsopzet" isOpen={isSectionOpen("fin")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">&quot;Aftrek&quot; voegt -/- toe. &quot;Totaal&quot; en &quot;Resultaat&quot; zijn vetgedrukt met lijn erboven.</p>
         {finRows.map((row, i) => (
           <div key={i} className="flex gap-2">
@@ -238,10 +242,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           </div>
         ))}
         <button type="button" onClick={() => setFinRows((prev) => [...prev, { label: "", amount: 0, type: "normal" }])} className="text-sm text-[#2E2060] hover:underline">+ Regel toevoegen</button>
-      </Section>
+      </PitchSection>
 
       {/* 4. LTV */}
-      <Section id="ltv" title="LTV-berekening">
+      <PitchSection id="ltv" title="LTV-berekening" isOpen={isSectionOpen("ltv")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">Voeg meerdere LTV-regels toe. Teller mag meerdere bedragen bevatten.</p>
         {ltvRows.map((row, i) => (
           <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
@@ -298,10 +302,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           </div>
         ))}
         <button type="button" onClick={() => setLtvRows((prev) => [...prev, { label: "", numeratorParts: [{ label: "", amount: 0 }], denominator: 0, denominatorLabel: "marktwaarde" }])} className="text-sm text-[#2E2060] hover:underline">+ LTV-rij toevoegen</button>
-      </Section>
+      </PitchSection>
 
       {/* 5. Zekerheden */}
-      <Section id="zekerheid" title="Zekerheden">
+      <PitchSection id="zekerheid" title="Zekerheden" isOpen={isSectionOpen("zekerheid")} onToggle={toggleSection}>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Rang hypotheek</label>
@@ -350,10 +354,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             </div>
           </div>
         )}
-      </Section>
+      </PitchSection>
 
       {/* 6. Uitgangspunten */}
-      <Section id="uitgangspunten" title="Uitgangspunten van de Lening">
+      <PitchSection id="uitgangspunten" title="Uitgangspunten van de Lening" isOpen={isSectionOpen("uitgangspunten")} onToggle={toggleSection}>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Leenvorm</label>
@@ -399,10 +403,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           Voeg &quot;bij aanvang&quot; toe aan renteformulering
         </label>
         <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">{netRateDisplay}</div>
-      </Section>
+      </PitchSection>
 
       {/* 7. Vervroegde aflossing */}
-      <Section id="erp" title="Vervroegde aflossing">
+      <PitchSection id="erp" title="Vervroegde aflossing" isOpen={isSectionOpen("erp")} onToggle={toggleSection}>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="text-xs text-gray-600 block">Boetevrije termijn (mnd)</label>
@@ -425,10 +429,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           <label className="text-xs text-gray-600 block">Tekst (elke regel wordt een bullet)</label>
           <textarea value={erpText} onChange={(e) => { setErpText(e.target.value); setErpEdited(true) }} rows={5} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
-      </Section>
+      </PitchSection>
 
       {/* 8. Stichting */}
-      <Section id="stichting" title="Stichting Zekerhedenagent">
+      <PitchSection id="stichting" title="Stichting Zekerhedenagent" isOpen={isSectionOpen("stichting")} onToggle={toggleSection}>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" checked={stichtingEnabled} onChange={(e) => setStichtingEnabled(e.target.checked)} />
           Opnemen in pitch
@@ -436,10 +440,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         {stichtingEnabled && (
           <textarea value={stichtingText} onChange={(e) => setStichtingText(e.target.value)} rows={4} className="w-full border rounded px-2 py-1.5 text-sm" />
         )}
-      </Section>
+      </PitchSection>
 
       {/* 9. Risico's */}
-      <Section id="risks" title="Enkele risico's">
+      <PitchSection id="risks" title="Enkele risico's" isOpen={isSectionOpen("risks")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">[LOOPTIJD] en [HOOFDSOM] worden automatisch ingevuld.</p>
         {risks.map((r, i) => (
           <div key={r.id} className="bg-gray-50 rounded-lg p-3 space-y-2">
@@ -454,10 +458,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             )}
           </div>
         ))}
-      </Section>
+      </PitchSection>
 
       {/* 10. Spreiding */}
-      <Section id="spreiding" title="Slotopmerking spreiding">
+      <PitchSection id="spreiding" title="Slotopmerking spreiding" isOpen={isSectionOpen("spreiding")} onToggle={toggleSection}>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" checked={spreidingEnabled} onChange={(e) => setSpreidingEnabled(e.target.checked)} />
           Opnemen in pitch
@@ -465,10 +469,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         {spreidingEnabled && (
           <textarea value={spreidingText} onChange={(e) => setSpreidingText(e.target.value)} rows={3} className="w-full border rounded px-2 py-1.5 text-sm" />
         )}
-      </Section>
+      </PitchSection>
 
       {/* 11. Cashplanning */}
-      <Section id="cash" title="Cashplanning-paragraaf">
+      <PitchSection id="cash" title="Cashplanning-paragraaf" isOpen={isSectionOpen("cash")} onToggle={toggleSection}>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" checked={cashplanningEnabled} onChange={(e) => setCashplanningEnabled(e.target.checked)} />
           Opnemen in pitch
@@ -482,10 +486,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded max-h-[60px] overflow-hidden">{cashplanningPreview}</div>
           </>
         )}
-      </Section>
+      </PitchSection>
 
       {/* 12. Geldnemers */}
-      <Section id="geldnemers" title="Geldnemers">
+      <PitchSection id="geldnemers" title="Geldnemers" isOpen={isSectionOpen("geldnemers")} onToggle={toggleSection}>
         {geldnemers.map((g, i) => (
           <div key={i} className="flex gap-2 flex-wrap">
             <input placeholder="Naam geldnemer" value={g.name} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, name: e.target.value } : gn)))} className="flex-1 min-w-[170px] border rounded px-2 py-1.5 text-sm" />
@@ -503,7 +507,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           <input type="checkbox" checked={overdraagbaar} onChange={(e) => setOverdraagbaar(e.target.checked)} />
           Voeg overdraagbaarheidszin toe
         </label>
-      </Section>
+      </PitchSection>
     </div>
   )
 })

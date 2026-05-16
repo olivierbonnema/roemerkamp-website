@@ -136,21 +136,107 @@ function splitAddress(fullAddress: string): { street: string; postalCode: string
   return { street: trimmed, postalCode: "", city: "" }
 }
 
-function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string>) {
+const EMAIL_TO_NAME: Record<string, string> = {
+  "olivier@langefa.nl": "Olivier Bonnema",
+  "marco@langefa.nl": "Marco Lange",
+  "christian@langefa.nl": "Christian de Vries",
+}
+
+function getLastName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/)
+  if (parts.length <= 1) return parts[0] || ""
+  // Find the last name — skip known prefixes like "de", "van", "het", etc. but include them in result
+  const prefixes = new Set(["de", "van", "het", "der", "den", "ten", "ter", "la", "le", "du"])
+  let lastNameStart = parts.length - 1
+  while (lastNameStart > 0 && prefixes.has(parts[lastNameStart - 1].toLowerCase())) {
+    lastNameStart--
+  }
+  const lastName = parts.slice(lastNameStart).join(" ")
+  // Capitalize first letter of actual surname (after prefixes)
+  const prefixPart = parts.slice(lastNameStart, parts.length - 1).join(" ")
+  const surnamePart = parts[parts.length - 1]
+  if (prefixPart) {
+    return prefixPart.charAt(0).toUpperCase() + prefixPart.slice(1).toLowerCase() + " " + surnamePart.charAt(0).toUpperCase() + surnamePart.slice(1)
+  }
+  return lastName.charAt(0).toUpperCase() + lastName.slice(1)
+}
+
+function guessGender(name: string): "male" | "female" | "unknown" {
+  const first = name.trim().split(/\s+/)[0].toLowerCase()
+  const femaleNames = new Set([
+    "anna", "anne", "anke", "anouk", "astrid", "bianca", "charlotte", "claire", "claudia",
+    "daniëlle", "danielle", "daphne", "denise", "diana", "dominique", "emma", "esther", "eva",
+    "femke", "fleur", "francesca", "griet", "hanna", "helena", "ilse", "inge", "ingrid",
+    "iris", "janet", "janneke", "jessica", "jolien", "judith", "julia", "karen", "katja",
+    "kim", "laura", "lieke", "linda", "lisa", "lotte", "maaike", "manon", "maria", "marieke",
+    "marjan", "marlies", "martine", "melissa", "merel", "miranda", "monique", "nadia", "nathalie",
+    "nicole", "nina", "noortje", "petra", "renate", "roos", "sandra", "sanne", "sarah", "silvia",
+    "simone", "sophie", "susan", "suzanne", "sylvia", "tamara", "tessa", "wendy", "yvonne", "zara",
+  ])
+  const maleNames = new Set([
+    "adam", "alexander", "arjan", "bas", "bob", "bram", "casper", "christian", "daan", "daniel",
+    "david", "demy", "dennis", "diederik", "dirk", "erik", "erwin", "florian", "frank", "geert",
+    "gerrit", "hans", "harm", "hendrik", "henk", "hugo", "jack", "jan", "jasper", "jeroen",
+    "joost", "jurgen", "kees", "kevin", "lars", "leon", "lucas", "luuk", "maarten", "marc",
+    "marco", "mark", "martijn", "matthijs", "max", "michiel", "nick", "niels", "olivier", "paul",
+    "peter", "pieter", "remco", "rick", "rob", "robert", "robin", "ruben", "sander", "sebastian",
+    "stefan", "stijn", "thijs", "thomas", "tim", "tom", "vincent", "wim", "wouter",
+    "patrick", "rené", "rene",
+  ])
+  if (femaleNames.has(first)) return "female"
+  if (maleNames.has(first)) return "male"
+  return "unknown"
+}
+
+function buildSalutation(names: string[]): string {
+  const parts = names.map((name) => {
+    const gender = guessGender(name)
+    const lastName = getLastName(name)
+    if (gender === "female") return { prefix: "mevrouw", lastName }
+    if (gender === "male") return { prefix: "heer", lastName }
+    return { prefix: "heer/mevrouw", lastName }
+  })
+
+  // If all share the same last name, combine: "heer en mevrouw De Zeeuw"
+  const uniqueLastNames = [...new Set(parts.map(p => p.lastName))]
+  if (parts.length === 2 && uniqueLastNames.length === 1) {
+    return `${parts[0].prefix} en ${parts[1].prefix} ${uniqueLastNames[0]}`
+  }
+
+  return parts.map(p => `${p.prefix} ${p.lastName}`).join(" en ")
+}
+
+function generateReferenceCode(name: string): string {
+  const year = new Date().getFullYear()
+  // Take initials from name parts (first letter of each word, skip prefixes)
+  const prefixes = new Set(["de", "van", "het", "der", "den", "ten", "ter", "la", "le", "du"])
+  const parts = name.trim().split(/\s+/).filter(p => !prefixes.has(p.toLowerCase()))
+  let code = parts.map(p => p.charAt(0).toUpperCase()).join("")
+  // Ensure exactly 3 characters
+  if (code.length > 3) code = code.slice(0, 3)
+  while (code.length < 3) code += "X"
+  return `LA-${year}-${code}`
+}
+
+function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string>, adminEmail?: string) {
   const today = new Date().toISOString().slice(0, 10)
 
   const borrowerType = aanvraag.aanvragerType === "Particulier" ? "privepersoon" as const : "bv" as const
   const parsed = splitAddress(aanvraag.adres || "")
+
+  const hasCoBorrower = !!aanvraag.medeNaam
+
+  // For multiple borrowers, only fill address on the LAST borrower
   const borrowers: Record<string, unknown>[] = [{
     type: borrowerType,
     name: borrowerType === "privepersoon" ? (aanvraag.naam || "") : "",
     bvName: borrowerType === "bv" ? (aanvraag.bedrijfsnaam || "") : undefined,
-    address: parsed.street,
-    postalCode: parsed.postalCode,
-    city: parsed.city,
+    address: hasCoBorrower ? "" : parsed.street,
+    postalCode: hasCoBorrower ? "" : parsed.postalCode,
+    city: hasCoBorrower ? "" : parsed.city,
   }]
 
-  if (aanvraag.medeNaam) {
+  if (hasCoBorrower) {
     borrowers.push({
       type: "privepersoon",
       name: aanvraag.medeNaam,
@@ -186,12 +272,15 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
       const adres = obj.objectAdres || obj.adres || ""
       const plaats = obj.objectPlaats || obj.plaats || ""
       const postcode = obj.objectPostcode || obj.postcode || ""
-      const addr = [adres, plaats].filter(Boolean).join(", ")
-      objects.push({ description: "", address: addr, postalCode: postcode, hypotheekRank: "1e", priorLienholders: [] })
+      // Format: "Straat 33, 1234 AB Stad"
+      const addr = [adres, [postcode, plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+      objects.push({ description: "", address: addr, hypotheekRank: "1e", priorLienholders: [] })
     }
   } else {
-    const objectAddr = [aanvraag.objectAdres, aanvraag.objectPlaats].filter(Boolean).join(", ")
-    objects.push({ description: "", address: objectAddr, postalCode: aanvraag.objectPostcode || "", hypotheekRank: "1e", priorLienholders: [] })
+    const postcode = aanvraag.objectPostcode || ""
+    const plaats = aanvraag.objectPlaats || ""
+    const objectAddr = [aanvraag.objectAdres, [postcode, plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+    objects.push({ description: "", address: objectAddr, hypotheekRank: "1e", priorLienholders: [] })
   }
 
   const halfLooptijd = looptijdMonths > 0 ? Math.ceil(looptijdMonths / 2) : 0
@@ -199,18 +288,29 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
     ? `Indien u de lening geheel of gedeeltelijk aflost binnen ${halfLooptijd} maanden na passeren bedragen de kosten ${halfLooptijd} maanden het termijnbedrag verminderd met de reeds betaalde termijnbedragen. Na ${halfLooptijd} maanden kan er volledig boetevrij worden afgelost met een aanzegtermijn van minimaal 1 maand. Minimale aflossing bedraagt € 50.000,- per transactie met een administratievergoeding van € 250,- per keer.`
     : undefined
 
+  // Advisor name from logged-in email
+  const advisorFromEmail = adminEmail ? EMAIL_TO_NAME[adminEmail.toLowerCase()] : undefined
+  const advisorName = advisorFromEmail || settings.advisorName || ""
+
+  // Auto-generate salutation from borrower names
+  const allNames = [aanvraag.naam, aanvraag.medeNaam].filter(Boolean) as string[]
+  const autoSalutation = allNames.length > 0 ? buildSalutation(allNames) : ""
+
+  // Auto-generate reference code from first borrower name
+  const refCode = generateReferenceCode(aanvraag.naam || "")
+
   return {
     borrowers,
     objects,
     loanParts: [{ amount: loanAmount, typeLabel: "Lening bij aanvang" }],
     loanAmount,
-    advisorName: settings.advisorName || "",
-    reference: `LA-2026-`,
+    advisorName,
+    reference: refCode,
     phone: settings.advisorPhone || "+31 23 517 31 00",
     email: settings.advisorEmail || "info@langefa.nl",
     city: "Haarlem",
     date: today,
-    salutation: "",
+    salutation: autoSalutation,
     kredietgever: settings.companyName || "Lange & Partners Financieel Advies",
     geldverstrekker: "Bemiddeling via Lange & Partners Financieel Advies",
     doelFinanciering: doelMap[(aanvraag.leningDoel || "").toLowerCase()] || "een herfinanciering",
@@ -302,7 +402,7 @@ export async function POST(req: NextRequest) {
     const settingsDoc = await adminDb.collection("settings").doc("general").get()
     const settings = (settingsDoc.exists ? settingsDoc.data() : {}) as Record<string, string>
 
-    const directFields = mapDirectFields(aanvraag, settings)
+    const directFields = mapDirectFields(aanvraag, settings, admin.email || undefined)
 
     let documentText = ""
     const parsableFileNames: string[] = []
