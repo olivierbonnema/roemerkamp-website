@@ -215,10 +215,12 @@ function buildSubjectBlock(subject: ScanSubject): string {
 export async function runReputationScan(aanvraagId: string, subject: ScanSubject): Promise<void> {
   const docRef = adminDb.collection("aanvragen").doc(aanvraagId)
 
+  console.log(`[reputation-scan] START aanvraagId=${aanvraagId} subject=${subject.fullName}`)
   await docRef.update({ reputationScanStatus: "scanning", reputationScanStarted: new Date() })
 
   try {
     const subjectBlock = buildSubjectBlock(subject)
+    console.log(`[reputation-scan] calling Anthropic API with model=claude-sonnet-4-6`)
 
     const messages: Anthropic.MessageParam[] = [{
       role: "user",
@@ -279,6 +281,8 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
       reputationScanCompleted: new Date(),
     })
   } catch (err) {
+    console.error(`[reputation-scan] ERROR:`, err instanceof Error ? err.message : err)
+    console.error(`[reputation-scan] stack:`, err instanceof Error ? err.stack : "no stack")
     await docRef.update({
       reputationScanStatus: "error",
       reputationScanError: err instanceof Error ? err.message : "unknown",
