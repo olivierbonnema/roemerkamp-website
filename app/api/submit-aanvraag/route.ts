@@ -2,7 +2,6 @@ import { NextRequest, NextResponse, after } from "next/server"
 import { Resend } from "resend"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
-import { runReputationScan } from "@/lib/reputation-scan"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
@@ -257,18 +256,26 @@ export async function POST(req: NextRequest) {
     if (docRef) {
       const city = adres ? adres.split(",").pop()?.trim() || "" : ""
       const isCompany = aanvragerType !== "Particulier" && bedrijfsnaam
-      runReputationScan(docRef.id, {
-        type: isCompany ? "both" : "natural_person",
-        fullName: naam,
-        dob: geboortedatum || undefined,
-        city: city || objectPlaats || undefined,
-        company: bedrijfsnaam || undefined,
-        kvkNummer: kvkNummer || undefined,
-        role: isCompany ? "DGA / aanvrager" : undefined,
-        sector: "vastgoed",
-        loanAmount: leningBedrag || undefined,
-        coApplicant: medeNaam || undefined,
-      }).catch(err => console.error("Reputation scan error:", err))
+      const baseUrl = process.env.PORTAL_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
+      fetch(`${baseUrl}/api/internal/reputation-scan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-secret": process.env.TRIGGER_SECRET || "" },
+        body: JSON.stringify({
+          aanvraagId: docRef.id,
+          subject: {
+            type: isCompany ? "both" : "natural_person",
+            fullName: naam,
+            dob: geboortedatum || undefined,
+            city: city || objectPlaats || undefined,
+            company: bedrijfsnaam || undefined,
+            kvkNummer: kvkNummer || undefined,
+            role: isCompany ? "DGA / aanvrager" : undefined,
+            sector: "vastgoed",
+            loanAmount: leningBedrag || undefined,
+            coApplicant: medeNaam || undefined,
+          },
+        }),
+      }).catch(err => console.error("Reputation scan trigger error:", err))
     }
   })
 

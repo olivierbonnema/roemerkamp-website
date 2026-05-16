@@ -104,6 +104,8 @@ export function AdminAanvragen() {
   const [extraText, setExtraText] = useState("")
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [scanDetailId, setScanDetailId] = useState<string | null>(null)
+  const [triggeringAnalysis, setTriggeringAnalysis] = useState<string | null>(null)
+  const [retryingScan, setRetryingScan] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadAanvragen() }, [])
@@ -171,6 +173,47 @@ export function AdminAanvragen() {
       alert("Extractie mislukt. Probeer het opnieuw.")
     } finally {
       setExtracting(null)
+    }
+  }
+
+  async function triggerAnalysis(aanvraagId: string) {
+    setTriggeringAnalysis(aanvraagId)
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/trigger-analysis", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ aanvraagId }),
+      })
+      if (res.ok) {
+        setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, analysisStatus: "analyzing" } : a))
+      } else {
+        const data = await res.json()
+        alert(`Analyse starten mislukt: ${data.error || "onbekende fout"}`)
+      }
+    } catch {
+      alert("Analyse starten mislukt.")
+    } finally {
+      setTriggeringAnalysis(null)
+    }
+  }
+
+  async function retryScan(aanvraagId: string) {
+    setRetryingScan(aanvraagId)
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/retry-scan", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ aanvraagId }),
+      })
+      if (res.ok) {
+        setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanResult: undefined } : a))
+      }
+    } catch {
+      alert("Scan opnieuw starten mislukt.")
+    } finally {
+      setRetryingScan(null)
     }
   }
 
@@ -439,6 +482,17 @@ export function AdminAanvragen() {
                 <option value="afgewezen">Afgewezen</option>
               </select>
 
+              {/* Start AI analysis */}
+              {!a.analysisStatus && a.driveFolderId && (
+                <button
+                  onClick={() => triggerAnalysis(a.id)}
+                  disabled={triggeringAnalysis === a.id}
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors disabled:opacity-50"
+                >
+                  {triggeringAnalysis === a.id ? "Starten..." : "Start AI Analyse"}
+                </button>
+              )}
+
               {/* View AI analysis */}
               {a.analysisStatus === "completed" && (
                 <button
@@ -446,6 +500,17 @@ export function AdminAanvragen() {
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
                 >
                   AI Analyse bekijken
+                </button>
+              )}
+
+              {/* Retry failed scan */}
+              {a.reputationScanStatus === "error" && (
+                <button
+                  onClick={() => retryScan(a.id)}
+                  disabled={retryingScan === a.id}
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-50"
+                >
+                  {retryingScan === a.id ? "Bezig..." : "Scan opnieuw"}
                 </button>
               )}
 
