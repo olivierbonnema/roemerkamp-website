@@ -33,36 +33,27 @@ export async function POST(req: NextRequest) {
 
   const baseUrl = process.env.PORTAL_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
-  try {
-    const res = await fetch(`${baseUrl}/api/internal/reputation-scan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-internal-secret": process.env.TRIGGER_SECRET || "" },
-      body: JSON.stringify({
-        aanvraagId,
-        subject: {
-          type: isCompany ? "both" : "natural_person",
-          fullName: data.naam || "",
-          dob: data.geboortedatum || undefined,
-          city: city || data.objectPlaats || undefined,
-          company: data.bedrijfsnaam || undefined,
-          kvkNummer: data.kvkNummer || undefined,
-          role: isCompany ? "DGA / aanvrager" : undefined,
-          sector: "vastgoed",
-          loanAmount: data.leningBedrag || undefined,
-          coApplicant: data.medeNaam || undefined,
-        },
-      }),
-      signal: AbortSignal.timeout(55000),
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      console.error("Reputation scan trigger failed:", res.status, text)
-      return NextResponse.json({ error: `Scan failed: ${res.status}` }, { status: 502 })
-    }
-  } catch (err) {
-    console.error("Reputation scan trigger error:", err)
-    return NextResponse.json({ error: "Scan trigger failed" }, { status: 502 })
-  }
+  // Fire-and-forget: the internal route has maxDuration=300 and writes results to Firestore.
+  // We can't await because the scan takes 1-3 minutes and this route has a 60s limit.
+  fetch(`${baseUrl}/api/internal/reputation-scan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-internal-secret": process.env.TRIGGER_SECRET || "" },
+    body: JSON.stringify({
+      aanvraagId,
+      subject: {
+        type: isCompany ? "both" : "natural_person",
+        fullName: data.naam || "",
+        dob: data.geboortedatum || undefined,
+        city: city || data.objectPlaats || undefined,
+        company: data.bedrijfsnaam || undefined,
+        kvkNummer: data.kvkNummer || undefined,
+        role: isCompany ? "DGA / aanvrager" : undefined,
+        sector: "vastgoed",
+        loanAmount: data.leningBedrag || undefined,
+        coApplicant: data.medeNaam || undefined,
+      },
+    }),
+  }).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }
