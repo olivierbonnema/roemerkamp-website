@@ -144,8 +144,9 @@ export function AdminAanvragen() {
 
   useEffect(() => { loadAanvragen() }, [])
 
+  const hasRunning = aanvragen.some(a => a.analysisStatus === "analyzing" || a.reputationScanStatus === "scanning")
+
   useEffect(() => {
-    const hasRunning = aanvragen.some(a => a.analysisStatus === "analyzing" || a.reputationScanStatus === "scanning")
     if (!hasRunning) return
     const interval = setInterval(async () => {
       try {
@@ -158,7 +159,7 @@ export function AdminAanvragen() {
       } catch {}
     }, 8000)
     return () => clearInterval(interval)
-  }, [aanvragen])
+  }, [hasRunning])
 
   async function loadAanvragen() {
     setLoading(true)
@@ -252,18 +253,23 @@ export function AdminAanvragen() {
 
   async function retryScan(aanvraagId: string) {
     setRetryingScan(aanvraagId)
+    setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanResult: undefined } : a))
     try {
       const token = await getToken()
-      const res = await fetch("/api/admin/retry-scan", {
+      fetch("/api/admin/retry-scan", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ aanvraagId }),
+      }).then(async res => {
+        if (!res.ok) {
+          const data = await res.json()
+          alert(`Achtergrondcheck mislukt: ${data.error || "onbekende fout"}`)
+          setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "error" } : a))
+        }
+      }).catch(() => {
+        alert("Achtergrondcheck starten mislukt.")
+        setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "error" } : a))
       })
-      if (res.ok) {
-        setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanResult: undefined } : a))
-      }
-    } catch {
-      alert("Scan opnieuw starten mislukt.")
     } finally {
       setRetryingScan(null)
     }

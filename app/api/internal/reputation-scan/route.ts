@@ -5,7 +5,9 @@ export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-internal-secret")
-  if (secret !== process.env.TRIGGER_SECRET) {
+  const expected = process.env.TRIGGER_SECRET
+  if (!expected || secret !== expected) {
+    console.error("Reputation scan auth failed — TRIGGER_SECRET:", expected ? "set" : "MISSING", "header:", secret ? "present" : "missing")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
