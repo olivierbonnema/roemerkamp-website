@@ -224,6 +224,30 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
   const borrowerType = aanvraag.aanvragerType === "Particulier" ? "privepersoon" as const : "bv" as const
   const parsed = splitAddress(aanvraag.adres || "")
 
+  // If splitAddress couldn't find postcode/city, try to get them from objects
+  if (!parsed.postalCode || !parsed.city) {
+    const aanvraagObjects = (aanvraag.objects as { objectAdres?: string; objectPostcode?: string; objectPlaats?: string; adres?: string; postcode?: string; plaats?: string }[]) || []
+    // Check if borrower street matches any object address — if so, use that object's postcode/city
+    for (const obj of aanvraagObjects) {
+      const objAdres = obj.objectAdres || obj.adres || ""
+      const objPostcode = obj.objectPostcode || obj.postcode || ""
+      const objPlaats = obj.objectPlaats || obj.plaats || ""
+      if (objAdres && parsed.street && objAdres.toLowerCase().trim() === parsed.street.toLowerCase().trim()) {
+        if (!parsed.postalCode && objPostcode) parsed.postalCode = objPostcode
+        if (!parsed.city && objPlaats) parsed.city = objPlaats
+        break
+      }
+    }
+    // If still no match by street, fall back to single-object fields
+    if (!parsed.postalCode && aanvraag.objectPostcode) {
+      const objAdres = aanvraag.objectAdres || ""
+      if (objAdres && parsed.street && objAdres.toLowerCase().trim() === parsed.street.toLowerCase().trim()) {
+        parsed.postalCode = aanvraag.objectPostcode
+        if (!parsed.city && aanvraag.objectPlaats) parsed.city = aanvraag.objectPlaats
+      }
+    }
+  }
+
   const hasCoBorrower = !!aanvraag.medeNaam
 
   // For multiple borrowers, only fill address on the LAST borrower
@@ -482,12 +506,13 @@ export async function POST(req: NextRequest) {
     const result = { ...directFields } as Record<string, unknown>
     const borrowers = result.borrowers as Record<string, unknown>[]
 
-    // Merge borrower address details from AI
+    // Merge borrower address details from AI — only fill on the LAST borrower (first stays empty for multi-borrower)
     if (aiExtracted.borrowerPostalCode || aiExtracted.borrowerCity || aiExtracted.borrowerAddress) {
-      for (const b of borrowers) {
-        if (aiExtracted.borrowerPostalCode && !b.postalCode) b.postalCode = aiExtracted.borrowerPostalCode
-        if (aiExtracted.borrowerCity && !b.city) b.city = aiExtracted.borrowerCity
-        if (aiExtracted.borrowerAddress) b.address = aiExtracted.borrowerAddress
+      const lastBorrower = borrowers[borrowers.length - 1]
+      if (lastBorrower) {
+        if (aiExtracted.borrowerPostalCode && !lastBorrower.postalCode) lastBorrower.postalCode = aiExtracted.borrowerPostalCode
+        if (aiExtracted.borrowerCity && !lastBorrower.city) lastBorrower.city = aiExtracted.borrowerCity
+        if (aiExtracted.borrowerAddress && !lastBorrower.address) lastBorrower.address = aiExtracted.borrowerAddress
       }
     }
 
