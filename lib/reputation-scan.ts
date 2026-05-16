@@ -240,6 +240,9 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
         system: SYSTEM_PROMPT,
       })
 
+      const contentTypes = response.content.map(b => b.type)
+      console.log(`[reputation-scan] iteration=${iterations} stop_reason=${response.stop_reason} content_types=${JSON.stringify(contentTypes)} usage=${JSON.stringify(response.usage)}`)
+
       const textBlocks = response.content.filter(b => b.type === "text")
       if (textBlocks.length > 0) {
         finalText = textBlocks.map(b => b.type === "text" ? b.text : "").join("\n")
@@ -255,8 +258,11 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
         continue
       }
 
+      console.log(`[reputation-scan] unexpected stop_reason: ${response.stop_reason}`)
       break
     }
+
+    console.log(`[reputation-scan] loop done. iterations=${iterations} finalText length=${finalText.length}`)
 
     if (!finalText) {
       await docRef.update({ reputationScanStatus: "error", reputationScanError: `No text after ${iterations} iterations` })
@@ -264,6 +270,7 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
     }
 
     const jsonStr = finalText.replace(/```json?\n?/g, "").replace(/```/g, "").trim()
+    console.log(`[reputation-scan] parsing JSON, length=${jsonStr.length}, first 200 chars: ${jsonStr.substring(0, 200)}`)
     const scanResult = JSON.parse(jsonStr)
 
     await docRef.update({
