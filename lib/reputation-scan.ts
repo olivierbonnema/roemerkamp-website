@@ -308,9 +308,14 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
       userError = "Anthropic API is tijdelijk overbelast. Probeer het over enkele minuten opnieuw."
     }
 
-    await docRef.update({
-      reputationScanStatus: "error",
-      reputationScanError: userError,
-    })
+    try {
+      await docRef.update({
+        reputationScanStatus: "error",
+        reputationScanError: userError,
+      })
+      console.log(`[reputation-scan] Status set to error for ${aanvraagId}`)
+    } catch (writeErr) {
+      console.error(`[reputation-scan] CRITICAL: Failed to write error status to Firestore:`, writeErr)
+    }
   }
 }

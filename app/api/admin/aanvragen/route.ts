@@ -21,9 +21,26 @@ export async function GET(req: NextRequest) {
 
   try {
     const snap = await adminDb.collection("aanvragen").get()
+    const now = Date.now()
+    const SIX_MINUTES = 6 * 60 * 1000
+
     const aanvragen = snap.docs
       .map((doc) => {
         const data = doc.data()
+
+        // Auto-fix stuck "scanning" status older than 6 minutes
+        if (data.reputationScanStatus === "scanning" && data.reputationScanStarted) {
+          const started = data.reputationScanStarted.toDate?.()?.getTime() ?? 0
+          if (started > 0 && now - started > SIX_MINUTES) {
+            doc.ref.update({
+              reputationScanStatus: "error",
+              reputationScanError: "Scan timed out. Probeer het opnieuw.",
+            }).catch(() => {})
+            data.reputationScanStatus = "error"
+            data.reputationScanError = "Scan timed out. Probeer het opnieuw."
+          }
+        }
+
         return {
           id: doc.id,
           ...data,
