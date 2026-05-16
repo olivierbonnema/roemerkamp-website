@@ -253,30 +253,7 @@ export async function POST(req: NextRequest) {
       console.error("OneDrive upload error:", err)
     }
 
-    if (docRef) {
-      const city = adres ? adres.split(",").pop()?.trim() || "" : ""
-      const isCompany = aanvragerType !== "Particulier" && bedrijfsnaam
-      const baseUrl = process.env.PORTAL_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-      fetch(`${baseUrl}/api/internal/reputation-scan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-internal-secret": process.env.TRIGGER_SECRET || "" },
-        body: JSON.stringify({
-          aanvraagId: docRef.id,
-          subject: {
-            type: isCompany ? "both" : "natural_person",
-            fullName: naam,
-            dob: geboortedatum || undefined,
-            city: city || objectPlaats || undefined,
-            company: bedrijfsnaam || undefined,
-            kvkNummer: kvkNummer || undefined,
-            role: isCompany ? "DGA / aanvrager" : undefined,
-            sector: "vastgoed",
-            loanAmount: leningBedrag || undefined,
-            coApplicant: medeNaam || undefined,
-          },
-        }),
-      }).catch(err => console.error("Reputation scan trigger error:", err))
-    }
+    // Reputation scan and AI analysis are triggered manually from the admin panel
   })
 
   let driveFolderUrl = ""

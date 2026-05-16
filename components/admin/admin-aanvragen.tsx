@@ -92,40 +92,6 @@ async function getToken() {
   return auth.currentUser?.getIdToken()
 }
 
-function AnalysisProgressBar({ label, estimatedSeconds }: { label: string; estimatedSeconds: number }) {
-  const [elapsed, setElapsed] = useState(0)
-
-  useEffect(() => {
-    const start = Date.now()
-    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const progress = Math.min((elapsed / estimatedSeconds) * 100, 95)
-  const remaining = Math.max(estimatedSeconds - elapsed, 0)
-
-  return (
-    <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
-      <div className="flex items-center justify-between text-xs font-sans mb-2">
-        <span className="text-blue-800 font-medium">{label} wordt uitgevoerd...</span>
-        <span className="text-blue-600">
-          {remaining > 0 ? `~${remaining}s resterend` : "Bijna klaar..."}
-        </span>
-      </div>
-      <div className="w-full h-1.5 bg-blue-100 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <div className="flex items-center gap-3 mt-2 text-[11px] font-sans text-blue-500">
-        <span>{elapsed}s verstreken</span>
-        <span>Geschatte kosten: {label === "AI Analyse" ? "~€0,83" : "~€0,15"}</span>
-      </div>
-    </div>
-  )
-}
-
 export function AdminAanvragen() {
   const router = useRouter()
   const [aanvragen, setAanvragen] = useState<Aanvraag[]>([])
@@ -432,14 +398,6 @@ export function AdminAanvragen() {
                 >
                   {status.label}
                 </span>
-                {aiStatus && (
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-medium font-sans"
-                    style={{ color: aiStatus.color, backgroundColor: aiStatus.bg }}
-                  >
-                    {aiStatus.icon} {aiStatus.label}
-                  </span>
-                )}
                 {recommendation && (
                   <span
                     className="px-3 py-1 rounded-full text-xs font-medium font-sans"
@@ -448,16 +406,16 @@ export function AdminAanvragen() {
                     AI: {recommendation.label}
                   </span>
                 )}
-                {a.reputationScanStatus && SCAN_STATUS_LABELS[a.reputationScanStatus] && (() => {
-                  const scan = SCAN_STATUS_LABELS[a.reputationScanStatus!]
-                  const result = a.reputationScanResult?.scanStatus ? SCAN_RESULT_LABELS[a.reputationScanResult.scanStatus] : null
+                {a.reputationScanResult?.scanStatus && (() => {
+                  const result = SCAN_RESULT_LABELS[a.reputationScanResult!.scanStatus]
+                  if (!result) return null
                   return (
                     <span
                       className="px-3 py-1 rounded-full text-xs font-medium font-sans"
-                      style={{ color: result?.color || scan.color, backgroundColor: result?.bg || scan.bg }}
+                      style={{ color: result.color, backgroundColor: result.bg }}
                     >
-                      {scan.icon} {result ? result.label : scan.label}
-                      {a.reputationScanResult?.killSignal && " ⛔"}
+                      🛡️ {result.label}
+                      {a.reputationScanResult!.killSignal && " ⛔"}
                     </span>
                   )
                 })()}
@@ -485,16 +443,6 @@ export function AdminAanvragen() {
                 <p className="text-gray-900 font-medium">{a.aantalBestanden ?? 0} bestanden</p>
               </div>
             </div>
-
-            {/* AI analysis progress (if analyzing) */}
-            {a.analysisStatus === "analyzing" && (
-              <AnalysisProgressBar label="AI Analyse" estimatedSeconds={50} />
-            )}
-
-            {/* Reputation scan progress (if scanning) */}
-            {a.reputationScanStatus === "scanning" && (
-              <AnalysisProgressBar label="Achtergrondcheck" estimatedSeconds={120} />
-            )}
 
             {/* AI analysis summary (if completed) */}
             {a.analysisStatus === "completed" && (
@@ -551,40 +499,26 @@ export function AdminAanvragen() {
                 <option value="afgewezen">Afgewezen</option>
               </select>
 
-              {/* Start AI analysis */}
-              {!a.analysisStatus && a.driveFolderId && (
-                <button
-                  onClick={() => triggerAnalysis(a.id)}
-                  disabled={triggeringAnalysis === a.id}
-                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors disabled:opacity-50"
-                >
-                  {triggeringAnalysis === a.id ? "Starten..." : "Start AI Analyse"}
-                </button>
-              )}
-
-              {/* View AI analysis */}
-              {a.analysisStatus === "completed" && (
+              {/* AI Analysis — start or view */}
+              {a.analysisStatus === "completed" ? (
                 <button
                   onClick={() => setSelectedId(a.id)}
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
                 >
                   AI Analyse bekijken
                 </button>
-              )}
-
-              {/* Retry failed scan */}
-              {a.reputationScanStatus === "error" && (
+              ) : a.driveFolderId ? (
                 <button
-                  onClick={() => retryScan(a.id)}
-                  disabled={retryingScan === a.id}
-                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-50"
+                  onClick={() => triggerAnalysis(a.id)}
+                  disabled={triggeringAnalysis === a.id}
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors disabled:opacity-50"
                 >
-                  {retryingScan === a.id ? "Bezig..." : "Scan opnieuw"}
+                  {triggeringAnalysis === a.id ? "Starten..." : a.analysisStatus === "analyzing" ? "AI Analyse herstarten" : a.analysisStatus === "error" ? "AI Analyse opnieuw" : "Start AI Analyse"}
                 </button>
-              )}
+              ) : null}
 
-              {/* View reputation scan */}
-              {a.reputationScanStatus === "completed" && a.reputationScanResult && (
+              {/* Background check — start or view */}
+              {a.reputationScanStatus === "completed" && a.reputationScanResult ? (
                 <button
                   onClick={() => setScanDetailId(a.id)}
                   className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
@@ -593,7 +527,15 @@ export function AdminAanvragen() {
                       : "border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white"
                   }`}
                 >
-                  Achtergrondcheck
+                  Achtergrondcheck bekijken
+                </button>
+              ) : (
+                <button
+                  onClick={() => retryScan(a.id)}
+                  disabled={retryingScan === a.id}
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-teal-600 text-teal-700 hover:bg-teal-600 hover:text-white transition-colors disabled:opacity-50"
+                >
+                  {retryingScan === a.id ? "Starten..." : a.reputationScanStatus === "scanning" ? "Achtergrondcheck herstarten" : a.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Start achtergrondcheck"}
                 </button>
               )}
 
