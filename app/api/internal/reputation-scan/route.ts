@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 })
   }
 
-  await runReputationScan(aanvraagId, subject)
-
-  return NextResponse.json({ ok: true })
+  try {
+    await runReputationScan(aanvraagId, subject)
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error("Reputation scan failed:", err)
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Scan failed" }, { status: 500 })
+  }
 }
