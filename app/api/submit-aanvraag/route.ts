@@ -2,6 +2,7 @@ import { NextRequest, NextResponse, after } from "next/server"
 import { Resend } from "resend"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { runReputationScan } from "@/lib/reputation-scan"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
@@ -251,6 +252,23 @@ export async function POST(req: NextRequest) {
       }
     } catch (err) {
       console.error("OneDrive upload error:", err)
+    }
+
+    if (docRef) {
+      const city = adres ? adres.split(",").pop()?.trim() || "" : ""
+      const isCompany = aanvragerType !== "Particulier" && bedrijfsnaam
+      runReputationScan(docRef.id, {
+        type: isCompany ? "both" : "natural_person",
+        fullName: naam,
+        dob: geboortedatum || undefined,
+        city: city || objectPlaats || undefined,
+        company: bedrijfsnaam || undefined,
+        kvkNummer: kvkNummer || undefined,
+        role: isCompany ? "DGA / aanvrager" : undefined,
+        sector: "vastgoed",
+        loanAmount: leningBedrag || undefined,
+        coApplicant: medeNaam || undefined,
+      }).catch(err => console.error("Reputation scan error:", err))
     }
   })
 
