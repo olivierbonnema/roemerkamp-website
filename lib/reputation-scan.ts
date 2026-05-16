@@ -215,12 +215,10 @@ function buildSubjectBlock(subject: ScanSubject): string {
 export async function runReputationScan(aanvraagId: string, subject: ScanSubject): Promise<void> {
   const docRef = adminDb.collection("aanvragen").doc(aanvraagId)
 
-  console.log(`[reputation-scan] START aanvraagId=${aanvraagId} subject=${subject.fullName}`)
   await docRef.update({ reputationScanStatus: "scanning", reputationScanStarted: new Date() })
 
   try {
     const subjectBlock = buildSubjectBlock(subject)
-    console.log(`[reputation-scan] calling Anthropic API with model=claude-sonnet-4-6`)
 
     const messages: Anthropic.MessageParam[] = [{
       role: "user",
@@ -242,8 +240,6 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
         system: SYSTEM_PROMPT,
       })
 
-      const contentTypes = response.content.map(b => b.type)
-      console.log(`[reputation-scan] iteration=${iterations} stop_reason=${response.stop_reason} content_types=${JSON.stringify(contentTypes)} usage=${JSON.stringify(response.usage)}`)
 
       const textBlocks = response.content.filter(b => b.type === "text")
       if (textBlocks.length > 0) {
@@ -260,11 +256,9 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
         continue
       }
 
-      console.log(`[reputation-scan] unexpected stop_reason: ${response.stop_reason}`)
       break
     }
 
-    console.log(`[reputation-scan] loop done. iterations=${iterations} finalText length=${finalText.length}`)
 
     if (!finalText) {
       await docRef.update({ reputationScanStatus: "error", reputationScanError: `No text after ${iterations} iterations` })
@@ -272,7 +266,6 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
     }
 
     const jsonStr = finalText.replace(/```json?\n?/g, "").replace(/```/g, "").trim()
-    console.log(`[reputation-scan] parsing JSON, length=${jsonStr.length}, first 200 chars: ${jsonStr.substring(0, 200)}`)
     const scanResult = JSON.parse(jsonStr)
 
     await docRef.update({
@@ -282,7 +275,6 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
     })
   } catch (err) {
     console.error(`[reputation-scan] ERROR:`, err instanceof Error ? err.message : err)
-    console.error(`[reputation-scan] stack:`, err instanceof Error ? err.stack : "no stack")
     await docRef.update({
       reputationScanStatus: "error",
       reputationScanError: err instanceof Error ? err.message : "unknown",
