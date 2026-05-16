@@ -35,9 +35,12 @@ export async function POST(req: NextRequest) {
 
   const timestamp = Math.floor(Date.now() / 1000).toString()
   const payload = `${aanvraagId}${folderId}`
-  const signature = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback")
+  const secret = process.env.TRIGGER_SECRET || "fallback"
+  const signature = createHmac("sha256", secret)
     .update(`${payload}${timestamp}`)
     .digest("hex")
+
+  console.log("HMAC debug — payload:", JSON.stringify(payload), "timestamp:", timestamp, "secret length:", secret.length, "using fallback:", secret === "fallback")
 
   await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "analyzing" })
 
@@ -52,7 +55,7 @@ export async function POST(req: NextRequest) {
       const text = await res.text()
       console.error("Backend analysis error:", res.status, text)
       await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "error" })
-      return NextResponse.json({ error: `Backend error: ${res.status}` }, { status: 502 })
+      return NextResponse.json({ error: `Backend error: ${res.status} — ${text}` }, { status: 502 })
     }
   } catch (err) {
     console.error("Backend analysis call failed:", err)
