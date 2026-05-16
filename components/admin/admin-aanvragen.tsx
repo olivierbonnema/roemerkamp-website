@@ -28,8 +28,10 @@ interface Aanvraag {
   analysisTimestamp?: string
   analysisProcessingTime?: number
   documentsProcessed?: number
+  analysisError?: string
   // Reputation scan fields
   reputationScanStatus?: string
+  reputationScanError?: string
   reputationScanResult?: {
     scanStatus: string
     killSignal: boolean
@@ -517,6 +519,10 @@ export function AdminAanvragen() {
                 </button>
               ) : null}
 
+              {a.analysisStatus === "error" && a.analysisError && (
+                <span className="text-xs text-red-600 font-sans max-w-[200px] truncate" title={a.analysisError}>{a.analysisError}</span>
+              )}
+
               {/* Background check — start or view */}
               {a.reputationScanStatus === "completed" && a.reputationScanResult ? (
                 <button
@@ -537,6 +543,10 @@ export function AdminAanvragen() {
                 >
                   {retryingScan === a.id ? "Starten..." : a.reputationScanStatus === "scanning" ? "Achtergrondcheck herstarten" : a.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Start achtergrondcheck"}
                 </button>
+              )}
+
+              {a.reputationScanStatus === "error" && a.reputationScanError && (
+                <span className="text-xs text-red-600 font-sans max-w-[200px] truncate" title={a.reputationScanError}>{a.reputationScanError}</span>
               )}
 
               {/* Create termsheet */}

@@ -212,6 +212,24 @@ function buildSubjectBlock(subject: ScanSubject): string {
   return lines.join("\n")
 }
 
+function extractJson(text: string): Record<string, unknown> | null {
+  const stripped = text.replace(/```json?\n?/g, "").replace(/```/g, "").trim()
+  try {
+    return JSON.parse(stripped)
+  } catch {
+    // Model returned prose mixed with JSON — try to find the JSON object
+  }
+  const match = text.match(/\{[\s\S]*"scanStatus"[\s\S]*\}/)
+  if (match) {
+    try {
+      return JSON.parse(match[0])
+    } catch {
+      // Still not valid
+    }
+  }
+  return null
+}
+
 export async function runReputationScan(aanvraagId: string, subject: ScanSubject): Promise<void> {
   const docRef = adminDb.collection("aanvragen").doc(aanvraagId)
 
@@ -265,8 +283,12 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
       return
     }
 
-    const jsonStr = finalText.replace(/```json?\n?/g, "").replace(/```/g, "").trim()
-    const scanResult = JSON.parse(jsonStr)
+    const scanResult = extractJson(finalText)
+    if (!scanResult) {
+      console.error(`[reputation-scan] ERROR: could not extract JSON from response`)
+      await docRef.update({ reputationScanStatus: "error", reputationScanError: "Model did not return valid JSON" })
+      return
+    }
 
     await docRef.update({
       reputationScanStatus: "completed",
@@ -274,10 +296,21 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
       reputationScanCompleted: new Date(),
     })
   } catch (err) {
-    console.error(`[reputation-scan] ERROR:`, err instanceof Error ? err.message : err)
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`[reputation-scan] ERROR:`, msg)
+
+    let userError = msg
+    if (msg.includes("credit balance is too low")) {
+      userError = "Anthropic API credits zijn op. Vul credits aan op console.anthropic.com."
+    } else if (msg.includes("invalid x-api-key") || msg.includes("authentication_error")) {
+      userError = "Anthropic API key is ongeldig. Controleer de ANTHROPIC_API_KEY in Vercel."
+    } else if (msg.includes("overloaded")) {
+      userError = "Anthropic API is tijdelijk overbelast. Probeer het over enkele minuten opnieuw."
+    }
+
     await docRef.update({
       reputationScanStatus: "error",
-      reputationScanError: err instanceof Error ? err.message : "unknown",
+      reputationScanError: userError,
     })
   }
 }
