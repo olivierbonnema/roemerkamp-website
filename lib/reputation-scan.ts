@@ -220,24 +220,50 @@ export async function runReputationScan(aanvraagId: string, subject: ScanSubject
   try {
     const subjectBlock = buildSubjectBlock(subject)
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 20 }],
-      messages: [{
-        role: "user",
-        content: `Run the full reputation and background scan on this subject:\n\n${subjectBlock}`,
-      }],
-      system: SYSTEM_PROMPT,
-    })
+    const messages: Anthropic.MessageParam[] = [{
+      role: "user",
+      content: `Run the full reputation and background scan on this subject:\n\n${subjectBlock}`,
+    }]
 
-    const textBlock = response.content.find(b => b.type === "text")
-    if (!textBlock || textBlock.type !== "text") {
-      await docRef.update({ reputationScanStatus: "error", reputationScanError: "No text in AI response" })
+    let finalText = ""
+    let iterations = 0
+    const maxIterations = 30
+
+    while (iterations < maxIterations) {
+      iterations++
+
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 16384,
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 50 }],
+        messages,
+        system: SYSTEM_PROMPT,
+      })
+
+      const textBlocks = response.content.filter(b => b.type === "text")
+      if (textBlocks.length > 0) {
+        finalText = textBlocks.map(b => b.type === "text" ? b.text : "").join("\n")
+      }
+
+      if (response.stop_reason === "end_turn") {
+        break
+      }
+
+      if (response.stop_reason === "tool_use") {
+        messages.push({ role: "assistant", content: response.content })
+        messages.push({ role: "user", content: [{ type: "text", text: "Continue." }] })
+        continue
+      }
+
+      break
+    }
+
+    if (!finalText) {
+      await docRef.update({ reputationScanStatus: "error", reputationScanError: `No text after ${iterations} iterations` })
       return
     }
 
-    const jsonStr = textBlock.text.replace(/```json?\n?/g, "").replace(/```/g, "").trim()
+    const jsonStr = finalText.replace(/```json?\n?/g, "").replace(/```/g, "").trim()
     const scanResult = JSON.parse(jsonStr)
 
     await docRef.update({
