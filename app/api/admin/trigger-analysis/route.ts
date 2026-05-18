@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse, after } from "next/server"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
@@ -42,13 +42,21 @@ export async function POST(req: NextRequest) {
 
   await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "analyzing" })
 
-  // Fire-and-forget: Railway backend writes results to Firestore directly.
-  // We can't await because the analysis takes ~2 min and Vercel Hobby has a 60s limit.
-  fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ folderId, applicationId: aanvraagId, timestamp, signature }),
-  }).catch(() => {})
+  const analysisPayload = { folderId, applicationId: aanvraagId, timestamp, signature }
+
+  // Use after() to keep the function alive after responding — ensures the fetch actually sends.
+  // Railway backend writes results to Firestore directly.
+  after(async () => {
+    try {
+      await fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(analysisPayload),
+      })
+    } catch (err) {
+      console.error("[trigger-analysis] Failed to call Railway backend:", err)
+    }
+  })
 
   return NextResponse.json({ ok: true })
 }
