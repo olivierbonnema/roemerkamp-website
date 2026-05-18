@@ -458,8 +458,8 @@ export function AdminAanvragen() {
               </div>
             )}
 
-            {/* Reputation scan summary (if completed) */}
-            {a.reputationScanStatus === "completed" && a.reputationScanResult && (
+            {/* Reputation scan summary (if results exist) */}
+            {a.reputationScanResult && (
               <div className={`rounded-xl px-4 py-3 mb-4 ${a.reputationScanResult.killSignal ? "bg-red-50 border border-red-200" : a.reputationScanResult.scanStatus === "CLEAR" ? "bg-emerald-50" : "bg-amber-50"}`}>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-sans text-gray-600">
@@ -524,7 +524,7 @@ export function AdminAanvragen() {
               )}
 
               {/* Background check — start or view */}
-              {a.reputationScanStatus === "completed" && a.reputationScanResult ? (
+              {a.reputationScanResult ? (
                 <button
                   onClick={() => setScanDetailId(a.id)}
                   className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
