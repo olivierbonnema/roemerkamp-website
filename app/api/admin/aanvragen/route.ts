@@ -33,18 +33,22 @@ export async function GET(req: NextRequest) {
           const started = data.reputationScanStarted.toDate?.()?.getTime() ?? 0
           if (started > 0 && now - started > SIX_MINUTES) {
             if (data.reputationScanResult) {
-              // Results exist — scan actually completed, fix the status
               doc.ref.update({ reputationScanStatus: "completed" }).catch(() => {})
               data.reputationScanStatus = "completed"
             } else {
-              doc.ref.update({
-                reputationScanStatus: "error",
-                reputationScanError: "Scan timed out. Probeer het opnieuw.",
-              }).catch(() => {})
-              data.reputationScanStatus = "error"
-              data.reputationScanError = "Scan timed out. Probeer het opnieuw."
+              // No results — reset to clean state so user can retry
+              doc.ref.update({ reputationScanStatus: null, reputationScanError: null, reputationScanStarted: null }).catch(() => {})
+              delete data.reputationScanStatus
+              delete data.reputationScanError
             }
           }
+        }
+
+        // Clean up failed scans without results — show clean "Start" button instead of error
+        if (data.reputationScanStatus === "error" && !data.reputationScanResult) {
+          doc.ref.update({ reputationScanStatus: null, reputationScanError: null, reputationScanStarted: null }).catch(() => {})
+          delete data.reputationScanStatus
+          delete data.reputationScanError
         }
 
         return {

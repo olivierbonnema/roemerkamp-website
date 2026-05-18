@@ -519,9 +519,7 @@ export function AdminAanvragen() {
                 </button>
               ) : null}
 
-              {a.analysisStatus === "error" && a.analysisError && (
-                <span className="text-xs text-red-600 font-sans max-w-[200px] truncate" title={a.analysisError}>{a.analysisError}</span>
-              )}
+              {/* Error text removed — clean UI, errors visible in logs */}
 
               {/* Background check — start or view */}
               {a.reputationScanResult ? (
@@ -545,9 +543,7 @@ export function AdminAanvragen() {
                 </button>
               )}
 
-              {a.reputationScanStatus === "error" && a.reputationScanError && (
-                <span className="text-xs text-red-600 font-sans max-w-[200px] truncate" title={a.reputationScanError}>{a.reputationScanError}</span>
-              )}
+              {/* Error text removed — failed scans without results are auto-reset to clean state */}
 
               {/* Create termsheet */}
               <button
