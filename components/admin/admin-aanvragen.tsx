@@ -108,11 +108,13 @@ export function AdminAanvragen() {
   const [scanDetailId, setScanDetailId] = useState<string | null>(null)
   const [triggeringAnalysis, setTriggeringAnalysis] = useState<string | null>(null)
   const [retryingScan, setRetryingScan] = useState<string | null>(null)
+  const [scanErrorModal, setScanErrorModal] = useState<{ title: string; message: string; link?: { url: string; label: string } } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadAanvragen() }, [])
 
   const hasRunning = aanvragen.some(a => a.analysisStatus === "analyzing" || a.reputationScanStatus === "scanning")
+  const prevAanvragenRef = useRef<Aanvraag[]>([])
 
   useEffect(() => {
     if (!hasRunning) return
@@ -122,12 +124,40 @@ export function AdminAanvragen() {
         const res = await fetch("/api/admin/aanvragen", { headers: { Authorization: `Bearer ${token}` } })
         if (res.ok) {
           const data = await res.json()
+          const prev = prevAanvragenRef.current
+          // Detect scan errors that appeared during polling
+          for (const a of data.aanvragen as Aanvraag[]) {
+            const old = prev.find(p => p.id === a.id)
+            if (old?.reputationScanStatus === "scanning" && a.reputationScanStatus === "error" && a.reputationScanError) {
+              const isCredits = a.reputationScanError.includes("credits") || a.reputationScanError.includes("credit balance")
+              const isApiKey = a.reputationScanError.includes("API key") || a.reputationScanError.includes("api key")
+              setScanErrorModal({
+                title: isCredits ? "Onvoldoende API credits" : isApiKey ? "Ongeldige API key" : "Achtergrondcheck mislukt",
+                message: isCredits
+                  ? "Er zijn niet genoeg Anthropic API credits beschikbaar om de achtergrondcheck uit te voeren. Vul je credits aan en probeer het opnieuw."
+                  : isApiKey
+                  ? "De API key is ongeldig of verlopen. Controleer de key in de Anthropic console."
+                  : a.reputationScanError,
+                link: isCredits
+                  ? { url: "https://console.anthropic.com/settings/billing", label: "Credits aanvullen" }
+                  : isApiKey
+                  ? { url: "https://console.anthropic.com/settings/keys", label: "API key controleren" }
+                  : undefined,
+              })
+            }
+          }
+          prevAanvragenRef.current = data.aanvragen
           setAanvragen(data.aanvragen)
         }
       } catch {}
     }, 8000)
     return () => clearInterval(interval)
   }, [hasRunning])
+
+  // Keep prevRef in sync on initial load and manual refreshes
+  useEffect(() => {
+    prevAanvragenRef.current = aanvragen
+  }, [aanvragen.length])
 
   async function loadAanvragen() {
     setLoading(true)
@@ -221,7 +251,7 @@ export function AdminAanvragen() {
 
   async function retryScan(aanvraagId: string) {
     setRetryingScan(aanvraagId)
-    setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanResult: undefined } : a))
+    setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanError: undefined, reputationScanResult: undefined } : a))
     try {
       const token = await getToken()
       fetch("/api/admin/retry-scan", {
@@ -231,11 +261,11 @@ export function AdminAanvragen() {
       }).then(async res => {
         if (!res.ok) {
           const data = await res.json()
-          alert(`Achtergrondcheck mislukt: ${data.error || "onbekende fout"}`)
+          setScanErrorModal({ title: "Achtergrondcheck mislukt", message: data.error || "Onbekende fout bij het starten van de achtergrondcheck." })
           setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "error" } : a))
         }
       }).catch(() => {
-        alert("Achtergrondcheck starten mislukt.")
+        setScanErrorModal({ title: "Verbinding mislukt", message: "Kon geen verbinding maken met de server. Controleer je internetverbinding en probeer het opnieuw." })
         setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "error" } : a))
       })
     } finally {
@@ -501,7 +531,7 @@ export function AdminAanvragen() {
                 <option value="afgewezen">Afgewezen</option>
               </select>
 
-              {/* AI Analysis — start or view */}
+              {/* AI Analysis — start, analyzing, or view */}
               {a.analysisStatus === "completed" ? (
                 <button
                   onClick={() => setSelectedId(a.id)}
@@ -509,13 +539,18 @@ export function AdminAanvragen() {
                 >
                   AI Analyse bekijken
                 </button>
+              ) : a.analysisStatus === "analyzing" ? (
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                  Bezig met AI analyse...
+                </span>
               ) : a.driveFolderId ? (
                 <button
                   onClick={() => triggerAnalysis(a.id)}
                   disabled={triggeringAnalysis === a.id}
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors disabled:opacity-50"
                 >
-                  {triggeringAnalysis === a.id ? "Starten..." : a.analysisStatus === "analyzing" ? "AI Analyse herstarten" : a.analysisStatus === "error" ? "AI Analyse opnieuw" : "Start AI Analyse"}
+                  {triggeringAnalysis === a.id ? "Starten..." : a.analysisStatus === "error" ? "AI Analyse opnieuw" : "Start AI Analyse"}
                 </button>
               ) : null}
 
@@ -524,7 +559,7 @@ export function AdminAanvragen() {
                 <span className="text-xs font-sans text-red-600">{a.analysisError}</span>
               )}
 
-              {/* Background check — start or view */}
+              {/* Background check — start, scanning, or view */}
               {a.reputationScanResult ? (
                 <button
                   onClick={() => setScanDetailId(a.id)}
@@ -536,27 +571,19 @@ export function AdminAanvragen() {
                 >
                   Achtergrondcheck bekijken
                 </button>
+              ) : a.reputationScanStatus === "scanning" ? (
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                  Bezig met achtergrondcheck...
+                </span>
               ) : (
                 <button
                   onClick={() => retryScan(a.id)}
                   disabled={retryingScan === a.id}
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-teal-600 text-teal-700 hover:bg-teal-600 hover:text-white transition-colors disabled:opacity-50"
                 >
-                  {retryingScan === a.id ? "Starten..." : a.reputationScanStatus === "scanning" ? "Achtergrondcheck herstarten" : a.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Start achtergrondcheck"}
+                  {retryingScan === a.id ? "Starten..." : a.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Start achtergrondcheck"}
                 </button>
-              )}
-
-              {/* Scan error with helpful message */}
-              {a.reputationScanStatus === "error" && a.reputationScanError && !a.reputationScanResult && (
-                <span className="text-xs font-sans text-red-600">
-                  {a.reputationScanError}
-                  {a.reputationScanError.includes("credits") && (
-                    <> — <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-800">Credits aanvullen →</a></>
-                  )}
-                  {a.reputationScanError.includes("API key") && (
-                    <> — <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-800">API key controleren →</a></>
-                  )}
-                </span>
               )}
 
               {/* Create termsheet */}
@@ -583,6 +610,39 @@ export function AdminAanvragen() {
           </div>
         )
       })}
+
+      {/* Scan error modal */}
+      {scanErrorModal && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setScanErrorModal(null)}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3 mb-4">
+              <span className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-lg">⚠️</span>
+              <div>
+                <h3 className="font-serif text-lg text-[#1E3A5F]">{scanErrorModal.title}</h3>
+                <p className="text-sm text-gray-600 font-sans mt-1">{scanErrorModal.message}</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              {scanErrorModal.link && (
+                <a
+                  href={scanErrorModal.link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors"
+                >
+                  {scanErrorModal.link.label} →
+                </a>
+              )}
+              <button
+                onClick={() => setScanErrorModal(null)}
+                className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Sluiten
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Extra text modal */}
       {extraTextModal && (
