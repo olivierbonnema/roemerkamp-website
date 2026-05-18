@@ -28,10 +28,12 @@ export async function GET(req: NextRequest) {
       .map((doc) => {
         const data = doc.data()
 
-        // Auto-fix stuck "scanning" status older than 6 minutes
-        if (data.reputationScanStatus === "scanning" && data.reputationScanStarted) {
-          const started = data.reputationScanStarted.toDate?.()?.getTime() ?? 0
-          if (started > 0 && now - started > SIX_MINUTES) {
+        // Auto-fix stuck "scanning" status
+        if (data.reputationScanStatus === "scanning") {
+          const started = data.reputationScanStarted?.toDate?.()?.getTime() ?? 0
+          const isStuck = !started || now - started > SIX_MINUTES
+
+          if (isStuck) {
             if (data.reputationScanResult) {
               doc.ref.update({ reputationScanStatus: "completed" }).catch(() => {})
               data.reputationScanStatus = "completed"
@@ -49,7 +51,8 @@ export async function GET(req: NextRequest) {
         const TEN_MINUTES = 10 * 60 * 1000
         if (data.reputationScanStatus === "error" && !data.reputationScanResult) {
           const scanStarted = data.reputationScanStarted?.toDate?.()?.getTime() ?? 0
-          if (scanStarted > 0 && now - scanStarted > TEN_MINUTES) {
+          const isOldError = !scanStarted || now - scanStarted > TEN_MINUTES
+          if (isOldError) {
             doc.ref.update({ reputationScanStatus: null, reputationScanError: null, reputationScanStarted: null }).catch(() => {})
             delete data.reputationScanStatus
             delete data.reputationScanError
