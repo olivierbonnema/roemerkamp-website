@@ -44,11 +44,16 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        // Clean up failed scans without results — show clean "Start" button instead of error
+        // Clean up OLD failed scans without results (>10 min) — show clean "Start" button
+        // Fresh errors (<10 min) are kept so the user sees what went wrong
+        const TEN_MINUTES = 10 * 60 * 1000
         if (data.reputationScanStatus === "error" && !data.reputationScanResult) {
-          doc.ref.update({ reputationScanStatus: null, reputationScanError: null, reputationScanStarted: null }).catch(() => {})
-          delete data.reputationScanStatus
-          delete data.reputationScanError
+          const scanStarted = data.reputationScanStarted?.toDate?.()?.getTime() ?? 0
+          if (scanStarted > 0 && now - scanStarted > TEN_MINUTES) {
+            doc.ref.update({ reputationScanStatus: null, reputationScanError: null, reputationScanStarted: null }).catch(() => {})
+            delete data.reputationScanStatus
+            delete data.reputationScanError
+          }
         }
 
         return {

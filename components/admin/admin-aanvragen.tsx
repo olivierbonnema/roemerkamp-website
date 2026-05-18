@@ -519,7 +519,10 @@ export function AdminAanvragen() {
                 </button>
               ) : null}
 
-              {/* Error text removed — clean UI, errors visible in logs */}
+              {/* Analysis error */}
+              {a.analysisStatus === "error" && a.analysisError && (
+                <span className="text-xs font-sans text-red-600">{a.analysisError}</span>
+              )}
 
               {/* Background check — start or view */}
               {a.reputationScanResult ? (
@@ -543,7 +546,18 @@ export function AdminAanvragen() {
                 </button>
               )}
 
-              {/* Error text removed — failed scans without results are auto-reset to clean state */}
+              {/* Scan error with helpful message */}
+              {a.reputationScanStatus === "error" && a.reputationScanError && !a.reputationScanResult && (
+                <span className="text-xs font-sans text-red-600">
+                  {a.reputationScanError}
+                  {a.reputationScanError.includes("credits") && (
+                    <> — <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-800">Credits aanvullen →</a></>
+                  )}
+                  {a.reputationScanError.includes("API key") && (
+                    <> — <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-800">API key controleren →</a></>
+                  )}
+                </span>
+              )}
 
               {/* Create termsheet */}
               <button
