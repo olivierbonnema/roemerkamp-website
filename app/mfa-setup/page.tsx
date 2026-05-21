@@ -46,11 +46,7 @@ export default function MfaSetupPage() {
         const code = (err as { code?: string }).code || ""
         const msg = (err as { message?: string }).message || ""
         console.error("MFA setup error:", code, msg)
-        if (code === "auth/unsupported-first-factor" || code === "auth/operation-not-allowed" || msg.includes("TOTP") || msg.includes("multi-factor")) {
-          setError("TOTP tweestapsverificatie is niet ingeschakeld in Firebase. Vraag de beheerder om dit te activeren in Firebase Console.")
-        } else {
-          setError(`Kon de verificatie niet instellen: ${code || msg || "onbekende fout"}`)
-        }
+        setError(`Fout bij instellen 2FA: [${code}] ${msg}`)
       } finally {
         if (!cancelled) setGenerating(false)
       }
