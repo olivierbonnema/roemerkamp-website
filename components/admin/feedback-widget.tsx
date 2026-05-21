@@ -43,15 +43,13 @@ export function FeedbackWidget() {
   const captureScreenshot = useCallback(async () => {
     setCapturing(true)
     try {
-      const html2canvas = (await import("html2canvas")).default
+      const { toJpeg } = await import("html-to-image")
       const target = document.querySelector("main") || document.body
-      const canvas = await html2canvas(target as HTMLElement, {
-        useCORS: true,
-        scale: 1,
-        logging: false,
+      const dataUrl = await toJpeg(target as HTMLElement, {
+        quality: 0.7,
         backgroundColor: "#f8f8fa",
       })
-      setScreenshot(canvas.toDataURL("image/png"))
+      setScreenshot(dataUrl)
       setActions([])
     } catch (err) {
       console.error("Screenshot failed:", err)
@@ -199,7 +197,7 @@ export function FeedbackWidget() {
     if (!feedback.trim() || !canvasRef.current) return
     setSending(true)
     try {
-      const annotatedScreenshot = canvasRef.current.toDataURL("image/jpeg", 0.6)
+      const annotatedScreenshot = canvasRef.current.toDataURL("image/jpeg", 0.7)
       const token = await auth.currentUser?.getIdToken()
       const res = await fetch("/api/admin/feedback", {
         method: "POST",
