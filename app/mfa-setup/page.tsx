@@ -43,10 +43,7 @@ export default function MfaSetupPage() {
         setQrUri(secret.generateQrCodeUrl(user.email || "admin", "Lange & Partners"))
       } catch (err: unknown) {
         if (cancelled) return
-        const code = (err as { code?: string }).code || ""
-        const msg = (err as { message?: string }).message || ""
-        console.error("MFA setup error:", code, msg)
-        setError(`Fout bij instellen 2FA: [${code}] ${msg}`)
+        setError("Er ging iets mis bij het instellen van tweestapsverificatie. Probeer het opnieuw.")
       } finally {
         if (!cancelled) setGenerating(false)
       }
