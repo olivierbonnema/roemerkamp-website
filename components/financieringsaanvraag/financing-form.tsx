@@ -521,10 +521,13 @@ export function FinancingForm() {
 
       formData.append("_csrf", "1")
       const res = await fetch("/api/submit-aanvraag", { method: "POST", body: formData })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || `Server error ${res.status}`)
+      }
       deleteDraft(draftId)
       setSubmitted(true)
-    } catch { setSubmitError("Er is iets misgegaan. Probeer het opnieuw.") }
+    } catch (err) { setSubmitError((err as Error).message || "Er is iets misgegaan. Probeer het opnieuw.") }
     finally { setSubmitting(false) }
   }
 
