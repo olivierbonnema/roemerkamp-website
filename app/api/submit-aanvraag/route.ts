@@ -3,6 +3,26 @@ import { Resend } from "resend"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
+const ALLOWED_FILE_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/msword",
+  "application/vnd.ms-excel",
+  "text/plain",
+  "message/rfc822",
+])
+const ALLOWED_EXTENSIONS = new Set([
+  ".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic",
+  ".docx", ".xlsx", ".doc", ".xls", ".txt", ".eml",
+])
+const MAX_FILE_SIZE = 25 * 1024 * 1024
+const MAX_TOTAL_SIZE = 100 * 1024 * 1024
+
 const resend = new Resend(process.env.RESEND_API_KEY)
 const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
 const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev"
@@ -127,6 +147,18 @@ export async function POST(req: NextRequest) {
   const objectWaarde   = firstObject.waarde
   const huurinkomsten  = firstObject.huurinkomsten
 
+  // CSRF verification
+  const csrfToken = get("_csrf")
+  const origin = req.headers.get("origin") || ""
+  const allowedOrigins = [
+    "https://nonbancaireleningen.nl",
+    "https://www.nonbancaireleningen.nl",
+    "http://localhost:3000",
+  ]
+  if (!allowedOrigins.some((o) => origin === o)) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 })
+  }
+
   // Collect files grouped by category
   const filesByCategory: Record<string, File[]> = {}
   for (const [key, value] of formData.entries()) {
@@ -137,6 +169,31 @@ export async function POST(req: NextRequest) {
     }
   }
   const allFiles = Object.values(filesByCategory).flat()
+
+  // File validation
+  let totalSize = 0
+  for (const file of allFiles) {
+    const ext = "." + file.name.split(".").pop()?.toLowerCase()
+    if (!ALLOWED_EXTENSIONS.has(ext) && !ALLOWED_FILE_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: `Bestandstype niet toegestaan: ${file.name}` },
+        { status: 400 }
+      )
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: `Bestand te groot (max 25MB): ${file.name}` },
+        { status: 400 }
+      )
+    }
+    totalSize += file.size
+  }
+  if (totalSize > MAX_TOTAL_SIZE) {
+    return NextResponse.json(
+      { error: "Totale bestandsgrootte overschrijdt 100MB" },
+      { status: 400 }
+    )
+  }
   const filesSummary = Object.entries(filesByCategory)
     .filter(([, v]) => v.length > 0)
     .map(([cat, f]) => `${cat}: ${f.map(f => f.name).join(", ")}`)
@@ -332,12 +389,7 @@ export async function POST(req: NextRequest) {
               row("Type aanvrager", fmt(aanvragerType)),
               row("Naam", fmt(naam)),
               row("Bedrijfsnaam", bedrijfsnaam),
-              row("KvK-nummer", kvkNummer),
               row("E-mail", fmt(email)),
-              row("Telefoon", fmt(telefoon)),
-              row("Adres", adres),
-              row("Geboortedatum", geboortedatum),
-              row("Burgerlijke staat", burgerlijkStaat),
               row("Medeaanvrager", medeNaam),
             ].join(""))}
             ${objects.map((obj, i) => section(objects.length > 1 ? `Object ${i + 1}` : "Object", [

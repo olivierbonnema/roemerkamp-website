@@ -519,6 +519,7 @@ export function FinancingForm() {
       const idToken = user ? await auth.currentUser?.getIdToken() : null
       if (idToken) formData.append("idToken", idToken)
 
+      formData.append("_csrf", "1")
       const res = await fetch("/api/submit-aanvraag", { method: "POST", body: formData })
       if (!res.ok) throw new Error()
       deleteDraft(draftId)
