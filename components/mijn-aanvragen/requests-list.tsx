@@ -155,6 +155,7 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
 }
 
 function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean; onDelete: () => void }) {
+  const router = useRouter()
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -174,13 +175,16 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
   }
 
   return (
-    <div className="border border-gray-200 rounded-2xl p-6 bg-white hover:border-[#311E86]/30 transition-colors">
+    <div
+      className="border border-gray-200 rounded-2xl p-6 bg-white hover:border-[#311E86]/30 transition-colors cursor-pointer"
+      onClick={() => router.push(`/mijn-aanvragen/${a.id}`)}
+    >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div>
           <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "—"}</p>
           <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <StatusBadge status={a.status} />
           {isAdmin && !confirming && (
             <button
@@ -243,7 +247,7 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
       </div>
 
       {isAdmin && a.driveFolderUrl && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-4 pt-4 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
           <a
             href={a.driveFolderUrl}
             target="_blank"
@@ -254,6 +258,12 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
           </a>
         </div>
       )}
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <span className="text-xs font-sans text-[#311E86] font-medium">
+          Bekijk details →
+        </span>
+      </div>
     </div>
   )
 }

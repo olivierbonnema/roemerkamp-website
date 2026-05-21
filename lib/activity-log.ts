@@ -18,6 +18,7 @@ export type ActivityAction =
   | "analysis_triggered"
   | "reputation_scan_triggered"
   | "aanvraag_deleted"
+  | "message_sent"
 
 export interface LogEntry {
   action: ActivityAction

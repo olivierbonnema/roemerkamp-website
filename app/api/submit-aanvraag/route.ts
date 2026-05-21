@@ -148,14 +148,16 @@ export async function POST(req: NextRequest) {
   const huurinkomsten  = firstObject.huurinkomsten
 
   // CSRF verification
-  const csrfToken = get("_csrf")
   const origin = req.headers.get("origin") || ""
   const allowedOrigins = [
     "https://nonbancaireleningen.nl",
     "https://www.nonbancaireleningen.nl",
     "http://localhost:3000",
   ]
-  if (!allowedOrigins.some((o) => origin === o)) {
+  if (process.env.NEXT_PUBLIC_BASE_URL) allowedOrigins.push(process.env.NEXT_PUBLIC_BASE_URL)
+  if (process.env.VERCEL_URL) allowedOrigins.push(`https://${process.env.VERCEL_URL}`)
+  const isVercelPreview = origin.endsWith(".vercel.app")
+  if (!isVercelPreview && !allowedOrigins.some((o) => origin === o)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 })
   }
 

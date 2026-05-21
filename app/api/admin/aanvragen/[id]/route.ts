@@ -54,12 +54,30 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Ongeldige status." }, { status: 400 })
   }
 
+  const STATUS_LABELS: Record<string, string> = {
+    ingediend: "Ingediend",
+    in_behandeling: "In behandeling",
+    aanvullend_nodig: "Aanvullende info nodig",
+    goedgekeurd: "Goedgekeurd",
+    afgewezen: "Afgewezen",
+  }
+
   try {
     await adminDb.collection("aanvragen").doc(id).update({
       status,
       updatedAt: new Date(),
       updatedBy: admin.email,
     })
+
+    await adminDb
+      .collection("aanvragen").doc(id)
+      .collection("berichten")
+      .add({
+        message: `Status gewijzigd naar: ${STATUS_LABELS[status] || status}`,
+        senderEmail: admin.email,
+        type: "status_update",
+        createdAt: new Date(),
+      })
 
     await logActivity({
       action: "status_changed",

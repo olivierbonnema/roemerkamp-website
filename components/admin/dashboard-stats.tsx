@@ -47,6 +47,7 @@ const ACTION_LABELS: Record<string, string> = {
   analysis_triggered: "AI analyse gestart",
   reputation_scan_triggered: "Achtergrondcheck gestart",
   aanvraag_deleted: "Aanvraag verwijderd",
+  message_sent: "Bericht verzonden",
 }
 
 

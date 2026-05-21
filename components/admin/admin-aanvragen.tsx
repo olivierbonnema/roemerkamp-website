@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
-import { Upload, X } from "lucide-react"
+import { Upload, X, MessageSquare } from "lucide-react"
 
 interface Aanvraag {
   id: string
@@ -109,6 +109,9 @@ export function AdminAanvragen() {
   const [triggeringAnalysis, setTriggeringAnalysis] = useState<string | null>(null)
   const [retryingScan, setRetryingScan] = useState<string | null>(null)
   const [scanErrorModal, setScanErrorModal] = useState<{ title: string; message: string; link?: { url: string; label: string } } | null>(null)
+  const [messageModal, setMessageModal] = useState<string | null>(null)
+  const [messageText, setMessageText] = useState("")
+  const [sendingMessage, setSendingMessage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadAanvragen() }, [])
@@ -270,6 +273,30 @@ export function AdminAanvragen() {
       })
     } finally {
       setRetryingScan(null)
+    }
+  }
+
+  async function sendMessage(aanvraagId: string) {
+    if (!messageText.trim()) return
+    setSendingMessage(true)
+    try {
+      const token = await getToken()
+      const res = await fetch(`/api/aanvragen/${aanvraagId}/berichten`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ message: messageText.trim() }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(`Bericht verzenden mislukt: ${data.error || "onbekende fout"}`)
+        return
+      }
+      setMessageText("")
+      setMessageModal(null)
+    } catch {
+      alert("Bericht verzenden mislukt.")
+    } finally {
+      setSendingMessage(false)
     }
   }
 
@@ -595,6 +622,15 @@ export function AdminAanvragen() {
                 {extracting === a.id ? "Bezig..." : "Maak termsheet"}
               </button>
 
+              {/* Send message to applicant */}
+              <button
+                onClick={() => setMessageModal(a.id)}
+                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-[#311E86]/30 hover:text-[#311E86] transition-colors inline-flex items-center gap-1.5"
+              >
+                <MessageSquare size={12} />
+                Bericht sturen
+              </button>
+
               {/* OneDrive link */}
               {a.driveFolderUrl && (
                 <a
@@ -638,6 +674,41 @@ export function AdminAanvragen() {
                 className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Sluiten
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message modal */}
+      {messageModal && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setMessageModal(null); setMessageText("") }}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Bericht sturen naar aanvrager</h3>
+            <p className="text-sm text-gray-400 font-sans mb-5">
+              De aanvrager ontvangt een e-mail en ziet het bericht in het klantenportaal.
+            </p>
+            <textarea
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              placeholder="Typ hier uw bericht..."
+              rows={4}
+              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-sans focus:outline-none focus:border-[#1E3A5F] transition-colors resize-none mb-5"
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setMessageModal(null); setMessageText("") }}
+                className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={() => sendMessage(messageModal)}
+                disabled={sendingMessage || !messageText.trim()}
+                className="px-5 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors disabled:opacity-50"
+              >
+                {sendingMessage ? "Verzenden..." : "Verstuur bericht"}
               </button>
             </div>
           </div>
