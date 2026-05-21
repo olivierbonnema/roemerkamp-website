@@ -97,6 +97,14 @@ async function extractTextFromFile(buffer: Buffer, name: string, mimeType: strin
   return ""
 }
 
+function filterPii(text: string): string {
+  return text
+    .replace(/\b\d{9}\b/g, "[BSN-MASKED]")
+    .replace(/\b[A-Z]{2}\d{2}[\s]?[A-Z]{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{2}\b/g, "[IBAN-MASKED]")
+    .replace(/\bNL\d{2}[\s]?[A-Z]{4}[\s]?\d{10}\b/g, "[IBAN-MASKED]")
+    .replace(/\b[A-Z]{2}[A-Z0-9]{5,9}\d\b/g, "[DOCNR-MASKED]")
+}
+
 interface AanvraagData {
   naam?: string
   aanvragerType?: string
@@ -481,6 +489,7 @@ export async function POST(req: NextRequest) {
 
     if (documentText.trim().length > 50) {
       try {
+        const filteredDocumentText = filterPii(documentText)
         const objectsSummary = (directFields.objects as Record<string, unknown>[])
           .map((o, i) => `  Object ${i + 1}: ${o.address || "unknown"}`)
           .join("\n")
@@ -489,7 +498,7 @@ export async function POST(req: NextRequest) {
           max_tokens: 2048,
           messages: [{
             role: "user",
-            content: `${EXTRACTION_PROMPT}\n\nAlready known about the application:\n- Borrower 1: ${aanvraag.naam || "unknown"}\n- Co-applicant: ${aanvraag.medeNaam || "none"}\n- Type: ${aanvraag.aanvragerType || "unknown"}\n- Company: ${aanvraag.bedrijfsnaam || "n/a"}\n- Purpose: ${aanvraag.leningDoel || "unknown"}\n- Loan amount: ${aanvraag.leningBedrag || "unknown"}\n- Duration: ${aanvraag.looptijd || "unknown"} months\n- Objects (from application form):\n${objectsSummary}\n\nIMPORTANT: There may be MULTIPLE collateral properties. Check the application data and documents carefully for all properties.\nIMPORTANT: Check email threads for interest rate, closing costs (afsluitkosten), and startup costs (opstartkosten).\n\nDocument text:\n${documentText.slice(0, 30000)}`,
+            content: `${EXTRACTION_PROMPT}\n\nAlready known about the application:\n- Borrower 1: ${aanvraag.naam || "unknown"}\n- Co-applicant: ${aanvraag.medeNaam || "none"}\n- Type: ${aanvraag.aanvragerType || "unknown"}\n- Company: ${aanvraag.bedrijfsnaam || "n/a"}\n- Purpose: ${aanvraag.leningDoel || "unknown"}\n- Loan amount: ${aanvraag.leningBedrag || "unknown"}\n- Duration: ${aanvraag.looptijd || "unknown"} months\n- Objects (from application form):\n${objectsSummary}\n\nIMPORTANT: There may be MULTIPLE collateral properties. Check the application data and documents carefully for all properties.\nIMPORTANT: Check email threads for interest rate, closing costs (afsluitkosten), and startup costs (opstartkosten).\n\nDocument text:\n${filteredDocumentText.slice(0, 30000)}`,
           }],
         })
 
