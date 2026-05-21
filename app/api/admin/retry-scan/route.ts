@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { after } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { logActivity } from "@/lib/activity-log"
 
 export const maxDuration = 60
 
@@ -49,6 +50,15 @@ export async function POST(req: NextRequest) {
       coApplicant: data.medeNaam || undefined,
     },
   }
+
+  await logActivity({
+    action: "reputation_scan_triggered",
+    userId: admin.uid,
+    userEmail: admin.email || "",
+    targetId: aanvraagId,
+    targetType: "aanvraag",
+    details: { naam: data.naam || "" },
+  })
 
   // Use after() to keep the function alive after responding — ensures the fetch actually sends.
   // The internal route has maxDuration=300 and writes results to Firestore independently.

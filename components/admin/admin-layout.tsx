@@ -2,6 +2,7 @@
 
 import { AdminSidebar } from "./admin-sidebar"
 import { AdminGuard } from "@/components/auth-guard"
+import { FeedbackWidget } from "./feedback-widget"
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <main className="ml-[240px] min-h-screen">
           {children}
         </main>
+        <FeedbackWidget />
       </div>
     </AdminGuard>
   )

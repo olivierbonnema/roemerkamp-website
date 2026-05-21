@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { logActivity } from "@/lib/activity-log"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -32,6 +33,15 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
       createdBy: admin.email,
     })
+    await logActivity({
+      action: "user_created",
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: user.uid,
+      targetType: "user",
+      details: { email: user.email || "" },
+    })
+
     return NextResponse.json({ uid: user.uid, email: user.email })
   } catch (err: unknown) {
     const code = (err as { code?: string }).code

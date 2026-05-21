@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { logActivity } from "@/lib/activity-log"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -84,13 +85,13 @@ export async function POST(req: NextRequest) {
     const ref = await adminDb.collection("blogposts").add(postData)
 
     // Log activity
-    await adminDb.collection("activity").add({
+    await logActivity({
       action: "blogpost_created",
-      entity: "blogpost",
-      entityId: ref.id,
-      entityName: body.title,
-      performedBy: admin.email,
-      timestamp: FieldValue.serverTimestamp(),
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: ref.id,
+      targetType: "aanvraag",
+      details: { title: body.title || "" },
     })
 
     return NextResponse.json({ id: ref.id, slug })

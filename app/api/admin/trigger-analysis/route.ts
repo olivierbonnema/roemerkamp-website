@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse, after } from "next/server"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { logActivity } from "@/lib/activity-log"
 
 export const maxDuration = 60
 
@@ -41,6 +42,15 @@ export async function POST(req: NextRequest) {
     .digest("hex")
 
   await adminDb.collection("aanvragen").doc(aanvraagId).update({ analysisStatus: "analyzing" })
+
+  await logActivity({
+    action: "analysis_triggered",
+    userId: admin.uid,
+    userEmail: admin.email || "",
+    targetId: aanvraagId,
+    targetType: "aanvraag",
+    details: { naam: data.naam || "" },
+  })
 
   const analysisPayload = { folderId, applicationId: aanvraagId, timestamp, signature }
 

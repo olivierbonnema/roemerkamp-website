@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { logActivity } from "@/lib/activity-log"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -23,8 +24,21 @@ export async function DELETE(req: NextRequest) {
   if (!uid) return NextResponse.json({ error: "UID is verplicht." }, { status: 400 })
 
   try {
+    const userRecord = await adminAuth.getUser(uid).catch(() => null)
+    const deletedEmail = userRecord?.email || "unknown"
+
     await adminAuth.deleteUser(uid)
     await adminDb.collection("users").doc(uid).delete()
+
+    await logActivity({
+      action: "user_deleted",
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: uid,
+      targetType: "user",
+      details: { email: deletedEmail },
+    })
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Gebruiker verwijderen mislukt." }, { status: 500 })

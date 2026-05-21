@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { logActivity } from "@/lib/activity-log"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -84,13 +85,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await docRef.update(updateData)
 
     // Log activity
-    await adminDb.collection("activity").add({
+    await logActivity({
       action: isNowPublished && !wasPublished ? "blogpost_published" : "blogpost_updated",
-      entity: "blogpost",
-      entityId: id,
-      entityName: body.title || oldData.title,
-      performedBy: admin.email,
-      timestamp: FieldValue.serverTimestamp(),
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: id,
+      details: { title: body.title || oldData.title },
     })
 
     return NextResponse.json({ success: true })
@@ -110,13 +110,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     await adminDb.collection("blogposts").doc(id).delete()
 
-    await adminDb.collection("activity").add({
+    await logActivity({
       action: "blogpost_deleted",
-      entity: "blogpost",
-      entityId: id,
-      entityName: title,
-      performedBy: admin.email,
-      timestamp: FieldValue.serverTimestamp(),
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: id,
+      details: { title },
     })
 
     return NextResponse.json({ success: true })

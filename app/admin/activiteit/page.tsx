@@ -11,7 +11,7 @@ interface ActivityEntry {
   targetType?: string
   targetId?: string
   targetName?: string
-  details?: string
+  details?: Record<string, string> | string
   createdAt: string
 }
 
@@ -24,6 +24,14 @@ const ACTION_LABELS: Record<string, string> = {
   user_created: "Gebruiker aangemaakt",
   user_deleted: "Gebruiker verwijderd",
   settings_updated: "Instellingen bijgewerkt",
+  blogpost_created: "Blogpost aangemaakt",
+  blogpost_updated: "Blogpost bijgewerkt",
+  blogpost_published: "Blogpost gepubliceerd",
+  blogpost_deleted: "Blogpost verwijderd",
+  correction_submitted: "Correctie ingediend",
+  analysis_triggered: "AI analyse gestart",
+  reputation_scan_triggered: "Achtergrondcheck gestart",
+  aanvraag_deleted: "Aanvraag verwijderd",
 }
 
 export default function ActiviteitPage() {
@@ -99,7 +107,13 @@ export default function ActiviteitPage() {
                   <td className="px-4 py-3 text-gray-600">{entry.userEmail || "—"}</td>
                   <td className="px-4 py-3 text-gray-500">
                     {entry.targetName && <span>{entry.targetName}</span>}
-                    {entry.details && <span className="text-gray-400 ml-1">({entry.details})</span>}
+                    {entry.details && (
+                      <span className="text-gray-400 ml-1">
+                        {typeof entry.details === "string"
+                          ? `(${entry.details})`
+                          : Object.values(entry.details).filter(Boolean).join(" — ")}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -39,6 +39,14 @@ const ACTION_LABELS: Record<string, string> = {
   user_created: "Gebruiker aangemaakt",
   user_deleted: "Gebruiker verwijderd",
   settings_updated: "Instellingen bijgewerkt",
+  blogpost_created: "Blogpost aangemaakt",
+  blogpost_updated: "Blogpost bijgewerkt",
+  blogpost_published: "Blogpost gepubliceerd",
+  blogpost_deleted: "Blogpost verwijderd",
+  correction_submitted: "Correctie ingediend",
+  analysis_triggered: "AI analyse gestart",
+  reputation_scan_triggered: "Achtergrondcheck gestart",
+  aanvraag_deleted: "Aanvraag verwijderd",
 }
 
 

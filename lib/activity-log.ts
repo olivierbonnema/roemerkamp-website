@@ -10,6 +10,14 @@ export type ActivityAction =
   | "user_created"
   | "user_deleted"
   | "settings_updated"
+  | "blogpost_created"
+  | "blogpost_updated"
+  | "blogpost_published"
+  | "blogpost_deleted"
+  | "correction_submitted"
+  | "analysis_triggered"
+  | "reputation_scan_triggered"
+  | "aanvraag_deleted"
 
 export interface LogEntry {
   action: ActivityAction

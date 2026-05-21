@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { logActivity } from "@/lib/activity-log"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -21,7 +22,20 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { id } = await params
   try {
+    const doc = await adminDb.collection("aanvragen").doc(id).get()
+    const naam = doc.exists ? doc.data()?.naam || "Onbekend" : "Onbekend"
+
     await adminDb.collection("aanvragen").doc(id).delete()
+
+    await logActivity({
+      action: "aanvraag_deleted",
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: id,
+      targetType: "aanvraag",
+      details: { naam },
+    })
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Aanvraag verwijderen mislukt." }, { status: 500 })
@@ -46,6 +60,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updatedAt: new Date(),
       updatedBy: admin.email,
     })
+
+    await logActivity({
+      action: "status_changed",
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: id,
+      targetType: "aanvraag",
+      details: { status },
+    })
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Status bijwerken mislukt." }, { status: 500 })
