@@ -44,11 +44,26 @@ export function FeedbackWidget() {
     setCapturing(true)
     try {
       const { toJpeg } = await import("html-to-image")
-      const target = document.querySelector("main") || document.body
-      const dataUrl = await toJpeg(target as HTMLElement, {
+      const wrapper = document.querySelector("[data-admin-wrapper]") as HTMLElement | null
+      const target = wrapper || document.body
+      const sidebar = target.querySelector("aside") as HTMLElement | null
+      const feedbackBtn = document.querySelector("[data-feedback-btn]") as HTMLElement | null
+
+      if (feedbackBtn) feedbackBtn.style.display = "none"
+      if (sidebar) {
+        sidebar.style.position = "absolute"
+      }
+
+      const dataUrl = await toJpeg(target, {
         quality: 0.7,
         backgroundColor: "#f8f8fa",
+        width: target.scrollWidth,
+        height: Math.max(target.scrollHeight, window.innerHeight),
       })
+
+      if (sidebar) sidebar.style.position = ""
+      if (feedbackBtn) feedbackBtn.style.display = ""
+
       setScreenshot(dataUrl)
       setActions([])
     } catch (err) {
@@ -242,6 +257,7 @@ export function FeedbackWidget() {
   if (!isOpen) {
     return (
       <button
+        data-feedback-btn
         onClick={handleOpen}
         className="fixed bottom-6 right-6 z-[9998] w-12 h-12 bg-[#1E3A5F] hover:bg-[#2a4f7a] text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
         title="Feedback geven"
