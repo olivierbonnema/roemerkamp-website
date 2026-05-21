@@ -28,14 +28,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAdmin } = useAuth()
+  const { user, loading, isAdmin, mfaEnrolled } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
       router.replace("/admin-login")
+    } else if (!loading && user && isAdmin && !mfaEnrolled) {
+      router.replace("/mfa-setup")
     }
-  }, [user, loading, isAdmin, router])
+  }, [user, loading, isAdmin, mfaEnrolled, router])
 
   if (loading) {
     return (
@@ -45,7 +47,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user || !isAdmin) return null
+  if (!user || !isAdmin || !mfaEnrolled) return null
 
   return <>{children}</>
 }

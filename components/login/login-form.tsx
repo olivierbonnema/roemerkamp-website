@@ -44,7 +44,11 @@ export function LoginForm() {
 
     setLoading(true)
     try {
-      await login(email, password)
+      const result = await login(email, password)
+      if (result === "mfa-required") {
+        setError("Uw account vereist tweestapsverificatie. Log in via het beheerderspaneel.")
+        return
+      }
       router.push("/portaal")
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
