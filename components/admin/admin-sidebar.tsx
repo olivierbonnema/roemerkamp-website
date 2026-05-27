@@ -14,11 +14,13 @@ import {
   LogOut,
   ChevronLeft,
   Newspaper,
+  Columns3,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: FolderOpen },
+  { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 },
   { href: "/admin/documenten", label: "Documenten", icon: FileText },
   { href: "/admin/gebruikers", label: "Gebruikers", icon: Users },
   { href: "/admin/activiteit", label: "Activiteit", icon: Activity },
