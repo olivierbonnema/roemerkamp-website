@@ -71,7 +71,7 @@ export default function NieuwDocumentPage() {
       const res = await fetch("/api/admin/documents", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ type: docType, name, data: formData, status: "concept" }),
+        body: JSON.stringify({ id: crypto.randomUUID(), type: docType, name, data: formData, status: "concept" }),
       })
       if (res.ok) {
         const result = await res.json()
