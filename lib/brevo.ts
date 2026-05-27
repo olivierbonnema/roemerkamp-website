@@ -20,22 +20,24 @@ interface SendEmailParams {
 }
 
 function parseSender(from: string): { name?: string; email: string } {
+  // Trim whitespace/newlines first (env vars can have trailing \n)
+  const cleaned = from.trim()
   // Parse "Display Name <email>" or plain "email"
-  const match = from.match(/^(.+?)\s*<(.+?)>$/)
+  const match = cleaned.match(/^(.+?)\s*<(.+?)>$/)
   if (match) {
     return { name: match[1].trim(), email: match[2].trim() }
   }
-  return { email: from.trim() }
+  return { email: cleaned }
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<void> {
-  const apiKey = process.env.BREVO_API_KEY
+  const apiKey = process.env.BREVO_API_KEY?.trim()
   if (!apiKey) {
     throw new Error("BREVO_API_KEY environment variable is not set")
   }
 
   const sender = parseSender(params.from)
-  const recipients = Array.isArray(params.to) ? params.to : [params.to]
+  const recipients = (Array.isArray(params.to) ? params.to : [params.to]).map((e) => e.trim())
 
   const body = {
     sender: sender,
