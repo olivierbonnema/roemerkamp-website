@@ -44,7 +44,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     htmlContent: params.html,
   }
 
-  console.log("[Brevo] Sending email:", JSON.stringify({ sender: body.sender, to: body.to, subject: body.subject, htmlLength: body.htmlContent?.length }))
+  console.log("[Brevo] Request body:", JSON.stringify(body, null, 2))
 
   const response = await fetch(BREVO_API_URL, {
     method: "POST",
@@ -58,6 +58,10 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
 
   if (!response.ok) {
     const errorText = await response.text()
+    console.error("[Brevo] API error:", response.status, errorText)
     throw new Error(`Brevo API error ${response.status}: ${errorText}`)
   }
+
+  const result = await response.json()
+  console.log("[Brevo] Email sent successfully:", JSON.stringify(result))
 }
