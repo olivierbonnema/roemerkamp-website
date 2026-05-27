@@ -74,10 +74,10 @@ export function FeedbackWidget() {
   }, [])
 
   const handleOpen = useCallback(async () => {
-    setIsOpen(true)
     setSent(false)
     setFeedback("")
     await captureScreenshot()
+    setIsOpen(true)
   }, [captureScreenshot])
 
   const handleClose = useCallback(() => {

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
-import { Upload, X, MessageSquare } from "lucide-react"
+import { Upload, X, MessageSquare, Trash2, PlayCircle } from "lucide-react"
 
 interface Aanvraag {
   id: string
@@ -112,6 +112,9 @@ export function AdminAanvragen() {
   const [messageModal, setMessageModal] = useState<string | null>(null)
   const [messageText, setMessageText] = useState("")
   const [sendingMessage, setSendingMessage] = useState(false)
+  const [checksModal, setChecksModal] = useState<string | null>(null)
+  const [deleteModal, setDeleteModal] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadAanvragen() }, [])
@@ -300,6 +303,28 @@ export function AdminAanvragen() {
     }
   }
 
+  async function deleteAanvraag(id: string) {
+    setDeleting(true)
+    try {
+      const token = await getToken()
+      const res = await fetch(`/api/admin/aanvragen/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(`Verwijderen mislukt: ${data.error || "onbekende fout"}`)
+        return
+      }
+      setAanvragen(prev => prev.filter(a => a.id !== id))
+      setDeleteModal(null)
+    } catch {
+      alert("Verwijderen mislukt.")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -451,12 +476,6 @@ export function AdminAanvragen() {
                 <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className="px-3 py-1 rounded-full text-xs font-medium font-sans"
-                  style={{ color: status.color, backgroundColor: status.bg }}
-                >
-                  {status.label}
-                </span>
                 {recommendation && (
                   <span
                     className="px-3 py-1 rounded-full text-xs font-medium font-sans"
@@ -558,59 +577,64 @@ export function AdminAanvragen() {
                 <option value="afgewezen">Afgewezen</option>
               </select>
 
-              {/* AI Analysis — start, analyzing, or view */}
-              {a.analysisStatus === "completed" ? (
-                <button
-                  onClick={() => setSelectedId(a.id)}
-                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
-                >
-                  AI Analyse bekijken
-                </button>
-              ) : a.analysisStatus === "analyzing" ? (
+              {/* Running checks — show spinners */}
+              {a.analysisStatus === "analyzing" && (
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                   <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
                   Bezig met AI analyse...
                 </span>
-              ) : a.driveFolderId ? (
-                <button
-                  onClick={() => triggerAnalysis(a.id)}
-                  disabled={triggeringAnalysis === a.id}
-                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors disabled:opacity-50"
-                >
-                  {triggeringAnalysis === a.id ? "Starten..." : a.analysisStatus === "error" ? "AI Analyse opnieuw" : "Start AI Analyse"}
-                </button>
-              ) : null}
-
-              {/* Analysis error */}
-              {a.analysisStatus === "error" && a.analysisError && (
-                <span className="text-xs font-sans text-red-600">{a.analysisError}</span>
               )}
-
-              {/* Background check — start, scanning, or view */}
-              {a.reputationScanResult ? (
-                <button
-                  onClick={() => setScanDetailId(a.id)}
-                  className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
-                    a.reputationScanResult.killSignal
-                      ? "bg-red-600 text-white hover:bg-red-700"
-                      : "border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white"
-                  }`}
-                >
-                  Achtergrondcheck bekijken
-                </button>
-              ) : a.reputationScanStatus === "scanning" ? (
+              {a.reputationScanStatus === "scanning" && (
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                   <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
                   Bezig met achtergrondcheck...
                 </span>
-              ) : (
-                <button
-                  onClick={() => retryScan(a.id)}
-                  disabled={retryingScan === a.id}
-                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-teal-600 text-teal-700 hover:bg-teal-600 hover:text-white transition-colors disabled:opacity-50"
-                >
-                  {retryingScan === a.id ? "Starten..." : a.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Start achtergrondcheck"}
-                </button>
+              )}
+
+              {/* Checks uitvoeren — combined button */}
+              {a.analysisStatus !== "analyzing" && a.reputationScanStatus !== "scanning" && (
+                <>
+                  {a.analysisStatus === "completed" || a.reputationScanResult ? (
+                    <div className="flex items-center gap-2">
+                      {a.analysisStatus === "completed" && (
+                        <button
+                          onClick={() => setSelectedId(a.id)}
+                          className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
+                        >
+                          AI Analyse bekijken
+                        </button>
+                      )}
+                      {a.reputationScanResult && (
+                        <button
+                          onClick={() => setScanDetailId(a.id)}
+                          className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
+                            a.reputationScanResult.killSignal
+                              ? "bg-red-600 text-white hover:bg-red-700"
+                              : "border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white"
+                          }`}
+                        >
+                          Achtergrondcheck bekijken
+                        </button>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {/* Show "Checks uitvoeren" if at least one check can be (re)started */}
+                  {a.driveFolderId && (
+                    <button
+                      onClick={() => setChecksModal(a.id)}
+                      className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <PlayCircle size={13} />
+                      Checks uitvoeren
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* Analysis error */}
+              {a.analysisStatus === "error" && a.analysisError && (
+                <span className="text-xs font-sans text-red-600">{a.analysisError}</span>
               )}
 
               {/* Create termsheet */}
@@ -651,6 +675,15 @@ export function AdminAanvragen() {
                   OneDrive
                 </a>
               )}
+
+              {/* Delete aanvraag */}
+              <button
+                onClick={() => setDeleteModal(a.id)}
+                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-600 transition-colors inline-flex items-center gap-1.5 ml-auto"
+              >
+                <Trash2 size={12} />
+                Verwijderen
+              </button>
             </div>
           </div>
         )
@@ -723,6 +756,93 @@ export function AdminAanvragen() {
           </div>
         </div>
       )}
+
+      {/* Checks modal */}
+      {checksModal && (() => {
+        const ca = aanvragen.find(a => a.id === checksModal)
+        if (!ca) return null
+        const analysisRunnable = ca.driveFolderId && ca.analysisStatus !== "analyzing"
+        const scanRunnable = ca.reputationScanStatus !== "scanning"
+        return (
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setChecksModal(null)}>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Checks uitvoeren</h3>
+              <p className="text-sm text-gray-400 font-sans mb-5">Kies welke checks u wilt starten voor {ca.naam}.</p>
+              <div className="space-y-3">
+                {analysisRunnable && (
+                  <button
+                    onClick={() => { triggerAnalysis(checksModal); setChecksModal(null) }}
+                    disabled={triggeringAnalysis === checksModal}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-[#F75D20] hover:bg-[#F75D20]/5 transition-colors group"
+                  >
+                    <p className="text-sm font-medium font-sans text-gray-900 group-hover:text-[#F75D20]">
+                      {ca.analysisStatus === "completed" ? "AI Analyse opnieuw starten" : ca.analysisStatus === "error" ? "AI Analyse opnieuw" : "AI Analyse starten"}
+                    </p>
+                    <p className="text-xs text-gray-400 font-sans mt-0.5">Documenten classificeren, data extraheren, memo schrijven</p>
+                  </button>
+                )}
+                {scanRunnable && (
+                  <button
+                    onClick={() => { retryScan(checksModal); setChecksModal(null) }}
+                    disabled={retryingScan === checksModal}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-teal-500 hover:bg-teal-50 transition-colors group"
+                  >
+                    <p className="text-sm font-medium font-sans text-gray-900 group-hover:text-teal-700">
+                      {ca.reputationScanResult ? "Achtergrondcheck opnieuw" : ca.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Achtergrondcheck starten"}
+                    </p>
+                    <p className="text-xs text-gray-400 font-sans mt-0.5">OSINT scan op aanvrager via web search</p>
+                  </button>
+                )}
+              </div>
+              <div className="flex justify-end mt-5">
+                <button
+                  onClick={() => setChecksModal(null)}
+                  className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuleren
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Delete confirmation modal */}
+      {deleteModal && (() => {
+        const da = aanvragen.find(a => a.id === deleteModal)
+        return (
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setDeleteModal(null)}>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-start gap-3 mb-4">
+                <span className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <Trash2 size={18} className="text-red-600" />
+                </span>
+                <div>
+                  <h3 className="font-serif text-lg text-[#1E3A5F]">Aanvraag verwijderen</h3>
+                  <p className="text-sm text-gray-600 font-sans mt-1">
+                    Weet u zeker dat u de aanvraag van <strong>{da?.naam || "deze aanvrager"}</strong> wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-5">
+                <button
+                  onClick={() => setDeleteModal(null)}
+                  className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={() => deleteAanvraag(deleteModal)}
+                  disabled={deleting}
+                  className="px-5 py-2.5 text-sm font-medium font-sans bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deleting ? "Verwijderen..." : "Ja, verwijderen"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Extra text modal */}
       {extraTextModal && (
