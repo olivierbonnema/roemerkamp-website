@@ -165,7 +165,8 @@ const DEFAULT_LOGO_DATA_URL = ""
 
 export async function generateTermsheet(
   data: TermsheetData,
-  settings: TermsheetSettings
+  settings: TermsheetSettings,
+  options?: { forEsign?: boolean }
 ): Promise<Blob> {
   const s = settings || {}
   const borrowers = data.borrowers || []
@@ -519,12 +520,18 @@ export async function generateTermsheet(
 
   // SIGNATURE BLOCKS
   const UNDERSCORES = "___________________________"
+  const esign = options?.forEsign === true
   letterChildren.push(par([], { hrule: true, before: 0, after: 80 }))
   letterChildren.push(
     par([tx("Ondergetekenden verklaren akkoord te gaan met de bovenstaande condities:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 120 })
   )
 
-  borrowers.forEach((b) => {
+  borrowers.forEach((b, idx) => {
+    const signerNum = idx + 1
+    const dateField = esign ? `{{d:${signerNum}:y::::250:25}}` : UNDERSCORES
+    const sigField = esign ? `{{s:${signerNum}:y::::300:50}}` : UNDERSCORES
+    const tagColor = esign ? "FFFFFF" : C_GREY
+
     letterChildren.push(
       par([tx("Kredietnemer: ", { bold: true, size: SZ_SMALL }), tx(signingName(b), { bold: true, size: SZ_SMALL })], { before: 0, after: 480 })
     )
@@ -539,7 +546,7 @@ export async function generateTermsheet(
             height: { value: MM(12), rule: docx.HeightRule.ATLEAST },
             children: [
               cell(par([tx("Datum:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 0 }), SIGN_LBL, { margins: { top: 60, bottom: 200, left: 0, right: 40 } }),
-              cell(par([tx(UNDERSCORES, { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 0 }), SIGN_VAL, { margins: { top: 60, bottom: 200, left: 0, right: 0 } }),
+              cell(par([tx(dateField, { size: SZ_SMALL, color: tagColor })], { before: 0, after: 0 }), SIGN_VAL, { margins: { top: 60, bottom: 200, left: 0, right: 0 } }),
             ],
           }),
         ],
@@ -557,7 +564,7 @@ export async function generateTermsheet(
             height: { value: MM(12), rule: docx.HeightRule.ATLEAST },
             children: [
               cell(par([tx("Ondertekening:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 0 }), SIGN_LBL, { margins: { top: 60, bottom: 200, left: 0, right: 40 } }),
-              cell(par([tx(UNDERSCORES, { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 0 }), SIGN_VAL, { margins: { top: 60, bottom: 200, left: 0, right: 0 } }),
+              cell(par([tx(sigField, { size: SZ_SMALL, color: tagColor })], { before: 0, after: 0 }), SIGN_VAL, { margins: { top: 60, bottom: 200, left: 0, right: 0 } }),
             ],
           }),
         ],

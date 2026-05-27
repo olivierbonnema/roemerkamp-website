@@ -36,7 +36,8 @@ export async function createSigningRequest(params: CreateDocumentParams) {
     body: JSON.stringify({
       test_mode: params.testMode ?? false,
       draft: false,
-      with_signature_page: true,
+      with_signature_page: false,
+      text_tags: true,
       name: params.name,
       subject: params.subject || `Ter ondertekening: ${params.name}`,
       message: params.message || "Hierbij ontvangt u een document ter ondertekening. Klik op de knop hieronder om het document te bekijken en te ondertekenen.",

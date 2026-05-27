@@ -159,7 +159,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     return borrowers?.map((b) => b.name).filter((n): n is string => !!n) || []
   }
 
-  const handleGenerateDocx = async (): Promise<Blob | null> => {
+  const handleGenerateDocx = async (forEsign?: boolean): Promise<Blob | null> => {
     const formData = getFormData()
     if (!formData) return null
     try {
@@ -168,7 +168,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           logoDataUrl: settings.logoDataUrl,
           advisorName: settings.advisorName,
           companyName: settings.companyName,
-        })
+        }, { forEsign })
       } else {
         return await generatePitch(formData as Parameters<typeof generatePitch>[0], {
           logoDataUrl: settings.logoDataUrl,

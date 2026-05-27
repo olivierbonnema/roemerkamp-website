@@ -23,7 +23,7 @@ interface EsignPanelProps {
   documentName: string
   borrowerNames: string[]
   getToken: () => Promise<string>
-  onGenerateDocx: () => Promise<Blob | null>
+  onGenerateDocx: (forEsign?: boolean) => Promise<Blob | null>
 }
 
 export default function EsignPanel({
@@ -105,7 +105,7 @@ export default function EsignPanel({
       if (useUpload && uploadedFile) {
         file = uploadedFile
       } else {
-        const blob = await onGenerateDocx()
+        const blob = await onGenerateDocx(true)
         if (!blob) {
           setError("Kan document niet genereren. Vul eerst het formulier in.")
           setSending(false)
