@@ -113,6 +113,7 @@ export function AdminAanvragen() {
   const [messageText, setMessageText] = useState("")
   const [sendingMessage, setSendingMessage] = useState(false)
   const [checksModal, setChecksModal] = useState<string | null>(null)
+  const [selectedChecks, setSelectedChecks] = useState<Set<string>>(new Set())
   const [deleteModal, setDeleteModal] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -622,7 +623,7 @@ export function AdminAanvragen() {
                   {/* Show "Checks uitvoeren" if at least one check can be (re)started */}
                   {a.driveFolderId && (
                     <button
-                      onClick={() => setChecksModal(a.id)}
+                      onClick={() => { setChecksModal(a.id); setSelectedChecks(new Set()) }}
                       className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors inline-flex items-center gap-1.5"
                     >
                       <PlayCircle size={13} />
@@ -761,45 +762,82 @@ export function AdminAanvragen() {
       {checksModal && (() => {
         const ca = aanvragen.find(a => a.id === checksModal)
         if (!ca) return null
-        const analysisRunnable = ca.driveFolderId && ca.analysisStatus !== "analyzing"
+        const analysisRunnable = !!(ca.driveFolderId && ca.analysisStatus !== "analyzing")
         const scanRunnable = ca.reputationScanStatus !== "scanning"
+        const toggleCheck = (key: string) => {
+          setSelectedChecks(prev => {
+            const next = new Set(prev)
+            if (next.has(key)) next.delete(key)
+            else next.add(key)
+            return next
+          })
+        }
+        const runSelected = () => {
+          if (selectedChecks.has("analysis")) triggerAnalysis(checksModal)
+          if (selectedChecks.has("scan")) retryScan(checksModal)
+          setChecksModal(null)
+          setSelectedChecks(new Set())
+        }
         return (
           <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setChecksModal(null)}>
             <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Checks uitvoeren</h3>
-              <p className="text-sm text-gray-400 font-sans mb-5">Kies welke checks u wilt starten voor {ca.naam}.</p>
+              <p className="text-sm text-gray-400 font-sans mb-5">Selecteer welke checks u wilt starten voor {ca.naam}.</p>
               <div className="space-y-3">
                 {analysisRunnable && (
-                  <button
-                    onClick={() => { triggerAnalysis(checksModal); setChecksModal(null) }}
-                    disabled={triggeringAnalysis === checksModal}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-[#F75D20] hover:bg-[#F75D20]/5 transition-colors group"
+                  <label
+                    className={`flex items-start gap-3 w-full text-left px-4 py-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedChecks.has("analysis") ? "border-[#F75D20] bg-[#F75D20]/5" : "border-gray-200 hover:border-gray-300"
+                    }`}
                   >
-                    <p className="text-sm font-medium font-sans text-gray-900 group-hover:text-[#F75D20]">
-                      {ca.analysisStatus === "completed" ? "AI Analyse opnieuw starten" : ca.analysisStatus === "error" ? "AI Analyse opnieuw" : "AI Analyse starten"}
-                    </p>
-                    <p className="text-xs text-gray-400 font-sans mt-0.5">Documenten classificeren, data extraheren, memo schrijven</p>
-                  </button>
+                    <input
+                      type="checkbox"
+                      checked={selectedChecks.has("analysis")}
+                      onChange={() => toggleCheck("analysis")}
+                      className="mt-0.5 accent-[#F75D20]"
+                    />
+                    <div>
+                      <p className="text-sm font-medium font-sans text-gray-900">
+                        {ca.analysisStatus === "completed" ? "AI Analyse opnieuw starten" : ca.analysisStatus === "error" ? "AI Analyse opnieuw" : "AI Analyse"}
+                      </p>
+                      <p className="text-xs text-gray-400 font-sans mt-0.5">Documenten classificeren, data extraheren, memo schrijven</p>
+                    </div>
+                  </label>
                 )}
                 {scanRunnable && (
-                  <button
-                    onClick={() => { retryScan(checksModal); setChecksModal(null) }}
-                    disabled={retryingScan === checksModal}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-teal-500 hover:bg-teal-50 transition-colors group"
+                  <label
+                    className={`flex items-start gap-3 w-full text-left px-4 py-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedChecks.has("scan") ? "border-teal-500 bg-teal-50" : "border-gray-200 hover:border-gray-300"
+                    }`}
                   >
-                    <p className="text-sm font-medium font-sans text-gray-900 group-hover:text-teal-700">
-                      {ca.reputationScanResult ? "Achtergrondcheck opnieuw" : ca.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Achtergrondcheck starten"}
-                    </p>
-                    <p className="text-xs text-gray-400 font-sans mt-0.5">OSINT scan op aanvrager via web search</p>
-                  </button>
+                    <input
+                      type="checkbox"
+                      checked={selectedChecks.has("scan")}
+                      onChange={() => toggleCheck("scan")}
+                      className="mt-0.5 accent-teal-600"
+                    />
+                    <div>
+                      <p className="text-sm font-medium font-sans text-gray-900">
+                        {ca.reputationScanResult ? "Achtergrondcheck opnieuw" : ca.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Achtergrondcheck"}
+                      </p>
+                      <p className="text-xs text-gray-400 font-sans mt-0.5">OSINT scan op aanvrager via web search</p>
+                    </div>
+                  </label>
                 )}
               </div>
-              <div className="flex justify-end mt-5">
+              <div className="flex justify-end gap-2 mt-5">
                 <button
                   onClick={() => setChecksModal(null)}
                   className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annuleren
+                </button>
+                <button
+                  onClick={runSelected}
+                  disabled={selectedChecks.size === 0}
+                  className="px-5 py-2.5 text-sm font-medium font-sans bg-[#F75D20] text-white rounded-lg hover:bg-[#e04d15] transition-colors disabled:opacity-50"
+                >
+                  {selectedChecks.size === 0 ? "Selecteer checks" : `Start ${selectedChecks.size} check${selectedChecks.size > 1 ? "s" : ""}`}
                 </button>
               </div>
             </div>
