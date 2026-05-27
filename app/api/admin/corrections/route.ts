@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse, after } from "next/server"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
@@ -53,31 +53,34 @@ export async function POST(req: NextRequest) {
     details: { agent: agentName, field },
   })
 
-  // Forward to Railway backend (fire-and-forget, non-blocking)
-  try {
-    const timestamp = Math.floor(Date.now() / 1000).toString()
-    const secret = process.env.TRIGGER_SECRET || "fallback"
-    const signature = createHmac("sha256", secret)
-      .update(`${applicationId}${timestamp}`)
-      .digest("hex")
+  const correctionPayload = {
+    applicationId,
+    agentName,
+    field,
+    originalValue: originalValue || "",
+    correctedValue,
+    reason: reason || "",
+    documentName: documentName || "",
+    reviewerName: admin.email || "",
+  }
 
-    fetch(`${PYTHON_BACKEND_URL}/corrections/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        applicationId,
-        agentName,
-        field,
-        originalValue: originalValue || "",
-        correctedValue,
-        reason: reason || "",
-        documentName: documentName || "",
-        reviewerName: admin.email || "",
-        timestamp,
-        signature,
-      }),
-    }).catch(() => {})
-  } catch {}
+  after(async () => {
+    try {
+      const timestamp = Math.floor(Date.now() / 1000).toString()
+      const secret = process.env.TRIGGER_SECRET || "fallback"
+      const signature = createHmac("sha256", secret)
+        .update(`${applicationId}${timestamp}`)
+        .digest("hex")
+
+      await fetch(`${PYTHON_BACKEND_URL}/corrections/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...correctionPayload, timestamp, signature }),
+      })
+    } catch (err) {
+      console.error("Failed to forward correction to Railway:", err)
+    }
+  })
 
   return NextResponse.json({ ok: true, correctionId: docRef.id })
 }

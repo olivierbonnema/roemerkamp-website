@@ -638,6 +638,15 @@ export function AdminAanvragen() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-[#311E86]/30 hover:text-[#311E86] transition-colors"
+                  onClick={() => {
+                    getToken().then(token => {
+                      fetch("/api/admin/log-access", {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ aanvraagId: a.id, naam: a.naam }),
+                      }).catch(() => {})
+                    })
+                  }}
                 >
                   OneDrive
                 </a>
