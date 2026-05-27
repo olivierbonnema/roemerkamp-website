@@ -20,14 +20,15 @@ export type ActivityAction =
   | "aanvraag_deleted"
   | "message_sent"
   | "document_accessed"
+  | "document_esign_sent"
 
 export interface LogEntry {
   action: ActivityAction
   userId: string
   userEmail: string
   targetId?: string
-  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings"
-  details?: Record<string, string>
+  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign"
+  details?: Record<string, string | boolean>
 }
 
 export async function logActivity(entry: LogEntry) {

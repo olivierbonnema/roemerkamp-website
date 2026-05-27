@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
-import { FileText, Plus, Trash2 } from "lucide-react"
+import { FileText, Plus, Trash2, CheckCircle, Clock, XCircle } from "lucide-react"
 
 interface Document {
   id: string
   type: "termsheet" | "pitch"
   name: string
   status: string
+  esignStatus?: "pending" | "completed" | "declined"
   createdAt: string
   updatedAt: string
   createdBy: string
@@ -191,9 +192,23 @@ export default function DocumentenPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 capitalize">
-                      {doc.status || "concept"}
-                    </span>
+                    {doc.esignStatus === "completed" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                        <CheckCircle size={11} /> Ondertekend
+                      </span>
+                    ) : doc.esignStatus === "pending" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                        <Clock size={11} /> Wacht op handtekening
+                      </span>
+                    ) : doc.esignStatus === "declined" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
+                        <XCircle size={11} /> Geweigerd
+                      </span>
+                    ) : (
+                      <span className="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 capitalize">
+                        {doc.status || "concept"}
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-3.5 text-gray-400 font-sans text-[13px]">{fmtDate(doc.updatedAt || doc.createdAt)}</td>
                   <td className="px-3 py-3.5">

@@ -9,6 +9,7 @@ import TermsheetForm, { type TermsheetFormHandle } from "@/components/admin/term
 import PitchForm, { type PitchFormHandle } from "@/components/admin/pitch-form"
 import { generateTermsheet } from "@/lib/generators/termsheet-generator"
 import { generatePitch } from "@/lib/generators/pitch-generator"
+import EsignPanel from "@/components/admin/esign-panel"
 
 export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -151,6 +152,34 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const docData = doc.data as Record<string, unknown> | undefined
   const isTermsheet = docType === "termsheet"
 
+  const getBorrowerNames = (): string[] => {
+    const formData = getFormData()
+    if (!formData || typeof formData !== "object") return []
+    const borrowers = (formData as Record<string, unknown>).borrowers as { name?: string }[] | undefined
+    return borrowers?.map((b) => b.name).filter((n): n is string => !!n) || []
+  }
+
+  const handleGenerateDocx = async (): Promise<Blob | null> => {
+    const formData = getFormData()
+    if (!formData) return null
+    try {
+      if (isTermsheet) {
+        return await generateTermsheet(formData as Parameters<typeof generateTermsheet>[0], {
+          logoDataUrl: settings.logoDataUrl,
+          advisorName: settings.advisorName,
+          companyName: settings.companyName,
+        })
+      } else {
+        return await generatePitch(formData as Parameters<typeof generatePitch>[0], {
+          logoDataUrl: settings.logoDataUrl,
+          companyName: settings.companyName,
+        })
+      }
+    } catch {
+      return null
+    }
+  }
+
   return (
     <div className="px-8 py-8">
       {/* Header */}
@@ -200,13 +229,26 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Form */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        {isTermsheet ? (
-          <TermsheetForm ref={termsheetRef} initialData={docData} settings={settings} />
-        ) : (
-          <PitchForm ref={pitchRef} initialData={docData} settings={settings} />
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+        {/* Form */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          {isTermsheet ? (
+            <TermsheetForm ref={termsheetRef} initialData={docData} settings={settings} />
+          ) : (
+            <PitchForm ref={pitchRef} initialData={docData} settings={settings} />
+          )}
+        </div>
+
+        {/* E-sign panel */}
+        <div className="space-y-4">
+          <EsignPanel
+            documentId={id}
+            documentName={deriveDocName(docType, docData)}
+            borrowerNames={getBorrowerNames()}
+            getToken={() => user!.getIdToken()}
+            onGenerateDocx={handleGenerateDocx}
+          />
+        </div>
       </div>
     </div>
   )
