@@ -3,13 +3,14 @@
 import { useState, useRef, useEffect, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { Download, Save, Trash2, ArrowLeft } from "lucide-react"
+import { Download, Save, Trash2, ArrowLeft, Eye } from "lucide-react"
 import Link from "next/link"
 import TermsheetForm, { type TermsheetFormHandle } from "@/components/admin/termsheet-form"
 import PitchForm, { type PitchFormHandle } from "@/components/admin/pitch-form"
 import { generateTermsheet } from "@/lib/generators/termsheet-generator"
 import { generatePitch } from "@/lib/generators/pitch-generator"
 import EsignPanel from "@/components/admin/esign-panel"
+import DocxPreviewModal from "@/components/admin/docx-preview-modal"
 
 export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -19,6 +20,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
   const [settings, setSettings] = useState<Record<string, string>>({})
 
   const termsheetRef = useRef<TermsheetFormHandle>(null)
@@ -107,6 +110,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       alert("Genereren mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
     } finally {
       setGenerating(false)
+    }
+  }
+
+  const handlePreview = async () => {
+    if (!doc) return
+    setPreviewing(true)
+    try {
+      const blob = await handleGenerateDocx()
+      if (blob) setPreviewBlob(blob)
+    } catch (err) {
+      alert("Preview mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
+    } finally {
+      setPreviewing(false)
     }
   }
 
@@ -217,6 +233,14 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
             {saving ? "Opslaan..." : "Opslaan"}
           </button>
           <button
+            onClick={handlePreview}
+            disabled={previewing}
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            <Eye size={14} />
+            {previewing ? "Laden..." : "Preview"}
+          </button>
+          <button
             onClick={handleGenerate}
             disabled={generating}
             className={`flex items-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors ${
@@ -250,6 +274,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           />
         </div>
       </div>
+
+      {/* Preview modal */}
+      {previewBlob && (
+        <DocxPreviewModal
+          blob={previewBlob}
+          fileName={`${deriveDocName(docType, getFormData())}.docx`}
+          onClose={() => setPreviewBlob(null)}
+          onDownload={() => {
+            handleGenerate()
+            setPreviewBlob(null)
+          }}
+        />
+      )}
     </div>
   )
 }

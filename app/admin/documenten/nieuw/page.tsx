@@ -3,11 +3,12 @@
 import { useState, useRef, useCallback, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Download, Save, ArrowLeft } from "lucide-react"
+import { Download, Save, ArrowLeft, Eye } from "lucide-react"
 import TermsheetForm, { type TermsheetFormHandle } from "@/components/admin/termsheet-form"
 import PitchForm, { type PitchFormHandle } from "@/components/admin/pitch-form"
 import { generateTermsheet } from "@/lib/generators/termsheet-generator"
 import { generatePitch } from "@/lib/generators/pitch-generator"
+import DocxPreviewModal from "@/components/admin/docx-preview-modal"
 import Link from "next/link"
 
 export default function NieuwDocumentPage() {
@@ -33,6 +34,8 @@ export default function NieuwDocumentPage() {
 
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [settingsLoaded, setSettingsLoaded] = useState(false)
 
@@ -123,6 +126,33 @@ export default function NieuwDocumentPage() {
     await handleGenerate()
   }
 
+  const handlePreview = async () => {
+    setPreviewing(true)
+    try {
+      const formData = getFormData()
+      if (!formData) { alert("Vul eerst het formulier in."); setPreviewing(false); return }
+
+      let blob: Blob
+      if (docType === "termsheet") {
+        blob = await generateTermsheet(formData as Parameters<typeof generateTermsheet>[0], {
+          logoDataUrl: settings.logoDataUrl,
+          advisorName: settings.advisorName,
+          companyName: settings.companyName,
+        })
+      } else {
+        blob = await generatePitch(formData as Parameters<typeof generatePitch>[0], {
+          logoDataUrl: settings.logoDataUrl,
+          companyName: settings.companyName,
+        })
+      }
+      setPreviewBlob(blob)
+    } catch (err) {
+      alert("Preview mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
+    } finally {
+      setPreviewing(false)
+    }
+  }
+
   const isTermsheet = docType === "termsheet"
 
   return (
@@ -153,6 +183,14 @@ export default function NieuwDocumentPage() {
           >
             <Save size={14} />
             {saving ? "Opslaan..." : "Opslaan"}
+          </button>
+          <button
+            onClick={handlePreview}
+            disabled={previewing}
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            <Eye size={14} />
+            {previewing ? "Laden..." : "Preview"}
           </button>
           <button
             onClick={handleGenerate}
@@ -192,6 +230,19 @@ export default function NieuwDocumentPage() {
           <PitchForm ref={pitchRef} initialData={prefillData} settings={settings} />
         )}
       </div>
+
+      {/* Preview modal */}
+      {previewBlob && (
+        <DocxPreviewModal
+          blob={previewBlob}
+          fileName={`${deriveDocName(docType, getFormData())}.docx`}
+          onClose={() => setPreviewBlob(null)}
+          onDownload={() => {
+            handleGenerate()
+            setPreviewBlob(null)
+          }}
+        />
+      )}
     </div>
   )
 }
