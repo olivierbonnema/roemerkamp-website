@@ -1,8 +1,18 @@
 "use client"
 
 import React from "react"
-import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer"
+import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
 import type { PitchData } from "./pitch-generator"
+
+/* ── Register Calibri-compatible font (Carlito, metrically identical) ── */
+
+Font.register({
+  family: "Calibri",
+  fonts: [
+    { src: "/fonts/Carlito-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/Carlito-Bold.ttf", fontWeight: "bold" },
+  ],
+})
 
 /* ── Helpers ── */
 
@@ -26,13 +36,13 @@ const C = { brand: "#2E2060", grey: "#888888", black: "#222222", hrule: "#C8C4DC
 const s = StyleSheet.create({
   page: {
     padding: "50pt 71pt 55pt",
-    fontFamily: "Helvetica",
+    fontFamily: "Calibri",
     color: C.black,
     fontSize: 10,
   },
   sectionHead: {
     fontSize: 11.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Calibri", fontWeight: "bold" as const,
     color: C.brand,
     marginTop: 20,
     marginBottom: 8,
@@ -92,11 +102,11 @@ export function PitchPDF({ data, settings }: Props) {
       <Page size="A4" style={s.page}>
         {/* ── Header ── */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }} fixed>
-          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 10.5 }}>Toelichting Lange Financieel Advies</Text>
+          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, fontSize: 10.5 }}>Toelichting Lange Financieel Advies</Text>
           {logoUrl ? (
             <Image src={logoUrl} style={{ width: 130 }} />
           ) : (
-            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 9, color: C.brand }}>{companyName}</Text>
+            <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, fontSize: 9, color: C.brand }}>{companyName}</Text>
           )}
         </View>
         <View style={s.hr} fixed />
@@ -134,8 +144,8 @@ export function PitchPDF({ data, settings }: Props) {
                       borderTopColor: C.hrule,
                     }}
                   >
-                    <Text style={{ fontSize: 10, fontFamily: isTotal ? "Helvetica-Bold" : "Helvetica" }}>{row.label}</Text>
-                    <Text style={{ fontSize: 10, fontFamily: isTotal ? "Helvetica-Bold" : "Helvetica" }}>{amtStr}</Text>
+                    <Text style={{ fontSize: 10, fontFamily: "Calibri", fontWeight: isTotal ? ("bold" as const) : ("normal" as const) }}>{row.label}</Text>
+                    <Text style={{ fontSize: 10, fontFamily: "Calibri", fontWeight: isTotal ? ("bold" as const) : ("normal" as const) }}>{amtStr}</Text>
                   </View>
                 )
               })}
@@ -164,7 +174,7 @@ export function PitchPDF({ data, settings }: Props) {
 
         {/* ── Zekerheden ── */}
         <Text style={s.sectionHead}>Zekerheden</Text>
-        <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: C.brand, marginBottom: 3 }}>Zekerheden:</Text>
+        <Text style={{ fontSize: 10, fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand, marginBottom: 3 }}>Zekerheden:</Text>
         <Text style={s.bodyText}>Een {rangTxt} recht van hypotheek ter hoogte van {fmtEuro(bedrag)} op:</Text>
         {objects.map((obj, i) => (
           <Text key={i} style={{ fontSize: 10, marginLeft: 20, marginBottom: 2 }}>
@@ -181,11 +191,11 @@ export function PitchPDF({ data, settings }: Props) {
 
         {/* ── Uitgangspunten ── */}
         <Text style={s.sectionHead}>Uitgangspunten van de Lening</Text>
-        <Text style={s.bodyText}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>Leenvorm: </Text>{leenvormTxt}</Text>
-        <Text style={s.bodyText}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>Hoofdsom: </Text>{fmtEuro(hoofdsom)}</Text>
-        <Text style={s.bodyText}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>Looptijd: </Text>{looptijd} maanden</Text>
-        <Text style={s.bodyText}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>Rente: </Text><Text style={{ fontFamily: "Helvetica-Bold" }}>{renteTxt}</Text></Text>
-        <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: C.brand, marginBottom: 3 }}>Vervroegde aflossing:</Text>
+        <Text style={s.bodyText}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Leenvorm: </Text>{leenvormTxt}</Text>
+        <Text style={s.bodyText}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Hoofdsom: </Text>{fmtEuro(hoofdsom)}</Text>
+        <Text style={s.bodyText}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Looptijd: </Text>{looptijd} maanden</Text>
+        <Text style={s.bodyText}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Rente: </Text><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{renteTxt}</Text></Text>
+        <Text style={{ fontSize: 10, fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand, marginBottom: 3 }}>Vervroegde aflossing:</Text>
         {erpLines.map((line, i) => (
           <Text key={i} style={{ fontSize: 10, marginLeft: 16, marginBottom: 2 }}>{"•"} {line}</Text>
         ))}
@@ -208,14 +218,14 @@ export function PitchPDF({ data, settings }: Props) {
           <View>
             <Text style={s.sectionHead}>Enkele risico&apos;s</Text>
             {risks.map((r, i) => (
-              <Text key={`t${i}`} style={{ fontSize: 10, fontFamily: "Helvetica-Bold", marginBottom: 3 }}>
+              <Text key={`t${i}`} style={{ fontSize: 10, fontFamily: "Calibri", fontWeight: "bold" as const, marginBottom: 3 }}>
                 {i + 1}. {r.title}
               </Text>
             ))}
             <View style={{ height: 8 }} />
             {risks.map((r, i) => (
               <Text key={`a${i}`} style={{ ...s.bodyText, marginBottom: 8 }}>
-                <Text style={{ fontFamily: "Helvetica-Bold" }}>Ad {i + 1}</Text> {r.ad}
+                <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>Ad {i + 1}</Text> {r.ad}
               </Text>
             ))}
           </View>

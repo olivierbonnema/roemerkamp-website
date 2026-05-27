@@ -1,9 +1,19 @@
 "use client"
 
 import React from "react"
-import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer"
+import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
 import type { TermsheetData, TermsheetBorrower } from "./termsheet-generator"
 import { numberToWords, fmtZegge } from "./number-to-words"
+
+/* ── Register Calibri-compatible font (Carlito, metrically identical) ── */
+
+Font.register({
+  family: "Calibri",
+  fonts: [
+    { src: "/fonts/Carlito-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/Carlito-Bold.ttf", fontWeight: "bold" },
+  ],
+})
 
 /* ── Helpers ── */
 
@@ -63,11 +73,11 @@ const s = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "flex-start",
-    fontFamily: "Helvetica",
+    fontFamily: "Calibri",
   },
   letterPage: {
     padding: "50pt 71pt 70pt",
-    fontFamily: "Helvetica",
+    fontFamily: "Calibri",
     color: C.black,
     fontSize: SZ.small,
   },
@@ -78,7 +88,7 @@ const s = StyleSheet.create({
   },
   sectionHead: {
     fontSize: SZ.head,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Calibri", fontWeight: "bold" as const,
     color: C.brand,
     marginTop: 22,
     marginBottom: 10,
@@ -98,7 +108,7 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: SZ.small,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Calibri", fontWeight: "bold" as const,
     color: C.brand,
   },
   val: {
@@ -189,12 +199,12 @@ export function TermsheetPDF({ data, settings }: Props) {
             <Image src={logoUrl} style={{ width: 240, marginBottom: 40 }} />
           ) : (
             <View style={{ marginBottom: 40, alignItems: "center" }}>
-              <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 18, color: C.brand, letterSpacing: 1 }}>LANGE & PARTNERS</Text>
+              <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, fontSize: 18, color: C.brand, letterSpacing: 1 }}>LANGE & PARTNERS</Text>
               <Text style={{ fontSize: 14, color: C.grey, marginTop: 3 }}>Financieel Advies</Text>
             </View>
           )}
           <View style={{ width: "60%", borderBottomWidth: 1, borderBottomColor: C.hrule, marginBottom: 36 }} />
-          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: SZ.title, color: C.brand, marginBottom: 8 }}>Termsheet</Text>
+          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, fontSize: SZ.title, color: C.brand, marginBottom: 8 }}>Termsheet</Text>
           <Text style={{ fontSize: SZ.subtitle, color: C.black }}>Condities voor een termijnlening</Text>
         </View>
         <Text style={{ fontSize: SZ.small, color: C.grey }}>{dateStr}</Text>
@@ -217,7 +227,7 @@ export function TermsheetPDF({ data, settings }: Props) {
         {/* Borrower addresses */}
         {borrowers.map((b, i) => (
           <View key={i} style={{ marginBottom: 2 }}>
-            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: SZ.small }}>{b.name}</Text>
+            <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, fontSize: SZ.small }}>{b.name}</Text>
             {b.address ? <Text style={{ fontSize: SZ.small }}>{b.address}</Text> : null}
             {(b.postalCode || b.city) ? <Text style={{ fontSize: SZ.small }}>{`${b.postalCode || ""}  ${b.city || ""}`.trim()}</Text> : null}
           </View>
@@ -229,21 +239,21 @@ export function TermsheetPDF({ data, settings }: Props) {
 
         {/* Ref / Phone / Email */}
         <View style={{ flexDirection: "row", gap: 20, marginBottom: 14 }}>
-          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>Referentie</Text>: {data.reference || "—"}</Text>
-          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>Telefoon</Text>: {data.phone || "—"}</Text>
-          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Helvetica-Bold", color: C.brand }}>E-mail</Text>: {data.email || "—"}</Text>
+          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Referentie</Text>: {data.reference || "—"}</Text>
+          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Telefoon</Text>: {data.phone || "—"}</Text>
+          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>E-mail</Text>: {data.email || "—"}</Text>
         </View>
 
-        <Text style={{ fontSize: SZ.small, marginBottom: 14 }}><Text style={{ fontFamily: "Helvetica-Bold" }}>Betreft: </Text>Termsheet</Text>
+        <Text style={{ fontSize: SZ.small, marginBottom: 14 }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>Betreft: </Text>Termsheet</Text>
         <View style={{ height: 8 }} />
         <Text style={{ fontSize: SZ.small, marginBottom: 12 }}>Geachte {data.salutation || borrowers[0]?.name || "heer/mevrouw"},</Text>
 
         {/* Intro paragraph */}
         <Text style={{ fontSize: SZ.small, lineHeight: 1.6, marginBottom: 10 }}>
           Op uw verzoek doen wij u hierbij een overzicht van de belangrijkste voorwaarden en bepalingen toekomen waarop{" "}
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>Lange & Partners Financieel Advies</Text>
+          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>Lange & Partners Financieel Advies</Text>
           , hierna te noemen "de Bemiddelaar", u een aanbieding wil doen voor een financiering van{" "}
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>{totalLoan > 0 ? fmtEuro(totalLoan) : "—"}</Text>
+          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{totalLoan > 0 ? fmtEuro(totalLoan) : "—"}</Text>
           {" "}met als doel {data.doelFinanciering || "een herfinanciering"}, waarbij{" "}
           {objects.length > 1 ? "de volgende objecten als zekerheid dienen" : "het volgende object als zekerheid dient"}:
         </Text>
@@ -254,7 +264,7 @@ export function TermsheetPDF({ data, settings }: Props) {
 
         {deadlineStr && deadlineStr !== "—" && (
           <Text style={{ fontSize: SZ.small, lineHeight: 1.6, marginTop: 8, marginBottom: 10 }}>
-            Wij verzoeken u deze Termsheet vóór <Text style={{ fontFamily: "Helvetica-Bold" }}>{deadlineStr}</Text> voor akkoord te ondertekenen en aan ons te retourneren.
+            Wij verzoeken u deze Termsheet vóór <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{deadlineStr}</Text> voor akkoord te ondertekenen en aan ons te retourneren.
           </Text>
         )}
 
@@ -392,7 +402,7 @@ export function TermsheetPDF({ data, settings }: Props) {
         {/* ── Closing ── */}
         <View style={{ marginTop: 30 }} wrap={false}>
           <Text style={{ fontSize: SZ.small, marginBottom: 18 }}>Hoogachtend,</Text>
-          <Text style={{ fontSize: SZ.small, fontFamily: "Helvetica-Bold", marginBottom: 3 }}>
+          <Text style={{ fontSize: SZ.small, fontFamily: "Calibri", fontWeight: "bold" as const, marginBottom: 3 }}>
             {data.signingAdvisor || data.advisorName || settings.advisorName || "—"}
           </Text>
           <Text style={{ fontSize: SZ.small, color: C.grey }}>{companyName}</Text>
@@ -406,7 +416,7 @@ export function TermsheetPDF({ data, settings }: Props) {
 
           {borrowers.map((b, idx) => (
             <View key={idx} style={{ marginBottom: 30 }} wrap={false}>
-              <Text style={{ fontSize: SZ.small, fontFamily: "Helvetica-Bold", marginBottom: 24 }}>
+              <Text style={{ fontSize: SZ.small, fontFamily: "Calibri", fontWeight: "bold" as const, marginBottom: 24 }}>
                 Kredietnemer: {signingName(b)}
               </Text>
               <View style={{ flexDirection: "row", marginBottom: 8, alignItems: "flex-end" }}>
