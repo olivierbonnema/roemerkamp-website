@@ -20,8 +20,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [previewing, setPreviewing] = useState(false)
-  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
   const [settings, setSettings] = useState<Record<string, string>>({})
 
   const termsheetRef = useRef<TermsheetFormHandle>(null)
@@ -113,17 +112,11 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  const handlePreview = async () => {
+  const handlePreview = () => {
     if (!doc) return
-    setPreviewing(true)
-    try {
-      const blob = await handleGenerateDocx()
-      if (blob) setPreviewBlob(blob)
-    } catch (err) {
-      alert("Preview mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
-    } finally {
-      setPreviewing(false)
-    }
+    const formData = getFormData()
+    if (!formData) { alert("Vul eerst het formulier in."); return }
+    setShowPreview(true)
   }
 
   const handleDelete = async () => {
@@ -234,11 +227,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           </button>
           <button
             onClick={handlePreview}
-            disabled={previewing}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             <Eye size={14} />
-            {previewing ? "Laden..." : "Preview"}
+            Preview
           </button>
           <button
             onClick={handleGenerate}
@@ -276,14 +268,16 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Preview modal */}
-      {previewBlob && (
+      {showPreview && (
         <DocxPreviewModal
-          blob={previewBlob}
+          docType={docType as "termsheet" | "pitch"}
+          formData={getFormData() as Record<string, unknown>}
+          settings={settings}
           fileName={`${deriveDocName(docType, getFormData())}.docx`}
-          onClose={() => setPreviewBlob(null)}
+          onClose={() => setShowPreview(false)}
           onDownload={() => {
             handleGenerate()
-            setPreviewBlob(null)
+            setShowPreview(false)
           }}
         />
       )}

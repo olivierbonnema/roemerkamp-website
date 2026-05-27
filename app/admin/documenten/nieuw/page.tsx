@@ -34,8 +34,7 @@ export default function NieuwDocumentPage() {
 
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [previewing, setPreviewing] = useState(false)
-  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [settingsLoaded, setSettingsLoaded] = useState(false)
 
@@ -126,31 +125,10 @@ export default function NieuwDocumentPage() {
     await handleGenerate()
   }
 
-  const handlePreview = async () => {
-    setPreviewing(true)
-    try {
-      const formData = getFormData()
-      if (!formData) { alert("Vul eerst het formulier in."); setPreviewing(false); return }
-
-      let blob: Blob
-      if (docType === "termsheet") {
-        blob = await generateTermsheet(formData as Parameters<typeof generateTermsheet>[0], {
-          logoDataUrl: settings.logoDataUrl,
-          advisorName: settings.advisorName,
-          companyName: settings.companyName,
-        })
-      } else {
-        blob = await generatePitch(formData as Parameters<typeof generatePitch>[0], {
-          logoDataUrl: settings.logoDataUrl,
-          companyName: settings.companyName,
-        })
-      }
-      setPreviewBlob(blob)
-    } catch (err) {
-      alert("Preview mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
-    } finally {
-      setPreviewing(false)
-    }
+  const handlePreview = () => {
+    const formData = getFormData()
+    if (!formData) { alert("Vul eerst het formulier in."); return }
+    setShowPreview(true)
   }
 
   const isTermsheet = docType === "termsheet"
@@ -186,11 +164,10 @@ export default function NieuwDocumentPage() {
           </button>
           <button
             onClick={handlePreview}
-            disabled={previewing}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             <Eye size={14} />
-            {previewing ? "Laden..." : "Preview"}
+            Preview
           </button>
           <button
             onClick={handleGenerate}
@@ -232,14 +209,16 @@ export default function NieuwDocumentPage() {
       </div>
 
       {/* Preview modal */}
-      {previewBlob && (
+      {showPreview && (
         <DocxPreviewModal
-          blob={previewBlob}
+          docType={docType as "termsheet" | "pitch"}
+          formData={getFormData() as Record<string, unknown>}
+          settings={settings}
           fileName={`${deriveDocName(docType, getFormData())}.docx`}
-          onClose={() => setPreviewBlob(null)}
+          onClose={() => setShowPreview(false)}
           onDownload={() => {
             handleGenerate()
-            setPreviewBlob(null)
+            setShowPreview(false)
           }}
         />
       )}
