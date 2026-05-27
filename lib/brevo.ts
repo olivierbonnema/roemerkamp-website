@@ -44,6 +44,8 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     htmlContent: params.html,
   }
 
+  console.log("[Brevo] Sending email:", JSON.stringify({ sender: body.sender, to: body.to, subject: body.subject, htmlLength: body.htmlContent?.length }))
+
   const response = await fetch(BREVO_API_URL, {
     method: "POST",
     headers: {
