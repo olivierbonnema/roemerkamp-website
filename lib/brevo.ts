@@ -5,20 +5,21 @@
  * Sends ALL transactional emails via Microsoft Graph API (sendMail).
  * Uses the same Azure AD app registration as OneDrive (client credentials flow).
  *
- * The sender address is ONEDRIVE_USER_EMAIL (must be a real M365 mailbox).
- * The display name is parsed from the `from` parameter.
+ * The sender mailbox is MAIL_FROM_EMAIL (must be a real M365 mailbox or
+ * shared mailbox). Falls back to ONEDRIVE_USER_EMAIL if not set.
  *
  * Environment variables:
  *   MICROSOFT_TENANT_ID     — Azure AD tenant
  *   MICROSOFT_CLIENT_ID     — Azure AD app client ID
  *   MICROSOFT_CLIENT_SECRET — Azure AD app client secret
- *   ONEDRIVE_USER_EMAIL     — M365 user mailbox to send from
+ *   MAIL_FROM_EMAIL         — M365 mailbox to send from (e.g. noreply@langefa.nl)
+ *   ONEDRIVE_USER_EMAIL     — Fallback if MAIL_FROM_EMAIL not set
  */
 
 import { getMsToken } from "./onedrive"
 
 interface SendEmailParams {
-  from: string // e.g. "Lange & Partners <noreply@nonbancaireleningen.nl>"
+  from: string // e.g. "Lange & Partners <noreply@langefa.nl>"
   to: string | string[]
   subject: string
   html: string
@@ -34,9 +35,9 @@ function parseSenderName(from: string): string {
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<void> {
-  const senderUser = process.env.ONEDRIVE_USER_EMAIL?.trim()
-  if (!senderUser) {
-    throw new Error("ONEDRIVE_USER_EMAIL not set — cannot send email")
+  const senderMailbox = (process.env.MAIL_FROM_EMAIL || process.env.ONEDRIVE_USER_EMAIL)?.trim()
+  if (!senderMailbox) {
+    throw new Error("MAIL_FROM_EMAIL or ONEDRIVE_USER_EMAIL must be set")
   }
 
   const senderName = parseSenderName(params.from)
@@ -54,7 +55,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
       from: {
         emailAddress: {
           name: senderName,
-          address: senderUser,
+          address: senderMailbox,
         },
       },
       toRecipients: recipients.map((email) => ({
@@ -65,13 +66,13 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
   }
 
   console.log("[Email] Sending via Graph:", {
-    from: senderUser,
+    from: senderMailbox,
     to: recipients,
     subject: params.subject,
   })
 
   const response = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(senderUser)}/sendMail`,
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(senderMailbox)}/sendMail`,
     {
       method: "POST",
       headers: {
