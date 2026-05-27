@@ -23,7 +23,7 @@ function parseSender(from: string): { name?: string; email: string } {
   // Trim whitespace/newlines first (env vars can have trailing \n)
   const cleaned = from.trim()
   // Parse "Display Name <email>" or plain "email"
-  const match = cleaned.match(/^(.+?)\s*<(.+?)>$/)
+  const match = cleaned.match(/^(.+?)\s*<(.+?)>$/s)
   if (match) {
     return { name: match[1].trim(), email: match[2].trim() }
   }
