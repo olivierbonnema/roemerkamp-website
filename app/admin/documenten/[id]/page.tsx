@@ -3,13 +3,13 @@
 import { useState, useRef, useEffect, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { Download, Save, Trash2, ArrowLeft, Eye } from "lucide-react"
+import { Download, Save, Trash2, ArrowLeft, Eye, Send } from "lucide-react"
 import Link from "next/link"
 import TermsheetForm, { type TermsheetFormHandle } from "@/components/admin/termsheet-form"
 import PitchForm, { type PitchFormHandle } from "@/components/admin/pitch-form"
 import { generateTermsheet } from "@/lib/generators/termsheet-generator"
 import { generatePitch } from "@/lib/generators/pitch-generator"
-import EsignPanel from "@/components/admin/esign-panel"
+import EsignModal from "@/components/admin/esign-panel"
 import DocxPreviewModal from "@/components/admin/docx-preview-modal"
 
 export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +21,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [showEsignPreview, setShowEsignPreview] = useState(false)
+  const [showEsign, setShowEsign] = useState(false)
   const [settings, setSettings] = useState<Record<string, string>>({})
 
   const termsheetRef = useRef<TermsheetFormHandle>(null)
@@ -117,6 +119,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     const formData = getFormData()
     if (!formData) { alert("Vul eerst het formulier in."); return }
     setShowPreview(true)
+  }
+
+  const handleEsignPreview = () => {
+    if (!doc) return
+    const formData = getFormData()
+    if (!formData) { alert("Vul eerst het formulier in."); return }
+    setShowEsignPreview(true)
   }
 
   const handleDelete = async () => {
@@ -235,39 +244,47 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className={`flex items-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors ${
-              isTermsheet ? "bg-[#1E3A5F] hover:bg-[#2a4d7a]" : "bg-[#311E86] hover:bg-[#26175e]"
-            }`}
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             <Download size={14} />
             {generating ? "Genereren..." : "Download .docx"}
           </button>
+          <button
+            onClick={() => setShowEsign(true)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-medium transition-colors ${
+              isTermsheet
+                ? "bg-[#1E3A5F] hover:bg-[#2a4d7a]"
+                : "bg-[#311E86] hover:bg-[#26175e]"
+            }`}
+          >
+            <Send size={14} />
+            Verstuur ter ondertekening
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
-        {/* Form */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          {isTermsheet ? (
-            <TermsheetForm ref={termsheetRef} initialData={docData} settings={settings} />
-          ) : (
-            <PitchForm ref={pitchRef} initialData={docData} settings={settings} />
-          )}
-        </div>
-
-        {/* E-sign panel */}
-        <div className="space-y-4">
-          <EsignPanel
-            documentId={id}
-            documentName={deriveDocName(docType, docData)}
-            borrowerNames={getBorrowerNames()}
-            getToken={() => user!.getIdToken()}
-            onGenerateDocx={handleGenerateDocx}
-          />
-        </div>
+      {/* Form — full width */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        {isTermsheet ? (
+          <TermsheetForm ref={termsheetRef} initialData={docData} settings={settings} />
+        ) : (
+          <PitchForm ref={pitchRef} initialData={docData} settings={settings} />
+        )}
       </div>
 
-      {/* Preview modal */}
+      {/* E-sign modal */}
+      <EsignModal
+        open={showEsign}
+        onClose={() => setShowEsign(false)}
+        documentId={id}
+        documentName={deriveDocName(docType, docData)}
+        borrowerNames={getBorrowerNames()}
+        getToken={() => user!.getIdToken()}
+        onGenerateDocx={handleGenerateDocx}
+        onPreviewEsign={handleEsignPreview}
+      />
+
+      {/* Preview modal — normal document */}
       {showPreview && (
         <DocxPreviewModal
           docType={docType as "termsheet" | "pitch"}
@@ -279,6 +296,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
             handleGenerate()
             setShowPreview(false)
           }}
+        />
+      )}
+
+      {/* Preview modal — e-sign version (shows what signer receives) */}
+      {showEsignPreview && (
+        <DocxPreviewModal
+          docType={docType as "termsheet" | "pitch"}
+          formData={getFormData() as Record<string, unknown>}
+          settings={settings}
+          fileName={`${deriveDocName(docType, getFormData())} (e-sign).docx`}
+          onClose={() => setShowEsignPreview(false)}
+          onDownload={() => setShowEsignPreview(false)}
+          forEsign
         />
       )}
     </div>

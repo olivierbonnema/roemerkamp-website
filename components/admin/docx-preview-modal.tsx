@@ -10,6 +10,7 @@ interface DocumentPreviewModalProps {
   fileName: string
   onClose: () => void
   onDownload: () => void
+  forEsign?: boolean
 }
 
 export default function DocxPreviewModal({
@@ -19,6 +20,7 @@ export default function DocxPreviewModal({
   fileName,
   onClose,
   onDownload,
+  forEsign,
 }: DocumentPreviewModalProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -36,7 +38,7 @@ export default function DocxPreviewModal({
 
         if (docType === "termsheet") {
           const { TermsheetPDF } = await import("@/lib/generators/termsheet-pdf")
-          element = <TermsheetPDF data={formData as never} settings={settings} />
+          element = <TermsheetPDF data={formData as never} settings={settings} forEsign={forEsign} />
         } else {
           const { PitchPDF } = await import("@/lib/generators/pitch-pdf")
           element = <PitchPDF data={formData as never} settings={settings} />

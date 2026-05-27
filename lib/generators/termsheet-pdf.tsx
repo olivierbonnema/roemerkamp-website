@@ -153,9 +153,10 @@ function V({ children }: { children: React.ReactNode }) {
 interface Props {
   data: TermsheetData
   settings: Record<string, string>
+  forEsign?: boolean
 }
 
-export function TermsheetPDF({ data, settings }: Props) {
+export function TermsheetPDF({ data, settings, forEsign }: Props) {
   const borrowers = data.borrowers || []
   const objects = data.objects || []
   const loanParts = data.loanParts || []
