@@ -3,33 +3,37 @@ import { sendEmail } from "@/lib/brevo"
 
 /**
  * Temporary test endpoint — DELETE after confirming emails work.
- * GET /api/test-email
+ * GET /api/test-email — send test + show debug info
+ * GET /api/test-email?logs=1 — show transactional email logs only
  */
-export async function GET() {
-  const fromEmail = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-
-  // Also check Brevo account info
+export async function GET(req: Request) {
   const apiKey = process.env.BREVO_API_KEY?.trim()
-  let accountInfo = null
-  let sendersInfo = null
-
-  try {
-    // Check account
-    const accountRes = await fetch("https://api.brevo.com/v3/account", {
-      headers: { "api-key": apiKey!, Accept: "application/json" },
-    })
-    accountInfo = await accountRes.json()
-
-    // Check senders
-    const sendersRes = await fetch("https://api.brevo.com/v3/senders", {
-      headers: { "api-key": apiKey!, Accept: "application/json" },
-    })
-    sendersInfo = await sendersRes.json()
-  } catch (e) {
-    accountInfo = { error: String(e) }
+  if (!apiKey) {
+    return NextResponse.json({ error: "BREVO_API_KEY not set" }, { status: 500 })
   }
 
-  // Try sending via the same path all routes use
+  const url = new URL(req.url)
+  const logsOnly = url.searchParams.get("logs")
+
+  // Always fetch transactional email events
+  let emailEvents = null
+  try {
+    const eventsRes = await fetch(
+      "https://api.brevo.com/v3/smtp/statistics/events?limit=20&sort=desc",
+      { headers: { "api-key": apiKey, Accept: "application/json" } }
+    )
+    emailEvents = await eventsRes.json()
+  } catch (e) {
+    emailEvents = { error: String(e) }
+  }
+
+  if (logsOnly) {
+    return NextResponse.json({ emailEvents })
+  }
+
+  // Send test email
+  const fromEmail = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
+
   try {
     await sendEmail({
       from: `Lange Financieel Advies <${fromEmail}>`,
@@ -38,24 +42,19 @@ export async function GET() {
       html: `<html><body>
         <h1>Test geslaagd!</h1>
         <p>Verzonden om ${new Date().toISOString()}</p>
-        <p>FROM_EMAIL raw: <code>${JSON.stringify(fromEmail)}</code></p>
       </body></html>`,
     })
 
     return NextResponse.json({
       success: true,
       message: "Email accepted by Brevo",
-      account: accountInfo,
-      senders: sendersInfo,
-      fromEmailRaw: JSON.stringify(fromEmail),
+      emailEvents,
     })
   } catch (err) {
     return NextResponse.json({
       success: false,
       error: String(err),
-      account: accountInfo,
-      senders: sendersInfo,
-      fromEmailRaw: JSON.stringify(fromEmail),
+      emailEvents,
     }, { status: 500 })
   }
 }
