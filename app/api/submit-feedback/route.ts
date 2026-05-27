@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Resend } from "resend"
+import { sendEmail } from "@/lib/brevo"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@roemerkamppartners.nl"
-const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev"
+const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
 
 export async function POST(req: NextRequest) {
   const { feedback, naam, email } = await req.json()
@@ -13,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await resend.emails.send({
+    await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: COMPANY_EMAIL,
       subject: "Portaal feedback ontvangen",

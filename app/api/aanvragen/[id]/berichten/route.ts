@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Resend } from "resend"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { sendEmail } from "@/lib/brevo"
 import { logActivity } from "@/lib/activity-log"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
   .toLowerCase().split(",").map(e => e.trim()).filter(Boolean)
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev"
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
 
 function isAdminEmail(email: string) {
   const e = email.toLowerCase()
@@ -93,7 +92,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const applicantEmail = aanvraagData.userEmail
   if (applicantEmail) {
     try {
-      await resend.emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         to: applicantEmail,
         subject: "Update over uw financieringsaanvraag — Lange Financieel Advies",

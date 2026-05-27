@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/admin-auth"
 import { adminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
-import { Resend } from "resend"
+import { sendEmail } from "@/lib/brevo"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FEEDBACK_EMAIL = process.env.FEEDBACK_EMAIL || "olivier@langefa.nl"
-const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev"
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
 
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
@@ -33,7 +32,7 @@ export async function POST(req: NextRequest) {
       createdAt: FieldValue.serverTimestamp(),
     })
 
-    await resend.emails.send({
+    await sendEmail({
       from: `LFA Dashboard <${FROM_EMAIL}>`,
       to: FEEDBACK_EMAIL,
       subject: `Dashboard feedback: ${feedback.trim().slice(0, 60)}`,

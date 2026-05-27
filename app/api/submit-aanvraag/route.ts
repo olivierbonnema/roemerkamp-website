@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse, after } from "next/server"
-import { Resend } from "resend"
+import { sendEmail } from "@/lib/brevo"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
@@ -23,9 +23,8 @@ const ALLOWED_EXTENSIONS = new Set([
 const MAX_FILE_SIZE = 25 * 1024 * 1024
 const MAX_TOTAL_SIZE = 100 * 1024 * 1024
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
-const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev"
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
 const ONEDRIVE_USER = process.env.ONEDRIVE_USER_EMAIL!
 const ONEDRIVE_FOLDER_PATH = process.env.ONEDRIVE_FOLDER_PATH!
 
@@ -424,13 +423,13 @@ export async function POST(req: NextRequest) {
 
   try {
     await Promise.all([
-      resend.emails.send({
+      sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: email,
         subject: "Bedankt voor uw financieringsaanvraag",
         html: confirmationHtml,
       }),
-      resend.emails.send({
+      sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: COMPANY_EMAIL,
         subject: `Nieuwe financieringsaanvraag: ${naam || email}`,
