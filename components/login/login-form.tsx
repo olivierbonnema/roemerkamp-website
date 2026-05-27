@@ -2,8 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { sendPasswordResetEmail } from "firebase/auth"
-import { auth } from "@/lib/firebase"
 import { useAuth } from "@/contexts/auth-context"
 
 export function LoginForm() {
@@ -24,7 +22,12 @@ export function LoginForm() {
     setResetLoading(true)
     setError("")
     try {
-      await sendPasswordResetEmail(auth, email)
+      const res = await fetch("/api/password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) throw new Error()
       setResetSent(true)
     } catch {
       setError("Kon geen resetmail versturen. Controleer uw e-mailadres.")

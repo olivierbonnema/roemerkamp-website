@@ -1,8 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { sendPasswordResetEmail } from "firebase/auth"
-import { auth } from "@/lib/firebase"
 import { useAuth } from "@/contexts/auth-context"
 
 export function AccountSettings() {
@@ -16,7 +14,12 @@ export function AccountSettings() {
     setLoading(true)
     setError("")
     try {
-      await sendPasswordResetEmail(auth, user.email)
+      const res = await fetch("/api/password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      })
+      if (!res.ok) throw new Error()
       setSent(true)
     } catch {
       setError("Er is iets misgegaan. Probeer het opnieuw.")
