@@ -164,7 +164,7 @@ export default function NieuwDocumentPage() {
           </button>
           <button
             onClick={handlePreview}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="hidden items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             <Eye size={14} />
             Preview

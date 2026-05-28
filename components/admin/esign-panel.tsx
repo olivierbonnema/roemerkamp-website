@@ -393,7 +393,7 @@ export default function EsignModal({
                   </div>
                   <button
                     onClick={onPreviewEsign}
-                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#1E3A5F] hover:bg-blue-100/60 rounded-md transition-colors"
+                    className="hidden items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#1E3A5F] hover:bg-blue-100/60 rounded-md transition-colors"
                   >
                     <Eye size={12} />
                     Preview
