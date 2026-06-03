@@ -20,16 +20,17 @@ export default function MfaSetupPage() {
   const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
-      router.replace("/admin-login")
-    }
-    if (!authLoading && user && isAdmin && mfaEnrolled) {
-      router.replace("/admin")
+    if (authLoading) return
+    if (!user) {
+      router.replace("/login")
+    } else if (mfaEnrolled) {
+      // Already enrolled: send admins to the admin area, clients to the portal.
+      router.replace(isAdmin ? "/admin" : "/portaal")
     }
   }, [user, authLoading, isAdmin, mfaEnrolled, router])
 
   useEffect(() => {
-    if (!user || !isAdmin || mfaEnrolled) return
+    if (!user || mfaEnrolled) return
     let cancelled = false
 
     const generate = async () => {
@@ -70,7 +71,7 @@ export default function MfaSetupPage() {
     try {
       const assertion = TotpMultiFactorGenerator.assertionForEnrollment(totpSecret, code)
       await multiFactor(user!).enroll(assertion, "Authenticator")
-      router.push("/admin")
+      router.push(isAdmin ? "/admin" : "/portaal")
     } catch (err: unknown) {
       const errorCode = (err as { code?: string }).code
       console.error("MFA enroll failed:", errorCode, err)
@@ -87,7 +88,7 @@ export default function MfaSetupPage() {
     }
   }
 
-  if (authLoading || !user || !isAdmin || mfaEnrolled) {
+  if (authLoading || !user || mfaEnrolled) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin" />
