@@ -26,7 +26,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const user = await adminAuth.createUser({ email, password, displayName: displayName || email })
+    // Internal staff accounts are provisioned by an already-authenticated admin,
+    // so we trust the address and mark it verified at creation. Firebase blocks
+    // second-factor (TOTP) enrollment on unverified emails, so without this the
+    // /mfa-setup flow fails at the QR step with auth/unverified-email.
+    const isStaff = !ADMIN_DOMAIN || email.toLowerCase().endsWith(`@${ADMIN_DOMAIN}`)
+    const user = await adminAuth.createUser({
+      email,
+      password,
+      displayName: displayName || email,
+      emailVerified: isStaff,
+    })
     await adminDb.collection("users").doc(user.uid).set({
       email: user.email,
       displayName: displayName || "",

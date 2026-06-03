@@ -43,7 +43,17 @@ export default function MfaSetupPage() {
         setQrUri(secret.generateQrCodeUrl(user.email || "admin", "Lange & Partners"))
       } catch (err: unknown) {
         if (cancelled) return
-        setError("Er ging iets mis bij het instellen van tweestapsverificatie. Probeer het opnieuw.")
+        const code = (err as { code?: string }).code
+        console.error("MFA setup (generateSecret) failed:", code, err)
+        if (code === "auth/operation-not-allowed" || code === "auth/admin-restricted-operation") {
+          setError("Tweestapsverificatie is nog niet ingeschakeld voor dit project. Neem contact op met de beheerder.")
+        } else if (code === "auth/unverified-email") {
+          setError("Uw e-mailadres is nog niet geverifieerd. Tweestapsverificatie kan pas worden ingesteld na verificatie.")
+        } else if (code === "auth/requires-recent-login") {
+          setError("Log opnieuw in en stel tweestapsverificatie direct daarna in.")
+        } else {
+          setError(`Er ging iets mis bij het instellen van tweestapsverificatie${code ? ` (${code})` : ""}. Probeer het opnieuw.`)
+        }
       } finally {
         if (!cancelled) setGenerating(false)
       }
@@ -61,8 +71,16 @@ export default function MfaSetupPage() {
       const assertion = TotpMultiFactorGenerator.assertionForEnrollment(totpSecret, code)
       await multiFactor(user!).enroll(assertion, "Authenticator")
       router.push("/admin")
-    } catch {
-      setError("Onjuiste code. Controleer uw authenticator-app en probeer het opnieuw.")
+    } catch (err: unknown) {
+      const errorCode = (err as { code?: string }).code
+      console.error("MFA enroll failed:", errorCode, err)
+      if (errorCode === "auth/invalid-verification-code") {
+        setError("Onjuiste code. Controleer uw authenticator-app en probeer het opnieuw.")
+      } else if (errorCode === "auth/unverified-email") {
+        setError("Uw e-mailadres is nog niet geverifieerd. Neem contact op met de beheerder.")
+      } else {
+        setError(`Activeren is mislukt${errorCode ? ` (${errorCode})` : ""}. Probeer het opnieuw.`)
+      }
       setCode("")
     } finally {
       setLoading(false)
