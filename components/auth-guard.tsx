@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, loading, mfaEnrolled } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login")
+    } else if (!loading && user && !mfaEnrolled) {
+      // Two-factor is mandatory for every account; route un-enrolled users to setup.
+      router.replace("/mfa-setup")
     }
-  }, [user, loading, router])
+  }, [user, loading, mfaEnrolled, router])
 
   if (loading) {
     return (
@@ -22,7 +25,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) return null
+  if (!user || !mfaEnrolled) return null
 
   return <>{children}</>
 }
