@@ -4,6 +4,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { sendEmail } from "@/lib/brevo"
 import { logActivity } from "@/lib/activity-log"
 import { PARTNER_ROLE } from "@/lib/partners"
+import { passwordResetLink } from "@/lib/auth-links"
 
 // Admin-only: invite an advisor into a partner organization. Creates the account
 // (already email-verified, since an authenticated admin provisions it and there
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       createdBy: admin.email,
     })
 
-    const setupLink = await adminAuth.generatePasswordResetLink(email)
+    const setupLink = await passwordResetLink(email)
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: email,
