@@ -29,6 +29,7 @@ interface Aanvraag {
   analysisProcessingTime?: number
   documentsProcessed?: number
   analysisError?: string
+  dossierUrl?: string
   // Reputation scan fields
   reputationScanStatus?: string
   reputationScanError?: string
@@ -56,6 +57,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
 const AI_STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   analyzing:  { label: "Wordt geanalyseerd", color: "#92400E", bg: "#FFFBEB", icon: "⏳" },
   completed:  { label: "Analyse klaar",      color: "#065F46", bg: "#ECFDF5", icon: "✅" },
+  data_ready: { label: "Gegevens klaar",     color: "#065F46", bg: "#ECFDF5", icon: "📄" },
   error:      { label: "Analyse mislukt",    color: "#991B1B", bg: "#FEF2F2", icon: "❌" },
 }
 
@@ -535,6 +537,17 @@ export function AdminAanvragen() {
               </div>
             )}
 
+            {/* Data-only extraction summary (if data_ready) */}
+            {a.analysisStatus === "data_ready" && (
+              <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4">
+                <div className="flex items-center gap-4 text-xs font-sans text-gray-500">
+                  <span>📄 Gegevensoverzicht klaar</span>
+                  <span>{a.documentsProcessed ?? 0} documenten verwerkt</span>
+                  <span>{a.analysisProcessingTime ? `${a.analysisProcessingTime}s` : ""}</span>
+                </div>
+              </div>
+            )}
+
             {/* Reputation scan summary (if results exist) */}
             {a.reputationScanResult && (
               <div className={`rounded-xl px-4 py-3 mb-4 ${a.reputationScanResult.killSignal ? "bg-red-50 border border-red-200" : a.reputationScanResult.scanStatus === "CLEAR" ? "bg-emerald-50" : "bg-amber-50"}`}>
@@ -582,7 +595,7 @@ export function AdminAanvragen() {
               {a.analysisStatus === "analyzing" && (
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                   <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                  Bezig met AI analyse...
+                  Bezig met gegevens extraheren...
                 </span>
               )}
               {a.reputationScanStatus === "scanning" && (
@@ -619,6 +632,17 @@ export function AdminAanvragen() {
                       )}
                     </div>
                   ) : null}
+
+                  {a.analysisStatus === "data_ready" && (a.dossierUrl || a.driveFolderUrl) && (
+                    <a
+                      href={a.dossierUrl || a.driveFolderUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
+                    >
+                      Gegevensoverzicht openen
+                    </a>
+                  )}
 
                   {/* Show "Checks uitvoeren" if at least one check can be (re)started */}
                   {a.driveFolderId && (
@@ -798,9 +822,9 @@ export function AdminAanvragen() {
                     />
                     <div>
                       <p className="text-sm font-medium font-sans text-gray-900">
-                        {ca.analysisStatus === "completed" ? "AI Analyse opnieuw starten" : ca.analysisStatus === "error" ? "AI Analyse opnieuw" : "AI Analyse"}
+                        {(ca.analysisStatus === "data_ready" || ca.analysisStatus === "completed") ? "Gegevens opnieuw extraheren" : ca.analysisStatus === "error" ? "Gegevens extraheren (opnieuw)" : "Gegevens extraheren"}
                       </p>
-                      <p className="text-xs text-gray-400 font-sans mt-0.5">Documenten classificeren, data extraheren, memo schrijven</p>
+                      <p className="text-xs text-gray-400 font-sans mt-0.5">Documenten classificeren en gegevens extraheren (geen analyse)</p>
                     </div>
                   </label>
                 )}

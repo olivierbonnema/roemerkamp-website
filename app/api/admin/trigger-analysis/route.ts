@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   // Railway backend writes results to Firestore directly.
   after(async () => {
     try {
-      await fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
+      await fetch(`${PYTHON_BACKEND_URL}/extract-dossier/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(analysisPayload),
