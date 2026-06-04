@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
-import { Pencil, Check, X, MessageSquare } from "lucide-react"
+import { Pencil, Check, X, MessageSquare, Download } from "lucide-react"
 
 interface AnalysisData {
   application: {
@@ -271,6 +271,38 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
   const [correctionForm, setCorrectionForm] = useState<CorrectionForm | null>(null)
   const [corrections, setCorrections] = useState<Correction[]>([])
   const [showCorrections, setShowCorrections] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+
+  async function downloadDossier() {
+    setDownloading(true)
+    try {
+      const token = await auth.currentUser?.getIdToken()
+      const res = await fetch("/api/admin/dossier", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ aanvraagId: applicationId }),
+      })
+      if (!res.ok) {
+        let msg = "Dossier downloaden mislukt."
+        try { msg = (await res.json()).error || msg } catch { /* keep default */ }
+        alert(msg)
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `AI-Kredietdossier-${(data?.application?.naam || "aanvraag").replace(/\s+/g, "_")}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      alert("Dossier downloaden mislukt.")
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -331,10 +363,23 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
 
   return (
     <div className="space-y-5">
-      {/* Back button */}
-      <button onClick={onBack} className="text-sm font-sans text-[#311E86] hover:underline">
-        ← Terug naar overzicht
-      </button>
+      {/* Back button + dossier download */}
+      <div className="flex items-center justify-between gap-3">
+        <button onClick={onBack} className="text-sm font-sans text-[#311E86] hover:underline">
+          ← Terug naar overzicht
+        </button>
+        {analysis && (
+          <button
+            onClick={downloadDossier}
+            disabled={downloading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-sans font-medium text-white bg-[#1E3A5F] rounded-full hover:bg-[#264a75] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            title="Download het AI-kredietdossier als PDF"
+          >
+            <Download size={14} />
+            {downloading ? "Dossier genereren…" : "Download dossier"}
+          </button>
+        )}
+      </div>
 
       {/* Header card */}
       <div className="border border-gray-200 rounded-2xl p-6 bg-white">
