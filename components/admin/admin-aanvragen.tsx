@@ -21,6 +21,8 @@ interface Aanvraag {
   driveFolderUrl: string
   driveFolderId: string
   aantalBestanden: number
+  submittedByRole?: string
+  partnerOrgId?: string
   // AI analysis fields (set by Python backend)
   analysisStatus?: string
   analysisRecommendation?: string
@@ -99,6 +101,8 @@ async function getToken() {
 export function AdminAanvragen() {
   const router = useRouter()
   const [aanvragen, setAanvragen] = useState<Aanvraag[]>([])
+  const [orgMap, setOrgMap] = useState<Record<string, string>>({})
+  const [partnerFilter, setPartnerFilter] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -120,7 +124,19 @@ export function AdminAanvragen() {
   const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { loadAanvragen() }, [])
+  useEffect(() => { loadAanvragen(); loadOrgs() }, [])
+
+  async function loadOrgs() {
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/partner-organizations", { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) return
+      const data = await res.json()
+      const map: Record<string, string> = {}
+      for (const o of (data.organizations || [])) map[o.id] = o.name
+      setOrgMap(map)
+    } catch {}
+  }
 
   const hasRunning = aanvragen.some(a => a.analysisStatus === "analyzing" || a.reputationScanStatus === "scanning")
   const prevAanvragenRef = useRef<Aanvraag[]>([])
@@ -463,9 +479,31 @@ export function AdminAanvragen() {
     return <p className="text-gray-400 font-sans text-sm py-8">Nog geen aanvragen ontvangen.</p>
   }
 
+  const orgIds = Object.keys(orgMap)
+  const filteredAanvragen = partnerFilter
+    ? aanvragen.filter((a) => (partnerFilter === "__none__" ? !a.partnerOrgId : a.partnerOrgId === partnerFilter))
+    : aanvragen
+
   return (
     <div className="space-y-3">
-      {aanvragen.map((a) => {
+      {orgIds.length > 0 && (
+        <div className="flex items-center gap-2 pb-1">
+          <label className="text-xs text-gray-400 font-sans">Filter op partner:</label>
+          <select
+            value={partnerFilter}
+            onChange={(e) => setPartnerFilter(e.target.value)}
+            className="h-[32px] px-3 text-xs font-sans bg-white border border-gray-200 rounded-full text-gray-700 outline-none focus:border-[#311E86] transition-colors"
+          >
+            <option value="">Alle aanvragen</option>
+            <option value="__none__">Direct ingediend (geen partner)</option>
+            {orgIds.map((id) => <option key={id} value={id}>{orgMap[id]}</option>)}
+          </select>
+        </div>
+      )}
+      {filteredAanvragen.length === 0 && (
+        <p className="text-gray-400 font-sans text-sm py-8">Geen aanvragen voor deze selectie.</p>
+      )}
+      {filteredAanvragen.map((a) => {
         const status = STATUS_LABELS[a.status] ?? { label: a.status, color: "#374151", bg: "#F3F4F6" }
         const aiStatus = a.analysisStatus ? AI_STATUS_LABELS[a.analysisStatus] : null
         const recommendation = a.analysisRecommendation ? RECOMMENDATION_LABELS[a.analysisRecommendation] : null
@@ -477,6 +515,11 @@ export function AdminAanvragen() {
               <div>
                 <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "—"}</p>
                 <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
+                {a.partnerOrgId && orgMap[a.partnerOrgId] && (
+                  <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/8 text-[#311E86]">
+                    Partner: {orgMap[a.partnerOrgId]}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 {recommendation && (

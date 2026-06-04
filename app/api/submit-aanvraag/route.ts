@@ -2,6 +2,7 @@ import { NextRequest, NextResponse, after } from "next/server"
 import { sendEmail } from "@/lib/brevo"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { isPartner, getPartnerOrgId } from "@/lib/partners"
 
 const ALLOWED_FILE_TYPES = new Set([
   "application/pdf",
@@ -101,12 +102,18 @@ export async function POST(req: NextRequest) {
   // Verify auth token if provided and get userId
   let userId: string | null = null
   let userEmail: string | null = null
+  let submittedByRole: "client" | "partner" = "client"
+  let partnerOrgId: string | null = null
   const idToken = get("idToken")
   if (idToken) {
     try {
       const decoded = await adminAuth.verifyIdToken(idToken)
       userId = decoded.uid
       userEmail = decoded.email ?? null
+      if (isPartner(decoded)) {
+        submittedByRole = "partner"
+        partnerOrgId = getPartnerOrgId(decoded)
+      }
     } catch {
       // Token invalid — still allow submission but won't be linked to a user
     }
@@ -256,6 +263,8 @@ export async function POST(req: NextRequest) {
     docRef = await adminDb.collection("aanvragen").add({
       userId: userId ?? null,
       userEmail: userEmail ?? email,
+      submittedByRole,
+      partnerOrgId,
       status: "ingediend",
       createdAt: new Date(),
       naam,
@@ -348,14 +357,30 @@ export async function POST(req: NextRequest) {
     </div>`
 
   /* ── Emails ── */
+  let partnerOrgName = ""
+  if (partnerOrgId) {
+    try {
+      const orgDoc = await adminDb.collection("partnerOrganizations").doc(partnerOrgId).get()
+      partnerOrgName = String(orgDoc.data()?.name ?? "")
+    } catch {}
+  }
+  const isPartnerSubmission = submittedByRole === "partner"
+  // Per Olivier (2026-06-04): when a partner submits, the confirmation goes to the
+  // partner, not the borrower. Direct-client submissions are unchanged.
+  const confirmationTo = isPartnerSubmission && userEmail ? userEmail : email
+  const greetingName = isPartnerSubmission ? "relatie" : (naam || "relatie")
+  const intakeLine = isPartnerSubmission
+    ? `Wij hebben de financieringsaanvraag die u namens uw klant${naam ? ` (${naam})` : ""} heeft ingediend in goede orde ontvangen. Ons team beoordeelt de aanvraag en neemt zo spoedig mogelijk contact met u op.`
+    : "Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op."
+
   const confirmationHtml = `
     <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
       <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
         ${emailHeader("Bedankt voor uw aanvraag")}
         <div style="padding:36px 40px;">
-          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">Beste ${naam || "relatie"},</p>
+          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">Beste ${greetingName},</p>
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">
-            Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op.
+            ${intakeLine}
           </p>
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 32px;">
             U kunt rekenen op een eerste reactie binnen twee werkdagen.
@@ -387,6 +412,7 @@ export async function POST(req: NextRequest) {
           })() : ""}
           <table style="width:100%;border-collapse:collapse;">
             ${section("Aanvrager", [
+              row("Ingediend via partner", partnerOrgName),
               row("Type aanvrager", fmt(aanvragerType)),
               row("Naam", fmt(naam)),
               row("Bedrijfsnaam", bedrijfsnaam),
@@ -425,7 +451,7 @@ export async function POST(req: NextRequest) {
     await Promise.all([
       sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
-        to: email,
+        to: confirmationTo,
         subject: "Bedankt voor uw financieringsaanvraag",
         html: confirmationHtml,
       }),

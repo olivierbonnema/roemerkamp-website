@@ -24,6 +24,7 @@ interface AuthContextValue {
   verifyMfa: (code: string) => Promise<void>
   logout: () => Promise<void>
   isAdmin: boolean
+  isPartner: boolean
   mfaEnrolled: boolean
   mfaChallenge: MfaChallenge | null
   clearMfaChallenge: () => void
@@ -36,6 +37,7 @@ const AuthContext = createContext<AuthContextValue>({
   verifyMfa: async () => {},
   logout: async () => {},
   isAdmin: false,
+  isPartner: false,
   mfaEnrolled: false,
   mfaChallenge: null,
   clearMfaChallenge: () => {},
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [mfaEnrolled, setMfaEnrolled] = useState(false)
+  const [isPartner, setIsPartner] = useState(false)
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null)
 
   useEffect(() => {
@@ -62,6 +65,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
     return unsub
   }, [])
+
+  // Partner role lives in the ID token's custom claims; read it when the user changes.
+  useEffect(() => {
+    if (!user) { setIsPartner(false); return }
+    let cancelled = false
+    user.getIdTokenResult()
+      .then((res) => { if (!cancelled) setIsPartner(res.claims.role === "partner") })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user])
 
   const login = async (email: string, password: string): Promise<"ok" | "mfa-required"> => {
     try {
@@ -104,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ADMIN_EMAILS.includes(email))
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, verifyMfa, logout, isAdmin, mfaEnrolled, mfaChallenge, clearMfaChallenge }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyMfa, logout, isAdmin, isPartner, mfaEnrolled, mfaChallenge, clearMfaChallenge }}>
       {children}
     </AuthContext.Provider>
   )
