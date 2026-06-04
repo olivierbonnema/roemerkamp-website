@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { isPartner, getPartnerOrgId } from "@/lib/partners"
 import { sendEmail } from "@/lib/brevo"
 import { logActivity } from "@/lib/activity-log"
 
@@ -35,7 +36,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const data = aanvraag.data()!
   const isAdmin = isAdminEmail(decoded.email || "")
-  if (!isAdmin && data.userId !== decoded.uid) {
+  const ownsAsPartner = isPartner(decoded) && !!data.partnerOrgId && data.partnerOrgId === getPartnerOrgId(decoded)
+  if (!isAdmin && data.userId !== decoded.uid && !ownsAsPartner) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

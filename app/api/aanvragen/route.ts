@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { isPartner, getPartnerOrgId } from "@/lib/partners"
 
 function isAdminEmail(email: string) {
   const domain = (process.env.ADMIN_DOMAIN || "").toLowerCase()
@@ -17,18 +18,30 @@ export async function GET(req: NextRequest) {
 
   let uid: string
   let email: string
+  let isPartnerUser = false
+  let partnerOrg: string | null = null
   try {
     const decoded = await adminAuth.verifyIdToken(auth.slice(7))
     uid = decoded.uid
     email = decoded.email ?? ""
+    if (isPartner(decoded)) {
+      isPartnerUser = true
+      partnerOrg = getPartnerOrgId(decoded)
+    }
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    const snap = isAdminEmail(email)
-      ? await adminDb.collection("aanvragen").get()
-      : await adminDb.collection("aanvragen").where("userId", "==", uid).get()
+    // Admin → all; partner → their whole firm's deals; client → only their own.
+    let snap
+    if (isAdminEmail(email)) {
+      snap = await adminDb.collection("aanvragen").get()
+    } else if (isPartnerUser && partnerOrg) {
+      snap = await adminDb.collection("aanvragen").where("partnerOrgId", "==", partnerOrg).get()
+    } else {
+      snap = await adminDb.collection("aanvragen").where("userId", "==", uid).get()
+    }
 
     const aanvragen = snap.docs
       .map((doc) => {

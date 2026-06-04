@@ -1,6 +1,7 @@
 import { Header } from "@/components/header"
 import { PortalFooter } from "@/components/portal-footer"
 import { FinancingForm } from "@/components/financieringsaanvraag/financing-form"
+import { PartnerIntakeNote } from "@/components/financieringsaanvraag/partner-intake-note"
 import { AuthGuard } from "@/components/auth-guard"
 
 export const metadata = {
@@ -40,6 +41,7 @@ export default function FinancieringsaanvraagPage() {
         {/* Form */}
         <section className="max-w-3xl mx-auto px-4 py-12 pb-20">
           <AuthGuard>
+            <PartnerIntakeNote />
             <FinancingForm />
           </AuthGuard>
         </section>

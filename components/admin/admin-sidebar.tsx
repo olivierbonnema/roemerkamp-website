@@ -9,6 +9,7 @@ import {
   FileText,
   FolderOpen,
   Users,
+  Handshake,
   Activity,
   Settings,
   LogOut,
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 },
   { href: "/admin/documenten", label: "Documenten", icon: FileText },
   { href: "/admin/gebruikers", label: "Gebruikers", icon: Users },
+  { href: "/admin/partners", label: "Partners", icon: Handshake },
   { href: "/admin/activiteit", label: "Activiteit", icon: Activity },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },
 ]

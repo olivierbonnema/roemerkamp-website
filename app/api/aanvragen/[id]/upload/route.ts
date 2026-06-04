@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { isPartner, getPartnerOrgId } from "@/lib/partners"
 
 const ALLOWED_FILE_TYPES = new Set([
   "application/pdf",
@@ -71,7 +72,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!aanvraag.exists) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const data = aanvraag.data()!
-  if (data.userId !== decoded.uid) {
+  const ownsAsPartner = isPartner(decoded) && !!data.partnerOrgId && data.partnerOrgId === getPartnerOrgId(decoded)
+  if (data.userId !== decoded.uid && !ownsAsPartner) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
