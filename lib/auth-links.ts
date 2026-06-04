@@ -1,6 +1,7 @@
 import { adminAuth } from "@/lib/firebase-admin"
+import { SITE_URL } from "@/lib/site"
 
-const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+const BASE_URL = SITE_URL
 
 // Generate a "set / reset password" link that points to OUR OWN branded page
 // (/wachtwoord-instellen) instead of Firebase's default email action handler.

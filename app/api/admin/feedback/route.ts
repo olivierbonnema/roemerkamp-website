@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/admin-auth"
+import { SITE_URL } from "@/lib/site"
 import { adminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
 import { sendEmail } from "@/lib/brevo"
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
       createdAt: FieldValue.serverTimestamp(),
     })
 
-    const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+    const BASE_URL = SITE_URL
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: FEEDBACK_EMAIL,

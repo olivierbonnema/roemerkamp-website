@@ -62,6 +62,8 @@ export default function MfaSetupPage() {
           setError("Uw e-mailadres is nog niet geverifieerd. Verifieer het hieronder om door te gaan met instellen.")
         } else if (code === "auth/requires-recent-login") {
           setError("Log opnieuw in en stel tweestapsverificatie direct daarna in.")
+        } else if (code === "auth/maximum-second-factor-count-exceeded") {
+          setError("Dit account heeft al het maximum aantal authenticators ingesteld. Log in met uw bestaande authenticator-app, of laat de beheerder het account opnieuw aanmaken.")
         } else {
           setError(`Er ging iets mis bij het instellen van tweestapsverificatie${code ? ` (${code})` : ""}. Probeer het opnieuw.`)
         }

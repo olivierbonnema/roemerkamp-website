@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse, after } from "next/server"
+import { SITE_URL } from "@/lib/site"
 import { sendEmail } from "@/lib/brevo"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
@@ -337,7 +338,7 @@ export async function POST(req: NextRequest) {
   let folderId = ""
 
   /* ── Email layout helpers ── */
-  const BASE_URL = process.env.PORTAL_BASE_URL || "https://lange-partners-portal.vercel.app"
+  const BASE_URL = SITE_URL
 
   const emailHeader = (title: string, subtitle?: string) => `
     <div style="border-top:4px solid #F75D20;background:#fff;padding:36px 40px 32px;">
@@ -415,7 +416,7 @@ export async function POST(req: NextRequest) {
           </a>` : ""}
           ${folderId ? (() => {
             const token = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback").update(folderId).digest("hex")
-            const triggerUrl = `${process.env.PORTAL_BASE_URL || ""}/api/trigger-analysis?folderId=${folderId}&token=${token}`
+            const triggerUrl = `${SITE_URL}/api/trigger-analysis?folderId=${folderId}&token=${token}`
             return `<a href="${triggerUrl}" style="display:inline-block;margin-bottom:24px;padding:9px 18px;background:#F75D20;color:#fff;border-radius:4px;font-size:13px;text-decoration:none;font-weight:500;">
             ▶ Start AI Analyse
           </a>`
