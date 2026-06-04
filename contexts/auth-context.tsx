@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import {
   User,
-  onAuthStateChanged,
+  onIdTokenChanged,
   signInWithEmailAndPassword,
   signOut,
   multiFactor,
@@ -26,6 +26,7 @@ interface AuthContextValue {
   isAdmin: boolean
   isPartner: boolean
   mfaEnrolled: boolean
+  markMfaEnrolled: () => void
   mfaChallenge: MfaChallenge | null
   clearMfaChallenge: () => void
 }
@@ -39,6 +40,7 @@ const AuthContext = createContext<AuthContextValue>({
   isAdmin: false,
   isPartner: false,
   mfaEnrolled: false,
+  markMfaEnrolled: () => {},
   mfaChallenge: null,
   clearMfaChallenge: () => {},
 })
@@ -58,7 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    // onIdTokenChanged (not onAuthStateChanged) so MFA state refreshes after
+    // enrollment and 2FA sign-in — those refresh the ID token but don't change the
+    // sign-in state, so onAuthStateChanged would leave mfaEnrolled stale and bounce
+    // a just-enrolled user back to /mfa-setup (re-enrolling factors until the max).
+    const unsub = onIdTokenChanged(auth, (u) => {
       setUser(u)
       setMfaEnrolled(u ? multiFactor(u).enrolledFactors.length > 0 : false)
       setLoading(false)
@@ -100,10 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!totpHint) throw new Error("No TOTP factor found")
     const assertion = TotpMultiFactorGenerator.assertionForSignIn(totpHint.uid, code)
     await resolver.resolveSignIn(assertion)
+    setMfaEnrolled(true) // signed in via the second factor → definitely enrolled
     setMfaChallenge(null)
   }
 
   const clearMfaChallenge = () => setMfaChallenge(null)
+  const markMfaEnrolled = () => setMfaEnrolled(true)
 
   const logout = async () => {
     setMfaChallenge(null)
@@ -117,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ADMIN_EMAILS.includes(email))
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, verifyMfa, logout, isAdmin, isPartner, mfaEnrolled, mfaChallenge, clearMfaChallenge }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyMfa, logout, isAdmin, isPartner, mfaEnrolled, markMfaEnrolled, mfaChallenge, clearMfaChallenge }}>
       {children}
     </AuthContext.Provider>
   )
