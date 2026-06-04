@@ -18,6 +18,13 @@ export default function MfaSetupPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
+  // Self-heal flow for accounts whose email is not yet verified (Firebase blocks
+  // TOTP enrollment until it is). Lets the user send themselves a verification
+  // link and retry, instead of hard-locking on this screen.
+  const [unverified, setUnverified] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [retryNonce, setRetryNonce] = useState(0)
 
   useEffect(() => {
     if (authLoading) return
@@ -35,6 +42,8 @@ export default function MfaSetupPage() {
 
     const generate = async () => {
       setGenerating(true)
+      setError("")
+      setUnverified(false)
       try {
         const mf = multiFactor(user)
         const session = await mf.getSession()
@@ -49,7 +58,8 @@ export default function MfaSetupPage() {
         if (code === "auth/operation-not-allowed" || code === "auth/admin-restricted-operation") {
           setError("Tweestapsverificatie is nog niet ingeschakeld voor dit project. Neem contact op met de beheerder.")
         } else if (code === "auth/unverified-email") {
-          setError("Uw e-mailadres is nog niet geverifieerd. Tweestapsverificatie kan pas worden ingesteld na verificatie.")
+          setUnverified(true)
+          setError("Uw e-mailadres is nog niet geverifieerd. Verifieer het hieronder om door te gaan met instellen.")
         } else if (code === "auth/requires-recent-login") {
           setError("Log opnieuw in en stel tweestapsverificatie direct daarna in.")
         } else {
@@ -61,7 +71,47 @@ export default function MfaSetupPage() {
     }
     generate()
     return () => { cancelled = true }
-  }, [user, isAdmin, mfaEnrolled])
+  }, [user, isAdmin, mfaEnrolled, retryNonce])
+
+  // Reload the Firebase user (to pick up a freshly-verified email) and re-run
+  // QR generation by bumping retryNonce.
+  const retryAfterVerify = async () => {
+    if (!user) return
+    setError("")
+    setSent(false)
+    setUnverified(false)
+    try {
+      await user.reload()
+    } catch {
+      /* ignore — generate() will surface any remaining issue */
+    }
+    setRetryNonce((n) => n + 1)
+  }
+
+  // Email the signed-in user a branded verification link.
+  const sendVerification = async () => {
+    if (!user) return
+    setSending(true)
+    setError("")
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch("/api/send-verification-email", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(result?.error || "send failed")
+      if (result?.alreadyVerified) {
+        await retryAfterVerify()
+        return
+      }
+      setSent(true)
+    } catch {
+      setError("Kon de verificatie-e-mail niet versturen. Probeer het opnieuw.")
+    } finally {
+      setSending(false)
+    }
+  }
 
   const handleEnroll = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -130,9 +180,46 @@ export default function MfaSetupPage() {
                 <div className="w-8 h-8 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : error && !totpSecret ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
+              unverified ? (
+                <div className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                  {!sent ? (
+                    <button
+                      onClick={sendVerification}
+                      disabled={sending}
+                      className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {sending ? "Versturen…" : "Verificatie-e-mail versturen"}
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
+                        We hebben een verificatielink gestuurd naar <strong>{user?.email}</strong>. Open de
+                        e-mail, klik op de link en kom daarna hier terug.
+                      </div>
+                      <button
+                        onClick={retryAfterVerify}
+                        className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors"
+                      >
+                        Ik heb mijn e-mail geverifieerd — opnieuw proberen
+                      </button>
+                      <button
+                        onClick={sendVerification}
+                        disabled={sending}
+                        className="w-full text-[13px] text-gray-400 hover:text-gray-600 font-sans transition-colors disabled:opacity-60"
+                      >
+                        {sending ? "Versturen…" : "E-mail opnieuw versturen"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )
             ) : qrUri ? (
               <form onSubmit={handleEnroll} className="space-y-6">
                 <div className="flex justify-center">
