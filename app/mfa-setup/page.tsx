@@ -11,7 +11,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 
 export default function MfaSetupPage() {
   const router = useRouter()
-  const { user, isAdmin, loading: authLoading, mfaEnrolled } = useAuth()
+  const { user, isAdmin, loading: authLoading, mfaEnrolled, markMfaEnrolled } = useAuth()
   const [totpSecret, setTotpSecret] = useState<TotpSecret | null>(null)
   const [qrUri, setQrUri] = useState("")
   const [code, setCode] = useState("")
@@ -123,6 +123,7 @@ export default function MfaSetupPage() {
     try {
       const assertion = TotpMultiFactorGenerator.assertionForEnrollment(totpSecret, code)
       await multiFactor(user!).enroll(assertion, "Authenticator")
+      markMfaEnrolled() // set immediately so the guard doesn't bounce back to /mfa-setup
       router.push(isAdmin ? "/admin" : "/portaal")
     } catch (err: unknown) {
       const errorCode = (err as { code?: string }).code
