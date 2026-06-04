@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { SITE_URL } from "@/lib/site"
 import { randomBytes } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { sendEmail } from "@/lib/brevo"
@@ -14,7 +15,7 @@ import { passwordResetLink } from "@/lib/auth-links"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+const BASE_URL = SITE_URL
 
 async function verifyAdmin(req: NextRequest) {
   const auth = req.headers.get("authorization")

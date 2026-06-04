@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import { SITE_URL } from "@/lib/site"
 import { passwordResetLink } from "@/lib/auth-links"
 import { sendEmail } from "@/lib/brevo"
 
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+const BASE_URL = SITE_URL
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json()

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth } from "@/lib/firebase-admin"
+import { SITE_URL } from "@/lib/site"
 import { sendEmail } from "@/lib/brevo"
 
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+const BASE_URL = SITE_URL
 
 // Sends a branded email-verification link to the signed-in user.
 // Used by the /mfa-setup self-heal flow: Firebase blocks TOTP enrollment on

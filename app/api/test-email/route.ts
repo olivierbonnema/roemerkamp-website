@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { sendEmail } from "@/lib/brevo"
+import { SITE_URL } from "@/lib/site"
 
 /**
  * Temporary — sends all email templates to test delivery + design.
@@ -10,7 +11,7 @@ import { sendEmail } from "@/lib/brevo"
 export async function GET() {
   const to = "olivier@langefa.nl"
   const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-  const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+  const BASE_URL = SITE_URL
   const results: Record<string, string> = {}
 
   /* ── Shared layout helpers ── */

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendEmail } from "@/lib/brevo"
+import { SITE_URL } from "@/lib/site"
 
 const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+    const BASE_URL = SITE_URL
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: COMPANY_EMAIL,

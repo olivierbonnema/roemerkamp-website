@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { SITE_URL } from "@/lib/site"
 import { isPartner, getPartnerOrgId } from "@/lib/partners"
 import { sendEmail } from "@/lib/brevo"
 import { logActivity } from "@/lib/activity-log"
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const applicantEmail = aanvraagData.userEmail
   if (applicantEmail) {
     try {
-      const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+      const BASE_URL = SITE_URL
       await sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: applicantEmail,
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 <div style="background:#f9fafb;border-left:3px solid #311E86;padding:16px;border-radius:0 4px 4px 0;margin:0 0 24px;">
                   <p style="color:#1f2937;font-size:13px;line-height:1.8;margin:0;white-space:pre-wrap;">${message.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
                 </div>
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://nonbancaireleningen.nl"}/mijn-aanvragen/${id}"
+                <a href="${SITE_URL}/mijn-aanvragen/${id}"
                    style="display:inline-block;background:#311E86;color:#fff;text-decoration:none;padding:10px 22px;border-radius:4px;font-size:13px;font-weight:500;">
                   Bekijk uw aanvraag →
                 </a>
