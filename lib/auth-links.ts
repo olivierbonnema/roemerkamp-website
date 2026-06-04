@@ -1,28 +1,25 @@
 import { adminAuth } from "@/lib/firebase-admin"
 
-// Generate a Firebase password-reset ("set password") link, with the email
-// action-handler host forced to the project's default Firebase domain.
+const BASE_URL = process.env.PORTAL_BASE_URL || "https://nonbancaireleningen.nl"
+
+// Generate a "set / reset password" link that points to OUR OWN branded page
+// (/wachtwoord-instellen) instead of Firebase's default email action handler.
 //
 // WHY: the Firebase project's configured email action-handler domain is
-// `langefinancieeladvies.nl` — the OLD company website (Apache), which returns
-// 404 for `/__/auth/action`. So `adminAuth.generatePasswordResetLink()` returns a
-// link that dead-ends. Until the handler domain is corrected in the Firebase
-// Console, we rewrite the host to `lange-financieringen.firebaseapp.com`, the
-// project's default Firebase domain, which always serves the action handler
-// (verified). The oobCode + apiKey in the link are project-scoped, so any
-// authorized Firebase domain completes the reset correctly.
-//
-// Hardcoded (not read from NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) on purpose: that env
-// var may itself hold the misconfigured domain. This is the project's permanent,
-// always-serving Firebase domain.
-const AUTH_HANDLER_HOST = "lange-financieringen.firebaseapp.com"
-
+// `langefinancieeladvies.nl` — the old company website (Apache), which 404s on
+// `/__/auth/action`, so the default links dead-end. Rather than depend on that
+// domain at all, we take the one-time `oobCode` from the generated link and route
+// to our own page, which completes the reset with the client SDK
+// (`verifyPasswordResetCode` + `confirmPasswordReset`). Those work from any domain,
+// so the flow is fully self-contained and branded.
 export async function passwordResetLink(email: string): Promise<string> {
   const raw = await adminAuth.generatePasswordResetLink(email)
   try {
-    const url = new URL(raw)
-    url.host = AUTH_HANDLER_HOST
-    return url.toString()
+    const oobCode = new URL(raw).searchParams.get("oobCode")
+    if (oobCode) {
+      return `${BASE_URL}/wachtwoord-instellen?oobCode=${encodeURIComponent(oobCode)}`
+    }
+    return raw
   } catch {
     return raw
   }
