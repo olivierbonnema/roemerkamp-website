@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { adminAuth } from "@/lib/firebase-admin"
+import { passwordResetLink } from "@/lib/auth-links"
 import { sendEmail } from "@/lib/brevo"
 
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Generate reset link via Firebase Admin SDK
-    const resetLink = await adminAuth.generatePasswordResetLink(email.trim())
+    // Generate reset link (host forced to the working Firebase action-handler domain)
+    const resetLink = await passwordResetLink(email.trim())
 
     // Send branded email via Microsoft Graph API
     await sendEmail({
