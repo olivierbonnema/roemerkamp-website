@@ -303,7 +303,17 @@ export async function POST(req: NextRequest) {
 
   /* ── Upload to OneDrive after the response is sent ── */
   const date = new Date().toISOString().slice(0, 10)
-  const folderName = `${date} - ${naam || email}`
+  // SharePoint/OneDrive forbid \ / : * ? " < > | and reject names that end with a
+  // "." or space — e.g. a company name ending in "B.V."/"N.V." or trailing initials.
+  // Without this, folder creation silently fails and the documents never upload.
+  const rawFolderName = `${date} - ${naam || email}`
+  const folderName =
+    rawFolderName
+      .replace(/[\\/:*?"<>|]/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/[.\s]+$/g, "")
+      .replace(/^[.\s]+/g, "")
+      .trim() || date
 
   after(async () => {
     try {
