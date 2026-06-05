@@ -19,7 +19,6 @@ export function AdminUsers() {
   const [usersLoading, setUsersLoading] = useState(true)
   const [usersError, setUsersError] = useState("")
   const [newEmail, setNewEmail] = useState("")
-  const [newPassword, setNewPassword] = useState("")
   const [newName, setNewName] = useState("")
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState("")
@@ -54,12 +53,12 @@ export function AdminUsers() {
       const res = await fetch("/api/admin/create-user", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ email: newEmail, password: newPassword, displayName: newName }),
+        body: JSON.stringify({ email: newEmail, displayName: newName }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Mislukt")
-      setCreateSuccess(`Account aangemaakt voor ${data.email}`)
-      setNewEmail(""); setNewPassword(""); setNewName("")
+      setCreateSuccess(`Uitnodiging verstuurd naar ${data.email}. De gebruiker stelt zelf een wachtwoord in.`)
+      setNewEmail(""); setNewName("")
       loadUsers()
     } catch (err: unknown) {
       setCreateError((err as Error).message || "Account aanmaken mislukt.")
@@ -101,11 +100,9 @@ export function AdminUsers() {
                 className="w-full h-[42px] px-4 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors" />
             </div>
           </div>
-          <div className="max-w-xs">
-            <label className="block text-[12px] font-medium text-gray-700 font-sans mb-1.5">Tijdelijk wachtwoord <span className="text-[#F75D20]">*</span></label>
-            <input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 tekens" required minLength={6}
-              className="w-full h-[42px] px-4 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors" />
-          </div>
+          <p className="text-[12px] text-gray-400 font-sans leading-relaxed max-w-md">
+            De gebruiker ontvangt een e-mail om zelf een wachtwoord in te stellen en daarna eenmalig tweestapsverificatie te activeren — precies zoals bij partners.
+          </p>
           {createError && <p className="text-sm text-red-500 font-sans">{createError}</p>}
           {createSuccess && <p className="text-sm text-green-600 font-sans">{createSuccess}</p>}
           <button type="submit" disabled={creating}
