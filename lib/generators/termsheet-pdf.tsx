@@ -4,6 +4,14 @@ import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
 import type { TermsheetData, TermsheetBorrower } from "./termsheet-generator"
 import { numberToWords, fmtZegge } from "./number-to-words"
+import {
+  type Leningdeel,
+  leningdelenTotal,
+  leningdeelLines,
+  buildAflossingSummary,
+  termijnLines,
+  termijnTotal,
+} from "./leningdelen"
 
 /* ── Register Calibri-compatible font (Carlito, metrically identical) ── */
 
@@ -160,19 +168,30 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
   const borrowers = data.borrowers || []
   const objects = data.objects || []
   const loanParts = data.loanParts || []
+  const leningdelen = (data.leningdelen || []) as Leningdeel[]
+  const hasLeningdelen = leningdelen.length > 0
   const vooraf = data.voorafgaandeCondities || []
   const entree = data.entreekosten || { afsluit: 0, opstart: 0, annulering: 0 }
   const dateStr = fmtNlDate(data.date || "")
   const validityStr = fmtNlDate(data.validityDate || "")
   const deadlineStr = fmtNlDate(data.signingDeadline || "")
-  const totalLoan = loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
+  const totalLoan = hasLeningdelen
+    ? leningdelenTotal(leningdelen)
+    : loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
   const companyName = settings.companyName || "Lange & Partners Financieel Advies"
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
   const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "—"
   const logoUrl = settings.logoDataUrl || ""
+  const rate = Number(data.rentePct) || 0
   const termijnNum = Number(data.termijnbedrag) || 0
   const adminKosten = totalLoan * 0.0007
   const totalPerMaand = termijnNum + adminKosten
+  const aflossingText =
+    data.aflossing && data.aflossing.trim()
+      ? data.aflossing
+      : hasLeningdelen
+        ? buildAflossingSummary(leningdelen)
+        : "—"
 
   const entreeLines: string[] = []
   if (entree.afsluit) entreeLines.push(`Afsluitkosten: ${fmtEuro(entree.afsluit)}`)
@@ -278,7 +297,16 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
         <CondRow label="Type faciliteit"><V>{data.typeFaciliteit || "—"}</V></CondRow>
         <CondRow label="Valuta"><V>{data.valuta || "Euro (€)"}</V></CondRow>
         <CondRow label="Lening bij aanvang">
-          <V>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "—"}</V>
+          {hasLeningdelen ? (
+            <View>
+              <Text style={s.val}>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "—"}</Text>
+              {leningdeelLines(leningdelen).map((line, i) => (
+                <Text key={i} style={s.val}>{line}</Text>
+              ))}
+            </View>
+          ) : (
+            <V>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "—"}</V>
+          )}
         </CondRow>
 
         {loanParts.map((lp, i) => {
@@ -301,7 +329,13 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
         })}
 
         <CondRow label="Looptijd"><V>{data.looptijd || "—"}</V></CondRow>
-        <CondRow label="Aflossing"><V>{data.aflossing || "—"}</V></CondRow>
+        <CondRow label="Aflossing">
+          <View>
+            {aflossingText.split("\n").map((line, i) => (
+              <Text key={i} style={s.val}>{line}</Text>
+            ))}
+          </View>
+        </CondRow>
         <CondRow label="Rente">
           <View>
             {(data.rente || "—").split("\n").map((line, i) => (
@@ -311,7 +345,16 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
         </CondRow>
         <CondRow label="Administratiekosten"><V>{data.administratiekosten || "—"}</V></CondRow>
         <CondRow label="Termijnbedrag">
-          {termijnNum > 0 ? (
+          {hasLeningdelen ? (
+            <View>
+              {termijnLines(leningdelen, rate, data.date).map((l, i) => (
+                <Text key={i} style={s.val}>{l}</Text>
+              ))}
+              <Text style={s.val}>Alle leningdelen zijn exclusief administratiekosten</Text>
+              <Text style={s.val}>Administratiekosten: {fmtEuro2dec(adminKosten)} per maand</Text>
+              <Text style={s.val}>Totaal per maand: {fmtEuro2dec(termijnTotal(leningdelen, rate, data.date) + adminKosten)}</Text>
+            </View>
+          ) : termijnNum > 0 ? (
             <View>
               <Text style={s.val}>{fmtEuro2dec(termijnNum)} exclusief administratiekosten</Text>
               <Text style={s.val}>Administratiekosten: {fmtEuro2dec(adminKosten)} per maand</Text>

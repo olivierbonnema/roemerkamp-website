@@ -10,6 +10,14 @@ import {
   fmtEuro, fmtEuro2dec, fmtNlDate, multilinePars,
   getImageSize, logoType, logoBase64,
 } from "./docx-helpers"
+import {
+  type Leningdeel,
+  leningdelenTotal,
+  leningdeelLines,
+  buildAflossingSummary,
+  termijnLines,
+  termijnTotal,
+} from "./leningdelen"
 
 const MARGIN_TOP = MM(32)
 const MARGIN_BOTTOM = MM(32)
@@ -63,6 +71,7 @@ export interface TermsheetData {
   borrowers: TermsheetBorrower[]
   objects: TermsheetObject[]
   loanParts: LoanPart[]
+  leningdelen?: Leningdeel[]
   voorafgaandeCondities: VoorafConditie[]
   entreekosten: { afsluit: number; opstart: number; annulering: number }
   date?: string
@@ -172,12 +181,16 @@ export async function generateTermsheet(
   const borrowers = data.borrowers || []
   const objects = data.objects || []
   const loanParts = data.loanParts || []
+  const leningdelen = (data.leningdelen || []) as Leningdeel[]
+  const hasLeningdelen = leningdelen.length > 0
   const vooraf = data.voorafgaandeCondities || []
   const entree = data.entreekosten || { afsluit: 0, opstart: 0, annulering: 0 }
   const dateStr = fmtNlDate(data.date || "")
   const validityStr = fmtNlDate(data.validityDate || "")
   const deadlineStr = fmtNlDate(data.signingDeadline || "")
-  const totalLoan = loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
+  const totalLoan = hasLeningdelen
+    ? leningdelenTotal(leningdelen)
+    : loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
   const companyName = s.companyName || "Lange & Partners Financieel Advies"
   const loanTotalTxt = totalLoan > 0 ? fmtEuro(totalLoan) : "—"
 
@@ -376,7 +389,17 @@ export async function generateTermsheet(
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
   const leningRows: docx.TableRow[] = []
 
-  leningRows.push(condRow("Lening bij aanvang", [tx(`${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}`, { size: SZ_SMALL })]))
+  if (hasLeningdelen) {
+    const aanvangPars = [
+      par([tx(`${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}`, { size: SZ_SMALL })], { before: 50, after: 20 }),
+      ...leningdeelLines(leningdelen).map((line) =>
+        par([tx(line, { size: SZ_SMALL })], { before: 10, after: 10 })
+      ),
+    ]
+    leningRows.push(condRow("Lening bij aanvang", aanvangPars))
+  } else {
+    leningRows.push(condRow("Lening bij aanvang", [tx(`${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}`, { size: SZ_SMALL })]))
+  }
 
   loanParts.forEach((lp) => {
     const label = (lp.typeLabel || "").trim()
@@ -389,17 +412,30 @@ export async function generateTermsheet(
     }
   })
 
-  const termijnNum = Number(data.termijnbedrag) || 0
   const adminKosten = totalLoan * 0.0007
-  const totalPerMaand = termijnNum + adminKosten
-  const termijnPars =
-    termijnNum > 0
-      ? [
-          par([tx(`${fmtEuro2dec(termijnNum)} exclusief administratiekosten`, { size: SZ_SMALL })], { before: 30, after: 10 }),
-          par([tx(`Administratiekosten: ${fmtEuro2dec(adminKosten)} per maand`, { size: SZ_SMALL })], { before: 10, after: 10 }),
-          par([tx(`Totaal per maand: ${fmtEuro2dec(totalPerMaand)}`, { size: SZ_SMALL })], { before: 10, after: 30 }),
-        ]
-      : [par([tx("—", { size: SZ_SMALL })], { before: 50, after: 50 })]
+  let termijnPars: docx.Paragraph[]
+  if (hasLeningdelen) {
+    const rate = Number(data.rentePct) || 0
+    const lines = termijnLines(leningdelen, rate, data.date)
+    const partsTotal = termijnTotal(leningdelen, rate, data.date)
+    termijnPars = [
+      ...lines.map((l, i) => par([tx(l, { size: SZ_SMALL })], { before: i === 0 ? 30 : 10, after: 10 })),
+      par([tx("Alle leningdelen zijn exclusief administratiekosten", { size: SZ_SMALL })], { before: 10, after: 10 }),
+      par([tx(`Administratiekosten: ${fmtEuro2dec(adminKosten)} per maand`, { size: SZ_SMALL })], { before: 10, after: 10 }),
+      par([tx(`Totaal per maand: ${fmtEuro2dec(partsTotal + adminKosten)}`, { size: SZ_SMALL })], { before: 10, after: 30 }),
+    ]
+  } else {
+    const termijnNum = Number(data.termijnbedrag) || 0
+    const totalPerMaand = termijnNum + adminKosten
+    termijnPars =
+      termijnNum > 0
+        ? [
+            par([tx(`${fmtEuro2dec(termijnNum)} exclusief administratiekosten`, { size: SZ_SMALL })], { before: 30, after: 10 }),
+            par([tx(`Administratiekosten: ${fmtEuro2dec(adminKosten)} per maand`, { size: SZ_SMALL })], { before: 10, after: 10 }),
+            par([tx(`Totaal per maand: ${fmtEuro2dec(totalPerMaand)}`, { size: SZ_SMALL })], { before: 10, after: 30 }),
+          ]
+        : [par([tx("—", { size: SZ_SMALL })], { before: 50, after: 50 })]
+  }
 
   const entreeLines: string[] = []
   if (entree.afsluit) entreeLines.push(`Afsluitkosten: ${fmtEuro(entree.afsluit)}`)
@@ -414,6 +450,13 @@ export async function generateTermsheet(
     ? entreeLines.map((l) => par([tx(l, { size: SZ_SMALL })], { before: 30, after: 30 }))
     : [par([tx("—", { size: SZ_SMALL })], { before: 30, after: 30 })]
 
+  const aflossingText =
+    data.aflossing && data.aflossing.trim()
+      ? data.aflossing
+      : hasLeningdelen
+        ? buildAflossingSummary(leningdelen)
+        : "—"
+
   const table1Rows = [
     condRow("Kredietgever", [tx(data.kredietgever || companyName, { size: SZ_SMALL })]),
     condRow(borrowers.length > 1 ? "Kredietnemers" : "Kredietnemer", [tx(kredietnemersTxt, { size: SZ_SMALL })]),
@@ -422,7 +465,7 @@ export async function generateTermsheet(
     condRow("Valuta", [tx(data.valuta || "Euro (€)", { size: SZ_SMALL })]),
     ...leningRows,
     condRow("Looptijd", [tx(data.looptijd || "—", { size: SZ_SMALL })]),
-    condRow("Aflossing", [tx(data.aflossing || "—", { size: SZ_SMALL })]),
+    condRow("Aflossing", multilinePars(aflossingText)),
     condRow("Rente", multilinePars(data.rente || "")),
     condRow("Administratiekosten", [tx(data.administratiekosten || "—", { size: SZ_SMALL })]),
     condRow("Termijnbedrag", termijnPars),

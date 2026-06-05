@@ -10,6 +10,15 @@ import {
   addMonths,
 } from "@/lib/generators/form-defaults"
 import type { TermsheetData } from "@/lib/generators/termsheet-generator"
+import {
+  type Leningdeel,
+  type RepaymentType,
+  leningdelenTotal,
+  leningdeelMonthly,
+  computeLeningdeelMonthly,
+  buildAflossingSummary,
+  buildFaciliteitSuggestion,
+} from "@/lib/generators/leningdelen"
 
 interface Borrower {
   type: "privepersoon" | "bv"
@@ -94,6 +103,13 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [loanParts, setLoanParts] = useState<LoanPart[]>(
     (d.loanParts as unknown as LoanPart[]) || [{ amount: 0, typeLabel: "Lening bij aanvang" }]
   )
+  const [splitMode, setSplitMode] = useState<boolean>(
+    Array.isArray((d as Record<string, unknown>).leningdelen) &&
+      ((d as Record<string, unknown>).leningdelen as unknown[]).length > 0
+  )
+  const [leningdelen, setLeningdelen] = useState<Leningdeel[]>(
+    ((d as Record<string, unknown>).leningdelen as Leningdeel[]) || []
+  )
   const [vooraf, setVooraf] = useState<VoorafConditie[]>(
     (d.voorafgaandeCondities as unknown as VoorafConditie[]) || buildDefaultVoorafCondities(objects.length)
   )
@@ -142,9 +158,22 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const toggleSection = (key: string) => setOpenSections((prev) => ({ ...prev, [key]: prev[key] === false ? true : prev[key] === undefined ? false : !prev[key] }))
   const isSectionOpen = (key: string) => openSections[key] !== false
 
-  const totalLoan = useMemo(() => loanParts.reduce((s, lp) => s + (lp.amount || 0), 0), [loanParts])
+  const totalLoan = useMemo(
+    () =>
+      splitMode && leningdelen.length
+        ? leningdelenTotal(leningdelen)
+        : loanParts.reduce((s, lp) => s + (lp.amount || 0), 0),
+    [splitMode, leningdelen, loanParts]
+  )
   const adminComputed = useMemo(() => totalLoan * 0.0007, [totalLoan])
-  const totalComputed = useMemo(() => termijnbedrag + adminComputed, [termijnbedrag, adminComputed])
+  const termijnTotaalComputed = useMemo(
+    () =>
+      splitMode && leningdelen.length
+        ? leningdelen.reduce((s, dl) => s + leningdeelMonthly(dl, rentePct, date), 0)
+        : termijnbedrag,
+    [splitMode, leningdelen, termijnbedrag, rentePct, date]
+  )
+  const totalComputed = useMemo(() => termijnTotaalComputed + adminComputed, [termijnTotaalComputed, adminComputed])
 
   const zekerhedenPreview = useMemo(() => {
     if (!objects.length || !totalLoan) return ""
@@ -222,6 +251,26 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const removeLoanPart = (idx: number) => setLoanParts((prev) => prev.filter((_, i) => i !== idx))
   const addLoanPart = () => setLoanParts((prev) => [...prev, { amount: 0, typeLabel: "Lening bij aanvang" }])
 
+  const updateDeel = (idx: number, updates: Partial<Leningdeel>) => {
+    setLeningdelen((prev) => prev.map((dl, i) => (i === idx ? { ...dl, ...updates } : dl)))
+  }
+  const removeDeel = (idx: number) => setLeningdelen((prev) => prev.filter((_, i) => i !== idx))
+  const addDeel = () =>
+    setLeningdelen((prev) => [...prev, { amount: 0, repaymentType: "annuïtair", endDate: "", monthlyAmount: 0 }])
+  const berekenDeel = (idx: number) =>
+    setLeningdelen((prev) =>
+      prev.map((dl, i) => (i === idx ? { ...dl, monthlyAmount: computeLeningdeelMonthly(dl, rentePct, date) } : dl))
+    )
+  const berekenAlleDelen = () =>
+    setLeningdelen((prev) => prev.map((dl) => ({ ...dl, monthlyAmount: computeLeningdeelMonthly(dl, rentePct, date) })))
+
+  // In split mode the Aflossing text + Type faciliteit are derived from the leningdelen.
+  useEffect(() => {
+    if (!splitMode || !leningdelen.length) return
+    setAflossing(buildAflossingSummary(leningdelen))
+    setTypeFaciliteit(buildFaciliteitSuggestion(leningdelen))
+  }, [splitMode, leningdelen])
+
   const updateVooraf = (idx: number, updates: Partial<VoorafConditie>) => {
     setVooraf((prev) => prev.map((c, i) => (i === idx ? { ...c, ...updates } : c)))
   }
@@ -282,6 +331,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           priorLienholders: o.priorLienholders,
         })),
         loanParts: filteredLoanParts,
+        leningdelen: splitMode ? leningdelen.filter((dl) => dl.amount > 0) : undefined,
         loanAmount: totalLoan,
         advisorName,
         reference,
@@ -494,10 +544,14 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Type faciliteit</label>
-            <select value={typeFaciliteit} onChange={(e) => setTypeFaciliteit(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-              {TD.faciliteiten.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">Type faciliteit{splitMode ? " (automatisch)" : ""}</label>
+            {splitMode ? (
+              <input value={typeFaciliteit} readOnly className="w-full border rounded px-2 py-1.5 text-sm bg-gray-50 text-gray-500" />
+            ) : (
+              <select value={typeFaciliteit} onChange={(e) => setTypeFaciliteit(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+                {TD.faciliteiten.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            )}
           </div>
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Valuta</label>
@@ -506,19 +560,61 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Leningsdelen</label>
-          {loanParts.map((lp, i) => (
-            <div key={i} className="flex gap-2 mb-2">
-              <input type="number" placeholder="Bedrag" value={lp.amount || ""} onChange={(e) => updateLoanPart(i, { amount: parseFloat(e.target.value) || 0 })} className="flex-1 min-w-[120px] border rounded px-2 py-1.5 text-sm" />
-              <select value={lp.typeLabel} onChange={(e) => updateLoanPart(i, { typeLabel: e.target.value })} className="flex-1 border rounded px-2 py-1.5 text-sm">
-                <option>Lening bij aanvang</option>
-                <option>Rentedepot</option>
-                <option>Bouwdepot</option>
-              </select>
-              <button type="button" onClick={() => removeLoanPart(i)} className="text-red-400 hover:text-red-600 text-lg">×</button>
+          <label className="flex items-center gap-2 mb-2 text-xs font-medium text-gray-700 cursor-pointer">
+            <input type="checkbox" checked={splitMode} onChange={(e) => setSplitMode(e.target.checked)} />
+            Gesplitste leningdelen (verschillende aflossingsvormen)
+          </label>
+
+          {!splitMode ? (
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Leningsdelen</label>
+              {loanParts.map((lp, i) => (
+                <div key={i} className="flex gap-2 mb-2">
+                  <input type="number" placeholder="Bedrag" value={lp.amount || ""} onChange={(e) => updateLoanPart(i, { amount: parseFloat(e.target.value) || 0 })} className="flex-1 min-w-[120px] border rounded px-2 py-1.5 text-sm" />
+                  <select value={lp.typeLabel} onChange={(e) => updateLoanPart(i, { typeLabel: e.target.value })} className="flex-1 border rounded px-2 py-1.5 text-sm">
+                    <option>Lening bij aanvang</option>
+                    <option>Rentedepot</option>
+                    <option>Bouwdepot</option>
+                  </select>
+                  <button type="button" onClick={() => removeLoanPart(i)} className="text-red-400 hover:text-red-600 text-lg">×</button>
+                </div>
+              ))}
+              <button type="button" onClick={addLoanPart} className="text-sm text-[#2E2060] hover:underline">+ Leningsdeel toevoegen</button>
             </div>
-          ))}
-          <button type="button" onClick={addLoanPart} className="text-sm text-[#2E2060] hover:underline">+ Leningsdeel toevoegen</button>
+          ) : (
+            <div className="space-y-2">
+              <div className="grid grid-cols-[1fr_1.1fr_1fr_1.1fr_auto] gap-2 text-[10px] font-medium text-gray-400 px-1">
+                <span>Bedrag</span><span>Aflossingsvorm</span><span>Einddatum aflossing</span><span>Termijn p/m</span><span></span>
+              </div>
+              {leningdelen.map((dl, i) => (
+                <div key={i} className="grid grid-cols-[1fr_1.1fr_1fr_1.1fr_auto] gap-2 items-center">
+                  <input type="number" placeholder="Bedrag" value={dl.amount || ""} onChange={(e) => updateDeel(i, { amount: parseFloat(e.target.value) || 0 })} className="border rounded px-2 py-1.5 text-sm" />
+                  <select value={dl.repaymentType} onChange={(e) => updateDeel(i, { repaymentType: e.target.value as RepaymentType })} className="border rounded px-2 py-1.5 text-sm">
+                    <option value="annuïtair">Annuïtair</option>
+                    <option value="aflossingsvrij">Aflossingsvrij</option>
+                    <option value="lineair">Lineair</option>
+                  </select>
+                  <input type="date" value={dl.endDate || ""} onChange={(e) => updateDeel(i, { endDate: e.target.value })} className="border rounded px-2 py-1.5 text-sm" />
+                  <div className="flex gap-1 items-center">
+                    <input type="number" placeholder="auto" value={dl.monthlyAmount || ""} onChange={(e) => updateDeel(i, { monthlyAmount: parseFloat(e.target.value) || 0 })} className="w-full border rounded px-2 py-1.5 text-sm" />
+                    <button type="button" onClick={() => berekenDeel(i)} title="Bereken termijnbedrag voor dit deel" className="px-1.5 py-1 border rounded text-xs hover:bg-gray-50">∑</button>
+                  </div>
+                  <button type="button" onClick={() => removeDeel(i)} className="text-red-400 hover:text-red-600 text-lg">×</button>
+                </div>
+              ))}
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={addDeel} className="text-sm text-[#2E2060] hover:underline">+ Leningdeel toevoegen</button>
+                <button type="button" onClick={berekenAlleDelen} className="text-sm text-[#2E2060] hover:underline">Bereken alle termijnbedragen</button>
+              </div>
+              <div className="text-[11px] text-gray-500 bg-gray-50 border rounded p-2 space-y-1">
+                <div><span className="text-gray-400">Totaal leningdelen:</span> {fmtEuro(totalLoan)}</div>
+                <div><span className="text-gray-400">Aflossing (auto):</span> {buildAflossingSummary(leningdelen) || "—"}</div>
+                <div><span className="text-gray-400">Type faciliteit (auto):</span> {buildFaciliteitSuggestion(leningdelen) || "—"}</div>
+                <div><span className="text-gray-400">Termijn totaal p/m (excl. admin):</span> {fmtComputed(termijnTotaalComputed)}</div>
+              </div>
+              <p className="text-[10px] text-gray-400">Het termijnbedrag wordt berekend met het rentepercentage en de looptijd tot de einddatum per deel. Controleer de bedragen; je kunt ze handmatig overschrijven.</p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -533,11 +629,15 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Aflossing</label>
-          <select value={aflossing} onChange={(e) => setAflossing(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-            <option>Aflossingsvrij — ineens aan het einde van de looptijd.</option>
-            <option>Annuïtair — aflossing gedurende de looptijd van de lening.</option>
-          </select>
+          <label className="text-xs font-medium text-gray-600 mb-1 block">Aflossing{splitMode ? " (automatisch uit leningdelen)" : ""}</label>
+          {splitMode ? (
+            <textarea value={aflossing} readOnly rows={2} className="w-full border rounded px-2 py-1.5 text-sm bg-gray-50 text-gray-500" />
+          ) : (
+            <select value={aflossing} onChange={(e) => setAflossing(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+              <option>Aflossingsvrij — ineens aan het einde van de looptijd.</option>
+              <option>Annuïtair — aflossing gedurende de looptijd van de lening.</option>
+            </select>
+          )}
         </div>
 
         <div className="w-[160px]">
@@ -556,13 +656,15 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           </div>
         </div>
 
-        <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Termijnbedrag (maandelijks)</label>
-            <input type="number" value={termijnbedrag || ""} onChange={(e) => setTermijnbedrag(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+        {!splitMode && (
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Termijnbedrag (maandelijks)</label>
+              <input type="number" value={termijnbedrag || ""} onChange={(e) => setTermijnbedrag(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+            <button type="button" onClick={berekenTermijn} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-50" title="Bereken op basis van leenbedrag, rente en looptijd">Bereken</button>
           </div>
-          <button type="button" onClick={berekenTermijn} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-50" title="Bereken op basis van leenbedrag, rente en looptijd">Bereken</button>
-        </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <div>
