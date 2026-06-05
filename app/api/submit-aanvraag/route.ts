@@ -28,8 +28,13 @@ const MAX_TOTAL_SIZE = 100 * 1024 * 1024
 
 const COMPANY_EMAIL = process.env.COMPANY_EMAIL || "info@langefa.nl"
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-const ONEDRIVE_USER = process.env.ONEDRIVE_USER_EMAIL!
-const ONEDRIVE_FOLDER_PATH = process.env.ONEDRIVE_FOLDER_PATH!
+// Target = the SHARED SharePoint document library "Onderhandse leningen"
+// (root site kpn1313008.sharepoint.com), NOT olivier@langefa.nl's personal
+// OneDrive. Resolved 2026-06-05 from the team's "Portaal Aanvragen" folder URL
+// via Graph /shares (driveType: documentLibrary). Env vars override if set.
+const SHAREPOINT_DRIVE_ID =
+  process.env.SHAREPOINT_DRIVE_ID || "b!Y-coxQaoTESdocr5TfusximD1k6hsOhGjC6KuP1SARvi4_yox1TGRrvtWvA_zgcT"
+const AANVRAGEN_FOLDER_PATH = process.env.SHAREPOINT_FOLDER_PATH || "OH leningen/Portaal Aanvragen"
 
 /* ── Microsoft Graph helpers ── */
 async function getMsToken(): Promise<string> {
@@ -56,9 +61,9 @@ async function getMsToken(): Promise<string> {
 }
 
 async function createOneDriveFolder(token: string, folderName: string): Promise<{ id: string; webUrl: string }> {
-  const encodedPath = ONEDRIVE_FOLDER_PATH.replace(/^\//, "").split("/").map(encodeURIComponent).join("/")
+  const encodedPath = AANVRAGEN_FOLDER_PATH.replace(/^\//, "").split("/").map(encodeURIComponent).join("/")
   const res = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/root:/${encodedPath}:/children`,
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/root:/${encodedPath}:/children`,
     {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -76,7 +81,7 @@ async function createOneDriveFolder(token: string, folderName: string): Promise<
 
 async function uploadToOneDrive(token: string, folderId: string, fileName: string, content: Buffer, mimeType: string) {
   const res = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${folderId}:/${encodeURIComponent(fileName)}:/content`,
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${folderId}:/${encodeURIComponent(fileName)}:/content`,
     {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
