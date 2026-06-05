@@ -31,6 +31,7 @@ interface EmailEntry {
   id: string
   subject: string
   status: string
+  deliveryStatus?: string
   sentAt: string | null
 }
 
@@ -43,6 +44,22 @@ const ACTION_LABELS: Record<string, string> = {
 function formatDateTime(iso: string | null) {
   if (!iso) return "—"
   return new Date(iso).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
+
+// Prefer Microsoft's delivery status (message trace) when available; otherwise
+// fall back to our own send result.
+function emailBadge(m: EmailEntry): { label: string; cls: string } {
+  const ds = (m.deliveryStatus || "").toLowerCase()
+  if (ds) {
+    if (ds === "delivered") return { label: "Afgeleverd", cls: "bg-emerald-50 text-emerald-700" }
+    if (ds === "failed" || ds === "bounced") return { label: "Niet afgeleverd", cls: "bg-red-50 text-red-700" }
+    if (ds === "quarantined" || ds === "filteredasspam") return { label: "Spam/quarantaine", cls: "bg-amber-50 text-amber-700" }
+    if (ds === "pending" || ds === "gettingstatus") return { label: "In behandeling", cls: "bg-amber-50 text-amber-700" }
+    return { label: ds, cls: "bg-gray-100 text-gray-600" }
+  }
+  return m.status === "sent"
+    ? { label: "Verzonden", cls: "bg-blue-50 text-blue-700" }
+    : { label: "Mislukt", cls: "bg-red-50 text-red-700" }
 }
 
 async function getToken() {
@@ -338,22 +355,23 @@ export function AdminPartners() {
 
                 <div>
                   <h4 className="text-sm font-semibold text-[#311E86] font-sans mb-2">E-mails</h4>
-                  <p className="text-[11px] text-gray-400 font-sans mb-2">&ldquo;Verzonden&rdquo; = succesvol aangeboden aan de mailserver (geen bevestiging van aflevering in de inbox).</p>
+                  <p className="text-[11px] text-gray-400 font-sans mb-2">&ldquo;Verzonden&rdquo; = aangeboden aan de mailserver. &ldquo;Afgeleverd&rdquo; = door Microsoft bevestigd afgeleverd (zodra delivery-tracking is ingeschakeld).</p>
                   {detailEmails.length === 0 ? (
                     <p className="text-[13px] text-gray-400 font-sans">Nog geen e-mails.</p>
                   ) : (
                     <div className="space-y-1.5">
-                      {detailEmails.map((m) => (
-                        <div key={m.id} className="flex items-baseline justify-between gap-3 text-[13px] font-sans">
-                          <span className="text-gray-800 truncate">{m.subject}</span>
-                          <span className="flex items-center gap-2 whitespace-nowrap">
-                            <span className="text-gray-400">{formatDateTime(m.sentAt)}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${m.status === "sent" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-                              {m.status === "sent" ? "Verzonden" : "Mislukt"}
+                      {detailEmails.map((m) => {
+                        const b = emailBadge(m)
+                        return (
+                          <div key={m.id} className="flex items-baseline justify-between gap-3 text-[13px] font-sans">
+                            <span className="text-gray-800 truncate">{m.subject}</span>
+                            <span className="flex items-center gap-2 whitespace-nowrap">
+                              <span className="text-gray-400">{formatDateTime(m.sentAt)}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${b.cls}`}>{b.label}</span>
                             </span>
-                          </span>
-                        </div>
-                      ))}
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
