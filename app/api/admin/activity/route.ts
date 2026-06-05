@@ -8,22 +8,26 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 200)
+  const userId = searchParams.get("userId")
 
   try {
-    const snap = await adminDb
-      .collection("activity_log")
-      .orderBy("createdAt", "desc")
-      .limit(limit)
-      .get()
+    // Per-user view (userId set) queries on userId and sorts in JS to avoid a
+    // composite index; the global view uses the indexed orderBy.
+    const snap = userId
+      ? await adminDb.collection("activity_log").where("userId", "==", userId).get()
+      : await adminDb.collection("activity_log").orderBy("createdAt", "desc").limit(limit).get()
 
-    const entries = snap.docs.map((doc) => {
-      const data = doc.data()
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
-      }
-    })
+    const entries = snap.docs
+      .map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+        }
+      })
+      .sort((a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")))
+      .slice(0, limit)
 
     return NextResponse.json({ entries })
   } catch {

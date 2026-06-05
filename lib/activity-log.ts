@@ -22,6 +22,9 @@ export type ActivityAction =
   | "document_accessed"
   | "document_esign_sent"
   | "partner_invited"
+  | "login"
+  | "aanvraag_submitted"
+  | "document_uploaded"
 
 export interface LogEntry {
   action: ActivityAction

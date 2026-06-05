@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/brevo"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { isPartner, getPartnerOrgId } from "@/lib/partners"
+import { logActivity } from "@/lib/activity-log"
 
 const ALLOWED_FILE_TYPES = new Set([
   "application/pdf",
@@ -300,6 +301,18 @@ export async function POST(req: NextRequest) {
     })
   } catch (err) {
     console.error("Firestore save error:", err)
+  }
+
+  // Record a partner/client submission in the activity log (logged-in submitters only).
+  if (docRef && userId) {
+    await logActivity({
+      action: "aanvraag_submitted",
+      userId,
+      userEmail: userEmail || email,
+      targetId: docRef.id,
+      targetType: "aanvraag",
+      details: { naam: naam || "", bedrag: leningBedrag || "", role: submittedByRole },
+    })
   }
 
   /* ── Upload to OneDrive after the response is sent ── */

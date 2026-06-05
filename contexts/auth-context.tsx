@@ -82,9 +82,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true }
   }, [user])
 
+  // Fire-and-forget: record a login event for the current user in the activity log.
+  const logLogin = () => {
+    const u = auth.currentUser
+    if (!u) return
+    u.getIdToken()
+      .then((token) => {
+        fetch("/api/activity/login", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {})
+      })
+      .catch(() => {})
+  }
+
   const login = async (email: string, password: string): Promise<"ok" | "mfa-required"> => {
     try {
       await signInWithEmailAndPassword(auth, email, password)
+      logLogin()
       return "ok"
     } catch (error: unknown) {
       const err = error as { code?: string }
@@ -107,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const assertion = TotpMultiFactorGenerator.assertionForSignIn(totpHint.uid, code)
     await resolver.resolveSignIn(assertion)
     setMfaEnrolled(true) // signed in via the second factor → definitely enrolled
+    logLogin()
     setMfaChallenge(null)
   }
 
