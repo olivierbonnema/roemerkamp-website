@@ -119,11 +119,11 @@ export function buildAflossingSummary(delen: Leningdeel[]): string {
     const woord = nums.length > 1 ? "Delen" : "Deel"
     const list = joinNums(nums)
     if (rt === "aflossingsvrij") {
-      phrases.push(`${woord} ${list}: aflossingsvrij — geen aflossing gedurende de looptijd.`)
+      phrases.push(`${woord} ${list}: aflossingsvrij (geen aflossing gedurende de looptijd).`)
     } else if (rt === "lineair") {
-      phrases.push(`${woord} ${list}: lineair — gelijke aflossing gedurende de looptijd.`)
+      phrases.push(`${woord} ${list}: lineair (gelijke aflossing gedurende de looptijd).`)
     } else {
-      phrases.push(`${woord} ${list}: annuïtair — aflossing gedurende de looptijd van de lening.`)
+      phrases.push(`${woord} ${list}: annuïtair (aflossing gedurende de looptijd van de lening).`)
     }
   }
   return phrases.join("\n")
@@ -143,7 +143,7 @@ export function buildFaciliteitSuggestion(delen: Leningdeel[]): string {
 export function leningdeelLines(delen: Leningdeel[]): string[] {
   return (delen || []).map((d, i) => {
     const datum = d.endDate ? ` tot ${fmtShortDate(d.endDate)}` : ""
-    return `Leningdeel ${i + 1}: ${fmtEuro0(Number(d.amount) || 0)} — ${repaymentLabel(d.repaymentType || "annuïtair")}${datum}`
+    return `Leningdeel ${i + 1}: ${fmtEuro0(Number(d.amount) || 0)} (${repaymentLabel(d.repaymentType || "annuïtair")}${datum})`
   })
 }
 
