@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { isPartner, getPartnerOrgId } from "@/lib/partners"
+import { logActivity } from "@/lib/activity-log"
 
 const ALLOWED_FILE_TYPES = new Set([
   "application/pdf",
@@ -127,6 +128,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         type: "document_upload",
         createdAt: new Date(),
       })
+
+    await logActivity({
+      action: "document_uploaded",
+      userId: decoded.uid,
+      userEmail: decoded.email || "",
+      targetId: id,
+      targetType: "aanvraag",
+      details: { count: String(fileBuffers.length) },
+    })
 
     return NextResponse.json({ success: true, uploaded: fileBuffers.length })
   } catch (err) {

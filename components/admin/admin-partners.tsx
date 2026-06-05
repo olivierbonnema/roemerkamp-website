@@ -20,6 +20,31 @@ interface PartnerUser {
   partnerOrgId?: string
 }
 
+interface ActivityEntry {
+  id: string
+  action: string
+  createdAt: string | null
+  details?: Record<string, string>
+}
+
+interface EmailEntry {
+  id: string
+  subject: string
+  status: string
+  sentAt: string | null
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  login: "Ingelogd",
+  aanvraag_submitted: "Aanvraag ingediend",
+  document_uploaded: "Documenten geüpload",
+}
+
+function formatDateTime(iso: string | null) {
+  if (!iso) return "—"
+  return new Date(iso).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
+
 async function getToken() {
   return auth.currentUser?.getIdToken()
 }
@@ -47,6 +72,10 @@ export function AdminPartners() {
   const [inviteSuccess, setInviteSuccess] = useState("")
 
   const [deletingUid, setDeletingUid] = useState<string | null>(null)
+  const [detail, setDetail] = useState<PartnerUser | null>(null)
+  const [detailActivity, setDetailActivity] = useState<ActivityEntry[]>([])
+  const [detailEmails, setDetailEmails] = useState<EmailEntry[]>([])
+  const [detailLoading, setDetailLoading] = useState(false)
 
   useEffect(() => { loadAll() }, [])
 
@@ -132,6 +161,27 @@ export function AdminPartners() {
       setPartners((prev) => prev.filter((p) => p.uid !== uid))
     } finally {
       setDeletingUid(null)
+    }
+  }
+
+  async function openDetail(p: PartnerUser) {
+    setDetail(p)
+    setDetailLoading(true)
+    setDetailActivity([])
+    setDetailEmails([])
+    try {
+      const token = await getToken()
+      const headers = { Authorization: `Bearer ${token}` }
+      const [actRes, mailRes] = await Promise.all([
+        fetch(`/api/admin/activity?userId=${encodeURIComponent(p.uid)}&limit=100`, { headers }),
+        fetch(`/api/admin/emails?email=${encodeURIComponent(p.email)}`, { headers }),
+      ])
+      if (actRes.ok) setDetailActivity((await actRes.json()).entries || [])
+      if (mailRes.ok) setDetailEmails((await mailRes.json()).emails || [])
+    } catch {
+      /* ignore — the modal shows empty states */
+    } finally {
+      setDetailLoading(false)
     }
   }
 
@@ -233,10 +283,16 @@ export function AdminPartners() {
                         {p.displayName && <p className="text-sm font-medium text-gray-900 font-sans">{p.displayName}</p>}
                         <p className="text-sm text-gray-600 font-sans">{p.email}</p>
                       </div>
-                      <button onClick={() => deletePartner(p.uid)} disabled={deletingUid === p.uid}
-                        className="text-xs text-red-500 hover:text-red-700 font-sans transition-colors disabled:opacity-50">
-                        {deletingUid === p.uid ? "Verwijderen…" : "Verwijder"}
-                      </button>
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => openDetail(p)}
+                          className="text-xs text-[#311E86] hover:underline font-sans transition-colors">
+                          Activiteit
+                        </button>
+                        <button onClick={() => deletePartner(p.uid)} disabled={deletingUid === p.uid}
+                          className="text-xs text-red-500 hover:text-red-700 font-sans transition-colors disabled:opacity-50">
+                          {deletingUid === p.uid ? "Verwijderen…" : "Verwijder"}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -245,6 +301,67 @@ export function AdminPartners() {
           })}
         </div>
       </div>
+
+      {detail && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setDetail(null)}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-1">
+              <h3 className="font-serif text-xl text-[#1E3A5F]">{detail.displayName || detail.email}</h3>
+              <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-sm leading-none">✕</button>
+            </div>
+            <p className="text-[12px] text-gray-400 font-sans mb-5">{detail.email}</p>
+
+            {detailLoading ? (
+              <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" /></div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-sm font-semibold text-[#311E86] font-sans mb-2">Activiteit</h4>
+                  {detailActivity.length === 0 ? (
+                    <p className="text-[13px] text-gray-400 font-sans">Nog geen activiteit.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {detailActivity.map((a) => (
+                        <div key={a.id} className="flex items-baseline justify-between gap-3 text-[13px] font-sans">
+                          <span className="text-gray-800">
+                            {ACTION_LABELS[a.action] || a.action}
+                            {a.details?.naam ? ` — ${a.details.naam}` : ""}
+                            {a.details?.bedrag ? ` (€ ${a.details.bedrag})` : ""}
+                            {a.details?.count ? ` (${a.details.count} bestanden)` : ""}
+                          </span>
+                          <span className="text-gray-400 whitespace-nowrap">{formatDateTime(a.createdAt)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-[#311E86] font-sans mb-2">E-mails</h4>
+                  <p className="text-[11px] text-gray-400 font-sans mb-2">&ldquo;Verzonden&rdquo; = succesvol aangeboden aan de mailserver (geen bevestiging van aflevering in de inbox).</p>
+                  {detailEmails.length === 0 ? (
+                    <p className="text-[13px] text-gray-400 font-sans">Nog geen e-mails.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {detailEmails.map((m) => (
+                        <div key={m.id} className="flex items-baseline justify-between gap-3 text-[13px] font-sans">
+                          <span className="text-gray-800 truncate">{m.subject}</span>
+                          <span className="flex items-center gap-2 whitespace-nowrap">
+                            <span className="text-gray-400">{formatDateTime(m.sentAt)}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${m.status === "sent" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                              {m.status === "sent" ? "Verzonden" : "Mislukt"}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
