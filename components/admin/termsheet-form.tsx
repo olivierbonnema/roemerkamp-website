@@ -613,6 +613,23 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
                 <div><span className="text-gray-400">Termijn totaal p/m (excl. admin):</span> {fmtComputed(termijnTotaalComputed)}</div>
               </div>
               <p className="text-[10px] text-gray-400">Het termijnbedrag wordt berekend met het rentepercentage en de looptijd tot de einddatum per deel. Controleer de bedragen; je kunt ze handmatig overschrijven.</p>
+
+              <div className="pt-2 border-t">
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Rente-/bouwdepot (optioneel — wordt aangehouden uit de lening)</label>
+                {loanParts.map((lp, i) =>
+                  (lp.typeLabel || "").trim() === "Lening bij aanvang" ? null : (
+                    <div key={i} className="flex gap-2 mb-2 items-center">
+                      <input type="number" placeholder="Bedrag" value={lp.amount || ""} onChange={(e) => updateLoanPart(i, { amount: parseFloat(e.target.value) || 0 })} className="flex-1 min-w-[120px] border rounded px-2 py-1.5 text-sm" />
+                      <select value={lp.typeLabel} onChange={(e) => updateLoanPart(i, { typeLabel: e.target.value })} className="flex-1 border rounded px-2 py-1.5 text-sm">
+                        <option>Rentedepot</option>
+                        <option>Bouwdepot</option>
+                      </select>
+                      <button type="button" onClick={() => removeLoanPart(i)} className="text-red-400 hover:text-red-600 text-lg">×</button>
+                    </div>
+                  )
+                )}
+                <button type="button" onClick={() => setLoanParts((prev) => [...prev, { amount: 0, typeLabel: "Rentedepot" }])} className="text-sm text-[#2E2060] hover:underline">+ Rente-/bouwdepot toevoegen</button>
+              </div>
             </div>
           )}
         </div>
