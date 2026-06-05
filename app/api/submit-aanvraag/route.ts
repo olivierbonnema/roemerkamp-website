@@ -46,7 +46,12 @@ async function getMsToken(): Promise<string> {
       }),
     }
   )
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`Microsoft token request failed (${res.status}): ${body.slice(0, 300)}`)
+  }
   const data = await res.json()
+  if (!data.access_token) throw new Error("Microsoft token response contained no access_token")
   return data.access_token
 }
 
@@ -60,12 +65,17 @@ async function createOneDriveFolder(token: string, folderName: string): Promise<
       body: JSON.stringify({ name: folderName, folder: {}, "@microsoft.graph.conflictBehavior": "rename" }),
     }
   )
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`OneDrive folder create failed (${res.status}) for "${folderName}": ${body.slice(0, 300)}`)
+  }
   const data = await res.json()
-  return { id: data.id, webUrl: data.webUrl }
+  if (!data.id) throw new Error(`OneDrive folder create returned no id for "${folderName}"`)
+  return { id: data.id as string, webUrl: data.webUrl as string }
 }
 
 async function uploadToOneDrive(token: string, folderId: string, fileName: string, content: Buffer, mimeType: string) {
-  await fetch(
+  const res = await fetch(
     `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${folderId}:/${encodeURIComponent(fileName)}:/content`,
     {
       method: "PUT",
@@ -73,6 +83,10 @@ async function uploadToOneDrive(token: string, folderId: string, fileName: strin
       body: content,
     }
   )
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`OneDrive upload failed (${res.status}) for "${fileName}": ${body.slice(0, 300)}`)
+  }
 }
 
 /* ── Email helpers ── */
@@ -298,6 +312,10 @@ export async function POST(req: NextRequest) {
       driveFolderUrl: "",
       driveFolderId: "",
       aantalBestanden: allFiles.length,
+      // "pending" until the background upload finishes; a record stuck on
+      // "pending" means the upload was cut off (e.g. function timeout).
+      uploadStatus: allFiles.length > 0 ? "pending" : "ok",
+      documentsUploaded: 0,
     })
   } catch (err) {
     console.error("Firestore save error:", err)
@@ -334,14 +352,51 @@ export async function POST(req: NextRequest) {
       const token = await getMsToken()
       const { id, webUrl } = await createOneDriveFolder(token, folderName)
       await uploadToOneDrive(token, id, "aanvraag-samenvatting.txt", Buffer.from(summaryText, "utf-8"), "text/plain")
+      let uploaded = 0
       for (const file of fileBuffers) {
         await uploadToOneDrive(token, id, file.name, file.buffer, file.type)
+        uploaded++
       }
       if (docRef) {
-        await docRef.update({ driveFolderUrl: webUrl, driveFolderId: id })
+        await docRef.update({
+          driveFolderUrl: webUrl,
+          driveFolderId: id,
+          uploadStatus: "ok",
+          documentsUploaded: uploaded,
+        })
       }
     } catch (err) {
+      // A OneDrive/SharePoint failure must NOT be silent: flag the record and
+      // alert the team. The aanvraag itself is already safely in Firestore.
       console.error("OneDrive upload error:", err)
+      const msg = err instanceof Error ? err.message : String(err)
+      if (docRef) {
+        try {
+          await docRef.update({ uploadStatus: "failed", uploadError: msg.slice(0, 500) })
+        } catch (updateErr) {
+          console.error("Failed to flag upload failure on aanvraag:", updateErr)
+        }
+      }
+      try {
+        await sendEmail({
+          from: `Lange & Partners <${FROM_EMAIL}>`,
+          to: COMPANY_EMAIL,
+          subject: `⚠️ Documenten NIET geüpload — ${naam || email}`,
+          html: `<div style="font-family:sans-serif;font-size:14px;color:#111827;line-height:1.7;">
+            <p>De documenten van een nieuwe financieringsaanvraag konden <strong>niet naar OneDrive/SharePoint</strong> worden geüpload. De aanvraag zelf is wél opgeslagen — alleen de bestanden ontbreken in de map.</p>
+            <p style="margin:16px 0;padding:12px 14px;background:#f9fafb;border-left:3px solid #F75D20;">
+              <strong>Aanvrager:</strong> ${naam || "—"}<br>
+              <strong>E-mail:</strong> ${email || "—"}<br>
+              <strong>Aantal bestanden:</strong> ${allFiles.length}<br>
+              <strong>Aanvraag-ID:</strong> ${docRef?.id || "—"}
+            </p>
+            <p><strong>Foutmelding:</strong><br><code style="color:#b91c1c;">${msg.slice(0, 400)}</code></p>
+            <p>Open de aanvraag in het admin-paneel; vraag de indiener de documenten opnieuw aan te leveren of upload ze handmatig naar de map.</p>
+          </div>`,
+        })
+      } catch (mailErr) {
+        console.error("Upload-failure alert email error:", mailErr)
+      }
     }
 
     // Reputation scan and AI analysis are triggered manually from the admin panel
