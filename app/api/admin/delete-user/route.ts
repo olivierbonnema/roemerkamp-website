@@ -24,11 +24,27 @@ export async function DELETE(req: NextRequest) {
   if (!uid) return NextResponse.json({ error: "UID is verplicht." }, { status: 400 })
 
   try {
-    const userRecord = await adminAuth.getUser(uid).catch(() => null)
-    const deletedEmail = userRecord?.email || "unknown"
+    // The `users` doc ID is normally the Auth UID, but it can be STALE: an account
+    // deleted + recreated in Auth keeps the old doc with the old UID. So resolve the
+    // real Auth user by the doc ID first, then fall back to the email on the doc.
+    const docRef = adminDb.collection("users").doc(uid)
+    const docSnap = await docRef.get()
+    const docEmail = docSnap.exists ? (docSnap.data()?.email as string | undefined) : undefined
 
-    await adminAuth.deleteUser(uid)
-    await adminDb.collection("users").doc(uid).delete()
+    let authUser = await adminAuth.getUser(uid).catch(() => null)
+    if (!authUser && docEmail) authUser = await adminAuth.getUserByEmail(docEmail).catch(() => null)
+
+    // Never let an admin delete their own account.
+    if (authUser && authUser.uid === admin.uid) {
+      return NextResponse.json({ error: "U kunt uw eigen account niet verwijderen." }, { status: 400 })
+    }
+
+    const deletedEmail = authUser?.email || docEmail || "unknown"
+
+    // Delete the Auth user if one exists (tolerate it already being gone), and
+    // always clean up the Firestore doc — so a stale/orphaned doc is removed too.
+    if (authUser) await adminAuth.deleteUser(authUser.uid).catch(() => {})
+    if (docSnap.exists) await docRef.delete().catch(() => {})
 
     await logActivity({
       action: "user_deleted",

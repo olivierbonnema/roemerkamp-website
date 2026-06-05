@@ -24,6 +24,7 @@ export function AdminUsers() {
   const [createError, setCreateError] = useState("")
   const [createSuccess, setCreateSuccess] = useState("")
   const [deletingUid, setDeletingUid] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState("")
 
   useEffect(() => { loadUsers() }, [])
 
@@ -69,15 +70,20 @@ export function AdminUsers() {
 
   async function deleteUser(uid: string) {
     if (!confirm("Weet u zeker dat u dit account wilt verwijderen?")) return
+    setDeleteError("")
     setDeletingUid(uid)
     try {
       const token = await getToken()
-      await fetch("/api/admin/delete-user", {
+      const res = await fetch("/api/admin/delete-user", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ uid }),
       })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || "Verwijderen mislukt.")
       setUsers((prev) => prev.filter((u) => u.uid !== uid))
+    } catch (err: unknown) {
+      setDeleteError((err as Error).message || "Account verwijderen mislukt.")
     } finally {
       setDeletingUid(null)
     }
@@ -114,6 +120,7 @@ export function AdminUsers() {
 
       <div>
         <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Bestaande accounts</h2>
+        {deleteError && <p className="text-sm text-red-500 font-sans mb-3">{deleteError}</p>}
         {usersLoading && <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" /></div>}
         {usersError && <p className="text-red-500 text-sm font-sans">{usersError}</p>}
         {!usersLoading && users.length === 0 && !usersError && <p className="text-gray-400 font-sans text-sm">Nog geen gebruikersaccounts aangemaakt.</p>}
