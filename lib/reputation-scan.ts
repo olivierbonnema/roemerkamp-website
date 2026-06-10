@@ -230,92 +230,133 @@ function extractJson(text: string): Record<string, unknown> | null {
   return null
 }
 
-export async function runReputationScan(aanvraagId: string, subject: ScanSubject): Promise<void> {
-  const docRef = adminDb.collection("aanvragen").doc(aanvraagId)
+/**
+ * Run the OSINT reputation scan for a subject and return the parsed JSON result.
+ * Storage-agnostic: it does NOT touch Firestore. Throws an Error with a
+ * user-friendly (Dutch) message on known failures (credits, API key, overload).
+ */
+export async function performReputationScan(subject: ScanSubject): Promise<Record<string, unknown>> {
+  const subjectBlock = buildSubjectBlock(subject)
 
-  await docRef.update({ reputationScanStatus: "scanning", reputationScanStarted: new Date() })
+  const messages: Anthropic.MessageParam[] = [{
+    role: "user",
+    content: `Run the full reputation and background scan on this subject:\n\n${subjectBlock}`,
+  }]
+
+  let finalText = ""
+  let iterations = 0
+  const maxIterations = 30
+
+  while (iterations < maxIterations) {
+    iterations++
+
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 16384,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 50 }],
+      messages,
+      system: SYSTEM_PROMPT,
+    })
+
+    const textBlocks = response.content.filter(b => b.type === "text")
+    if (textBlocks.length > 0) {
+      finalText = textBlocks.map(b => b.type === "text" ? b.text : "").join("\n")
+    }
+
+    if (response.stop_reason === "end_turn") break
+
+    if (response.stop_reason === "tool_use") {
+      messages.push({ role: "assistant", content: response.content })
+      messages.push({ role: "user", content: [{ type: "text", text: "Continue." }] })
+      continue
+    }
+
+    break
+  }
+
+  if (!finalText) throw new Error(`No text after ${iterations} iterations`)
+
+  const scanResult = extractJson(finalText)
+  if (!scanResult) throw new Error("Model did not return valid JSON")
+
+  return scanResult
+}
+
+/** Map raw scan/SDK errors to a friendly Dutch message for the admin UI. */
+function mapScanError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err)
+  if (msg.includes("credit balance is too low")) {
+    return "Anthropic API credits zijn op. Vul credits aan op console.anthropic.com."
+  }
+  if (msg.includes("invalid x-api-key") || msg.includes("authentication_error")) {
+    return "Anthropic API key is ongeldig. Controleer de ANTHROPIC_API_KEY in Vercel."
+  }
+  if (msg.includes("overloaded")) {
+    return "Anthropic API is tijdelijk overbelast. Probeer het over enkele minuten opnieuw."
+  }
+  return msg
+}
+
+/** Firestore rejects `undefined`; drop those keys before persisting a subject. */
+export function cleanSubject(subject: ScanSubject): ScanSubject {
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(subject)) {
+    if (value !== undefined) out[key] = value
+  }
+  return out as unknown as ScanSubject
+}
+
+async function mirrorToAanvraag(aanvraagId: string, fields: Record<string, unknown>): Promise<void> {
+  try {
+    await adminDb.collection("aanvragen").doc(aanvraagId).update(fields)
+  } catch (err) {
+    console.error(`[background-check] Mirror to aanvraag ${aanvraagId} failed:`, err)
+  }
+}
+
+/**
+ * Run a background check recorded in `background_checks/{checkId}` and write
+ * status/result/error to that doc. If the check is linked to an aanvraag, the
+ * same outcome is mirrored onto the aanvraag's reputationScan* fields so the
+ * enquiry card keeps working exactly as before.
+ */
+export async function runBackgroundCheck(checkId: string): Promise<void> {
+  const ref = adminDb.collection("background_checks").doc(checkId)
+  const snap = await ref.get()
+  if (!snap.exists) {
+    console.error(`[background-check] Check ${checkId} not found`)
+    return
+  }
+
+  const data = snap.data()!
+  const subject = data.subject as ScanSubject
+  const linkedAanvraagId = data.linkedAanvraagId as string | undefined
+
+  await ref.update({ status: "scanning", startedAt: new Date() })
+  if (linkedAanvraagId) {
+    await mirrorToAanvraag(linkedAanvraagId, { reputationScanStatus: "scanning", reputationScanStarted: new Date() })
+  }
 
   try {
-    const subjectBlock = buildSubjectBlock(subject)
-
-    const messages: Anthropic.MessageParam[] = [{
-      role: "user",
-      content: `Run the full reputation and background scan on this subject:\n\n${subjectBlock}`,
-    }]
-
-    let finalText = ""
-    let iterations = 0
-    const maxIterations = 30
-
-    while (iterations < maxIterations) {
-      iterations++
-
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 16384,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 50 }],
-        messages,
-        system: SYSTEM_PROMPT,
+    const result = await performReputationScan(subject)
+    await ref.update({ status: "completed", result, completedAt: new Date() })
+    if (linkedAanvraagId) {
+      await mirrorToAanvraag(linkedAanvraagId, {
+        reputationScanStatus: "completed",
+        reputationScanResult: result,
+        reputationScanCompleted: new Date(),
       })
-
-
-      const textBlocks = response.content.filter(b => b.type === "text")
-      if (textBlocks.length > 0) {
-        finalText = textBlocks.map(b => b.type === "text" ? b.text : "").join("\n")
-      }
-
-      if (response.stop_reason === "end_turn") {
-        break
-      }
-
-      if (response.stop_reason === "tool_use") {
-        messages.push({ role: "assistant", content: response.content })
-        messages.push({ role: "user", content: [{ type: "text", text: "Continue." }] })
-        continue
-      }
-
-      break
     }
-
-
-    if (!finalText) {
-      await docRef.update({ reputationScanStatus: "error", reputationScanError: `No text after ${iterations} iterations` })
-      return
-    }
-
-    const scanResult = extractJson(finalText)
-    if (!scanResult) {
-      console.error(`[reputation-scan] ERROR: could not extract JSON from response`)
-      await docRef.update({ reputationScanStatus: "error", reputationScanError: "Model did not return valid JSON" })
-      return
-    }
-
-    await docRef.update({
-      reputationScanStatus: "completed",
-      reputationScanResult: scanResult,
-      reputationScanCompleted: new Date(),
-    })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.error(`[reputation-scan] ERROR:`, msg)
-
-    let userError = msg
-    if (msg.includes("credit balance is too low")) {
-      userError = "Anthropic API credits zijn op. Vul credits aan op console.anthropic.com."
-    } else if (msg.includes("invalid x-api-key") || msg.includes("authentication_error")) {
-      userError = "Anthropic API key is ongeldig. Controleer de ANTHROPIC_API_KEY in Vercel."
-    } else if (msg.includes("overloaded")) {
-      userError = "Anthropic API is tijdelijk overbelast. Probeer het over enkele minuten opnieuw."
-    }
-
+    const userError = mapScanError(err)
+    console.error(`[background-check] ERROR for ${checkId}:`, userError)
     try {
-      await docRef.update({
-        reputationScanStatus: "error",
-        reputationScanError: userError,
-      })
-      console.log(`[reputation-scan] Status set to error for ${aanvraagId}`)
+      await ref.update({ status: "error", error: userError })
+      if (linkedAanvraagId) {
+        await mirrorToAanvraag(linkedAanvraagId, { reputationScanStatus: "error", reputationScanError: userError })
+      }
     } catch (writeErr) {
-      console.error(`[reputation-scan] CRITICAL: Failed to write error status to Firestore:`, writeErr)
+      console.error(`[background-check] CRITICAL: Failed to write error status for ${checkId}:`, writeErr)
     }
   }
 }

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { after } from "next/server"
+import { FieldValue } from "firebase-admin/firestore"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
+import { cleanSubject } from "@/lib/reputation-scan"
 
 export const maxDuration = 60
 
@@ -19,6 +21,9 @@ async function verifyAdmin(req: NextRequest) {
   }
 }
 
+// Starts a background check for an existing enquiry. The check is recorded in
+// the central `background_checks` register (linked to the aanvraag) AND mirrored
+// onto the aanvraag's reputationScan* fields, so the enquiry card is unchanged.
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -35,44 +40,59 @@ export async function POST(req: NextRequest) {
 
   const baseUrl = process.env.PORTAL_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
-  const scanPayload = {
-    aanvraagId,
-    subject: {
-      type: isCompany ? "both" : "natural_person",
-      fullName: data.naam || "",
-      dob: data.geboortedatum || undefined,
-      city: city || data.objectPlaats || undefined,
-      company: data.bedrijfsnaam || undefined,
-      kvkNummer: data.kvkNummer || undefined,
-      role: isCompany ? "DGA / aanvrager" : undefined,
-      sector: "vastgoed",
-      loanAmount: data.leningBedrag || undefined,
-      coApplicant: data.medeNaam || undefined,
-    },
-  }
-
-  await logActivity({
-    action: "reputation_scan_triggered",
-    userId: admin.uid,
-    userEmail: admin.email || "",
-    targetId: aanvraagId,
-    targetType: "aanvraag",
-    details: { naam: data.naam || "" },
+  const subject = cleanSubject({
+    type: isCompany ? "both" : "natural_person",
+    fullName: data.naam || "",
+    dob: data.geboortedatum || undefined,
+    city: city || data.objectPlaats || undefined,
+    company: data.bedrijfsnaam || undefined,
+    kvkNummer: data.kvkNummer || undefined,
+    role: isCompany ? "DGA / aanvrager" : undefined,
+    sector: "vastgoed",
+    loanAmount: data.leningBedrag || undefined,
+    coApplicant: data.medeNaam || undefined,
   })
 
-  // Use after() to keep the function alive after responding — ensures the fetch actually sends.
-  // The internal route has maxDuration=300 and writes results to Firestore independently.
+  // Optimistically mark the enquiry as scanning so the card shows the spinner
+  // immediately (the worker mirrors the same fields when it starts).
+  await adminDb.collection("aanvragen").doc(aanvraagId).update({
+    reputationScanStatus: "scanning",
+    reputationScanStarted: new Date(),
+    reputationScanError: null,
+  })
+
+  // Record the check in the central register, linked to this enquiry.
+  const checkRef = await adminDb.collection("background_checks").add({
+    subject,
+    status: "scanning",
+    linkedAanvraagId: aanvraagId,
+    createdBy: { uid: admin.uid, email: admin.email || "" },
+    createdAt: FieldValue.serverTimestamp(),
+  })
+
+  await logActivity({
+    action: "background_check_created",
+    userId: admin.uid,
+    userEmail: admin.email || "",
+    targetId: checkRef.id,
+    targetType: "check",
+    details: { naam: data.naam || "", linkedAanvraagId: aanvraagId },
+  })
+
+  // Use after() to keep the function alive after responding — ensures the fetch
+  // actually sends. The internal route has maxDuration=300 and writes results
+  // to Firestore independently.
   after(async () => {
     try {
       await fetch(`${baseUrl}/api/internal/reputation-scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-internal-secret": process.env.TRIGGER_SECRET || "" },
-        body: JSON.stringify(scanPayload),
+        body: JSON.stringify({ checkId: checkRef.id }),
       })
     } catch (err) {
       console.error("[retry-scan] Failed to call internal reputation-scan:", err)
     }
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, checkId: checkRef.id })
 }

@@ -17,6 +17,7 @@ export type ActivityAction =
   | "correction_submitted"
   | "analysis_triggered"
   | "reputation_scan_triggered"
+  | "background_check_created"
   | "aanvraag_deleted"
   | "message_sent"
   | "document_accessed"
@@ -31,7 +32,7 @@ export interface LogEntry {
   userId: string
   userEmail: string
   targetId?: string
-  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign"
+  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check"
   details?: Record<string, string | boolean>
 }
 

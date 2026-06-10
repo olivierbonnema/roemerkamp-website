@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { runReputationScan } from "@/lib/reputation-scan"
+import { runBackgroundCheck } from "@/lib/reputation-scan"
 
 export const maxDuration = 300
 
+// Internal worker for background checks. Both the standalone Checks tab and the
+// enquiry "Start achtergrondcheck" button create a `background_checks` doc and
+// then call this route with its id; runBackgroundCheck does the actual scan and
+// writes the result (mirroring onto the linked aanvraag when present).
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-internal-secret")
   const expected = process.env.TRIGGER_SECRET
@@ -11,16 +15,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { aanvraagId, subject } = await req.json()
-  if (!aanvraagId || !subject) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+  const { checkId } = await req.json()
+  if (!checkId) {
+    return NextResponse.json({ error: "checkId required" }, { status: 400 })
   }
 
   try {
-    await runReputationScan(aanvraagId, subject)
+    await runBackgroundCheck(checkId)
     return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error("Reputation scan failed:", err)
+    console.error("Background check failed:", err)
     return NextResponse.json({ error: err instanceof Error ? err.message : "Scan failed" }, { status: 500 })
   }
 }

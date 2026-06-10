@@ -16,11 +16,13 @@ import {
   ChevronLeft,
   Newspaper,
   Columns3,
+  ShieldCheck,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: FolderOpen },
+  { href: "/admin/checks", label: "Checks", icon: ShieldCheck },
   { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 },
   { href: "/admin/documenten", label: "Documenten", icon: FileText },
   { href: "/admin/gebruikers", label: "Gebruikers", icon: Users },
