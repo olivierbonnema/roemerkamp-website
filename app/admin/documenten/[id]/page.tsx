@@ -303,7 +303,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Form — full width */}
+      {/* Form - full width */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         {isTermsheet ? (
           <TermsheetForm ref={termsheetRef} initialData={docData} settings={settings} />
@@ -324,7 +324,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         onPreviewEsign={handleEsignPreview}
       />
 
-      {/* Preview modal — normal document */}
+      {/* Preview modal - normal document */}
       {showPreview && (
         <DocxPreviewModal
           docType={docType as "termsheet" | "pitch"}
@@ -339,7 +339,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         />
       )}
 
-      {/* Preview modal — e-sign version (shows what signer receives) */}
+      {/* Preview modal - e-sign version (shows what signer receives) */}
       {showEsignPreview && (
         <DocxPreviewModal
           docType={docType as "termsheet" | "pitch"}
@@ -360,5 +360,5 @@ function deriveDocName(type: string, data: unknown): string {
   const borrowers = (data as Record<string, unknown>).borrowers as { name?: string }[] | undefined
   const name = borrowers?.[0]?.name || ""
   const prefix = type === "termsheet" ? "Termsheet" : "Pitch"
-  return name ? `${prefix} — ${name}` : prefix
+  return name ? `${prefix} - ${name}` : prefix
 }

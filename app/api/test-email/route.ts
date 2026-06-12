@@ -3,10 +3,10 @@ import { sendEmail } from "@/lib/brevo"
 import { SITE_URL } from "@/lib/site"
 
 /**
- * Temporary — sends all email templates to test delivery + design.
+ * Temporary - sends all email templates to test delivery + design.
  * DELETE after confirming all templates work.
  *
- * GET /api/test-email — sends all 7 templates to olivier@langefa.nl
+ * GET /api/test-email - sends all 7 templates to olivier@langefa.nl
  */
 export async function GET() {
   const to = "olivier@langefa.nl"
@@ -116,7 +116,7 @@ export async function GET() {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 3/7] Update over uw financieringsaanvraag — Lange & Partners",
+      subject: "[TEST 3/7] Update over uw financieringsaanvraag - Lange & Partners",
       html: wrap(`
         ${emailHeader("Nieuw bericht over uw aanvraag")}
         <div style="padding:36px 40px;">
@@ -201,7 +201,7 @@ export async function GET() {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 6/7] AI Analyse: Jan de Vries — ⚠️ BEOORDELEN",
+      subject: "[TEST 6/7] AI Analyse: Jan de Vries - ⚠️ BEOORDELEN",
       html: wrap(`
         ${emailHeader("AI Analyse Rapport")}
         <div style="padding:36px 40px;color:#2d3748;">
@@ -212,7 +212,7 @@ export async function GET() {
           <li style="margin:4px 0;"><strong>DSCR:</strong> 1,45x</li>
           <li style="margin:4px 0;"><strong>ICR:</strong> 2,1x</li>
           <h2 style="color:#1a365d;border-bottom:1px solid #e2e8f0;padding-bottom:4px;">Aanbeveling</h2>
-          <p style="margin:4px 0;">&#9888; <strong>BEOORDELEN</strong> — Aanvullende documentatie gevraagd voor jaarcijfers 2024.</p>
+          <p style="margin:4px 0;">&#9888; <strong>BEOORDELEN</strong>: Aanvullende documentatie gevraagd voor jaarcijfers 2024.</p>
           <p style="color:#9ca3af;font-size:12px;margin:24px 0 0;">
             Dit rapport is automatisch gegenereerd. Controleer alle gegevens voordat u een beslissing neemt.
           </p>
@@ -229,7 +229,7 @@ export async function GET() {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 7/7] Wachtwoord herstellen — Lange & Partners",
+      subject: "[TEST 7/7] Wachtwoord herstellen - Lange & Partners",
       html: wrap(`
         ${emailHeader("Wachtwoord herstellen")}
         <div style="padding:36px 40px;">

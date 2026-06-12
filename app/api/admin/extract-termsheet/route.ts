@@ -153,7 +153,7 @@ const EMAIL_TO_NAME: Record<string, string> = {
 function getLastName(fullName: string): string {
   const parts = fullName.trim().split(/\s+/)
   if (parts.length <= 1) return parts[0] || ""
-  // Find the last name — skip known prefixes like "de", "van", "het", etc. but include them in result
+  // Find the last name - skip known prefixes like "de", "van", "het", etc. but include them in result
   const prefixes = new Set(["de", "van", "het", "der", "den", "ten", "ter", "la", "le", "du"])
   let lastNameStart = parts.length - 1
   while (lastNameStart > 0 && prefixes.has(parts[lastNameStart - 1].toLowerCase())) {
@@ -235,7 +235,7 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
   // If splitAddress couldn't find postcode/city, try to get them from objects
   if (!parsed.postalCode || !parsed.city) {
     const aanvraagObjects = (aanvraag.objects as { objectAdres?: string; objectPostcode?: string; objectPlaats?: string; adres?: string; postcode?: string; plaats?: string }[]) || []
-    // Check if borrower street matches any object address — if so, use that object's postcode/city
+    // Check if borrower street matches any object address - if so, use that object's postcode/city
     for (const obj of aanvraagObjects) {
       const objAdres = obj.objectAdres || obj.adres || ""
       const objPostcode = obj.objectPostcode || obj.postcode || ""
@@ -287,10 +287,10 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
   }
 
   const aflossingsMap: Record<string, string> = {
-    "aflossingsvrij": "Aflossingsvrij — ineens aan het einde van de looptijd.",
-    "annuïtair": "Annuïtair — aflossing gedurende de looptijd van de lening.",
-    "lineair": "Annuïtair — aflossing gedurende de looptijd van de lening.",
-    "bullet": "Aflossingsvrij — ineens aan het einde van de looptijd.",
+    "aflossingsvrij": "Aflossingsvrij: ineens aan het einde van de looptijd.",
+    "annuïtair": "Annuïtair: aflossing gedurende de looptijd van de lening.",
+    "lineair": "Annuïtair: aflossing gedurende de looptijd van de lening.",
+    "bullet": "Aflossingsvrij: ineens aan het einde van de looptijd.",
   }
 
   const loanAmount = parseInt(aanvraag.leningBedrag || "0", 10) || 0
@@ -349,7 +349,7 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
     typeFaciliteit: "Zakelijke Vastgoedfinanciering",
     valuta: "Euro (€)",
     looptijd: looptijdMonths > 0 ? `${looptijdMonths} maanden` : "",
-    aflossing: aflossingsMap[(aanvraag.aflossingstype || "").toLowerCase()] || "Aflossingsvrij — ineens aan het einde van de looptijd.",
+    aflossing: aflossingsMap[(aanvraag.aflossingstype || "").toLowerCase()] || "Aflossingsvrij: ineens aan het einde van de looptijd.",
     rentePct: 0,
     notaris: settings.notaris || "Smith Boeser van Grafhorst notarissen te Haarlem",
     signingAdvisor: settings.advisorName || "",
@@ -364,10 +364,10 @@ Given the document text below, extract any information that can fill these field
 Fields to extract:
 
 BORROWER DETAILS:
-- borrowerNames: array of { fullName (including ALL last names, e.g. "Van der Berg-De Vries"), initials (e.g. "G.J.M.M.") } for each borrower/applicant found in documents. Include initials only if explicitly stated in a document (ID, KvK extract, etc.) — do not guess initials.
+- borrowerNames: array of { fullName (including ALL last names, e.g. "Van der Berg-De Vries"), initials (e.g. "G.J.M.M.") } for each borrower/applicant found in documents. Include initials only if explicitly stated in a document (ID, KvK extract, etc.), do not guess initials.
 - borrowerPostalCode: postal code of the borrower (format: "1234 AB")
 - borrowerCity: city of the borrower
-- borrowerAddress: street name + house number ONLY (no postal code, no city — e.g. "Kerkstraat 12")
+- borrowerAddress: street name + house number ONLY (no postal code, no city, e.g. "Kerkstraat 12")
 - salutation: how to address the borrower(s) formally in Dutch (e.g., "de heer Jansen en mevrouw De Vries")
 - bvVertegenwoordiger: name of the person representing the BV (if applicable)
 - bvVertegenwoordigerSalut: "Dhr." or "Mevr." for the representative
@@ -376,15 +376,15 @@ BORROWER DETAILS:
 - kvkNummer: KvK registration number
 
 COLLATERAL OBJECTS (there may be MULTIPLE properties):
-- objects: array of { address (short: "street number, city"), postalCode, kadastraleOmschrijving (full cadastral description if available) } — one entry per property that serves as collateral
+- objects: array of { address (short: "street number, city"), postalCode, kadastraleOmschrijving (full cadastral description if available) }, one entry per property that serves as collateral
 - priorLienholders: array of { name, inschrijving (number), currentOwed (number) } for existing mortgage holders
-- hypotheekRank: "1e", "2e", "3e", or "4e" — what rank the new mortgage will be
+- hypotheekRank: "1e", "2e", "3e", or "4e": what rank the new mortgage will be
 
 FINANCIAL TERMS (check email threads carefully for these):
 - rentePct: annual interest rate as a number (e.g., 7.5). Look for percentages mentioned in email discussions, offer letters, or internal notes.
 - entreeAfsluit: closing/afsluitkosten in euros (number)
 - entreeOpstart: startup/opstartkosten in euros (number)
-- doelFinanciering: the purpose — one of: "de aankoop van een beleggingspand", "een herfinanciering", "een overbrugging", "een verbouwing"
+- doelFinanciering: the purpose, one of: "de aankoop van een beleggingspand", "een herfinanciering", "een overbrugging", "een verbouwing"
 
 DOCUMENT INVENTORY:
 - receivedDocuments: array of document filenames/types that were uploaded or referenced as received. List each document you see in the input, categorized by standard Dutch financial document names where possible. Use these standard names:
@@ -466,7 +466,7 @@ export async function POST(req: NextRequest) {
         }
         documentText = textParts.join("\n\n")
       } catch {
-        // OneDrive unavailable — continue with direct fields only
+        // OneDrive unavailable - continue with direct fields only
       }
     }
 
@@ -508,14 +508,14 @@ export async function POST(req: NextRequest) {
           aiExtracted = JSON.parse(jsonStr)
         }
       } catch {
-        // AI extraction failed — continue with direct fields only
+        // AI extraction failed - continue with direct fields only
       }
     }
 
     const result = { ...directFields } as Record<string, unknown>
     const borrowers = result.borrowers as Record<string, unknown>[]
 
-    // Merge borrower address details from AI — only fill on the LAST borrower (first stays empty for multi-borrower)
+    // Merge borrower address details from AI - only fill on the LAST borrower (first stays empty for multi-borrower)
     if (aiExtracted.borrowerPostalCode || aiExtracted.borrowerCity || aiExtracted.borrowerAddress) {
       const lastBorrower = borrowers[borrowers.length - 1]
       if (lastBorrower) {

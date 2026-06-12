@@ -246,5 +246,5 @@ function deriveDocName(type: string, data: unknown): string {
   const borrowers = (data as Record<string, unknown>).borrowers as { name?: string }[] | undefined
   const name = borrowers?.[0]?.name || ""
   const prefix = type === "termsheet" ? "Termsheet" : "Pitch"
-  return name ? `${prefix} — ${name}` : prefix
+  return name ? `${prefix} - ${name}` : prefix
 }

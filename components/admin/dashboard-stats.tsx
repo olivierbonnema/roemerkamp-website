@@ -308,7 +308,7 @@ export function DashboardStats() {
                       <p className="text-[13px] text-gray-900 font-sans">
                         <span className="font-medium">{ACTION_LABELS[entry.action] || entry.action}</span>
                         {entry.details?.name && (
-                          <span className="text-gray-400"> — {entry.details.name}</span>
+                          <span className="text-gray-400"> - {entry.details.name}</span>
                         )}
                       </p>
                       <p className="text-[11px] text-gray-400 font-sans mt-0.5">

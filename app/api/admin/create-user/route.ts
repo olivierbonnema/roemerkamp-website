@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Every account is provisioned by an already-authenticated admin (there is no
-    // public signup), so we trust the address and mark it verified at creation —
+    // public signup), so we trust the address and mark it verified at creation,
     // required because 2FA is mandatory and Firebase blocks TOTP enrollment on
     // unverified emails. The user never sees this random password; they set their
     // own via the invite link below (same flow as partner invites).

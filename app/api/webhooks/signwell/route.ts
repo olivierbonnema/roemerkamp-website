@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         try {
           const pdfBuffer = await getCompletedPdf(signwellId)
           const msToken = await getMsToken()
-          const fileName = `${esignData.documentName || "Document"} — Ondertekend.pdf`
+          const fileName = `${esignData.documentName || "Document"} - Ondertekend.pdf`
           await uploadToOneDrive(msToken, ESIGN_ONEDRIVE_FOLDER, fileName, pdfBuffer, "application/pdf")
 
           await adminDb.collection("esign_requests").doc(signwellId).update({

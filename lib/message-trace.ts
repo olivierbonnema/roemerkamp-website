@@ -1,11 +1,11 @@
 import { getMsToken } from "./onedrive"
 
-// Microsoft 365 "message trace" — true delivery status of emails our mailbox sent.
+// Microsoft 365 "message trace" - true delivery status of emails our mailbox sent.
 //
 // Uses the SAME app-only Graph token as sending (getMsToken). Requires the
 // `ExchangeMessageTrace.Read.All` application permission + admin consent + the
 // message-trace service principal provisioned in the tenant. Until that's done,
-// the API returns 401/403 and this helper returns [] — so the email overview
+// the API returns 401/403 and this helper returns [] - so the email overview
 // stays on the "sent/failed" status and nothing breaks. It self-activates the
 // moment the permission is consented (no redeploy needed).
 //
@@ -34,7 +34,7 @@ export async function getMessageTraces(recipient: string, sinceISO: string): Pro
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
     if (!res.ok) {
       // 401/403 = permission or service principal not ready yet; 429 = throttled.
-      // Stay silent — callers fall back to the send status.
+      // Stay silent - callers fall back to the send status.
       return []
     }
     const data = await res.json()

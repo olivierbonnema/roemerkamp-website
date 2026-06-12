@@ -42,7 +42,7 @@ export async function DELETE(req: NextRequest) {
     const deletedEmail = authUser?.email || docEmail || "unknown"
 
     // Delete the Auth user if one exists (tolerate it already being gone), and
-    // always clean up the Firestore doc — so a stale/orphaned doc is removed too.
+    // always clean up the Firestore doc - so a stale/orphaned doc is removed too.
     if (authUser) await adminAuth.deleteUser(authUser.uid).catch(() => {})
     if (docSnap.exists) await docRef.delete().catch(() => {})
 

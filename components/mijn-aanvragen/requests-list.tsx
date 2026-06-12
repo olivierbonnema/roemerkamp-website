@@ -50,12 +50,12 @@ const STEP_LABELS = ["Aanvrager", "Object", "Financiering", "Documenten", "Overz
 
 /* ── Helpers ── */
 function formatDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
 }
 
 function formatCurrency(raw: string) {
-  if (!raw) return "—"
+  if (!raw) return "-"
   const num = parseInt(raw, 10)
   return isNaN(num) ? raw : `€ ${num.toLocaleString("nl-NL")}`
 }
@@ -181,7 +181,7 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div>
-          <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "—"}</p>
+          <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "-"}</p>
           <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -219,26 +219,26 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
         <div>
           <span className="text-gray-400 text-[12px]">Object</span>
           <p className="text-gray-900 font-medium truncate">
-            {[a.objectAdres, a.objectPlaats].filter(Boolean).join(", ") || "—"}
+            {[a.objectAdres, a.objectPlaats].filter(Boolean).join(", ") || "-"}
           </p>
         </div>
         <div>
           <span className="text-gray-400 text-[12px]">Type vastgoed</span>
-          <p className="text-gray-900 font-medium">{a.objectType || "—"}</p>
+          <p className="text-gray-900 font-medium">{a.objectType || "-"}</p>
         </div>
         <div>
           <span className="text-gray-400 text-[12px]">Doel financiering</span>
-          <p className="text-gray-900 font-medium">{a.leningDoel || "—"}</p>
+          <p className="text-gray-900 font-medium">{a.leningDoel || "-"}</p>
         </div>
         <div>
           <span className="text-gray-400 text-[12px]">Leningbedrag</span>
           <p className="text-gray-900 font-medium">
-            {a.leningBedrag ? formatCurrency(a.leningBedrag) : "—"}
+            {a.leningBedrag ? formatCurrency(a.leningBedrag) : "-"}
           </p>
         </div>
         <div>
           <span className="text-gray-400 text-[12px]">Looptijd</span>
-          <p className="text-gray-900 font-medium">{a.looptijd || "—"}</p>
+          <p className="text-gray-900 font-medium">{a.looptijd || "-"}</p>
         </div>
         <div>
           <span className="text-gray-400 text-[12px]">Documenten</span>

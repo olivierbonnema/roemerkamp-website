@@ -63,7 +63,7 @@ export default function DocumentenPage() {
   }
 
   const fmtDate = (iso: string) => {
-    if (!iso) return "—"
+    if (!iso) return "-"
     try {
       return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
     } catch {

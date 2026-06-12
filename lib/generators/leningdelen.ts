@@ -1,4 +1,4 @@
-// Shared, pure helpers for "gesplitste leningdelen" — loan parts that each have
+// Shared, pure helpers for "gesplitste leningdelen" - loan parts that each have
 // their own repayment form (annuïtair / aflossingsvrij / lineair), end date and
 // monthly term amount. One source of truth for the math + wording, imported by
 // the .docx generator, the PDF preview and the form. No React / no browser deps.
@@ -8,17 +8,17 @@ export type RepaymentType = "annuïtair" | "aflossingsvrij" | "lineair"
 export interface Leningdeel {
   amount: number
   repaymentType: RepaymentType
-  endDate?: string // ISO yyyy-mm-dd — the date the aflossing/annuïteit is based on
+  endDate?: string // ISO yyyy-mm-dd - the date the aflossing/annuïteit is based on
   monthlyAmount?: number // termijnbedrag for this part; auto-computed but overridable
 }
 
 const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100
 
-/* ── formatters (self-contained so this module stays portable) ── */
+/* -- formatters (self-contained so this module stays portable) -- */
 
 export function fmtEuro0(n: number): string {
   const num = Number(n)
-  if (!num && num !== 0) return "—"
+  if (!num && num !== 0) return "-"
   return `€ ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(num)},-`
 }
 
@@ -36,13 +36,13 @@ export function fmtShortDate(iso?: string): string {
   return `${dd}-${mm}-${d.getFullYear()}`
 }
 
-/* ── core math ── */
+/* -- core math -- */
 
 export function leningdelenTotal(delen: Leningdeel[]): number {
   return (delen || []).reduce((s, d) => s + (Number(d.amount) || 0), 0)
 }
 
-/** Whole months between two ISO dates (end − start), never negative. */
+/** Whole months between two ISO dates (end - start), never negative. */
 export function monthsBetween(startISO?: string, endISO?: string): number {
   if (!startISO || !endISO) return 0
   const s = new Date(startISO)
@@ -68,7 +68,7 @@ export function computeLeningdeelMonthly(deel: Leningdeel, annualRatePct: number
   if (deel.repaymentType === "aflossingsvrij") return round2(P * rMaand)
 
   const n = monthsBetween(startISO, deel.endDate)
-  if (!n) return round2(P * rMaand) // no usable term → can't annuitise, show interest
+  if (!n) return round2(P * rMaand) // no usable term, can't annuitise, show interest
 
   if (deel.repaymentType === "lineair") {
     const aflDeel = P / n
@@ -79,13 +79,13 @@ export function computeLeningdeelMonthly(deel: Leningdeel, annualRatePct: number
   return round2((P * rMaand) / (1 - Math.pow(1 + rMaand, -n)))
 }
 
-/** Effective monthly used in rendering — a manual override always wins. */
+/** Effective monthly used in rendering - a manual override always wins. */
 export function leningdeelMonthly(deel: Leningdeel, annualRatePct: number, startISO?: string): number {
   if (deel.monthlyAmount && deel.monthlyAmount > 0) return deel.monthlyAmount
   return computeLeningdeelMonthly(deel, annualRatePct, startISO)
 }
 
-/* ── wording ── */
+/* -- wording -- */
 
 export function repaymentLabel(rt: RepaymentType): string {
   if (rt === "aflossingsvrij") return "aflossingsvrij"
@@ -103,7 +103,7 @@ function joinNums(nums: number[]): string {
   return nums.slice(0, -1).join(", ") + " en " + nums[nums.length - 1]
 }
 
-/** e.g. "Deel 1, 2, 4, 5 en 6: annuïtair — …  Deel 3: aflossingsvrij — …" (one per line). */
+/** e.g. "Deel 1, 2, 4, 5 en 6: annuïtair - …  Deel 3: aflossingsvrij - …" (one per line). */
 export function buildAflossingSummary(delen: Leningdeel[]): string {
   if (!delen || !delen.length) return ""
   const groups: Partial<Record<RepaymentType, number[]>> = {}
@@ -137,9 +137,9 @@ export function buildFaciliteitSuggestion(delen: Leningdeel[]): string {
   return `Hypothecaire geldlening, ${list}`
 }
 
-/* ── rendering strings (used by both .docx and PDF) ── */
+/* -- rendering strings (used by both .docx and PDF) -- */
 
-/** Lines under "Lening bij aanvang": ["Leningdeel 1: € 46.250,- — annuïtair tot 01-09-2048", …]. */
+/** Lines under "Lening bij aanvang": ["Leningdeel 1: € 46.250,- - annuïtair tot 01-09-2048", …]. */
 export function leningdeelLines(delen: Leningdeel[]): string[] {
   return (delen || []).map((d, i) => {
     const datum = d.endDate ? ` tot ${fmtShortDate(d.endDate)}` : ""

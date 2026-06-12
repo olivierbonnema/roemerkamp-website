@@ -10,16 +10,16 @@ import { FaqSchema } from '@/components/faq-schema'
 
 export const metadata: Metadata = {
   title: { absolute: 'Hypotheek zonder jaarcijfers | Lange & Partners' },
-  description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief — niet alleen op historisch inkomen.',
+  description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers' },
   openGraph: {
     title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
-    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief — niet alleen op historisch inkomen.',
+    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
     url: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers',
   },
   twitter: {
     title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
-    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief — niet alleen op historisch inkomen.',
+    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
   },
 }
 
@@ -30,7 +30,7 @@ const doelgroepen = [
   },
   {
     titel: 'DGA\'s in overgang',
-    tekst: 'U bent recent overgestapt van werknemer naar DGA, of heeft uw BV omgebouwd. Banken vereisen drie jaar DGA-jaarrekeningen — die heeft u nog niet.',
+    tekst: 'U bent recent overgestapt van werknemer naar DGA, of heeft uw BV omgebouwd. Banken vereisen drie jaar DGA-jaarrekeningen, die heeft u nog niet.',
   },
   {
     titel: 'Freelancers en ZZP\'ers',
@@ -49,7 +49,7 @@ const faq = [
   },
   {
     vraag: 'Hoe beoordeelt Lange & Partners een aanvraag zonder jaarcijfers?',
-    antwoord: 'Wij kijken naar het vastgoed als onderpand (marktwaarde, type, locatie), de aard en het perspectief van uw onderneming, uw totale vermogenspositie en uw aannemelijke terugbetalingscapaciteit. Een realistisch en onderbouwd beeld is voor ons voldoende om tot een oordeel te komen — ook zonder drie jaar historische cijfers.',
+    antwoord: 'Wij kijken naar het vastgoed als onderpand (marktwaarde, type, locatie), de aard en het perspectief van uw onderneming, uw totale vermogenspositie en uw aannemelijke terugbetalingscapaciteit. Een realistisch en onderbouwd beeld is voor ons voldoende om tot een oordeel te komen, ook zonder drie jaar historische cijfers.',
   },
   {
     vraag: 'Is een hypotheek zonder jaarcijfers een permanente oplossing?',
@@ -69,7 +69,7 @@ export default function HypotheekZonderJaarcijfersPage() {
       <Header />
       <main>
 
-        {/* ── Hero ── */}
+        {/* -- Hero -- */}
         <section className="bg-[#1e3a5f] py-16 md:py-20">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="max-w-2xl">
@@ -78,7 +78,7 @@ export default function HypotheekZonderJaarcijfersPage() {
                 Hypotheek zonder jaarcijfers
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Banken vragen drie jaar jaarcijfers — maar niet iedere ondernemer heeft die. Lange &amp; Partners beoordeelt uw aanvraag op basis van uw vastgoed en uw perspectief, niet alleen op uw financiële verleden.
+                Banken vragen drie jaar jaarcijfers, maar niet iedere ondernemer heeft die. Lange &amp; Partners beoordeelt uw aanvraag op basis van uw vastgoed en uw perspectief, niet alleen op uw financiële verleden.
               </p>
               <div className="mt-8 flex gap-3 flex-wrap">
                 <Link
@@ -98,7 +98,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Waarom de bank nee zegt ── */}
+        {/* -- Waarom de bank nee zegt -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">
@@ -109,7 +109,7 @@ export default function HypotheekZonderJaarcijfersPage() {
                     Banken zijn gebonden aan normen van De Nederlandsche Bank voor de inkomenstoetsing van hypotheken. Voor ondernemers hanteren zij het gemiddelde inkomen over de afgelopen drie jaar als basis voor de berekening van de maximale hypotheek. Zonder drie jaar jaarcijfers ontbreekt de grondslag voor die berekening.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
-                    Het gevolg: een startende ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire financiering — simpelweg omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide; uw situatie is dat niet.
+                    Het gevolg: een startende ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire financiering, simpelweg omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide; uw situatie is dat niet.
                   </p>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Voor wie ── */}
+        {/* -- Voor wie -- */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor wie is dit relevant?</SectionHeading>
@@ -143,7 +143,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Hoe beoordeelt Lange & Partners ── */}
+        {/* -- Hoe beoordeelt Lange & Partners -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Hoe beoordeelt Lange &amp; Partners uw aanvraag?</SectionHeading>
@@ -167,7 +167,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Call-out tijdelijke oplossing ── */}
+        {/* -- Call-out tijdelijke oplossing -- */}
         <section className="py-8 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="max-w-2xl p-6 bg-[#f0f7fb] border-l-4 border-[#2596be]">
@@ -178,7 +178,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Dark USP ── */}
+        {/* -- Dark USP -- */}
         <section className="bg-[#1e3a5f] py-16">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-[1fr_2fr] gap-12 items-start">
@@ -190,7 +190,7 @@ export default function HypotheekZonderJaarcijfersPage() {
               </div>
               <div className="grid sm:grid-cols-3 gap-8">
                 {[
-                  { kop: 'Looptijd 6–60 maanden', tekst: 'Onze leningen zijn bedoeld als tijdelijke financiering, tot bancaire herfinanciering mogelijk is.' },
+                  { kop: 'Looptijd 6-60 maanden', tekst: 'Onze leningen zijn bedoeld als tijdelijke financiering, tot bancaire herfinanciering mogelijk is.' },
                   { kop: 'Maatwerk', tekst: 'Wij beoordelen elke aanvraag individueel. Geen standaardformule, wel een eerlijk oordeel.' },
                   { kop: 'Ervaren team', tekst: 'Met meer dan 50 jaar bancaire achtergrond weten wij wat werkt en wat niet.' },
                 ].map((u) => (
@@ -204,17 +204,17 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Randstad ── */}
+        {/* -- Randstad -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
             </p>
           </div>
         </section>
 
-        {/* ── FAQ ── */}
+        {/* -- FAQ -- */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Veelgestelde vragen</SectionHeading>
@@ -229,7 +229,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Andere financieringsvormen ── */}
+        {/* -- Andere financieringsvormen -- */}
         <section className="py-12 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Andere financieringsvormen</SectionHeading>
@@ -238,7 +238,7 @@ export default function HypotheekZonderJaarcijfersPage() {
                 {
                   href: '/dga-hypotheek',
                   titel: 'DGA hypotheek',
-                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder — op basis van het onderpand, niet alleen het DGA-salaris.',
+                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder, op basis van het onderpand, niet alleen het DGA-salaris.',
                 },
                 {
                   href: '/tweede-hypotheek-ondernemer',
@@ -248,7 +248,7 @@ export default function HypotheekZonderJaarcijfersPage() {
                 {
                   href: '/non-bancaire-hypotheek',
                   titel: 'Non-bancaire hypotheek',
-                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering — hoe het werkt en voor wie het geschikt is.',
+                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering: hoe het werkt en voor wie het geschikt is.',
                 },
               ].map((p) => (
                 <Link
@@ -265,7 +265,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           </div>
         </section>
 
-        {/* ── Meer weten / contact ── */}
+        {/* -- Meer weten / contact -- */}
         <section className="py-20 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">

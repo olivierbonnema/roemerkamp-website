@@ -196,7 +196,7 @@ export default function HerfinancieringVastgoedPage() {
               </div>
               <div className="grid sm:grid-cols-3 gap-8">
                 {[
-                  { kop: 'Onderpand centraal', tekst: 'De waarde van uw vastgoed bepaalt de mogelijkheden — niet uw inkomen, leeftijd of jaarcijfers.' },
+                  { kop: 'Onderpand centraal', tekst: 'De waarde van uw vastgoed bepaalt de mogelijkheden, niet uw inkomen, leeftijd of jaarcijfers.' },
                   { kop: 'Snel geregeld', tekst: 'Herfinanciering binnen één tot drie weken, zodat u op tijd bent als uw huidige lening afloopt.' },
                   { kop: 'Flexibele looptijd', tekst: 'Looptijden van 6 tot 60 maanden, afgestemd op uw situatie en exitstrategie.' },
                 ].map((u) => (

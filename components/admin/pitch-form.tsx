@@ -144,7 +144,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
     } else if (grossRate > 0) {
       return `${fmtN(grossRate)}% per jaar (nominaal)`
     }
-    return "Netto rente: —"
+    return "Netto rente: -"
   }, [grossRate, managementFee, netRate])
 
   const cashplanningPreview = useMemo(() => {
@@ -297,7 +297,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
                 const pct = ((num / den) * 100).toFixed(1).replace(".", ",")
                 return <div className="text-sm font-medium text-[#2E2060] bg-gray-50 px-3 py-1.5 rounded">LTV: {fmtEuro(num)} / {fmtEuro(den)} = {pct}%</div>
               }
-              return <div className="text-sm text-gray-400 bg-gray-50 px-3 py-1.5 rounded">LTV: —</div>
+              return <div className="text-sm text-gray-400 bg-gray-50 px-3 py-1.5 rounded">LTV: -</div>
             })()}
           </div>
         ))}

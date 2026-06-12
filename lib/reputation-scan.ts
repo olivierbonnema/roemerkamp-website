@@ -38,9 +38,9 @@ verify something, say so. Never fabricate.
 5. Paywalled sources (FD, NRC, Quote): cite headline + outlet + date + URL,
    mark as "headline only, body paywalled" if you couldn't read the body.
 
-# Search Protocol — run each tier, log every query
+# Search Protocol - run each tier, log every query
 
-### Tier 1 — Strafrechtelijk
+### Tier 1 - Strafrechtelijk
 - "<name>" fraude
 - "<name>" oplichting
 - "<name>" witwassen
@@ -58,7 +58,7 @@ verify something, say so. Never fabricate.
 - "<name>" schikking transactie OM
 - "<name>" site:rechtspraak.nl
 
-### Tier 2 — Faillissement & Distress
+### Tier 2 - Faillissement & Distress
 - "<name>" faillissement
 - "<name>" failliet
 - "<name>" "surseance van betaling"
@@ -68,10 +68,10 @@ verify something, say so. Never fabricate.
 - "<name>" doorstart
 - "<name>" beslag OR beslaglegging
 - "<name>" schuldsanering
-- Direct registry: insolventies.rechtspraak.nl — search by name and/or KvK.
+- Direct registry: insolventies.rechtspraak.nl - search by name and/or KvK.
 - For natural persons: check curatele- en bewindregister on rechtspraak.nl.
 
-### Tier 3 — Civiele Procedures
+### Tier 3 - Civiele Procedures
 - "<name>" rechtszaak OR rechtbank
 - "<name>" vonnis OR uitspraak
 - "<name>" gedaagde OR eiser
@@ -79,7 +79,7 @@ verify something, say so. Never fabricate.
 - "<name>" "hoger beroep"
 - "<name>" ECLI
 
-### Tier 4 — Toezichthouders
+### Tier 4 - Toezichthouders
 - "<name>" AFM
 - "<name>" DNB
 - "<name>" ACM
@@ -87,17 +87,17 @@ verify something, say so. Never fabricate.
 - "<name>" "last onder dwangsom"
 - "<name>" "bestuurlijke boete"
 - "<name>" waarschuwing AFM
-- Direct check: afm.nl/registers — is subject on a register or warning list?
-- Direct check: dnb.nl openbaar register — same.
+- Direct check: afm.nl/registers - is subject on a register or warning list?
+- Direct check: dnb.nl openbaar register - same.
 
-### Tier 5 — Sanctions & PEP
+### Tier 5 - Sanctions & PEP
 - "<name>" sanctie OR sanctielijst
 - "<name>" "Sanctielijst Terrorisme"
 - "<name>" OFAC
 - "<name>" "EU sanctions list"
 - "<name>" PEP OR "politiek prominent persoon"
 
-### Tier 6 — Adverse Media (Dutch press)
+### Tier 6 - Adverse Media (Dutch press)
 - site:fd.nl "<name>"
 - site:nrc.nl "<name>"
 - site:ftm.nl "<name>"
@@ -111,13 +111,13 @@ verify something, say so. Never fabricate.
 - "<name>" oplichting ervaring OR klacht
 - "<name>" Radar OR Kassa
 
-### Tier 7 — Bedrijfsinformatie & Netwerk
-- KvK lookup at kvk.nl/zoeken — search entity name and/or KvK.
-- Note: UBO data is NOT publicly accessible since Nov 2022 — flag as gap.
+### Tier 7 - Bedrijfsinformatie & Netwerk
+- KvK lookup at kvk.nl/zoeken - search entity name and/or KvK.
+- Note: UBO data is NOT publicly accessible since Nov 2022 - flag as gap.
 - Cross-entity: "<name>" KvK bestuurder OR directeur
 - Secondary: openkvk.nl, drimble.nl, companyinfo.nl for historical roles.
 
-### Tier 8 — Sectorspecifiek (vastgoed focus)
+### Tier 8 - Sectorspecifiek (vastgoed focus)
 - Huurder-verhuurder rechtszaken
 - Taxatie-fraude
 - VvE conflicten
@@ -136,7 +136,7 @@ LOW match strength = AMBIGUOUS, never CONFIRMED ADVERSE.
 | Severity | Trigger |
 |----------|---------|
 | CRITICAL | Confirmed conviction, active criminal investigation, sanctions hit, undisclosed bankruptcy <5y, AFM/DNB ban or warning |
-| HIGH     | Confirmed civil judgment >5% of loan amount; bankruptcy 5–10y ago; serious investigation in credible press |
+| HIGH     | Confirmed civil judgment >5% of loan amount; bankruptcy 5-10y ago; serious investigation in credible press |
 | MEDIUM   | Closed/settled litigation; minor regulator action; mixed-quality media; pattern of consumer complaints |
 | LOW      | Isolated negative review; immaterial dispute; old/closed matter |
 | INFO     | Neutral context, no risk implication |
@@ -220,7 +220,7 @@ function extractJson(text: string): Record<string, unknown> | null {
   try {
     return JSON.parse(stripped)
   } catch {
-    // Model returned prose mixed with JSON — try to find the JSON object
+    // Model returned prose mixed with JSON - try to find the JSON object
   }
   const match = text.match(/\{[\s\S]*"scanStatus"[\s\S]*\}/)
   if (match) {

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
               <table style="width:100%;border-collapse:collapse;">
                 <tr>
                   <td style="padding:8px 12px;color:#6b7280;font-size:13px;width:40%;vertical-align:top;">Van</td>
-                  <td style="padding:8px 12px;color:#111827;font-size:13px;font-weight:500;">${naam || "—"} ${email ? `(${email})` : ""}</td>
+                  <td style="padding:8px 12px;color:#111827;font-size:13px;font-weight:500;">${naam || "-"} ${email ? `(${email})` : ""}</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 12px;color:#6b7280;font-size:13px;vertical-align:top;">Feedback</td>

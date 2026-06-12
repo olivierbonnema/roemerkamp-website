@@ -195,7 +195,7 @@ export default function ZzpHypotheekPage() {
               <div className="grid sm:grid-cols-3 gap-8">
                 {[
                   { kop: 'Geen jaarcijfereis', tekst: 'Drie jaar jaarcijfers is bij ons geen vereiste. Wij beoordelen uw situatie op basis van het onderpand en uw totale financiële positie.' },
-                  { kop: 'Snel geregeld', tekst: 'Van aanvraag tot uitbetaling doorgaans binnen één tot drie weken — aanzienlijk sneller dan via de bank.' },
+                  { kop: 'Snel geregeld', tekst: 'Van aanvraag tot uitbetaling doorgaans binnen één tot drie weken, aanzienlijk sneller dan via de bank.' },
                   { kop: 'Persoonlijk contact', tekst: 'U spreekt rechtstreeks met een specialist die uw situatie begrijpt. Geen callcenter, geen wachttijden.' },
                 ].map((u) => (
                   <div key={u.kop}>
@@ -252,7 +252,7 @@ export default function ZzpHypotheekPage() {
                 {
                   href: '/overbruggingsfinanciering-verbouwing',
                   titel: 'Overbruggingsfinanciering',
-                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing — snel geregeld met vastgoed als zekerheid.',
+                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing, snel geregeld met vastgoed als zekerheid.',
                 },
               ].map((p) => (
                 <Link

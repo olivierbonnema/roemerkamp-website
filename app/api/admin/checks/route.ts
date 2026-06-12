@@ -22,7 +22,7 @@ async function verifyAdmin(req: NextRequest) {
   }
 }
 
-// GET — list all background checks (the central register), newest first.
+// GET - list all background checks (the central register), newest first.
 export async function GET(req: NextRequest) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST — create a standalone background check on a manually-entered subject and
+// POST - create a standalone background check on a manually-entered subject and
 // kick off the scan. Optionally linked to an existing enquiry via linkedAanvraagId.
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)

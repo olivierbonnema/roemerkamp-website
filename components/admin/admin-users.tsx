@@ -107,7 +107,7 @@ export function AdminUsers() {
             </div>
           </div>
           <p className="text-[12px] text-gray-400 font-sans leading-relaxed max-w-md">
-            De gebruiker ontvangt een e-mail om zelf een wachtwoord in te stellen en daarna eenmalig tweestapsverificatie te activeren — precies zoals bij partners.
+            De gebruiker ontvangt een e-mail om zelf een wachtwoord in te stellen en daarna eenmalig tweestapsverificatie te activeren, precies zoals bij partners.
           </p>
           {createError && <p className="text-sm text-red-500 font-sans">{createError}</p>}
           {createSuccess && <p className="text-sm text-green-600 font-sans">{createSuccess}</p>}

@@ -30,7 +30,7 @@ export function NadereInformatieSection() {
 
         <div className="mt-12 space-y-14 max-w-4xl">
 
-          {/* Subsection 1 — Duurzaamheid */}
+          {/* Subsection 1 - Duurzaamheid */}
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Duurzaamheid</h3>
             <p className="text-gray-700 leading-relaxed">
@@ -42,7 +42,7 @@ export function NadereInformatieSection() {
             </p>
           </div>
 
-          {/* Subsection 3 — Raad van Advies */}
+          {/* Subsection 3 - Raad van Advies */}
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-6">Raad van Advies</h3>
             <div className="flex flex-col gap-10">
@@ -67,7 +67,7 @@ export function NadereInformatieSection() {
             </div>
           </div>
 
-          {/* Subsection 4 — Wat wij graag steunen */}
+          {/* Subsection 4 - Wat wij graag steunen */}
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Wat wij graag steunen</h3>
             <p className="text-gray-700 leading-relaxed">
@@ -84,7 +84,7 @@ export function NadereInformatieSection() {
             </p>
           </div>
 
-          {/* Subsection 5 — Toezicht & Registratie */}
+          {/* Subsection 5 - Toezicht & Registratie */}
           <div>
             <h3 className="text-lg font-serif font-semibold text-[#1e3a5f] mb-3">Toezicht &amp; Registratie</h3>
             <p className="text-gray-700 leading-relaxed mb-6">

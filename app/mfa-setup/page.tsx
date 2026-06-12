@@ -85,7 +85,7 @@ export default function MfaSetupPage() {
     try {
       await user.reload()
     } catch {
-      /* ignore — generate() will surface any remaining issue */
+      /* ignore - generate() will surface any remaining issue */
     }
     setRetryNonce((n) => n + 1)
   }
@@ -206,7 +206,7 @@ export default function MfaSetupPage() {
                         onClick={retryAfterVerify}
                         className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors"
                       >
-                        Ik heb mijn e-mail geverifieerd — opnieuw proberen
+                        Ik heb mijn e-mail geverifieerd, opnieuw proberen
                       </button>
                       <button
                         onClick={sendVerification}

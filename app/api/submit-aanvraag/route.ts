@@ -109,8 +109,8 @@ function section(title: string, rows: string) {
   </td></tr>${rows}<tr><td colspan="2" style="padding:4px 0;"></td></tr>`
 }
 
-function fmt(v: string) { return v || "—" }
-function fmtEur(v: string) { return v ? `€ ${v}` : "—" }
+function fmt(v: string) { return v || "-" }
+function fmtEur(v: string) { return v ? `€ ${v}` : "-" }
 
 export const maxDuration = 60
 
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
         partnerOrgId = getPartnerOrgId(decoded)
       }
     } catch {
-      // Token invalid — still allow submission but won't be linked to a user
+      // Token invalid - still allow submission but won't be linked to a user
     }
   }
 
@@ -341,7 +341,7 @@ export async function POST(req: NextRequest) {
   /* ── Upload to OneDrive after the response is sent ── */
   const date = new Date().toISOString().slice(0, 10)
   // SharePoint/OneDrive forbid \ / : * ? " < > | and reject names that end with a
-  // "." or space — e.g. a company name ending in "B.V."/"N.V." or trailing initials.
+  // "." or space - e.g. a company name ending in "B.V."/"N.V." or trailing initials.
   // Without this, folder creation silently fails and the documents never upload.
   const rawFolderName = `${date} - ${naam || email}`
   const folderName =
@@ -386,14 +386,14 @@ export async function POST(req: NextRequest) {
         await sendEmail({
           from: `Lange & Partners <${FROM_EMAIL}>`,
           to: COMPANY_EMAIL,
-          subject: `⚠️ Documenten NIET geüpload — ${naam || email}`,
+          subject: `⚠️ Documenten NIET geüpload - ${naam || email}`,
           html: `<div style="font-family:sans-serif;font-size:14px;color:#111827;line-height:1.7;">
-            <p>De documenten van een nieuwe financieringsaanvraag konden <strong>niet naar OneDrive/SharePoint</strong> worden geüpload. De aanvraag zelf is wél opgeslagen — alleen de bestanden ontbreken in de map.</p>
+            <p>De documenten van een nieuwe financieringsaanvraag konden <strong>niet naar OneDrive/SharePoint</strong> worden geüpload. De aanvraag zelf is wél opgeslagen, alleen de bestanden ontbreken in de map.</p>
             <p style="margin:16px 0;padding:12px 14px;background:#f9fafb;border-left:3px solid #F75D20;">
-              <strong>Aanvrager:</strong> ${naam || "—"}<br>
-              <strong>E-mail:</strong> ${email || "—"}<br>
+              <strong>Aanvrager:</strong> ${naam || "-"}<br>
+              <strong>E-mail:</strong> ${email || "-"}<br>
               <strong>Aantal bestanden:</strong> ${allFiles.length}<br>
-              <strong>Aanvraag-ID:</strong> ${docRef?.id || "—"}
+              <strong>Aanvraag-ID:</strong> ${docRef?.id || "-"}
             </p>
             <p><strong>Foutmelding:</strong><br><code style="color:#b91c1c;">${msg.slice(0, 400)}</code></p>
             <p>Open de aanvraag in het admin-paneel; vraag de indiener de documenten opnieuw aan te leveren of upload ze handmatig naar de map.</p>
@@ -506,7 +506,7 @@ export async function POST(req: NextRequest) {
             ${objects.map((obj, i) => section(objects.length > 1 ? `Object ${i + 1}` : "Object", [
               row("Type vastgoed", fmt(obj.type)),
               row("Adres", fmt(obj.adres)),
-              row("Postcode / Plaats", [obj.postcode, obj.plaats].filter(Boolean).join(" ") || "—"),
+              row("Postcode / Plaats", [obj.postcode, obj.plaats].filter(Boolean).join(" ") || "-"),
               row("Marktwaarde", fmtEur(obj.waarde)),
               row("Huurinkomsten", obj.huurinkomsten ? `€ ${obj.huurinkomsten} / maand` : ""),
             ].join(""))).join("")}

@@ -43,7 +43,7 @@ export function Header() {
     { href: "https://www.collincrowdfund.nl/mijn-collin/", label: "Login bij Collin Crowdfund", external: true },
   ]
 
-  /* ── Mode A: Login page — logo only ── */
+  /* ── Mode A: Login page - logo only ── */
   if (isLoginPage) {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
@@ -213,7 +213,7 @@ export function Header() {
           {/* Right side */}
           <div className="flex items-center gap-3">
             {!loading && user ? (
-              /* Logged in — Account dropdown */
+              /* Logged in - Account dropdown */
               <div className="relative group">
                 <button className="px-4 py-2 text-sm font-medium text-[#311e86] border border-[#311e86] rounded-full hover:bg-gray-50 transition-colors flex items-center gap-1.5">
                   Account

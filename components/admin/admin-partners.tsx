@@ -42,7 +42,7 @@ const ACTION_LABELS: Record<string, string> = {
 }
 
 function formatDateTime(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
 }
 
@@ -196,7 +196,7 @@ export function AdminPartners() {
       if (actRes.ok) setDetailActivity((await actRes.json()).entries || [])
       if (mailRes.ok) setDetailEmails((await mailRes.json()).emails || [])
     } catch {
-      /* ignore — the modal shows empty states */
+      /* ignore - the modal shows empty states */
     } finally {
       setDetailLoading(false)
     }
@@ -342,7 +342,7 @@ export function AdminPartners() {
                         <div key={a.id} className="flex items-baseline justify-between gap-3 text-[13px] font-sans">
                           <span className="text-gray-800">
                             {ACTION_LABELS[a.action] || a.action}
-                            {a.details?.naam ? ` — ${a.details.naam}` : ""}
+                            {a.details?.naam ? ` - ${a.details.naam}` : ""}
                             {a.details?.bedrag ? ` (€ ${a.details.bedrag})` : ""}
                             {a.details?.count ? ` (${a.details.count} bestanden)` : ""}
                           </span>

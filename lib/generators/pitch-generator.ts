@@ -19,15 +19,15 @@ import {
 } from "./docx-helpers"
 
 // ---------------------------------------------------------------------------
-// Pitch house style (navy + dense) — matches the hand-made reference pitch.
+// Pitch house style (navy + dense) - matches the hand-made reference pitch.
 // The shared docx-helpers default to a black body + purple headings with looser
 // spacing (used by the TERMSHEET). We override locally so the termsheet stays
 // untouched: navy text everywhere, headings the same size as the body (just
 // bold), tighter spacing, and navy rule lines.
 // ---------------------------------------------------------------------------
-const C_PITCH = "1F3864" // navy — the entire pitch
-const C_BRAND = C_PITCH // (was purple 2E2060) bold labels + headings → navy
-const C_HRULE = C_PITCH // (was light purple C8C4DC) rule lines → navy
+const C_PITCH = "1F3864" // navy - the entire pitch
+const C_BRAND = C_PITCH // (was purple 2E2060) bold labels + headings to navy
+const C_HRULE = C_PITCH // (was light purple C8C4DC) rule lines to navy
 
 function tx(text: string, opts: Parameters<typeof txBase>[1] = {}) {
   return txBase(text, { color: C_PITCH, ...opts })
@@ -133,19 +133,6 @@ export interface PitchSettings {
 
 const CONTENT = PAGE_W - 2 * MARGIN_SIDE
 
-function tcell(
-  children: docx.Paragraph | docx.Paragraph[],
-  width: number,
-  marginOverride?: { top: number; bottom: number; left: number; right: number }
-) {
-  return new docx.TableCell({
-    children: Array.isArray(children) ? children : [children],
-    borders: noBorder(),
-    width: { size: width, type: docx.WidthType.DXA },
-    margins: marginOverride || { top: 40, bottom: 40, left: 60, right: 60 },
-  })
-}
-
 function pitchSectionHead(text: string) {
   // Schippers: headings are the same size as body text, just bold navy.
   return par([tx(text, { bold: true, color: C_BRAND, size: SZ_BODY })], {
@@ -169,70 +156,38 @@ export async function generatePitch(
     hLogoH = Math.round((d.h / d.w) * hLogoW)
   }
 
-  const leftW = Math.round(CONTENT * 0.6)
-  const rightW = CONTENT - leftW
-
-  const rightCell = logoDataUrl
-    ? tcell(
-        par(
-          [
-            new docx.ImageRun({
-              data: logoBase64(logoDataUrl),
-              transformation: { width: hLogoW, height: hLogoH },
-              type: logoType(logoDataUrl) as
-                | "jpg"
-                | "png"
-                | "gif"
-                | "bmp",
-            }),
-          ],
-          { align: docx.AlignmentType.RIGHT, before: 0, after: 0 }
-        ),
-        rightW
-      )
-    : tcell(
-        par(
-          [
-            tx(s.companyName || "Lange & Partners Financieel Advies", {
-              bold: true,
-              color: C_BRAND,
-              size: SZ_SMALL,
-            }),
-          ],
-          { align: docx.AlignmentType.RIGHT, before: 0, after: 0 }
-        ),
-        rightW
-      )
-
-  // Title + logo as the FIRST block of the document BODY — not a repeating Word
-  // header. (Per Olivier: "Toelichting Lange Financieel Advies" should be the
-  // first line of the document, not in the header.)
-  const titleBlock = new docx.Table({
-    width: { size: CONTENT, type: docx.WidthType.DXA },
-    borders: noTableBorder(),
-    columnWidths: [leftW, rightW],
-    rows: [
-      new docx.TableRow({
-        children: [
-          tcell(
-            par(
-              [
-                tx("Toelichting Lange Financieel Advies", {
-                  bold: true,
-                  size: SZ_BODY,
-                }),
-              ],
-              { before: 0, after: 0 }
-            ),
-            leftW
-          ),
-          rightCell,
+  // Logo (or company-name fallback) goes in the repeating Word HEADER, right-
+  // aligned, like the hand-made Schippers pitch.
+  const headerPar = logoDataUrl
+    ? par(
+        [
+          new docx.ImageRun({
+            data: logoBase64(logoDataUrl),
+            transformation: { width: hLogoW, height: hLogoH },
+            type: logoType(logoDataUrl) as "jpg" | "png" | "gif" | "bmp",
+          }),
         ],
-      }),
-    ],
-  })
-  ch.push(titleBlock as unknown as docx.Paragraph)
-  ch.push(par([], { hrule: true, before: 40, after: 80 }))
+        { align: docx.AlignmentType.RIGHT, before: 0, after: 0 }
+      )
+    : par(
+        [
+          tx(s.companyName || "Lange & Partners Financieel Advies", {
+            bold: true,
+            color: C_BRAND,
+            size: SZ_SMALL,
+          }),
+        ],
+        { align: docx.AlignmentType.RIGHT, before: 0, after: 0 }
+      )
+  const pitchHeader = new docx.Header({ children: [headerPar] })
+
+  // Title is the first line of the body (the logo lives in the header). No rule.
+  ch.push(
+    par([tx("Toelichting Lange Financieel Advies", { bold: true, size: SZ_BODY })], {
+      before: 0,
+      after: 120,
+    })
+  )
 
   // 1 - Inleidende zin
   if (data.introZin) {
@@ -393,7 +348,7 @@ export async function generatePitch(
         par(
           [
             tx(
-              `1e inschrijving van ${fmtEuro(ei.bedrag)} bij ${ei.bank || "—"}${restTxt}`
+              `1e inschrijving van ${fmtEuro(ei.bedrag)} bij ${ei.bank || "-"}${restTxt}`
             ),
           ],
           { before: 40, after: 20 }
@@ -577,6 +532,7 @@ export async function generatePitch(
             },
           },
         },
+        headers: { default: pitchHeader },
         children: ch,
       },
     ],

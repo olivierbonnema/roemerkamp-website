@@ -531,8 +531,8 @@ export function FinancingForm() {
     finally { setSubmitting(false) }
   }
 
-  const fmt = (v: string) => v || "—"
-  const fmtCurrency = (v: string) => v ? `€ ${formatCurrency(v)}` : "—"
+  const fmt = (v: string) => v || "-"
+  const fmtCurrency = (v: string) => v ? `€ ${formatCurrency(v)}` : "-"
 
   /* ── Success state ── */
   if (submitted) {
@@ -762,8 +762,8 @@ export function FinancingForm() {
             <ReviewSection key={idx} title={objects.length > 1 ? `Object ${idx + 1}` : "Object"}>
               <ReviewRow label="Type" value={fmt(obj.type)} />
               <ReviewRow label="Adres" value={fmt(obj.adres)} />
-              <ReviewRow label="Postcode / Plaats" value={`${obj.postcode} ${obj.plaats}`.trim() || "—"} />
-              <ReviewRow label="Marktwaarde" value={obj.waarde ? fmtCurrency(obj.waarde) : "—"} />
+              <ReviewRow label="Postcode / Plaats" value={`${obj.postcode} ${obj.plaats}`.trim() || "-"} />
+              <ReviewRow label="Marktwaarde" value={obj.waarde ? fmtCurrency(obj.waarde) : "-"} />
               {obj.huurinkomsten && <ReviewRow label="Huurinkomsten" value={`${fmtCurrency(obj.huurinkomsten)} / maand`} />}
             </ReviewSection>
           ))}

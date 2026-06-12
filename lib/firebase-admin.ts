@@ -9,7 +9,7 @@ function initAdmin() {
     credential: cert({
       projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
       clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      // The private key comes from env as a string with literal \n — replace them
+      // The private key comes from env as a string with literal \n - replace them
       privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
     }),
   })

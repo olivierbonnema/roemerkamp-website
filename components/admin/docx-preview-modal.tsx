@@ -31,7 +31,7 @@ export default function DocxPreviewModal({
 
     async function generate() {
       try {
-        // Dynamic import to keep bundle small — only loaded when preview opens
+        // Dynamic import to keep bundle small - only loaded when preview opens
         const { pdf } = await import("@react-pdf/renderer")
 
         let element: React.ReactElement

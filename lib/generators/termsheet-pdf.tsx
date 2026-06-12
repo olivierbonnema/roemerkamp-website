@@ -26,19 +26,19 @@ Font.register({
 /* ── Helpers ── */
 
 function fmtEuro(n: number): string {
-  if (!n && n !== 0) return "—"
+  if (!n && n !== 0) return "-"
   const num = Number(n)
-  if (!num) return "—"
+  if (!num) return "-"
   return `€ ${new Intl.NumberFormat("nl-NL", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num)},-`
 }
 
 function fmtEuro2dec(n: number): string {
-  if (!n && n !== 0) return "—"
+  if (!n && n !== 0) return "-"
   return `€ ${new Intl.NumberFormat("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n))}`
 }
 
 function fmtNlDate(iso: string): string {
-  if (!iso) return "—"
+  if (!iso) return "-"
   try {
     return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
   } catch {
@@ -56,9 +56,9 @@ function parseLooptijdMaanden(s?: string): number {
 }
 
 function signingName(b: TermsheetBorrower): string {
-  if (!b) return "—"
-  if (b.type !== "bv") return b.name || "—"
-  const bvName = b.bvName || b.name || "—"
+  if (!b) return "-"
+  if (b.type !== "bv") return b.name || "-"
+  const bvName = b.bvName || b.name || "-"
   const salut = b.vertegenwoordigerSalut || "Dhr."
   const vert = b.vertegenwoordiger || ""
   if (b.holdingBV && b.holdingName) {
@@ -180,7 +180,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
     : loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
   const companyName = settings.companyName || "Lange & Partners Financieel Advies"
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
-  const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "—"
+  const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "-"
   const logoUrl = settings.logoDataUrl || ""
   const rate = Number(data.rentePct) || 0
   const termijnNum = Number(data.termijnbedrag) || 0
@@ -191,7 +191,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
       ? data.aflossing
       : hasLeningdelen
         ? buildAflossingSummary(leningdelen)
-        : "—"
+        : "-"
 
   const entreeLines: string[] = []
   if (entree.afsluit) entreeLines.push(`Afsluitkosten: ${fmtEuro(entree.afsluit)}`)
@@ -211,7 +211,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
   const extraBepalingen = (data as Record<string, unknown>).bepalingen as string[] | undefined
 
   return (
-    <Document title={`Termsheet — ${borrowers[0]?.name || "Geldnemer"}`} author="Lange & Partners">
+    <Document title={`Termsheet - ${borrowers[0]?.name || "Geldnemer"}`} author="Lange & Partners">
       {/* ═══ COVER PAGE ═══ */}
       <Page size="A4" style={s.coverPage}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -259,9 +259,9 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
 
         {/* Ref / Phone / Email */}
         <View style={{ flexDirection: "row", gap: 20, marginBottom: 14 }}>
-          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Referentie</Text>: {data.reference || "—"}</Text>
-          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Telefoon</Text>: {data.phone || "—"}</Text>
-          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>E-mail</Text>: {data.email || "—"}</Text>
+          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Referentie</Text>: {data.reference || "-"}</Text>
+          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>Telefoon</Text>: {data.phone || "-"}</Text>
+          <Text style={{ fontSize: SZ.tiny }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const, color: C.brand }}>E-mail</Text>: {data.email || "-"}</Text>
         </View>
 
         <Text style={{ fontSize: SZ.small, marginBottom: 14 }}><Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>Betreft: </Text>Termsheet</Text>
@@ -273,7 +273,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
           Op uw verzoek doen wij u hierbij een overzicht van de belangrijkste voorwaarden en bepalingen toekomen waarop{" "}
           <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>Lange & Partners Financieel Advies</Text>
           , hierna te noemen "de Bemiddelaar", u een aanbieding wil doen voor een financiering van{" "}
-          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{totalLoan > 0 ? fmtEuro(totalLoan) : "—"}</Text>
+          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{totalLoan > 0 ? fmtEuro(totalLoan) : "-"}</Text>
           {" "}met als doel {data.doelFinanciering || "een herfinanciering"}, waarbij{" "}
           {objects.length > 1 ? "de volgende objecten als zekerheid dienen" : "het volgende object als zekerheid dient"}:
         </Text>
@@ -282,7 +282,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
           <Text key={i} style={{ fontSize: SZ.small, lineHeight: 1.5, marginLeft: 20, marginBottom: 3 }}>{desc}</Text>
         ))}
 
-        {deadlineStr && deadlineStr !== "—" && (
+        {deadlineStr && deadlineStr !== "-" && (
           <Text style={{ fontSize: SZ.small, lineHeight: 1.6, marginTop: 8, marginBottom: 10 }}>
             Wij verzoeken u deze Termsheet vóór <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{deadlineStr}</Text> voor akkoord te ondertekenen en aan ons te retourneren.
           </Text>
@@ -293,19 +293,19 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
 
         <CondRow label="Kredietgever"><V>{data.kredietgever || companyName}</V></CondRow>
         <CondRow label={borrowers.length > 1 ? "Kredietnemers" : "Kredietnemer"}><V>{kredietnemersTxt}</V></CondRow>
-        <CondRow label="Geldverstrekker"><V>{data.geldverstrekker || "—"}</V></CondRow>
-        <CondRow label="Type faciliteit"><V>{data.typeFaciliteit || "—"}</V></CondRow>
+        <CondRow label="Geldverstrekker"><V>{data.geldverstrekker || "-"}</V></CondRow>
+        <CondRow label="Type faciliteit"><V>{data.typeFaciliteit || "-"}</V></CondRow>
         <CondRow label="Valuta"><V>{data.valuta || "Euro (€)"}</V></CondRow>
         <CondRow label="Lening bij aanvang">
           {hasLeningdelen ? (
             <View>
-              <Text style={s.val}>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "—"}</Text>
+              <Text style={s.val}>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "-"}</Text>
               {leningdeelLines(leningdelen).map((line, i) => (
                 <Text key={i} style={s.val}>{line}</Text>
               ))}
             </View>
           ) : (
-            <V>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "—"}</V>
+            <V>{totalLoan > 0 ? `${fmtEuro(totalLoan)} ${fmtZegge(totalLoan)}` : "-"}</V>
           )}
         </CondRow>
 
@@ -316,7 +316,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
             return (
               <CondRow key={i} label="Rentedepot">
                 <V>
-                  Van de lening zal een bedrag van {fmtEuro(lp.amount)} {fmtZegge(lp.amount)} worden aangehouden op een rentedepot voor de betaling van de rente en kosten van de financiering voor de duur van {looptijdMaanden || "—"} maanden. Er wordt over het rentedepot geen rente vergoed.
+                  Van de lening zal een bedrag van {fmtEuro(lp.amount)} {fmtZegge(lp.amount)} worden aangehouden op een rentedepot voor de betaling van de rente en kosten van de financiering voor de duur van {looptijdMaanden || "-"} maanden. Er wordt over het rentedepot geen rente vergoed.
                 </V>
               </CondRow>
             )
@@ -328,7 +328,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
           )
         })}
 
-        <CondRow label="Looptijd"><V>{data.looptijd || "—"}</V></CondRow>
+        <CondRow label="Looptijd"><V>{data.looptijd || "-"}</V></CondRow>
         <CondRow label="Aflossing">
           <View>
             {aflossingText.split("\n").map((line, i) => (
@@ -338,12 +338,12 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
         </CondRow>
         <CondRow label="Rente">
           <View>
-            {(data.rente || "—").split("\n").map((line, i) => (
+            {(data.rente || "-").split("\n").map((line, i) => (
               <Text key={i} style={s.val}>{line}</Text>
             ))}
           </View>
         </CondRow>
-        <CondRow label="Administratiekosten"><V>{data.administratiekosten || "—"}</V></CondRow>
+        <CondRow label="Administratiekosten"><V>{data.administratiekosten || "-"}</V></CondRow>
         <CondRow label="Termijnbedrag">
           {hasLeningdelen ? (
             <View>
@@ -361,27 +361,27 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
               <Text style={s.val}>Totaal per maand: {fmtEuro2dec(totalPerMaand)}</Text>
             </View>
           ) : (
-            <V>{"—"}</V>
+            <V>{"-"}</V>
           )}
         </CondRow>
-        <CondRow label="Rentegrondslag"><V>{data.rentegrondslag || "—"}</V></CondRow>
+        <CondRow label="Rentegrondslag"><V>{data.rentegrondslag || "-"}</V></CondRow>
         <CondRow label="Entreekosten">
           {entreeLines.length > 0 ? (
             <View>
               {entreeLines.map((l, i) => <Text key={i} style={{ ...s.val, marginBottom: 2 }}>{l}</Text>)}
             </View>
           ) : (
-            <V>{"—"}</V>
+            <V>{"-"}</V>
           )}
         </CondRow>
-        <CondRow label="(Extra) Aflossen"><V>{data.extraAflossen || "—"}</V></CondRow>
+        <CondRow label="(Extra) Aflossen"><V>{data.extraAflossen || "-"}</V></CondRow>
 
         <View style={{ height: 20 }} />
 
         {/* ── Section 2 ── */}
         <Text style={s.sectionHead}>Voor de bovenvermelde lening zijn de volgende bepalingen van kracht:</Text>
 
-        <CondRow label="Betalingswijze"><V>{data.betalingswijze || "—"}</V></CondRow>
+        <CondRow label="Betalingswijze"><V>{data.betalingswijze || "-"}</V></CondRow>
         <CondRow label="Zekerheden">
           {manualZekerheden && manualZekerheden.trim() ? (
             <View>
@@ -412,11 +412,11 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
               })}
             </View>
           ) : (
-            <V>{"—"}</V>
+            <V>{"-"}</V>
           )}
         </CondRow>
-        <CondRow label="Verzekering"><V>{data.verzekering || "—"}</V></CondRow>
-        <CondRow label="Condities"><V>{data.condities || "—"}</V></CondRow>
+        <CondRow label="Verzekering"><V>{data.verzekering || "-"}</V></CondRow>
+        <CondRow label="Condities"><V>{data.condities || "-"}</V></CondRow>
         {extraBepalingen && extraBepalingen.length > 0 && (
           <CondRow label="Bepalingen">
             <View>
@@ -434,20 +434,20 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
               ))}
             </View>
           ) : (
-            <V>{"—"}</V>
+            <V>{"-"}</V>
           )}
         </CondRow>
-        <CondRow label="Toepasselijk recht"><V>{data.toepasselijkRecht || "—"}</V></CondRow>
-        <CondRow label="Beschikbaarheid"><V>{data.beschikbaarheid || "—"}</V></CondRow>
-        <CondRow label="Overdracht"><V>{data.overdracht || "—"}</V></CondRow>
-        <CondRow label="Notaris"><V>{data.notaris || "—"}</V></CondRow>
+        <CondRow label="Toepasselijk recht"><V>{data.toepasselijkRecht || "-"}</V></CondRow>
+        <CondRow label="Beschikbaarheid"><V>{data.beschikbaarheid || "-"}</V></CondRow>
+        <CondRow label="Overdracht"><V>{data.overdracht || "-"}</V></CondRow>
+        <CondRow label="Notaris"><V>{data.notaris || "-"}</V></CondRow>
         <CondRow label="Geldigheidsduur (na ondertekening)"><V>Tot en met uiterlijk {validityStr}</V></CondRow>
 
         {/* ── Closing ── */}
         <View style={{ marginTop: 30 }} wrap={false}>
           <Text style={{ fontSize: SZ.small, marginBottom: 18 }}>Hoogachtend,</Text>
           <Text style={{ fontSize: SZ.small, fontFamily: "Calibri", fontWeight: "bold" as const, marginBottom: 3 }}>
-            {data.signingAdvisor || data.advisorName || settings.advisorName || "—"}
+            {data.signingAdvisor || data.advisorName || settings.advisorName || "-"}
           </Text>
           <Text style={{ fontSize: SZ.small, color: C.grey }}>{companyName}</Text>
         </View>

@@ -63,7 +63,7 @@ export default function ActiviteitPage() {
   }, [user])
 
   const fmtDate = (iso: string) => {
-    if (!iso) return "—"
+    if (!iso) return "-"
     try {
       return new Date(iso).toLocaleDateString("nl-NL", {
         day: "numeric",
@@ -106,14 +106,14 @@ export default function ActiviteitPage() {
                   <td className="px-4 py-3">
                     <span className="font-medium">{ACTION_LABELS[entry.action] || entry.action}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{entry.userEmail || "—"}</td>
+                  <td className="px-4 py-3 text-gray-600">{entry.userEmail || "-"}</td>
                   <td className="px-4 py-3 text-gray-500">
                     {entry.targetName && <span>{entry.targetName}</span>}
                     {entry.details && (
                       <span className="text-gray-400 ml-1">
                         {typeof entry.details === "string"
                           ? `(${entry.details})`
-                          : Object.values(entry.details).filter(Boolean).join(" — ")}
+                          : Object.values(entry.details).filter(Boolean).join(" - ")}
                       </span>
                     )}
                   </td>

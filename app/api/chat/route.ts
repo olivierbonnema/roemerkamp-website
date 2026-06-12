@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 // ============================================================
-// STAP 1 — API KEY
+// STAP 1 - API KEY
 // Voeg toe aan .env.local (nooit in de code zelf):
 //   ANTHROPIC_API_KEY=sk-ant-api03-...
 // ============================================================
@@ -12,7 +12,7 @@ const client = new Anthropic({
 })
 
 // ============================================================
-// STAP 2 — BEDRIJFSINFORMATIE
+// STAP 2 - BEDRIJFSINFORMATIE
 // Vervang de placeholder-tekst hieronder met echte informatie
 // over producten, diensten, voorwaarden, contactgegevens, etc.
 // Hoe meer context je geeft, hoe beter de assistent antwoord.

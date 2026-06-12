@@ -6,7 +6,7 @@ import type { TermsheetData } from "@/lib/generators/termsheet-generator"
 
 // Builds a pre-filled pitch from a termsheet's data (+ the linked aanvraag's data
 // for market value / eigen inbreng → LTV + financieringsopzet). Pure field
-// mapping — no AI. Takes the live termsheet form data so unsaved edits count.
+// mapping - no AI. Takes the live termsheet form data so unsaved edits count.
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

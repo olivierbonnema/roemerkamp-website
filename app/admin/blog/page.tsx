@@ -29,7 +29,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 }
 
 function fmtDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   try {
     return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })
   } catch { return iso }

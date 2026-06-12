@@ -127,7 +127,7 @@ export default function PreviewVoorLeningnemersPage() {
           </div>
         </section>
 
-        {/* ── Hoe werkt het — verticale tijdlijn ── */}
+        {/* ── Hoe werkt het - verticale tijdlijn ── */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Hoe werkt het?</SectionHeading>

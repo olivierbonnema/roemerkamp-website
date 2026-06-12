@@ -11,12 +11,12 @@ export function ContactInfoSection() {
     <section className="py-20 bg-white">
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-16 items-start">
-          {/* Left — contact form */}
+          {/* Left - contact form */}
           <div>
             <ContactForm showInterestSelect={true} />
           </div>
 
-          {/* Right — contact details */}
+          {/* Right - contact details */}
           <div className="space-y-8">
             <div>
               <p className="font-semibold text-[#1e3a5f]">Lange &amp; Partners</p>

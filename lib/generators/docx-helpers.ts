@@ -116,9 +116,9 @@ export function sectionHead(text: string) {
 }
 
 export function fmtEuro(n: number) {
-  if (!n && n !== 0) return "—"
+  if (!n && n !== 0) return "-"
   const num = Number(n)
-  if (!num) return "—"
+  if (!num) return "-"
   const formatted = new Intl.NumberFormat("nl-NL", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
@@ -127,7 +127,7 @@ export function fmtEuro(n: number) {
 }
 
 export function fmtEuro2dec(n: number) {
-  if (!n && n !== 0) return "—"
+  if (!n && n !== 0) return "-"
   const num = Number(n)
   const formatted = new Intl.NumberFormat("nl-NL", {
     minimumFractionDigits: 2,
@@ -137,7 +137,7 @@ export function fmtEuro2dec(n: number) {
 }
 
 export function fmtNlDate(iso: string) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   try {
     const d = new Date(iso)
     return d.toLocaleDateString("nl-NL", {
@@ -156,7 +156,7 @@ export function fmtN(n: number) {
 
 export function multilinePars(text: string, size?: number) {
   const sz = size || SZ_SMALL
-  if (!text) return [par([tx("—", { size: sz })], { before: 50, after: 50 })]
+  if (!text) return [par([tx("-", { size: sz })], { before: 50, after: 50 })]
   const lines = text.split("\n")
   return lines.map((line, i) =>
     par([tx(line.trim() || "", { size: sz })], {

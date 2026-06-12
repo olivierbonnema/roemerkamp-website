@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
               doc.ref.update({ reputationScanStatus: "completed" }).catch(() => {})
               data.reputationScanStatus = "completed"
             } else {
-              // No results — reset to clean state so user can retry
+              // No results, reset to clean state so user can retry
               doc.ref.update({ reputationScanStatus: null, reputationScanError: null, reputationScanStarted: null }).catch(() => {})
               delete data.reputationScanStatus
               delete data.reputationScanError
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        // Clean up OLD failed scans without results (>10 min) — show clean "Start" button
+        // Clean up OLD failed scans without results (>10 min), show clean "Start" button
         // Fresh errors (<10 min) are kept so the user sees what went wrong
         const TEN_MINUTES = 10 * 60 * 1000
         if (data.reputationScanStatus === "error" && !data.reputationScanResult) {

@@ -23,7 +23,7 @@ async function verifyAdmin(req: NextRequest) {
 
 // Starts a background check for an existing enquiry. The check is recorded in
 // the central `background_checks` register (linked to the aanvraag) AND mirrored
-// onto the aanvraag's reputationScan* fields, so the enquiry card is unchanged.
+// onto the aanvraag's reputationScan fields, so the enquiry card is unchanged.
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     details: { naam: data.naam || "", linkedAanvraagId: aanvraagId },
   })
 
-  // Use after() to keep the function alive after responding — ensures the fetch
+  // Use after() to keep the function alive after responding; ensures the fetch
   // actually sends. The internal route has maxDuration=300 and writes results
   // to Firestore independently.
   after(async () => {

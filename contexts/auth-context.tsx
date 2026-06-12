@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // onIdTokenChanged (not onAuthStateChanged) so MFA state refreshes after
-    // enrollment and 2FA sign-in — those refresh the ID token but don't change the
+    // enrollment and 2FA sign-in, those refresh the ID token but don't change the
     // sign-in state, so onAuthStateChanged would leave mfaEnrolled stale and bounce
     // a just-enrolled user back to /mfa-setup (re-enrolling factors until the max).
     const unsub = onIdTokenChanged(auth, (u) => {

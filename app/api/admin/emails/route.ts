@@ -8,7 +8,7 @@ import { getMessageTraces } from "@/lib/message-trace"
 // `status` is our SEND result (sent = accepted by Microsoft; failed = our send
 // errored). `deliveryStatus` (when present) is the true M365 message-trace result
 // (delivered / failed / pending / ...). The trace lookup is dormant until the
-// ExchangeMessageTrace.Read.All permission is consented — until then deliveryStatus
+// ExchangeMessageTrace.Read.All permission is consented; until then deliveryStatus
 // stays empty and the UI shows the send status.
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     })
 
     // Enrich recent successfully-sent emails with the M365 delivery status. Dormant
-    // (no-op) until the message-trace permission is granted — getMessageTraces returns [].
+    // (no-op) until the message-trace permission is granted; getMessageTraces returns [].
     const sinceMs = Date.now() - TEN_DAYS_MS
     const needsCheck = rows.filter((r) => r.status === "sent" && !r.deliveryStatus && r.sentAtMs >= sinceMs)
     if (needsCheck.length > 0) {

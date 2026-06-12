@@ -1,4 +1,4 @@
-// Pure, deterministic mapping: a saved termsheet (+ optionally its aanvraag) → a
+// Pure, deterministic mapping: a saved termsheet (+ optionally its aanvraag) to a
 // pre-filled pitch. No AI, no Firestore. The narrative pitch fields (intro
 // paragraph, risks, stichting/spreiding/cashplanning) are intentionally left to
 // the form's PITCH_DEFAULTS so the admin writes them. This is "step 1" of the
@@ -55,19 +55,19 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
   const marktwaarde = totalMarktwaarde(aanvraag)
   const eigenInbreng = toNumber(aanvraag?.eigenInbreng)
 
-  // Parties: termsheet borrowers → pitch geldnemers
+  // Parties: termsheet borrowers to pitch geldnemers
   const geldnemers = (termsheet.borrowers || []).map((b) => ({
     name: b.name || "",
     type: (b.type === "bv" ? "bv" : "prive") as "prive" | "prive-bestuurder" | "bv",
     bvName: b.type === "bv" ? (b.bvName || "") : "",
   }))
 
-  // Collateral: termsheet objects → pitch collateral (only the description field)
+  // Collateral: termsheet objects to pitch collateral (only the description field)
   const collateralObjects = (termsheet.objects || []).map((o) => ({
     description: o.description || o.address || "",
   }))
 
-  // Mortgage rank from the first object ("1e" → "1")
+  // Mortgage rank from the first object ("1e" to "1")
   const rankRaw = termsheet.objects?.[0]?.hypotheekRank || ""
   const hypotheekRang = rankRaw.match(/\d+/)?.[0] || "1"
 
@@ -82,7 +82,7 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     leenvorm: deriveLeenvorm(termsheet),
   }
 
-  // LTV — only when we know the market value (from the aanvraag)
+  // LTV - only when we know the market value (from the aanvraag)
   if (hoofdsom > 0 && marktwaarde > 0) {
     pitch.ltvRows = [{
       label: "LTV",
@@ -92,7 +92,7 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     }]
   }
 
-  // Financieringsopzet — a few safe rows from what we reliably know
+  // Financieringsopzet - a few safe rows from what we reliably know
   if (marktwaarde > 0 || hoofdsom > 0) {
     const rows: { label: string; amount: number; type: FinRowType }[] = []
     if (marktwaarde > 0) rows.push({ label: "Marktwaarde onderpand", amount: marktwaarde, type: "normal" })

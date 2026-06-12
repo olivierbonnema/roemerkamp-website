@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
                 </tr>
                 <tr>
                   <td style="padding:8px 12px;color:#6b7280;font-size:13px;vertical-align:top;">Pagina</td>
-                  <td style="padding:8px 12px;color:#111827;font-size:13px;">${pageUrl || "—"}</td>
+                  <td style="padding:8px 12px;color:#111827;font-size:13px;">${pageUrl || "-"}</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 12px;color:#6b7280;font-size:13px;vertical-align:top;">Feedback</td>

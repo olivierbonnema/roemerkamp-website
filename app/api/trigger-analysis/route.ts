@@ -46,7 +46,7 @@ async function createMarkerFile(token: string, folderId: string, name: string) {
 }
 
 /**
- * Fire the Python AI backend — fire-and-forget.
+ * Fire the Python AI backend - fire-and-forget.
  * The backend takes ~47 seconds (too long for Vercel's timeout),
  * so we fire the request and don't await the response.
  * The backend handles Firestore updates + email reports on its own.
@@ -67,7 +67,7 @@ function fireBackendAnalysis(folderId: string, applicationId: string): void {
     .digest("hex")
 
   // Fire-and-forget: intentionally not awaiting
-  // Trailing slash required — FastAPI redirects /analyze → /analyze/ (307)
+  // Trailing slash required - FastAPI redirects /analyze → /analyze/ (307)
   fetch(`${PYTHON_BACKEND_URL}/analyze/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -78,7 +78,7 @@ function fireBackendAnalysis(folderId: string, applicationId: string): void {
       signature,
     }),
   }).catch((err) => {
-    // Log but don't block — the user already sees the success page
+    // Log but don't block - the user already sees the success page
     console.error("Backend analysis call failed:", err)
   })
 }
@@ -175,7 +175,7 @@ export async function GET(req: NextRequest) {
       <p>Kon de analyse niet starten. Probeer het opnieuw of neem contact op.</p>`)
   }
 
-  // Fire the Python AI backend (fire-and-forget — runs ~47 seconds in background)
+  // Fire the Python AI backend (fire-and-forget - runs ~47 seconds in background)
   fireBackendAnalysis(folderId, applicationId!)
 
   return htmlPage("Analyse gestart", `

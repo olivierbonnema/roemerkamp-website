@@ -15,7 +15,7 @@ async function verifyAdmin(req: NextRequest) {
   }
 }
 
-// DELETE — remove a register entry. Does not touch a linked aanvraag's own copy.
+// DELETE - remove a register entry. Does not touch a linked aanvraag's own copy.
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

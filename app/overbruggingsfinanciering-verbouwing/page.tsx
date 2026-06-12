@@ -34,7 +34,7 @@ const situaties = [
   },
   {
     titel: 'Aankoop op veiling',
-    tekst: 'Vastgoed gekocht via een veiling vereist snelle betaling — vaak binnen enkele weken. Een bancaire hypotheek haalt die doorlooptijd zelden. Wij doorgaans wel.',
+    tekst: 'Vastgoed gekocht via een veiling vereist snelle betaling, vaak binnen enkele weken. Een bancaire hypotheek haalt die doorlooptijd zelden. Wij doorgaans wel.',
   },
   {
     titel: 'Projectontwikkeling',
@@ -53,7 +53,7 @@ const situaties = [
 const faq = [
   {
     vraag: 'Wat is het verschil tussen een overbruggingslening en een reguliere hypotheek?',
-    antwoord: 'Een reguliere hypotheek is een langlopende lening (doorgaans 10–30 jaar) bedoeld als permanente financiering. Een overbruggingslening is tijdelijk — bij ons maximaal 60 maanden — en bedoeld om een gat te dichten tussen twee momenten: de aankoop en de verkoop, of het begin en het einde van een project. De lening wordt afgelost zodra het onderliggende vastgoed is verkocht of de definitieve financiering is geregeld.',
+    antwoord: 'Een reguliere hypotheek is een langlopende lening (doorgaans 10–30 jaar) bedoeld als permanente financiering. Een overbruggingslening is tijdelijk, bij ons maximaal 60 maanden, en bedoeld om een gat te dichten tussen twee momenten: de aankoop en de verkoop, of het begin en het einde van een project. De lening wordt afgelost zodra het onderliggende vastgoed is verkocht of de definitieve financiering is geregeld.',
   },
   {
     vraag: 'Hoe snel kan een overbruggingslening worden verstrekt?',
@@ -86,7 +86,7 @@ export default function OverbruggingsfinancieringVerbouwingPage() {
                 Overbruggingsfinanciering voor verbouwing en meer
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Verbouwen vóór verkoop, een veiling-aankoop of een project dat doorloopt — Lange &amp; Partners regelt overbruggingsfinanciering snel en zonder de bureaucratie van een bancaire aanvraag.
+                Verbouwen vóór verkoop, een veiling-aankoop of een project dat doorloopt, Lange &amp; Partners regelt overbruggingsfinanciering snel en zonder de bureaucratie van een bancaire aanvraag.
               </p>
               <div className="mt-8 flex gap-3 flex-wrap">
                 <Link
@@ -135,7 +135,7 @@ export default function OverbruggingsfinancieringVerbouwingPage() {
                     Overbruggingsfinanciering is een tijdelijke lening die het gat dicht tussen twee momenten: de aankoop van nieuw vastgoed en de verkoop van het huidige, of de start van een project en de definitieve financiering ervan. De lening wordt gedekt door vastgoed als onderpand.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
-                    Banken bieden ook overbruggingskredieten aan, maar zijn daarin traag en kieskeurig. Lange &amp; Partners werkt met particuliere investeerders en kan snel schakelen. Wij beoordelen de waarde van het onderpand en het realistische perspectief op terugbetaling — niet het inkomen van de afgelopen drie jaar.
+                    Banken bieden ook overbruggingskredieten aan, maar zijn daarin traag en kieskeurig. Lange &amp; Partners werkt met particuliere investeerders en kan snel schakelen. Wij beoordelen de waarde van het onderpand en het realistische perspectief op terugbetaling, niet het inkomen van de afgelopen drie jaar.
                   </p>
                 </div>
               </div>
@@ -228,7 +228,7 @@ export default function OverbruggingsfinancieringVerbouwingPage() {
               <div className="grid sm:grid-cols-3 gap-8">
                 {[
                   { kop: 'Snel', tekst: 'Doorlooptijd van één tot drie weken. Geschikt voor situaties met tijdsdruk.' },
-                  { kop: 'Op het onderpand', tekst: 'Wij beoordelen op vastgoedwaarde — geen inkomenstoets, geen jaarcijfers vereist.' },
+                  { kop: 'Op het onderpand', tekst: 'Wij beoordelen op vastgoedwaarde, geen inkomenstoets, geen jaarcijfers vereist.' },
                   { kop: 'Duidelijk vooraf', tekst: 'U weet voordat u tekent wat de looptijd, het bedrag en alle voorwaarden zijn.' },
                 ].map((u) => (
                   <div key={u.kop}>
@@ -246,7 +246,7 @@ export default function OverbruggingsfinancieringVerbouwingPage() {
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
             </p>
           </div>
         </section>
@@ -280,7 +280,7 @@ export default function OverbruggingsfinancieringVerbouwingPage() {
                 {
                   href: '/non-bancaire-hypotheek',
                   titel: 'Non-bancaire hypotheek',
-                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering — hoe het werkt en voor wie het geschikt is.',
+                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering, hoe het werkt en voor wie het geschikt is.',
                 },
               ].map((p) => (
                 <Link

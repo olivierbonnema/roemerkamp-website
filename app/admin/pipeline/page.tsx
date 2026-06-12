@@ -53,19 +53,19 @@ const COLUMNS: Column[] = [
 /* ── Helpers ── */
 
 function fmtDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   try {
     return new Date(iso).toLocaleDateString("nl-NL", {
       day: "numeric",
       month: "short",
     })
   } catch {
-    return "—"
+    return "-"
   }
 }
 
 function fmtEuro(v: string) {
-  if (!v) return "—"
+  if (!v) return "-"
   const n = Number(v.replace(/[^\d]/g, ""))
   if (!n) return v
   return new Intl.NumberFormat("nl-NL", {

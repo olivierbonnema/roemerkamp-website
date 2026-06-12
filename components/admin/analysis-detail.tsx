@@ -89,7 +89,7 @@ const PILLAR_STATUS: Record<string, { icon: string; color: string }> = {
 }
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
 }
 
@@ -221,7 +221,7 @@ function CorrectionModal({
 
           <div>
             <label className="text-xs font-medium text-gray-600 font-sans mb-1 block">
-              Reden <span className="text-gray-400 font-normal">(optioneel — helpt de AI leren)</span>
+              Reden <span className="text-gray-400 font-normal">(optioneel, helpt de AI leren)</span>
             </label>
             <textarea
               value={reason}
@@ -385,7 +385,7 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
       <div className="border border-gray-200 rounded-2xl p-6 bg-white">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div>
-            <h2 className="font-serif text-2xl text-[#1E3A5F]">{app.naam || "—"}</h2>
+            <h2 className="font-serif text-2xl text-[#1E3A5F]">{app.naam || "-"}</h2>
             <p className="text-sm text-gray-400 font-sans mt-1">
               Aanvraag: {formatDate(app.createdAt)} | Analyse: {formatDate(app.analysisTimestamp)}
             </p>
@@ -409,23 +409,23 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm font-sans">
           <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
             <span className="text-gray-400 text-[11px]">Documenten</span>
-            <p className="text-lg font-medium text-[#1E3A5F]">{app.documentsProcessed ?? "—"}</p>
+            <p className="text-lg font-medium text-[#1E3A5F]">{app.documentsProcessed ?? "-"}</p>
           </div>
           <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
             <span className="text-gray-400 text-[11px]">Verwerkingstijd</span>
-            <p className="text-lg font-medium text-[#1E3A5F]">{app.analysisProcessingTime ? `${app.analysisProcessingTime}s` : "—"}</p>
+            <p className="text-lg font-medium text-[#1E3A5F]">{app.analysisProcessingTime ? `${app.analysisProcessingTime}s` : "-"}</p>
           </div>
           <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
             <span className="text-gray-400 text-[11px]">Leningbedrag</span>
-            <p className="text-lg font-medium text-[#1E3A5F]">{app.leningBedrag ? `€${parseInt(app.leningBedrag).toLocaleString("nl-NL")}` : "—"}</p>
+            <p className="text-lg font-medium text-[#1E3A5F]">{app.leningBedrag ? `€${parseInt(app.leningBedrag).toLocaleString("nl-NL")}` : "-"}</p>
           </div>
           <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
             <span className="text-gray-400 text-[11px]">Looptijd</span>
-            <p className="text-lg font-medium text-[#1E3A5F]">{app.looptijd || "—"}</p>
+            <p className="text-lg font-medium text-[#1E3A5F]">{app.looptijd || "-"}</p>
           </div>
           <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
             <span className="text-gray-400 text-[11px]">Object</span>
-            <p className="text-sm font-medium text-[#1E3A5F] truncate">{app.objectPlaats || app.objectAdres || "—"}</p>
+            <p className="text-sm font-medium text-[#1E3A5F] truncate">{app.objectPlaats || app.objectAdres || "-"}</p>
           </div>
         </div>
       </div>
@@ -482,10 +482,10 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
         <p className="text-gray-400 text-sm font-sans py-4">Geen analyse-resultaten gevonden.</p>
       ) : (
         <>
-          {/* Credit Policy — Three Pillars */}
+          {/* Credit Policy - Three Pillars */}
           {analysis.policyResults && (
             <Section
-              title="Kredietbeleid — Drie pijlers"
+              title="Kredietbeleid - Drie pijlers"
               onCorrect={() => openCorrection(
                 "credit_policy",
                 "overall_recommendation",
@@ -500,7 +500,7 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
                   return (
                     <div key={pillar} className="border border-gray-100 rounded-xl p-4 group relative">
                       <div className="flex items-center gap-2 mb-2">
-                        <span>{statusStyle?.icon || "—"}</span>
+                        <span>{statusStyle?.icon || "-"}</span>
                         <span className="font-sans text-sm font-medium" style={{ color: statusStyle?.color || "#374151" }}>
                           {pillarNames[pillar]}
                         </span>
@@ -664,11 +664,11 @@ export function AnalysisDetail({ applicationId, onBack }: { applicationId: strin
                   .map((ext, i) => (
                     <details key={i} className="border border-gray-100 rounded-xl overflow-hidden">
                       <summary className="px-4 py-3 cursor-pointer text-sm font-sans font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between">
-                        <span>{ext.filename} — <span className="text-gray-400">{ext.documentType?.replace(/_/g, " ")}</span></span>
+                        <span>{ext.filename} - <span className="text-gray-400">{ext.documentType?.replace(/_/g, " ")}</span></span>
                       </summary>
                       <div className="px-4 py-3 space-y-1.5">
                         {Object.entries(ext.extractedFields!).map(([key, val]) => {
-                          const displayVal = typeof val === "object" ? JSON.stringify(val) : String(val ?? "—")
+                          const displayVal = typeof val === "object" ? JSON.stringify(val) : String(val ?? "-")
                           return (
                             <div key={key} className="flex items-center justify-between py-1 group">
                               <span className="text-xs font-sans text-gray-400">{key.replace(/_/g, " ")}</span>

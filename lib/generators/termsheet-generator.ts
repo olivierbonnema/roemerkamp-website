@@ -159,9 +159,9 @@ function parseLooptijdMaanden(looptijdStr?: string): number {
 }
 
 function signingName(b: TermsheetBorrower): string {
-  if (!b) return "—"
-  if (b.type !== "bv") return b.name || "—"
-  const bvName = b.bvName || b.name || "—"
+  if (!b) return "-"
+  if (b.type !== "bv") return b.name || "-"
+  const bvName = b.bvName || b.name || "-"
   const salut = b.vertegenwoordigerSalut || "Dhr."
   const vert = b.vertegenwoordiger || ""
   if (b.holdingBV && b.holdingName) {
@@ -192,7 +192,7 @@ export async function generateTermsheet(
     ? leningdelenTotal(leningdelen)
     : loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
   const companyName = s.companyName || "Lange & Partners Financieel Advies"
-  const loanTotalTxt = totalLoan > 0 ? fmtEuro(totalLoan) : "—"
+  const loanTotalTxt = totalLoan > 0 ? fmtEuro(totalLoan) : "-"
 
   const logoDataUrl = s.logoDataUrl || DEFAULT_LOGO_DATA_URL
 
@@ -328,9 +328,9 @@ export async function generateTermsheet(
       rows: [
         new docx.TableRow({
           children: [
-            cell(par([tx("Referentie", { bold: true, color: C_BRAND, size: SZ_TINY }), tx(": ", { size: SZ_TINY }), tx(data.reference || "—", { size: SZ_TINY })], { before: 0, after: 0 }), refColW),
-            cell(par([tx("Telefoon", { bold: true, color: C_BRAND, size: SZ_TINY }), tx(": ", { size: SZ_TINY }), tx(data.phone || "—", { size: SZ_TINY })], { before: 0, after: 0 }), refColW),
-            cell(par([tx("E-mail", { bold: true, color: C_BRAND, size: SZ_TINY }), tx(": ", { size: SZ_TINY }), tx(data.email || "—", { size: SZ_TINY })], { before: 0, after: 0 }), CONTENT - 2 * refColW),
+            cell(par([tx("Referentie", { bold: true, color: C_BRAND, size: SZ_TINY }), tx(": ", { size: SZ_TINY }), tx(data.reference || "-", { size: SZ_TINY })], { before: 0, after: 0 }), refColW),
+            cell(par([tx("Telefoon", { bold: true, color: C_BRAND, size: SZ_TINY }), tx(": ", { size: SZ_TINY }), tx(data.phone || "-", { size: SZ_TINY })], { before: 0, after: 0 }), refColW),
+            cell(par([tx("E-mail", { bold: true, color: C_BRAND, size: SZ_TINY }), tx(": ", { size: SZ_TINY }), tx(data.email || "-", { size: SZ_TINY })], { before: 0, after: 0 }), CONTENT - 2 * refColW),
           ],
         }),
       ],
@@ -368,7 +368,7 @@ export async function generateTermsheet(
     letterChildren.push(par([tx(desc, { size: SZ_SMALL })], { before: 0, after: 40, indent: MM(6) }))
   })
 
-  if (deadlineStr && deadlineStr !== "—") {
+  if (deadlineStr && deadlineStr !== "-") {
     letterChildren.push(empty(60))
     letterChildren.push(
       par(
@@ -385,7 +385,7 @@ export async function generateTermsheet(
   // FIRST CONDITIONS TABLE
   letterChildren.push(sectionHead("De belangrijkste condities en voorwaarden zijn:"))
 
-  const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "—"
+  const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "-"
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
   const leningRows: docx.TableRow[] = []
 
@@ -405,7 +405,7 @@ export async function generateTermsheet(
     const label = (lp.typeLabel || "").trim()
     if (label === "Lening bij aanvang") return
     if (label === "Rentedepot") {
-      const depotTxt = `Van de lening zal een bedrag van ${fmtEuro(lp.amount)} ${fmtZegge(lp.amount)} worden aangehouden op een rentedepot voor de betaling van de rente en kosten van de financiering voor de duur van ${looptijdMaanden || "—"} maanden. Er wordt over het rentedepot geen rente vergoed.`
+      const depotTxt = `Van de lening zal een bedrag van ${fmtEuro(lp.amount)} ${fmtZegge(lp.amount)} worden aangehouden op een rentedepot voor de betaling van de rente en kosten van de financiering voor de duur van ${looptijdMaanden || "-"} maanden. Er wordt over het rentedepot geen rente vergoed.`
       leningRows.push(condRow("Rentedepot", [par([tx(depotTxt, { size: SZ_SMALL })], { before: 50, after: 50 })]))
     } else {
       leningRows.push(condRow(label, [tx(`${fmtEuro(lp.amount)} ${fmtZegge(lp.amount)}`, { size: SZ_SMALL })]))
@@ -434,7 +434,7 @@ export async function generateTermsheet(
             par([tx(`Administratiekosten: ${fmtEuro2dec(adminKosten)} per maand`, { size: SZ_SMALL })], { before: 10, after: 10 }),
             par([tx(`Totaal per maand: ${fmtEuro2dec(totalPerMaand)}`, { size: SZ_SMALL })], { before: 10, after: 30 }),
           ]
-        : [par([tx("—", { size: SZ_SMALL })], { before: 50, after: 50 })]
+        : [par([tx("-", { size: SZ_SMALL })], { before: 50, after: 50 })]
   }
 
   const entreeLines: string[] = []
@@ -448,30 +448,30 @@ export async function generateTermsheet(
   if (entree.annulering) entreeLines.push(`Annuleringskosten: ${fmtEuro(entree.annulering)}`)
   const entreePars = entreeLines.length
     ? entreeLines.map((l) => par([tx(l, { size: SZ_SMALL })], { before: 30, after: 30 }))
-    : [par([tx("—", { size: SZ_SMALL })], { before: 30, after: 30 })]
+    : [par([tx("-", { size: SZ_SMALL })], { before: 30, after: 30 })]
 
   const aflossingText =
     data.aflossing && data.aflossing.trim()
       ? data.aflossing
       : hasLeningdelen
         ? buildAflossingSummary(leningdelen)
-        : "—"
+        : "-"
 
   const table1Rows = [
     condRow("Kredietgever", [tx(data.kredietgever || companyName, { size: SZ_SMALL })]),
     condRow(borrowers.length > 1 ? "Kredietnemers" : "Kredietnemer", [tx(kredietnemersTxt, { size: SZ_SMALL })]),
-    condRow("Geldverstrekker", [tx(data.geldverstrekker || "—", { size: SZ_SMALL })]),
-    condRow("Type faciliteit", [tx(data.typeFaciliteit || "—", { size: SZ_SMALL })]),
+    condRow("Geldverstrekker", [tx(data.geldverstrekker || "-", { size: SZ_SMALL })]),
+    condRow("Type faciliteit", [tx(data.typeFaciliteit || "-", { size: SZ_SMALL })]),
     condRow("Valuta", [tx(data.valuta || "Euro (€)", { size: SZ_SMALL })]),
     ...leningRows,
-    condRow("Looptijd", [tx(data.looptijd || "—", { size: SZ_SMALL })]),
+    condRow("Looptijd", [tx(data.looptijd || "-", { size: SZ_SMALL })]),
     condRow("Aflossing", multilinePars(aflossingText)),
     condRow("Rente", multilinePars(data.rente || "")),
-    condRow("Administratiekosten", [tx(data.administratiekosten || "—", { size: SZ_SMALL })]),
+    condRow("Administratiekosten", [tx(data.administratiekosten || "-", { size: SZ_SMALL })]),
     condRow("Termijnbedrag", termijnPars),
-    condRow("Rentegrondslag", [tx(data.rentegrondslag || "—", { size: SZ_SMALL })]),
+    condRow("Rentegrondslag", [tx(data.rentegrondslag || "-", { size: SZ_SMALL })]),
     condRow("Entreekosten", entreePars),
-    condRow("(Extra) Aflossen", [tx(data.extraAflossen || "—", { size: SZ_SMALL })]),
+    condRow("(Extra) Aflossen", [tx(data.extraAflossen || "-", { size: SZ_SMALL })]),
   ]
 
   letterChildren.push(condTable(table1Rows))
@@ -485,7 +485,7 @@ export async function generateTermsheet(
   const zekerhedenPars: docx.Paragraph[] = []
   const manualZekerheden = (data as Record<string, unknown>).zekerhedenText as string | undefined
   if (manualZekerheden && manualZekerheden.trim()) {
-    // Split by newline, each line is a paragraph — no extra spacing between them
+    // Split by newline, each line is a paragraph - no extra spacing between them
     const lines = manualZekerheden.split("\n").filter((l) => l.trim())
     for (const line of lines) {
       zekerhedenPars.push(par([tx(line, { size: SZ_SMALL })], { before: 20, after: 20 }))
@@ -520,7 +520,7 @@ export async function generateTermsheet(
       zekerhedenPars.push(par(runs, { before: 20, after: 20 }))
     })
   }
-  if (!zekerhedenPars.length) zekerhedenPars.push(par([tx("—", { size: SZ_SMALL })], { before: 50, after: 50 }))
+  if (!zekerhedenPars.length) zekerhedenPars.push(par([tx("-", { size: SZ_SMALL })], { before: 50, after: 50 }))
 
   const voorafPars = vooraf.length
     ? vooraf.map((c) =>
@@ -528,7 +528,7 @@ export async function generateTermsheet(
           before: 20, after: 20, indent: MM(4), bullet: 1,
         })
       )
-    : [par([tx("—", { size: SZ_SMALL })], { before: 50, after: 50 })]
+    : [par([tx("-", { size: SZ_SMALL })], { before: 50, after: 50 })]
 
   // Bepalingen (extra custom lines)
   const extraBepalingen = (data as Record<string, unknown>).bepalingen as string[] | undefined
@@ -537,16 +537,16 @@ export async function generateTermsheet(
     : []
 
   const table2Rows = [
-    condRow("Betalingswijze", [par([tx(data.betalingswijze || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Betalingswijze", [par([tx(data.betalingswijze || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
     condRow("Zekerheden", zekerhedenPars),
-    condRow("Verzekering", [par([tx(data.verzekering || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
-    condRow("Condities", [par([tx(data.condities || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Verzekering", [par([tx(data.verzekering || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Condities", [par([tx(data.condities || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
     ...(bepalingenPars.length > 0 ? [condRow("Bepalingen", bepalingenPars)] : []),
     condRow("Voorafgaande condities", voorafPars),
-    condRow("Toepasselijk recht", [par([tx(data.toepasselijkRecht || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
-    condRow("Beschikbaarheid", [par([tx(data.beschikbaarheid || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
-    condRow("Overdracht", [par([tx(data.overdracht || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
-    condRow("Notaris", [par([tx(data.notaris || "—", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Toepasselijk recht", [par([tx(data.toepasselijkRecht || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Beschikbaarheid", [par([tx(data.beschikbaarheid || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Overdracht", [par([tx(data.overdracht || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
+    condRow("Notaris", [par([tx(data.notaris || "-", { size: SZ_SMALL })], { before: 50, after: 50 })]),
     condRow("Geldigheidsduur (na ondertekening)", [par([tx(`Tot en met uiterlijk ${validityStr}`, { size: SZ_SMALL })], { before: 50, after: 50 })]),
   ]
 
@@ -557,7 +557,7 @@ export async function generateTermsheet(
   letterChildren.push(par([tx("Hoogachtend,", { size: SZ_SMALL })], { before: 0, after: 40 }))
   letterChildren.push(empty(60))
   letterChildren.push(
-    par([tx(data.signingAdvisor || data.advisorName || s.advisorName || "—", { bold: true, size: SZ_SMALL })], { before: 0, after: 20 })
+    par([tx(data.signingAdvisor || data.advisorName || s.advisorName || "-", { bold: true, size: SZ_SMALL })], { before: 0, after: 20 })
   )
   letterChildren.push(par([tx(companyName, { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 100 }))
 
@@ -619,7 +619,7 @@ export async function generateTermsheet(
   // BUILD DOCUMENT
   const doc = new docx.Document({
     creator: "Lange & Partners Document Generator",
-    title: `Termsheet — ${borrowers[0]?.name || "Geldnemer"}`,
+    title: `Termsheet - ${borrowers[0]?.name || "Geldnemer"}`,
     sections: [
       {
         properties: { page: coverPageProps },

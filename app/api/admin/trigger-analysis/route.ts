@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
   const analysisPayload = { folderId, applicationId: aanvraagId, timestamp, signature }
 
-  // Use after() to keep the function alive after responding — ensures the fetch actually sends.
+  // Use after() to keep the function alive after responding, ensures the fetch actually sends.
   // Railway backend writes results to Firestore directly.
   after(async () => {
     try {

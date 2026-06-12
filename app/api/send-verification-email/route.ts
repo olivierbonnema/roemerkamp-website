@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   try {
     const decoded = await adminAuth.verifyIdToken(authHeader.slice(7))
     if (decoded.email_verified) {
-      // Already verified — client should just reload and retry enrollment.
+      // Already verified; client should just reload and retry enrollment.
       return NextResponse.json({ success: true, alreadyVerified: true })
     }
     if (!decoded.email) {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: email,
-      subject: "Bevestig uw e-mailadres — Lange & Partners",
+      subject: "Bevestig uw e-mailadres - Lange & Partners",
       html: `
         <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
           <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">

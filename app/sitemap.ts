@@ -13,7 +13,7 @@ function gitDate(file: string): Date {
     }).trim()
     if (out) return new Date(out)
   } catch {
-    // git not available (e.g. shallow clone without history) — fall through
+    // git not available (e.g. shallow clone without history), fall through
   }
   return new Date()
 }

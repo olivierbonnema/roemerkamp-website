@@ -53,19 +53,19 @@ const ALLOWED_EXTENSIONS = new Set([
 ])
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
 }
 
 function formatDateTime(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", {
     day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
   })
 }
 
 function formatCurrency(raw: string) {
-  if (!raw) return "—"
+  if (!raw) return "-"
   const num = parseInt(raw, 10)
   return isNaN(num) ? raw : `€ ${num.toLocaleString("nl-NL")}`
 }
@@ -261,7 +261,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
           <div>
             <span className="text-gray-400 text-[12px]">Naam</span>
-            <p className="text-gray-900 font-medium">{aanvraag.naam || "—"}</p>
+            <p className="text-gray-900 font-medium">{aanvraag.naam || "-"}</p>
           </div>
           <div>
             <span className="text-gray-400 text-[12px]">Ingediend op</span>
@@ -270,12 +270,12 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
           <div>
             <span className="text-gray-400 text-[12px]">Object</span>
             <p className="text-gray-900 font-medium truncate">
-              {[aanvraag.objectAdres, aanvraag.objectPlaats].filter(Boolean).join(", ") || "—"}
+              {[aanvraag.objectAdres, aanvraag.objectPlaats].filter(Boolean).join(", ") || "-"}
             </p>
           </div>
           <div>
             <span className="text-gray-400 text-[12px]">Type vastgoed</span>
-            <p className="text-gray-900 font-medium">{aanvraag.objectType || "—"}</p>
+            <p className="text-gray-900 font-medium">{aanvraag.objectType || "-"}</p>
           </div>
           <div>
             <span className="text-gray-400 text-[12px]">Leningbedrag</span>
@@ -283,11 +283,11 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
           </div>
           <div>
             <span className="text-gray-400 text-[12px]">Looptijd</span>
-            <p className="text-gray-900 font-medium">{aanvraag.looptijd || "—"}</p>
+            <p className="text-gray-900 font-medium">{aanvraag.looptijd || "-"}</p>
           </div>
           <div>
             <span className="text-gray-400 text-[12px]">Doel financiering</span>
-            <p className="text-gray-900 font-medium">{aanvraag.leningDoel || "—"}</p>
+            <p className="text-gray-900 font-medium">{aanvraag.leningDoel || "-"}</p>
           </div>
           <div>
             <span className="text-gray-400 text-[12px]">Documenten</span>
@@ -329,7 +329,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
                     <p className="text-xs font-sans text-gray-400 mt-1.5">
                       {b.type === "admin_message" ? "Lange Financieel Advies" :
                        b.type === "document_upload" ? "Documenten" : "Statuswijziging"}
-                      {" — "}
+                      {" - "}
                       {formatDateTime(b.createdAt)}
                     </p>
                   </div>
@@ -368,7 +368,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
           >
             <Upload size={18} />
             {selectedFiles.length > 0
-              ? `${selectedFiles.length} bestand${selectedFiles.length > 1 ? "en" : ""} geselecteerd — klik om meer toe te voegen`
+              ? `${selectedFiles.length} bestand${selectedFiles.length > 1 ? "en" : ""} geselecteerd, klik om meer toe te voegen`
               : "Klik om bestanden te selecteren"
             }
           </button>

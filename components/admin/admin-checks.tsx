@@ -50,7 +50,7 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
 }
 
@@ -283,7 +283,7 @@ export function AdminChecks() {
           <div key={c.id} className="border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#311E86]/30 transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
               <div>
-                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{(subj.type === "natural_person" ? subj.fullName : subj.company) || subj.fullName || "—"}</p>
+                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{(subj.type === "natural_person" ? subj.fullName : subj.company) || subj.fullName || "-"}</p>
                 <p className="text-xs text-gray-400 font-sans mt-0.5">
                   {TYPE_LABELS[subj.type] || subj.type}
                   {subj.type !== "natural_person" && subj.fullName ? ` · ${subj.fullName}` : ""}
@@ -353,13 +353,13 @@ export function AdminChecks() {
 
             {aanvragen.length > 0 && (
               <div className="mb-4">
-                <label className="text-xs font-medium text-gray-600 font-sans mb-1.5 block">Koppel aan aanvraag <span className="text-gray-400 font-normal">(optioneel — vult de gegevens in)</span></label>
+                <label className="text-xs font-medium text-gray-600 font-sans mb-1.5 block">Koppel aan aanvraag <span className="text-gray-400 font-normal">(optioneel, vult de gegevens in)</span></label>
                 <select
                   value={linkedAanvraagId}
                   onChange={(e) => prefillFromAanvraag(e.target.value)}
                   className="w-full h-[42px] px-3 text-sm font-sans bg-white border border-gray-200 rounded-lg text-gray-700 outline-none focus:border-[#311E86] transition-colors"
                 >
-                  <option value="">Geen koppeling — losse check</option>
+                  <option value="">Geen koppeling - losse check</option>
                   {aanvragen.map(a => <option key={a.id} value={a.id}>{a.naam || a.id}</option>)}
                 </select>
               </div>

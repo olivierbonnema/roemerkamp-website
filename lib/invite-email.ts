@@ -1,6 +1,6 @@
 import { SITE_URL } from "@/lib/site"
 
-// Branded "set your password" invite email — used for admin user creation (and
+// Branded "set your password" invite email - used for admin user creation (and
 // matches the partner invite). `intro` is the first body paragraph (HTML
 // allowed); the set-password instruction, button, and footer are fixed.
 export function inviteEmailHtml(opts: { heading: string; intro: string; setupLink: string }): string {

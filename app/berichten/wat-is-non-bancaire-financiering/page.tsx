@@ -165,10 +165,10 @@ export default function WatIsNonBancaireFinancieringPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  'Eerste hypotheek — wanneer er nog geen hypotheek op het vastgoed rust',
-                  'Tweede hypotheek — aanvullend op een bestaande bancaire hypotheek',
-                  'Overbruggingskrediet — tijdelijke financiering tot verkoop of herfinanciering',
-                  'Vastgoedfinanciering — voor aan- of verbouw van woon- of bedrijfspanden',
+                  'Eerste hypotheek, wanneer er nog geen hypotheek op het vastgoed rust',
+                  'Tweede hypotheek, aanvullend op een bestaande bancaire hypotheek',
+                  'Overbruggingskrediet, tijdelijke financiering tot verkoop of herfinanciering',
+                  'Vastgoedfinanciering, voor aan- of verbouw van woon- of bedrijfspanden',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />

@@ -150,7 +150,7 @@ export default function TweedeHypotheekOndernemer() {
                 {
                   nr: '01',
                   titel: 'Beoordeling op onderpand',
-                  tekst: 'Wij beoordelen de marktwaarde van het vastgoed en bepalen op basis daarvan de maximale lening. De executiewaarde van het onderpand vormt de bovengrens — daarboven verstrekken wij geen financiering.',
+                  tekst: 'Wij beoordelen de marktwaarde van het vastgoed en bepalen op basis daarvan de maximale lening. De executiewaarde van het onderpand vormt de bovengrens, daarboven verstrekken wij geen financiering.',
                 },
                 {
                   nr: '02',
@@ -212,7 +212,7 @@ export default function TweedeHypotheekOndernemer() {
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
             </p>
           </div>
         </section>
@@ -246,12 +246,12 @@ export default function TweedeHypotheekOndernemer() {
                 {
                   href: '/dga-hypotheek',
                   titel: 'DGA hypotheek',
-                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder — op basis van het onderpand, niet alleen het DGA-salaris.',
+                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder, op basis van het onderpand, niet alleen het DGA-salaris.',
                 },
                 {
                   href: '/overbruggingsfinanciering-verbouwing',
                   titel: 'Overbruggingsfinanciering voor verbouwing en meer',
-                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing — snel geregeld met vastgoed als zekerheid.',
+                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing, snel geregeld met vastgoed als zekerheid.',
                 },
               ].map((p) => (
                 <Link

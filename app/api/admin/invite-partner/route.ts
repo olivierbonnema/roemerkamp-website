@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const orgName = String(orgSnap.data()?.name ?? "")
 
   try {
-    // Random password the partner never sees — they set their own via the link.
+    // Random password the partner never sees; they set their own via the link.
     const tempPassword = randomBytes(24).toString("base64url")
     const user = await adminAuth.createUser({
       email,
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: email,
-      subject: "Uitnodiging partnerportaal — Lange & Partners",
+      subject: "Uitnodiging partnerportaal - Lange & Partners",
       html: inviteHtml({ orgName, setupLink }),
     })
 

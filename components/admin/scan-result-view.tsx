@@ -24,14 +24,14 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
   return (
     <div className="border border-gray-200 rounded-2xl p-6 bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-serif text-2xl text-[#1E3A5F]">Achtergrondcheck — {subjectName}</h2>
+        <h2 className="font-serif text-2xl text-[#1E3A5F]">Achtergrondcheck - {subjectName}</h2>
         <span className={`px-3 py-1 rounded-full text-xs font-medium font-sans ${
           result.killSignal ? "bg-red-100 text-red-800" :
           result.scanStatus === "CLEAR" ? "bg-emerald-100 text-emerald-800" :
           result.scanStatus === "ADVERSE_FOUND" ? "bg-red-100 text-red-800" :
           "bg-amber-100 text-amber-800"
         }`}>
-          {result.killSignal && "⛔ KILL SIGNAL — "}{SCAN_RESULT_LABELS[result.scanStatus]?.label || result.scanStatus}
+          {result.killSignal && "⛔ KILL SIGNAL - "}{SCAN_RESULT_LABELS[result.scanStatus]?.label || result.scanStatus}
         </span>
       </div>
 
@@ -58,7 +58,7 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
                     f.severity === "LOW" ? "bg-blue-400" : "bg-gray-400"
                   }`} />
                   <span className="text-xs font-medium font-sans text-gray-800 uppercase">{f.severity}</span>
-                  <span className="text-xs font-sans text-gray-400">— {f.category}</span>
+                  <span className="text-xs font-sans text-gray-400">- {f.category}</span>
                   <span className="text-xs font-sans text-gray-400 ml-auto">Match: {f.matchConfidence}</span>
                 </div>
                 <p className="text-sm font-sans text-gray-700 mb-1">{f.facts}</p>

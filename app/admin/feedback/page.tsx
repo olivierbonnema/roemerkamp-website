@@ -71,7 +71,7 @@ export default function FeedbackPage() {
   const filtered = filterStatus === "all" ? items : items.filter((i) => i.status === filterStatus)
 
   const formatDate = (iso: string | null) => {
-    if (!iso) return "—"
+    if (!iso) return "-"
     return new Date(iso).toLocaleDateString("nl-NL", {
       day: "numeric",
       month: "short",

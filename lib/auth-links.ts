@@ -7,7 +7,7 @@ const BASE_URL = SITE_URL
 // (/wachtwoord-instellen) instead of Firebase's default email action handler.
 //
 // WHY: the Firebase project's configured email action-handler domain is
-// `langefinancieeladvies.nl` — the old company website (Apache), which 404s on
+// `langefinancieeladvies.nl`, the old company website (Apache), which 404s on
 // `/__/auth/action`, so the default links dead-end. Rather than depend on that
 // domain at all, we take the one-time `oobCode` from the generated link and route
 // to our own page, which completes the reset with the client SDK

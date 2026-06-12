@@ -59,7 +59,7 @@ export default function KostenNonBancaireHypotheekPage() {
       <Header />
       <main>
 
-        {/* ── Hero ── */}
+        {/* -- Hero -- */}
         <section className="bg-[#1e3a5f] py-16 md:py-20">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="max-w-2xl">
@@ -84,7 +84,7 @@ export default function KostenNonBancaireHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Article ── */}
+        {/* -- Article -- */}
         <article className="py-16 bg-white">
           <div className="max-w-screen-md mx-auto px-4 space-y-12">
 
@@ -106,11 +106,11 @@ export default function KostenNonBancaireHypotheekPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  'De Loan-to-Value (LTV) — hoe lager de LTV, hoe lager de rente',
-                  'De looptijd van de lening — korter is doorgaans voordeliger',
-                  'Het type vastgoed — woningen kennen vaak een lagere rente dan commercieel vastgoed',
-                  'Het risicoprofiel van de aanvrager — financiële stabiliteit drukt de rente',
-                  'De positie van de hypotheek — eerste hypotheek is voordeliger dan tweede hypotheek',
+                  'De Loan-to-Value (LTV): hoe lager de LTV, hoe lager de rente',
+                  'De looptijd van de lening: korter is doorgaans voordeliger',
+                  'Het type vastgoed, woningen kennen vaak een lagere rente dan commercieel vastgoed',
+                  'Het risicoprofiel van de aanvrager, financiële stabiliteit drukt de rente',
+                  'De positie van de hypotheek: eerste hypotheek is voordeliger dan tweede hypotheek',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
@@ -131,11 +131,11 @@ export default function KostenNonBancaireHypotheekPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  'Afsluitprovisie — een percentage van het leenbedrag, doorgaans 1% tot 2%',
-                  'Taxatiekosten — een onafhankelijk taxatierapport is altijd vereist',
-                  'Notariskosten — voor het passeren van de hypotheekakte',
-                  'Kadasterkosten — voor de inschrijving van het hypotheekrecht',
-                  'Advieskosten — voor de begeleiding en beoordeling van uw aanvraag',
+                  'Afsluitprovisie: een percentage van het leenbedrag, doorgaans 1% tot 2%',
+                  'Taxatiekosten: een onafhankelijk taxatierapport is altijd vereist',
+                  'Notariskosten voor het passeren van de hypotheekakte',
+                  'Kadasterkosten voor de inschrijving van het hypotheekrecht',
+                  'Advieskosten voor de begeleiding en beoordeling van uw aanvraag',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#2596be] shrink-0" />
@@ -183,14 +183,14 @@ export default function KostenNonBancaireHypotheekPage() {
               </p>
             </div>
 
-            {/* Verwante paginas */}
+            {/* Verwante pagina's */}
             <div className="border-t border-gray-200 pt-8 space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Meer informatie</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
                   { href: '/non-bancaire-hypotheek', titel: 'Non-bancaire hypotheek' },
                   { href: '/berichten/wat-is-non-bancaire-financiering', titel: 'Wat is non-bancaire financiering?' },
-                  { href: '/berichten/hypotheek-afgewezen-wat-nu', titel: 'Hypotheek afgewezen — wat nu?' },
+                  { href: '/berichten/hypotheek-afgewezen-wat-nu', titel: 'Hypotheek afgewezen, wat nu?' },
                   { href: '/financieringsaanvraag', titel: 'Aanvraag indienen' },
                 ].map((p) => (
                   <Link

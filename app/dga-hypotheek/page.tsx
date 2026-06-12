@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 const faq = [
   {
     vraag: 'Waarom is een hypotheek aanvragen als DGA zo lastig bij een bank?',
-    antwoord: 'Banken toetsen DGA-inkomen op basis van uw salaris uit de BV én de winst van de onderneming, gemiddeld over drie jaar. DGA\'s die zichzelf een laag salaris uitkeren om belasting te besparen, komen daardoor op papier laag uit — ook al is het bedrijfsvermogen aanzienlijk. Bovendien vereisen banken de laatste drie jaarrekeningen van de BV. Ontbreekt die historiek, dan volgt een afwijzing.',
+    antwoord: 'Banken toetsen DGA-inkomen op basis van uw salaris uit de BV én de winst van de onderneming, gemiddeld over drie jaar. DGA\'s die zichzelf een laag salaris uitkeren om belasting te besparen, komen daardoor op papier laag uit, ook al is het bedrijfsvermogen aanzienlijk. Bovendien vereisen banken de laatste drie jaarrekeningen van de BV. Ontbreekt die historiek, dan volgt een afwijzing.',
   },
   {
     vraag: 'Kan ik ook een hypotheek aanvragen als mijn BV pas kortgeleden is opgericht?',
@@ -34,7 +34,7 @@ const faq = [
   },
   {
     vraag: 'Wat is het verschil tussen Variant A en Variant B bij een DGA-lening?',
-    antwoord: 'Variant A is een lening op uw privéwoning — u leent als particulier, met uw woning als onderpand. Dit is de meest gangbare route voor DGA\'s die privé een woning willen financieren of overwaarde willen benutten. Variant B betreft een lening aan de BV zelf, waarbij zakelijk vastgoed als onderpand dient. Dit is een wezenlijk ander traject met eigen fiscale en juridische overwegingen.',
+    antwoord: 'Variant A is een lening op uw privéwoning: u leent als particulier, met uw woning als onderpand. Dit is de meest gangbare route voor DGA\'s die privé een woning willen financieren of overwaarde willen benutten. Variant B betreft een lening aan de BV zelf, waarbij zakelijk vastgoed als onderpand dient. Dit is een wezenlijk ander traject met eigen fiscale en juridische overwegingen.',
   },
   {
     vraag: 'Wat heeft u nodig voor een aanvraag?',
@@ -50,7 +50,7 @@ export default function DgaHypotheekPage() {
       <Header />
       <main>
 
-        {/* ── Hero ── */}
+        {/* -- Hero -- */}
         <section className="bg-[#1e3a5f] py-16 md:py-20">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="max-w-2xl">
@@ -59,7 +59,7 @@ export default function DgaHypotheekPage() {
                 DGA hypotheek
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen — ook al is uw financiële positie solide. Lange &amp; Partners beoordeelt uw aanvraag op basis van het onderpand en uw werkelijke situatie.
+                Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw financiële positie solide. Lange &amp; Partners beoordeelt uw aanvraag op basis van het onderpand en uw werkelijke situatie.
               </p>
               <div className="mt-8 flex gap-3 flex-wrap">
                 <Link
@@ -79,7 +79,7 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── De uitdaging voor DGA's ── */}
+        {/* -- De uitdaging voor DGA's -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">
@@ -87,7 +87,7 @@ export default function DgaHypotheekPage() {
                 <SectionHeading>De uitdaging voor directeur-grootaandeelhouders</SectionHeading>
                 <div className="mt-6 space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    Als DGA bent u tegelijk ondernemer en werknemer van uw eigen BV. Dat biedt fiscale voordelen, maar bij een hypotheekaanvraag werkt het u tegen. Banken tellen uw salaris én de winst van de onderneming mee, gemiddeld over drie jaar — en verlangen drie jaar volledige jaarrekeningen van de BV.
+                    Als DGA bent u tegelijk ondernemer en werknemer van uw eigen BV. Dat biedt fiscale voordelen, maar bij een hypotheekaanvraag werkt het u tegen. Banken tellen uw salaris én de winst van de onderneming mee, gemiddeld over drie jaar, en verlangen drie jaar volledige jaarrekeningen van de BV.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
                     DGA&rsquo;s die zichzelf het minimaal gebruikelijke loon toekennen (de DGA-norm) om fiscaal optimaal te ondernemen, zien dit als nadeel terugkomen in de hypotheektoets. De bank ziet een laag inkomen; u ziet een vermogend bedrijf. Dat verschil leidt regelmatig tot een afwijzing.
@@ -120,10 +120,10 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Variant A ── */}
+        {/* -- Variant A -- */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Variant A — Hypotheek op uw privéwoning</SectionHeading>
+            <SectionHeading>Variant A - Hypotheek op uw privéwoning</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
               De meest gangbare route voor DGA&rsquo;s: u leent privé, met uw eigen woning of een privé beleggingspand als onderpand. U bent als particulier de geldnemer.
             </p>
@@ -151,7 +151,7 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Hoe beoordeelt Lange & Partners ── */}
+        {/* -- Hoe beoordeelt Lange & Partners -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Hoe beoordeelt Lange &amp; Partners een DGA-aanvraag?</SectionHeading>
@@ -170,7 +170,7 @@ export default function DgaHypotheekPage() {
                 {
                   nr: '03',
                   titel: 'Perspectief op terugbetaling',
-                  tekst: 'Wij beoordelen of u de lening realistisch kunt terugbetalen of herfinancieren aan het einde van de looptijd — op basis van uw situatie, niet op basis van een standaardformule.',
+                  tekst: 'Wij beoordelen of u de lening realistisch kunt terugbetalen of herfinancieren aan het einde van de looptijd, op basis van uw situatie, niet op basis van een standaardformule.',
                 },
               ].map((s, i, arr) => (
                 <div key={s.nr} className="flex gap-6">
@@ -191,17 +191,17 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Randstad ── */}
+        {/* -- Randstad -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
             </p>
           </div>
         </section>
 
-        {/* ── FAQ ── */}
+        {/* -- FAQ -- */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Veelgestelde vragen</SectionHeading>
@@ -216,11 +216,11 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Variant B disclaimer ── */}
+        {/* -- Variant B disclaimer -- */}
         <section className="py-10 bg-white border-t border-gray-100">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="max-w-2xl p-6 bg-gray-50 border-l-4 border-gray-300">
-              <p className="font-semibold text-[#1e3a5f] mb-2">Variant B — Lening aan uw BV</p>
+              <p className="font-semibold text-[#1e3a5f] mb-2">Variant B - Lening aan uw BV</p>
               <p className="text-gray-600 text-sm leading-relaxed">
                 Naast Variant A bestaat er ook een route waarbij uw BV de geldnemer is en zakelijk vastgoed als onderpand dient. Dit is een wezenlijk ander traject met eigen fiscale, juridische en administratieve overwegingen. Wij bespreken deze mogelijkheid graag in een persoonlijk gesprek wanneer dit voor uw situatie relevant is.
               </p>
@@ -228,7 +228,7 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Andere financieringsvormen ── */}
+        {/* -- Andere financieringsvormen -- */}
         <section className="py-12 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Andere financieringsvormen</SectionHeading>
@@ -259,7 +259,7 @@ export default function DgaHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Meer weten / contact ── */}
+        {/* -- Meer weten / contact -- */}
         <section className="py-20 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">

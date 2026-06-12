@@ -17,9 +17,9 @@ Font.register({
 /* ── Helpers ── */
 
 function fmtEuro(n: number): string {
-  if (!n && n !== 0) return "—"
+  if (!n && n !== 0) return "-"
   const num = Number(n)
-  if (!num) return "—"
+  if (!num) return "-"
   return `€ ${new Intl.NumberFormat("nl-NL", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num)},-`
 }
 
@@ -183,7 +183,7 @@ export function PitchPDF({ data, settings }: Props) {
         ))}
         {ei?.enabled && ei.bedrag > 0 && (
           <Text style={{ ...s.bodyText, marginTop: 4 }}>
-            1e inschrijving van {fmtEuro(ei.bedrag)} bij {ei.bank || "—"}
+            1e inschrijving van {fmtEuro(ei.bedrag)} bij {ei.bank || "-"}
             {ei.restschuld ? ` (actuele restschuld ${fmtEuro(ei.restschuld)})` : ""}
           </Text>
         )}

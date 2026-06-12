@@ -29,7 +29,7 @@ const vergelijkingsrijen = [
   { kenmerk: 'Jaarcijfers vereist', bank: 'Ja, doorgaans 3 jaar', lp: 'Niet verplicht' },
   { kenmerk: 'Looptijd', bank: '10–30 jaar', lp: '6–60 maanden' },
   { kenmerk: 'Maximaal bedrag', bank: 'Afhankelijk van inkomen', lp: '€200.000 – €5.000.000' },
-  { kenmerk: 'Flexibiliteit', bank: 'Beperkt', lp: 'Hoog — maatwerk per casus' },
+  { kenmerk: 'Flexibiliteit', bank: 'Beperkt', lp: 'Hoog, maatwerk per casus' },
   { kenmerk: 'Zekerheidsstructuur', bank: 'Hypotheekrecht via bank', lp: 'Hypotheekrecht via onafhankelijke Stichting' },
 ]
 
@@ -153,17 +153,17 @@ export default function NonBancaireHypotheekPage() {
                 <SectionHeading>Wat is een non-bancaire hypotheek?</SectionHeading>
                 <div className="mt-6 space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    Een non-bancaire hypotheek is een lening die niet van een bank afkomstig is, maar van particuliere investeerders. Het vastgoed dient als onderpand — de marktwaarde ervan bepaalt in grote mate wat mogelijk is. Banken toetsen primair op inkomen en historische jaarcijfers. Wij toetsen op de waarde en kwaliteit van het onderpand, gecombineerd met uw perspectief op terugbetaling.
+                    Een non-bancaire hypotheek is een lening die niet van een bank afkomstig is, maar van particuliere investeerders. Het vastgoed dient als onderpand, de marktwaarde ervan bepaalt in grote mate wat mogelijk is. Banken toetsen primair op inkomen en historische jaarcijfers. Wij toetsen op de waarde en kwaliteit van het onderpand, gecombineerd met uw perspectief op terugbetaling.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
-                    Lange &amp; Partners verstrekt leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Dit zijn overwegend tijdelijke financieringen — bedoeld als overbrugging, tot een bancaire herfinanciering mogelijk is, of als tussenoplossing bij vastgoedtransacties.
+                    Lange &amp; Partners verstrekt leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Dit zijn overwegend tijdelijke financieringen, bedoeld als overbrugging, tot een bancaire herfinanciering mogelijk is, of als tussenoplossing bij vastgoedtransacties.
                   </p>
                 </div>
                 <h3 className="font-semibold text-[#1e3a5f] text-lg mb-2 mt-8">
                   Tijdelijk, tot bancaire herfinanciering mogelijk is
                 </h3>
                 <p className="text-gray-700 leading-relaxed">
-                  Een non-bancaire hypotheek is in vrijwel alle gevallen een tijdelijke financiering — looptijden van 6 tot 60 maanden zijn gangbaar. Het doel is doorgaans om de periode te overbruggen tot bancaire herfinanciering mogelijk is, het vastgoed verkocht is, of een ander structureel financieringspunt is bereikt. Dit is een bewuste keuze: non-bancaire financiering is geschikt voor maatwerksituaties, niet als permanente langetermijnoplossing.
+                  Een non-bancaire hypotheek is in vrijwel alle gevallen een tijdelijke financiering, looptijden van 6 tot 60 maanden zijn gangbaar. Het doel is doorgaans om de periode te overbruggen tot bancaire herfinanciering mogelijk is, het vastgoed verkocht is, of een ander structureel financieringspunt is bereikt. Dit is een bewuste keuze: non-bancaire financiering is geschikt voor maatwerksituaties, niet als permanente langetermijnoplossing.
                 </p>
               </div>
               <div className="relative h-[350px] hidden md:block overflow-hidden">
@@ -229,7 +229,7 @@ export default function NonBancaireHypotheekPage() {
               ))}
               <div className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
                 <span className="text-gray-700 leading-relaxed">
-                  U heeft een bestaande lening die snel geherfinancierd moet worden —{' '}
+                  U heeft een bestaande lening die snel geherfinancierd moet worden,{' '}
                   <Link href="/overbruggingsfinanciering-verbouwing" className="text-[#2596be] hover:underline">
                     zie onze pagina over overbruggingsfinanciering
                   </Link>
@@ -315,7 +315,7 @@ export default function NonBancaireHypotheekPage() {
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
             </p>
           </div>
         </section>

@@ -30,7 +30,7 @@ const faq = [
   },
   {
     vraag: 'Hoe hoog kan een onderhandse hypotheek zijn?',
-    antwoord: 'Wij verstrekken leningen van €200.000 tot €5.000.000. Het maximum is afhankelijk van de marktwaarde van het onderpand. Doorgaans financieren wij tot een percentage van de executiewaarde — de exacte hoogte bepalen wij per casus.',
+    antwoord: 'Wij verstrekken leningen van €200.000 tot €5.000.000. Het maximum is afhankelijk van de marktwaarde van het onderpand. Doorgaans financieren wij tot een percentage van de executiewaarde, de exacte hoogte bepalen wij per casus.',
   },
   {
     vraag: 'Hoe is de veiligheid voor de geldnemer gewaarborgd?',
@@ -59,7 +59,7 @@ export default function OnderhandseHypotheekPage() {
                 Onderhandse hypotheek
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Een lening van een particuliere geldverstrekker, gedekt door uw vastgoed. Lange &amp; Partners beoordeelt uw aanvraag en koppelt u aan de juiste investeerder — met volledige hypothecaire zekerheid.
+                Een lening van een particuliere geldverstrekker, gedekt door uw vastgoed. Lange &amp; Partners beoordeelt uw aanvraag en koppelt u aan de juiste investeerder, met volledige hypothecaire zekerheid.
               </p>
               <div className="mt-8 flex gap-3 flex-wrap">
                 <Link
@@ -87,7 +87,7 @@ export default function OnderhandseHypotheekPage() {
                 <SectionHeading>Wat is een onderhandse hypotheek?</SectionHeading>
                 <div className="mt-6 space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    Een onderhandse hypotheek is een lening waarbij het geld niet van een bank afkomstig is, maar van een particuliere partij — een investeerder die zijn vermogen wil beleggen in vastgoedleningen. De term &lsquo;onderhands&rsquo; verwijst naar de afspraken tussen partijen, niet naar de wijze van vastlegging. De akte wordt — net als bij een bancaire hypotheek — formeel via een notaris verleden en ingeschreven in het Kadaster.
+                    Een onderhandse hypotheek is een lening waarbij het geld niet van een bank afkomstig is, maar van een particuliere partij, een investeerder die zijn vermogen wil beleggen in vastgoedleningen. De term &lsquo;onderhands&rsquo; verwijst naar de afspraken tussen partijen, niet naar de wijze van vastlegging. De akte wordt, net als bij een bancaire hypotheek, formeel via een notaris verleden en ingeschreven in het Kadaster.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
                     Net als bij een bancaire hypotheek wordt er een hypotheekrecht ingeschreven bij het Kadaster. Dit geeft de geldverstrekker zekerheid: mocht de lening niet worden terugbetaald, dan kan het onderpand worden verkocht om de lening te voldoen.
@@ -196,7 +196,7 @@ export default function OnderhandseHypotheekPage() {
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
             <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent — onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
+              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
             </p>
           </div>
         </section>
@@ -216,7 +216,7 @@ export default function OnderhandseHypotheekPage() {
           </div>
         </section>
 
-        {/* ── Link naar investeerders — na FAQ, apart blok ── */}
+        {/* ── Link naar investeerders - na FAQ, apart blok ── */}
         <section className="py-10 bg-white border-t border-gray-100">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
@@ -243,7 +243,7 @@ export default function OnderhandseHypotheekPage() {
                 {
                   href: '/non-bancaire-hypotheek',
                   titel: 'Non-bancaire hypotheek',
-                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering — hoe het werkt en voor wie het geschikt is.',
+                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering, hoe het werkt en voor wie het geschikt is.',
                 },
                 {
                   href: '/tweede-hypotheek-ondernemer',

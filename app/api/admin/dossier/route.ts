@@ -11,7 +11,7 @@ const PYTHON_BACKEND_URL =
 
 // Returns the branded PDF underwriting dossier. The Railway /dossier route
 // re-renders it from the analysis results already stored in Firestore, so this
-// makes no AI calls and adds no API cost — it only renders. We proxy to it so
+// makes no AI calls and adds no API cost - it only renders. We proxy to it so
 // the admin's Firebase token (not the HMAC secret) gates the download.
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
@@ -22,17 +22,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "aanvraagId required" }, { status: 400 })
   }
 
-  // Borrower name is only used for the filename + audit log — failure is non-fatal.
+  // Borrower name is only used for the filename + audit log - failure is non-fatal.
   let naam = ""
   try {
     const doc = await adminDb.collection("aanvragen").doc(aanvraagId).get()
     naam = (doc.exists ? (doc.data()?.naam as string) : "") || ""
   } catch {
-    /* ignore — proceed without a name */
+    /* ignore - proceed without a name */
   }
 
   // Same HMAC scheme as /analyze, but the dossier route signs ONLY the
-  // applicationId — it is the single non-auth body field, and the Python side
+  // applicationId - it is the single non-auth body field, and the Python side
   // sorts+concatenates those fields to rebuild the payload (see lfa-backend
   // app/dependencies.py). One field → payload is just the applicationId.
   const timestamp = Math.floor(Date.now() / 1000).toString()
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
   const pdf = await backendRes.arrayBuffer()
 
-  // Audit trail — who downloaded which dossier. logActivity swallows its own errors.
+  // Audit trail - who downloaded which dossier. logActivity swallows its own errors.
   await logActivity({
     action: "document_downloaded",
     userId: admin.uid,

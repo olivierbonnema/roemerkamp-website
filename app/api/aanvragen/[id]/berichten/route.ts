@@ -99,7 +99,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: applicantEmail,
-        subject: "Update over uw financieringsaanvraag — Lange & Partners",
+        subject: "Update over uw financieringsaanvraag - Lange & Partners",
         html: `
           <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
             <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">

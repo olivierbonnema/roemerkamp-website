@@ -141,7 +141,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [typeFaciliteit, setTypeFaciliteit] = useState((d as Record<string, unknown>).typeFaciliteit as string || TD.faciliteiten[0])
   const [valuta, setValuta] = useState((d as Record<string, unknown>).valuta as string || "Euro (€)")
   const [looptijd, setLooptijd] = useState((d as Record<string, unknown>).looptijd as string || "")
-  const [aflossing, setAflossing] = useState((d as Record<string, unknown>).aflossing as string || "Aflossingsvrij — ineens aan het einde van de looptijd.")
+  const [aflossing, setAflossing] = useState((d as Record<string, unknown>).aflossing as string || "Aflossingsvrij, ineens aan het einde van de looptijd.")
   const [rentePct, setRentePct] = useState<number>((d as Record<string, unknown>).rentePct as number || 0)
   const [rente, setRente] = useState((d as Record<string, unknown>).rente as string ?? TD.rente)
   const [administratiekosten, setAdministratiekosten] = useState((d as Record<string, unknown>).administratiekosten as string ?? TD.administratiekosten)
@@ -617,14 +617,14 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
               </div>
               <div className="text-[11px] text-gray-500 bg-gray-50 border rounded p-2 space-y-1">
                 <div><span className="text-gray-400">Totaal leningdelen:</span> {fmtEuro(totalLoan)}</div>
-                <div><span className="text-gray-400">Aflossing (auto):</span> {buildAflossingSummary(leningdelen) || "—"}</div>
-                <div><span className="text-gray-400">Type faciliteit (auto):</span> {buildFaciliteitSuggestion(leningdelen) || "—"}</div>
+                <div><span className="text-gray-400">Aflossing (auto):</span> {buildAflossingSummary(leningdelen) || "-"}</div>
+                <div><span className="text-gray-400">Type faciliteit (auto):</span> {buildFaciliteitSuggestion(leningdelen) || "-"}</div>
                 <div><span className="text-gray-400">Termijn totaal p/m (excl. admin):</span> {fmtComputed(termijnTotaalComputed)}</div>
               </div>
               <p className="text-[10px] text-gray-400">Het termijnbedrag wordt berekend met het rentepercentage en de looptijd tot de einddatum per deel. Controleer de bedragen; je kunt ze handmatig overschrijven.</p>
 
               <div className="pt-2 border-t">
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Rente-/bouwdepot (optioneel — wordt aangehouden uit de lening)</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Rente-/bouwdepot (optioneel, wordt aangehouden uit de lening)</label>
                 {loanParts.map((lp, i) =>
                   (lp.typeLabel || "").trim() === "Lening bij aanvang" ? null : (
                     <div key={i} className="flex gap-2 mb-2 items-center">
@@ -660,8 +660,8 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
             <textarea value={aflossing} readOnly rows={2} className="w-full border rounded px-2 py-1.5 text-sm bg-gray-50 text-gray-500" />
           ) : (
             <select value={aflossing} onChange={(e) => setAflossing(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-              <option>Aflossingsvrij — ineens aan het einde van de looptijd.</option>
-              <option>Annuïtair — aflossing gedurende de looptijd van de lening.</option>
+              <option>Aflossingsvrij, ineens aan het einde van de looptijd.</option>
+              <option>Annuïtair, aflossing gedurende de looptijd van de lening.</option>
             </select>
           )}
         </div>
@@ -740,7 +740,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           <textarea value={betalingswijze} onChange={(e) => setBetalingswijze(e.target.value)} rows={3} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Zekerheden <span className="font-normal text-gray-400 text-[11px]">(automatisch gegenereerd — bewerkbaar)</span></label>
+          <label className="text-xs font-medium text-gray-600 mb-1 block">Zekerheden <span className="font-normal text-gray-400 text-[11px]">(automatisch gegenereerd, bewerkbaar)</span></label>
           <textarea value={zekerhedenText} onChange={(e) => { setZekerhedenText(e.target.value); setZekerhedenManual(true) }} rows={6} className="w-full border rounded px-2 py-1.5 text-sm" />
           {zekerhedenManual && (
             <button type="button" onClick={() => { setZekerhedenManual(false); setZekerhedenText(zekerhedenPreview) }} className="text-xs text-[#2E2060] hover:underline mt-1">

@@ -30,11 +30,11 @@ const redenen = [
   },
   {
     titel: 'Te kort ondernemer',
-    tekst: 'De meeste banken eisen minimaal drie volledige boekjaren. Bent u korter ondernemer, dan komt u niet door de bancaire acceptatie — ongeacht uw omzet of vermogen.',
+    tekst: 'De meeste banken eisen minimaal drie volledige boekjaren. Bent u korter ondernemer, dan komt u niet door de bancaire acceptatie, ongeacht uw omzet of vermogen.',
   },
   {
     titel: 'Complexe bedrijfsstructuur',
-    tekst: 'Meerdere BV’s, holdingstructuren of een combinatie van ondernemerschap en loondienst maakt de bancaire beoordeling complex. Banken kiezen dan vaak voor de veilige optie: afwijzen.',
+    tekst: 'Meerdere BV’s, holdingstructuren of een combinatie van ondernemerschap en loondienst maken de bancaire beoordeling complex. Banken kiezen dan vaak voor de veilige optie: afwijzen.',
   },
   {
     titel: 'Onvoldoende jaarcijfers door corona of crisis',
@@ -73,7 +73,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
       <Header />
       <main>
 
-        {/* ── Hero ── */}
+        {/* -- Hero -- */}
         <section className="bg-[#1e3a5f] py-16 md:py-20">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="max-w-2xl">
@@ -82,7 +82,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
                 Hypotheek afgewezen als ondernemer?
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Als ondernemer een hypotheek krijgen is lastig. Banken wijzen af op wisselend inkomen, te weinig boekjaren of een complexe bedrijfsstructuur. Lange &amp; Partners financiert op basis van uw vastgoed &mdash; niet op basis van uw jaarcijfers.
+                Als ondernemer een hypotheek krijgen is lastig. Banken wijzen af op wisselend inkomen, te weinig boekjaren of een complexe bedrijfsstructuur. Lange &amp; Partners financiert op basis van uw vastgoed, niet op basis van uw jaarcijfers.
               </p>
               <div className="mt-8 flex gap-3 flex-wrap">
                 <Link
@@ -102,7 +102,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Waarom afgewezen ── */}
+        {/* -- Waarom afgewezen -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Waarom wijst de bank ondernemers af?</SectionHeading>
@@ -120,7 +120,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Onze aanpak ── */}
+        {/* -- Onze aanpak -- */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Onze aanpak: vastgoed centraal, niet uw jaarcijfers</SectionHeading>
@@ -129,12 +129,12 @@ export default function HypotheekOndernemerAfgewezenPage() {
             </p>
             <div className="grid md:grid-cols-2 gap-3">
               {[
-                'Onderpandwaarde is leidend — niet uw gemiddelde winst over drie jaar',
-                'Geen eis van minimaal drie boekjaren — ook starters kunnen terecht',
-                'Complexe BV-structuren zijn geen bezwaar — wij begrijpen ondernemersstructuren',
-                'Snelle doorlooptijd van één tot drie weken — geen maandenlang wachten',
-                'Flexibele aflossing — afgestemd op uw cashflow als ondernemer',
-                'Geschikt als overbrugging — later herfinancieren naar een bancaire hypotheek',
+                'Onderpandwaarde is leidend, niet uw gemiddelde winst over drie jaar',
+                'Geen eis van minimaal drie boekjaren, ook starters kunnen terecht',
+                'Complexe BV-structuren zijn geen bezwaar, wij begrijpen ondernemersstructuren',
+                'Snelle doorlooptijd van één tot drie weken, geen maandenlang wachten',
+                'Flexibele aflossing, afgestemd op uw cashflow als ondernemer',
+                'Geschikt als overbrugging, later herfinancieren naar een bancaire hypotheek',
               ].map((v) => (
                 <div key={v} className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
                   <span className="text-gray-700 leading-relaxed">{v}</span>
@@ -144,7 +144,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Hoe werkt het ── */}
+        {/* -- Hoe werkt het -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Hoe werkt het na een bankafwijzing?</SectionHeading>
@@ -184,7 +184,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Dark USP ── */}
+        {/* -- Dark USP -- */}
         <section className="bg-[#1e3a5f] py-16">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-[1fr_2fr] gap-12 items-start">
@@ -196,7 +196,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
               </div>
               <div className="grid sm:grid-cols-3 gap-8">
                 {[
-                  { kop: 'Vastgoed bepaalt', tekst: 'De waarde van uw onderpand is leidend — niet uw inkomenssituatie, jaarcijfers of bedrijfshistorie.' },
+                  { kop: 'Vastgoed bepaalt', tekst: 'De waarde van uw onderpand is leidend, niet uw inkomenssituatie, jaarcijfers of bedrijfshistorie.' },
                   { kop: 'Snel duidelijkheid', tekst: 'Binnen één tot drie weken van aanvraag tot uitbetaling. Geen maandenlang wachten op een antwoord.' },
                   { kop: 'Ook voor starters', tekst: 'Geen eis van drie boekjaren. Ook als recent gestarte ondernemer kunt u bij ons terecht.' },
                 ].map((u) => (
@@ -210,7 +210,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Voor welke ondernemers ── */}
+        {/* -- Voor welke ondernemers -- */}
         <section className="py-16 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Voor welke ondernemers is dit geschikt?</SectionHeading>
@@ -220,7 +220,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── FAQ ── */}
+        {/* -- FAQ -- */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Veelgestelde vragen</SectionHeading>
@@ -235,7 +235,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Gerelateerde pagina's ── */}
+        {/* -- Gerelateerde pagina's -- */}
         <section className="py-12 bg-gray-50">
           <div className="max-w-screen-2xl mx-auto px-4">
             <SectionHeading>Gerelateerde financieringsvormen</SectionHeading>
@@ -271,7 +271,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
           </div>
         </section>
 
-        {/* ── Meer weten / contact ── */}
+        {/* -- Meer weten / contact -- */}
         <section className="py-20 bg-white">
           <div className="max-w-screen-2xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">

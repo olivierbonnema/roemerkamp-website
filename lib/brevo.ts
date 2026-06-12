@@ -11,14 +11,14 @@
  * Every send is also recorded in the `email_log` Firestore collection (one row
  * per recipient) so the admin can see which emails went to a user and whether
  * sending succeeded. NOTE: status "sent" means Microsoft accepted it for
- * delivery — it is not a confirmation that it reached the inbox.
+ * delivery, it is not a confirmation that it reached the inbox.
  *
  * Environment variables:
- *   MICROSOFT_TENANT_ID     — Azure AD tenant
- *   MICROSOFT_CLIENT_ID     — Azure AD app client ID
- *   MICROSOFT_CLIENT_SECRET — Azure AD app client secret
- *   MAIL_FROM_EMAIL         — M365 mailbox to send from (e.g. noreply@langefa.nl)
- *   ONEDRIVE_USER_EMAIL     — Fallback if MAIL_FROM_EMAIL not set
+ *   MICROSOFT_TENANT_ID     - Azure AD tenant
+ *   MICROSOFT_CLIENT_ID     - Azure AD app client ID
+ *   MICROSOFT_CLIENT_SECRET - Azure AD app client secret
+ *   MAIL_FROM_EMAIL         - M365 mailbox to send from (e.g. noreply@langefa.nl)
+ *   ONEDRIVE_USER_EMAIL     - Fallback if MAIL_FROM_EMAIL not set
  */
 
 import { getMsToken } from "./onedrive"
@@ -41,7 +41,7 @@ function parseSenderName(from: string): string {
   return "Lange Financieel Advies"
 }
 
-// Record each recipient of an email in `email_log`. Never throws — logging must
+// Record each recipient of an email in `email_log`. Never throws - logging must
 // not break sending.
 async function logEmailSafe(
   recipients: string[],

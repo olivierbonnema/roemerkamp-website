@@ -106,7 +106,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         details: { assignedTo: assignedTo || "(niemand)" },
       })
     }
-    // internalNote: silent update — intentionally no message, email, or log.
+    // internalNote: silent update, intentionally no message, email, or log.
 
     return NextResponse.json({ success: true })
   } catch {

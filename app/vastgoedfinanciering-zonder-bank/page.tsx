@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 const vastgoedtypen = [
   {
     titel: 'Woonpanden',
-    tekst: 'Privéwoningen met overwaarde — ook als uw inkomen niet aan de bancaire normen voldoet.',
+    tekst: 'Privéwoningen met overwaarde, ook als uw inkomen niet aan de bancaire normen voldoet.',
   },
   {
     titel: 'Beleggingspanden',
@@ -149,7 +149,7 @@ export default function VastgoedfinancieringZonderBankPage() {
                 {
                   nr: '01',
                   titel: 'Onderpand beoordelen',
-                  tekst: 'Wij beoordelen de marktwaarde van het vastgoed en bepalen op basis daarvan de maximale lening. De executiewaarde van het onderpand vormt de bovengrens — daarboven verstrekken wij geen financiering.',
+                  tekst: 'Wij beoordelen de marktwaarde van het vastgoed en bepalen op basis daarvan de maximale lening. De executiewaarde van het onderpand vormt de bovengrens, daarboven verstrekken wij geen financiering.',
                 },
                 {
                   nr: '02',
@@ -250,7 +250,7 @@ export default function VastgoedfinancieringZonderBankPage() {
                 {
                   href: '/overbruggingsfinanciering-verbouwing',
                   titel: 'Overbruggingsfinanciering',
-                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing — snel geregeld met vastgoed als zekerheid.',
+                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing, snel geregeld met vastgoed als zekerheid.',
                 },
               ].map((p) => (
                 <Link

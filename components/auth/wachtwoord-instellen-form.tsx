@@ -9,7 +9,7 @@ import { auth } from "@/lib/firebase"
 
 // Branded "set a new password" page. Used by the partner invite + the client
 // "wachtwoord vergeten" emails (see lib/auth-links.ts). It receives the Firebase
-// oobCode in the URL and completes the reset with the client SDK — which works
+// oobCode in the URL and completes the reset with the client SDK, which works
 // from any domain, so we don't depend on Firebase's (misconfigured) action handler.
 export function WachtwoordInstellenForm() {
   const params = useSearchParams()

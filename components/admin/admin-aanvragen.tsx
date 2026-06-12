@@ -73,12 +73,12 @@ const RECOMMENDATION_LABELS: Record<string, { label: string; color: string; bg: 
 }
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—"
+  if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
 }
 
 function formatCurrency(raw: string) {
-  if (!raw) return "—"
+  if (!raw) return "-"
   const num = parseInt(raw, 10)
   return isNaN(num) ? raw : `€ ${num.toLocaleString("nl-NL")}`
 }
@@ -496,7 +496,7 @@ export function AdminAanvragen() {
             {/* Header: name + badges */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
               <div>
-                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "—"}</p>
+                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "-"}</p>
                 <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
                 {a.partnerOrgId && orgMap[a.partnerOrgId] && (
                   <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/8 text-[#311E86]">
@@ -539,7 +539,7 @@ export function AdminAanvragen() {
               <div>
                 <span className="text-gray-400 text-[12px]">Object</span>
                 <p className="text-gray-900 font-medium truncate">
-                  {[a.objectAdres, a.objectPlaats].filter(Boolean).join(", ") || "—"}
+                  {[a.objectAdres, a.objectPlaats].filter(Boolean).join(", ") || "-"}
                 </p>
               </div>
               <div>
@@ -548,7 +548,7 @@ export function AdminAanvragen() {
               </div>
               <div>
                 <span className="text-gray-400 text-[12px]">Looptijd</span>
-                <p className="text-gray-900 font-medium">{a.looptijd || "—"}</p>
+                <p className="text-gray-900 font-medium">{a.looptijd || "-"}</p>
               </div>
               <div>
                 <span className="text-gray-400 text-[12px]">Documenten</span>
@@ -568,9 +568,9 @@ export function AdminAanvragen() {
             {a.analysisStatus === "completed" && (
               <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4">
                 <div className="flex items-center gap-4 text-xs font-sans text-gray-500">
-                  <span>Risico: <strong className="text-gray-700">{a.analysisRisk || "—"}</strong></span>
+                  <span>Risico: <strong className="text-gray-700">{a.analysisRisk || "-"}</strong></span>
                   <span>{a.documentsProcessed ?? 0} docs verwerkt</span>
-                  <span>{a.analysisProcessingTime ? `${a.analysisProcessingTime}s` : "—"}</span>
+                  <span>{a.analysisProcessingTime ? `${a.analysisProcessingTime}s` : "-"}</span>
                   <span className="text-gray-400">~€0,83</span>
                 </div>
               </div>
@@ -644,7 +644,7 @@ export function AdminAanvragen() {
                 )}
               </select>
 
-              {/* Running checks — show spinners */}
+              {/* Running checks - show spinners */}
               {a.analysisStatus === "analyzing" && (
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                   <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
@@ -658,7 +658,7 @@ export function AdminAanvragen() {
                 </span>
               )}
 
-              {/* Checks uitvoeren — combined button */}
+              {/* Checks uitvoeren - combined button */}
               {a.analysisStatus !== "analyzing" && a.reputationScanStatus !== "scanning" && (
                 <>
                   {a.analysisStatus === "completed" || a.reputationScanResult ? (
@@ -844,7 +844,7 @@ export function AdminAanvragen() {
         </div>
       )}
 
-      {/* Internal note modal (admin-only — not emailed, not shown to applicant) */}
+      {/* Internal note modal (admin-only - not emailed, not shown to applicant) */}
       {noteModal && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setNoteModal(null); setNoteText("") }}>
           <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
@@ -1039,7 +1039,7 @@ export function AdminAanvragen() {
             >
               <Upload size={16} />
               {uploadedFiles.length > 0
-                ? `${uploadedFiles.length} bestand${uploadedFiles.length > 1 ? "en" : ""} geselecteerd — klik om meer toe te voegen`
+                ? `${uploadedFiles.length} bestand${uploadedFiles.length > 1 ? "en" : ""} geselecteerd, klik om meer toe te voegen`
                 : "Klik om bestanden toe te voegen (.pdf, .docx, .eml, .txt)"
               }
             </button>
