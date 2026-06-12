@@ -152,15 +152,13 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const toggleSection = (key: string) => setOpenSections((prev) => ({ ...prev, [key]: prev[key] === false ? true : prev[key] === undefined ? false : !prev[key] }))
   const isSectionOpen = (key: string) => openSections[key] !== false
 
-  // Reorder a financieringsopzet row (up = -1, down = +1).
-  const moveFin = (i: number, dir: -1 | 1) =>
+  // Drag-and-drop reordering of financieringsopzet rows (native HTML5, like the termsheet).
+  const [dragFinIdx, setDragFinIdx] = useState<number | null>(null)
+  const moveFinTo = (fromIdx: number, toIdx: number) =>
     setFinRows((prev) => {
-      const j = i + dir
-      if (j < 0 || j >= prev.length) return prev
       const next = [...prev]
-      const tmp = next[i]
-      next[i] = next[j]
-      next[j] = tmp
+      const [moved] = next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, moved)
       return next
     })
 
@@ -266,15 +264,20 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
 
       {/* 3. Financieringsopzet */}
       <PitchSection id="fin" title="Financieringsopzet" isOpen={isSectionOpen("fin")} onToggle={toggleSection}>
-        <p className="text-xs text-gray-500">Kies een standaard omschrijving of &quot;Zelf invullen…&quot;. Met de pijltjes pas je de volgorde aan. &quot;Aftrek&quot; voegt -/- toe; &quot;Totaal&quot;/&quot;Resultaat&quot; zijn vetgedrukt met een lijn erboven.</p>
+        <p className="text-xs text-gray-500">Kies een standaard omschrijving of &quot;Zelf invullen…&quot;. Sleep de rijen aan de greep om de volgorde aan te passen. &quot;Aftrek&quot; voegt -/- toe; &quot;Totaal&quot;/&quot;Resultaat&quot; zijn vetgedrukt met een lijn erboven.</p>
         {finRows.map((row, i) => {
           const isCustom = !FIN_LABELS.includes(row.label)
           return (
-            <div key={i} className="flex gap-2 items-start">
-              <div className="flex flex-col pt-0.5">
-                <button type="button" onClick={() => moveFin(i, -1)} disabled={i === 0} title="Omhoog" className="text-gray-400 hover:text-[#2E2060] disabled:opacity-25 leading-none text-[11px]">▲</button>
-                <button type="button" onClick={() => moveFin(i, 1)} disabled={i === finRows.length - 1} title="Omlaag" className="text-gray-400 hover:text-[#2E2060] disabled:opacity-25 leading-none text-[11px]">▼</button>
-              </div>
+            <div
+              key={i}
+              draggable
+              onDragStart={() => setDragFinIdx(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => { if (dragFinIdx !== null && dragFinIdx !== i) moveFinTo(dragFinIdx, i); setDragFinIdx(null) }}
+              onDragEnd={() => setDragFinIdx(null)}
+              className={`flex gap-2 items-start ${dragFinIdx === i ? "opacity-50" : ""}`}
+            >
+              <span title="Sleep om te verplaatsen" className="text-gray-400 cursor-grab select-none pt-1.5 leading-none">⠿</span>
               <div className="flex-[2] space-y-1">
                 <select
                   value={isCustom ? "__custom__" : row.label}
