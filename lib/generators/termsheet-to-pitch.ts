@@ -198,7 +198,7 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     const rows: { label: string; amount: number; type: FinRowType }[] = []
     if (marktwaarde > 0) rows.push({ label: "Marktwaarde onderpand", amount: marktwaarde, type: "normal" })
     if (eigenInbreng > 0) rows.push({ label: "Inbreng eigen middelen", amount: eigenInbreng, type: "aftrek" })
-    rows.push({ label: "Financieringsbehoefte", amount: hoofdsom, type: "result" })
+    rows.push({ label: "Gewenste financiering", amount: hoofdsom, type: "result" })
     pitch.financieringsopzet = rows
   }
 

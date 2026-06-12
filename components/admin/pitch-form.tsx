@@ -66,6 +66,19 @@ function PitchSection({ id, title, isOpen, onToggle, children }: {
   )
 }
 
+// Standard omschrijvingen for the financieringsopzet rows (+ "Zelf invullen…" for a custom one).
+const FIN_LABELS = [
+  "Aankoopsom",
+  "Marktwaarde onderpand",
+  "Verbouwingskosten",
+  "Bijkomende kosten",
+  "Kosten koper",
+  "Overdrachtsbelasting",
+  "Totaal",
+  "Inbreng eigen middelen",
+  "Gewenste financiering",
+]
+
 const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const d = (initialData || {}) as Record<string, unknown>
 
@@ -138,6 +151,18 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
   const toggleSection = (key: string) => setOpenSections((prev) => ({ ...prev, [key]: prev[key] === false ? true : prev[key] === undefined ? false : !prev[key] }))
   const isSectionOpen = (key: string) => openSections[key] !== false
+
+  // Reorder a financieringsopzet row (up = -1, down = +1).
+  const moveFin = (i: number, dir: -1 | 1) =>
+    setFinRows((prev) => {
+      const j = i + dir
+      if (j < 0 || j >= prev.length) return prev
+      const next = [...prev]
+      const tmp = next[i]
+      next[i] = next[j]
+      next[j] = tmp
+      return next
+    })
 
   const netRate = useMemo(() => parseFloat((grossRate + managementFee * 12).toFixed(3)), [grossRate, managementFee])
 
@@ -241,20 +266,39 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
 
       {/* 3. Financieringsopzet */}
       <PitchSection id="fin" title="Financieringsopzet" isOpen={isSectionOpen("fin")} onToggle={toggleSection}>
-        <p className="text-xs text-gray-500">&quot;Aftrek&quot; voegt -/- toe. &quot;Totaal&quot; en &quot;Resultaat&quot; zijn vetgedrukt met lijn erboven.</p>
-        {finRows.map((row, i) => (
-          <div key={i} className="flex gap-2">
-            <input placeholder="Omschrijving" value={row.label} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, label: e.target.value } : r)))} className="flex-[2] border rounded px-2 py-1.5 text-sm" />
-            <input type="number" placeholder="Bedrag" value={row.amount || ""} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, amount: parseFloat(e.target.value) || 0 } : r)))} className="flex-1 border rounded px-2 py-1.5 text-sm" />
-            <select value={row.type} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, type: e.target.value as FinRow["type"] } : r)))} className="w-[105px] border rounded px-2 py-1.5 text-sm">
-              <option value="normal">Normaal</option>
-              <option value="aftrek">Aftrek (-/-)</option>
-              <option value="total">Totaal</option>
-              <option value="result">Resultaat</option>
-            </select>
-            <button type="button" onClick={() => setFinRows((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg">×</button>
-          </div>
-        ))}
+        <p className="text-xs text-gray-500">Kies een standaard omschrijving of &quot;Zelf invullen…&quot;. Met de pijltjes pas je de volgorde aan. &quot;Aftrek&quot; voegt -/- toe; &quot;Totaal&quot;/&quot;Resultaat&quot; zijn vetgedrukt met een lijn erboven.</p>
+        {finRows.map((row, i) => {
+          const isCustom = !FIN_LABELS.includes(row.label)
+          return (
+            <div key={i} className="flex gap-2 items-start">
+              <div className="flex flex-col pt-0.5">
+                <button type="button" onClick={() => moveFin(i, -1)} disabled={i === 0} title="Omhoog" className="text-gray-400 hover:text-[#2E2060] disabled:opacity-25 leading-none text-[11px]">▲</button>
+                <button type="button" onClick={() => moveFin(i, 1)} disabled={i === finRows.length - 1} title="Omlaag" className="text-gray-400 hover:text-[#2E2060] disabled:opacity-25 leading-none text-[11px]">▼</button>
+              </div>
+              <div className="flex-[2] space-y-1">
+                <select
+                  value={isCustom ? "__custom__" : row.label}
+                  onChange={(e) => { const v = e.target.value; setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, label: v === "__custom__" ? "" : v } : r))) }}
+                  className="w-full border rounded px-2 py-1.5 text-sm"
+                >
+                  {FIN_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  <option value="__custom__">Zelf invullen…</option>
+                </select>
+                {isCustom && (
+                  <input placeholder="Eigen omschrijving" value={row.label} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, label: e.target.value } : r)))} className="w-full border rounded px-2 py-1.5 text-sm" />
+                )}
+              </div>
+              <input type="number" placeholder="Bedrag" value={row.amount || ""} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, amount: parseFloat(e.target.value) || 0 } : r)))} className="flex-1 border rounded px-2 py-1.5 text-sm self-start" />
+              <select value={row.type} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, type: e.target.value as FinRow["type"] } : r)))} className="w-[105px] border rounded px-2 py-1.5 text-sm self-start">
+                <option value="normal">Normaal</option>
+                <option value="aftrek">Aftrek (-/-)</option>
+                <option value="total">Totaal</option>
+                <option value="result">Resultaat</option>
+              </select>
+              <button type="button" onClick={() => setFinRows((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg self-start">×</button>
+            </div>
+          )
+        })}
         <button type="button" onClick={() => setFinRows((prev) => [...prev, { label: "", amount: 0, type: "normal" }])} className="text-sm text-[#2E2060] hover:underline">+ Regel toevoegen</button>
       </PitchSection>
 

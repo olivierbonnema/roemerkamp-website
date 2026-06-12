@@ -68,11 +68,11 @@ export const PITCH_DEFAULTS = {
     },
   ],
   finRows: [
-    { label: "Aankoop", amount: 0, type: "normal" as const },
+    { label: "Aankoopsom", amount: 0, type: "normal" as const },
     { label: "Bijkomende kosten", amount: 0, type: "normal" as const },
     { label: "Totaal", amount: 0, type: "total" as const },
     { label: "Inbreng eigen middelen", amount: 0, type: "aftrek" as const },
-    { label: "Financieringsbehoefte", amount: 0, type: "result" as const },
+    { label: "Gewenste financiering", amount: 0, type: "result" as const },
   ],
   stichting:
     "Deze hypothecaire zekerheid wordt vastgelegd in een hypotheekakte met als hypotheekhouder namens de investeerder(s) de Stichting Zekerhedenagent Collin Crowdfund.\n\nUitboeking van de lening zal geschieden via de derdengeldenrekening van de notaris bij het passeren van de hypotheekakte.",
