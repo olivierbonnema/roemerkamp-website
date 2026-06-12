@@ -72,6 +72,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [introZinIndex, setIntroZinIndex] = useState<string>(String(d.introZinIndex ?? "0"))
   const [introZinCustom, setIntroZinCustom] = useState((d.introZinCustom as string) || "")
   const [introParagraph, setIntroParagraph] = useState((d.introParagraph as string) || "")
+  const [verzoekText, setVerzoekText] = useState((d.verzoekText as string) || "")
+  const [zekerhedenText, setZekerhedenText] = useState((d.zekerhedenText as string) || "")
+  const [waardeType, setWaardeType] = useState<"woz" | "taxatie" | "geschat">((d.waardeType as "woz" | "taxatie" | "geschat") || "woz")
+  const [waardeBedrag, setWaardeBedrag] = useState<number>((d.waardeBedrag as number) || 0)
 
   const [finRows, setFinRows] = useState<FinRow[]>((d.financieringsopzet as FinRow[]) || PD.finRows.map((r) => ({ ...r })))
 
@@ -97,12 +101,12 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [managementFee, setManagementFee] = useState<number>((d.managementFee as number) || 0)
   const [bijAanvang, setBijAanvang] = useState(!!d.bijAanvang)
 
-  const [erpPeriod, setErpPeriod] = useState<number>((d.erpPeriod as number) || 0)
+  const [erpPeriod, setErpPeriod] = useState<number>((d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0))
   const [erpMinAmount, setErpMinAmount] = useState<number>((d.erpMinAmount as number) ?? 50000)
   const [erpFee, setErpFee] = useState<number>((d.erpFee as number) ?? 250)
   const [erpAankondiging, setErpAankondiging] = useState<number>((d.erpAankondiging as number) ?? 1)
   const [erpText, setErpText] = useState(
-    (d.erpText as string) || buildErpText({ period: (d.erpPeriod as number) || 0, minAmount: 50000, fee: 250, aankondiging: 1 })
+    (d.erpText as string) || buildErpText({ period: (d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0), minAmount: 50000, fee: 250, aankondiging: 1 })
   )
   const [erpEdited, setErpEdited] = useState(false)
 
@@ -168,6 +172,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
       return {
         introZin,
         introParagraph,
+        verzoekText,
+        zekerhedenText,
+        waardeType,
+        waardeBedrag,
         financieringsopzet: finRows,
         ltvRows,
         hypotheekRang,
@@ -217,7 +225,13 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         )}
       </PitchSection>
 
-      {/* 2. Verhaaltekst */}
+      {/* 2. Verzoek-zin */}
+      <PitchSection id="verzoek" title="Verzoek-zin (auto, per aanvraag)" isOpen={isSectionOpen("verzoek")} onToggle={toggleSection}>
+        <p className="text-xs text-gray-500">Wordt automatisch ingevuld op basis van de aanvraag (geldnemers, bedrag, doel, adres). Pas aan waar nodig.</p>
+        <textarea value={verzoekText} onChange={(e) => setVerzoekText(e.target.value)} rows={3} placeholder="De heer X en mevrouw Y in privé hebben Lange & Partners Financieel Advies verzocht om een financiering van € ... met als doel ... aan ..." className="w-full border rounded px-2 py-1.5 text-sm" />
+      </PitchSection>
+
+      {/* 2b. Verhaaltekst */}
       <PitchSection id="verhaal" title="Verhaaltekst (leendoel & situatie)" isOpen={isSectionOpen("verhaal")} onToggle={toggleSection}>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Narratief</label>
@@ -244,92 +258,33 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         <button type="button" onClick={() => setFinRows((prev) => [...prev, { label: "", amount: 0, type: "normal" }])} className="text-sm text-[#2E2060] hover:underline">+ Regel toevoegen</button>
       </PitchSection>
 
-      {/* 4. LTV */}
-      <PitchSection id="ltv" title="LTV-berekening" isOpen={isSectionOpen("ltv")} onToggle={toggleSection}>
-        <p className="text-xs text-gray-500">Voeg meerdere LTV-regels toe. Teller mag meerdere bedragen bevatten.</p>
-        {ltvRows.map((row, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500">LTV-rij {i + 1}</span>
-              <button type="button" onClick={() => setLtvRows((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg">×</button>
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 block">Omschrijving (optioneel)</label>
-              <input value={row.label} onChange={(e) => setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, label: e.target.value } : r)))} className="w-full border rounded px-2 py-1.5 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 block">Teller (bedragen)</label>
-              {row.numeratorParts.map((p, pi) => (
-                <div key={pi} className="flex gap-2 mb-1">
-                  <input placeholder="Label" value={p.label} onChange={(e) => {
-                    const parts = [...row.numeratorParts]; parts[pi] = { ...parts[pi], label: e.target.value }
-                    setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, numeratorParts: parts } : r)))
-                  }} className="flex-1 border rounded px-2 py-1.5 text-sm" />
-                  <input type="number" placeholder="Bedrag" value={p.amount || ""} onChange={(e) => {
-                    const parts = [...row.numeratorParts]; parts[pi] = { ...parts[pi], amount: parseFloat(e.target.value) || 0 }
-                    setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, numeratorParts: parts } : r)))
-                  }} className="flex-1 border rounded px-2 py-1.5 text-sm" />
-                  <button type="button" onClick={() => {
-                    const parts = row.numeratorParts.filter((_, k) => k !== pi)
-                    setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, numeratorParts: parts } : r)))
-                  }} className="text-red-400 hover:text-red-600 text-lg">×</button>
-                </div>
-              ))}
-              <button type="button" onClick={() => {
-                const parts = [...row.numeratorParts, { label: "", amount: 0 }]
-                setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, numeratorParts: parts } : r)))
-              }} className="text-xs text-[#2E2060] hover:underline">+ Teller-bedrag</button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-600 block">Noemer omschrijving</label>
-                <input value={row.denominatorLabel} onChange={(e) => setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, denominatorLabel: e.target.value } : r)))} className="w-full border rounded px-2 py-1.5 text-sm" />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600 block">Noemer bedrag (€)</label>
-                <input type="number" value={row.denominator || ""} onChange={(e) => setLtvRows((prev) => prev.map((r, j) => (j === i ? { ...r, denominator: parseFloat(e.target.value) || 0 } : r)))} className="w-full border rounded px-2 py-1.5 text-sm" />
-              </div>
-            </div>
-            {(() => {
-              const num = row.numeratorParts.reduce((s, p) => s + (p.amount || 0), 0)
-              const den = row.denominator || 0
-              if (num > 0 && den > 0) {
-                const pct = ((num / den) * 100).toFixed(1).replace(".", ",")
-                return <div className="text-sm font-medium text-[#2E2060] bg-gray-50 px-3 py-1.5 rounded">LTV: {fmtEuro(num)} / {fmtEuro(den)} = {pct}%</div>
-              }
-              return <div className="text-sm text-gray-400 bg-gray-50 px-3 py-1.5 rounded">LTV: -</div>
-            })()}
+      {/* 4. Waarde onderpand + LTV */}
+      <PitchSection id="ltv" title="Waarde onderpand & LTV" isOpen={isSectionOpen("ltv")} onToggle={toggleSection}>
+        <p className="text-xs text-gray-500">Kies de waarde-grondslag en het bedrag; de LTV-zin wordt automatisch opgesteld.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde op basis van</label>
+            <select value={waardeType} onChange={(e) => setWaardeType(e.target.value as "woz" | "taxatie" | "geschat")} className="w-full border rounded px-2 py-1.5 text-sm">
+              <option value="woz">WOZ-waarde</option>
+              <option value="taxatie">Taxatierapport</option>
+              <option value="geschat">Geschatte waarde</option>
+            </select>
           </div>
-        ))}
-        <button type="button" onClick={() => setLtvRows((prev) => [...prev, { label: "", numeratorParts: [{ label: "", amount: 0 }], denominator: 0, denominatorLabel: "marktwaarde" }])} className="text-sm text-[#2E2060] hover:underline">+ LTV-rij toevoegen</button>
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde onderpand (€)</label>
+            <input type="number" value={waardeBedrag || ""} onChange={(e) => setWaardeBedrag(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+          </div>
+        </div>
+        {(() => {
+          const pct = waardeBedrag > 0 && hoofdsom > 0 ? ((hoofdsom / waardeBedrag) * 100).toFixed(1).replace(".", ",") : null
+          return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">{pct ? `LTV: ${fmtEuro(hoofdsom)} / ${fmtEuro(waardeBedrag)} = circa ${pct}%` : "LTV: vul hoofdsom (Uitgangspunten) + waarde in"}</div>
+        })()}
       </PitchSection>
 
       {/* 5. Zekerheden */}
       <PitchSection id="zekerheid" title="Zekerheden" isOpen={isSectionOpen("zekerheid")} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Rang hypotheek</label>
-            <select value={hypotheekRang} onChange={(e) => setHypotheekRang(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-              <option value="1">1e recht</option>
-              <option value="2">2e recht</option>
-              <option value="3">3e recht</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Hypotheekbedrag (€)</label>
-            <input type="number" value={hypotheekBedrag || ""} onChange={(e) => setHypotheekBedrag(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Onderpand-omschrijvingen</label>
-          {collateralObjects.map((o, i) => (
-            <div key={i} className="flex gap-2 mb-2">
-              <textarea placeholder="Kadastraal object-omschrijving..." value={o.description} onChange={(e) => setCollateralObjects((prev) => prev.map((obj, j) => (j === i ? { description: e.target.value } : obj)))} className="flex-1 border rounded px-2 py-1.5 text-sm min-h-[60px]" />
-              <button type="button" onClick={() => setCollateralObjects((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg self-start">×</button>
-            </div>
-          ))}
-          <button type="button" onClick={() => setCollateralObjects((prev) => [...prev, { description: "" }])} className="text-sm text-[#2E2060] hover:underline">+ Onderpand toevoegen</button>
-        </div>
+        <p className="text-xs text-gray-500">Standaard opsomming, zoals in de termsheet. Automatisch ingevuld; pas aan waar nodig. Regels als &quot;1.) ...&quot; / &quot;2.) ...&quot; worden ingesprongen.</p>
+        <textarea value={zekerhedenText} onChange={(e) => setZekerhedenText(e.target.value)} rows={6} placeholder="1.) Een eerste recht van hypotheek ter hoogte van ... wordt gevestigd op object 1 (adres) ten gunste van de Geldverstrekker tot zekerheid van de verstrekte lening." className="w-full border rounded px-2 py-1.5 text-sm" />
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" checked={verpandingHuurpenningen} onChange={(e) => setVerpandingHuurpenningen(e.target.checked)} />
           Verpanding van huurpenningen

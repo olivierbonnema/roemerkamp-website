@@ -124,6 +124,12 @@ export interface PitchData {
   cashplanningText?: string
   geldnemers?: PitchGeldnemer[]
   overdraagbaar?: boolean
+  // v2 (house format)
+  verzoekText?: string
+  zekerhedenText?: string
+  waardeType?: "woz" | "taxatie" | "geschat"
+  waardeBedrag?: number
+  ltvText?: string
 }
 
 export interface PitchSettings {
@@ -139,6 +145,51 @@ function pitchSectionHead(text: string) {
     before: 120,
     after: 40,
   })
+}
+
+// Tab-aligned "Label<tab>: value" line (Uitgangspunten van de lening).
+function tabLine(label: string, valueRuns: docx.ParagraphChild[]) {
+  return new docx.Paragraph({
+    children: [tx(label, { bold: true, color: C_BRAND }), tx("\t: "), ...valueRuns],
+    spacing: { before: 0, after: 0 },
+    tabStops: [{ type: docx.TabStopType.LEFT, position: MM(30) }],
+  })
+}
+
+// Loan-to-Value sentence from the chosen waarde-type + value (3 standard variants).
+function buildLtvText(data: PitchData): string {
+  if (data.ltvText && data.ltvText.trim()) return data.ltvText
+  const waarde = Number(data.waardeBedrag) || 0
+  if (!waarde) return ""
+  const hoofdsom = Number(data.hoofdsom) || 0
+  const pct = hoofdsom > 0 ? ((hoofdsom / waarde) * 100).toFixed(1).replace(".", ",") : "0"
+  const wt = data.waardeType || "woz"
+  const lead =
+    wt === "taxatie" ? "De waarde van het onderpand op basis van het taxatierapport"
+    : wt === "geschat" ? "De geschatte waarde van het onderpand"
+    : "De WOZ-waarde van het onderpand"
+  const basis = wt === "taxatie" ? "taxatiewaarde" : wt === "geschat" ? "geschatte waarde" : "WOZ-waarde"
+  return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis} bedraagt daarmee circa ${pct}%.`
+}
+
+// Render the standard zekerheden text; each "N.) ..." line is tab-separated + hanging.
+function zekerhedenPars(text: string): docx.Paragraph[] {
+  return text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const m = line.match(/^(\d+[.)]+)\s+(.*)$/)
+      if (m) {
+        return new docx.Paragraph({
+          children: [tx(m[1]), tx("\t"), tx(m[2])],
+          spacing: { before: 20, after: 20 },
+          tabStops: [{ type: docx.TabStopType.LEFT, position: MM(8) }],
+          indent: { left: MM(8), hanging: MM(8) },
+        })
+      }
+      return par([tx(line)], { before: 20, after: 20 })
+    })
 }
 
 export async function generatePitch(
@@ -194,17 +245,25 @@ export async function generatePitch(
     ch.push(par([tx(data.introZin)], { before: 0, after: 80 }))
   }
 
-  // 2 - Verhaaltekst
+  // 2 - Verzoek-zin (auto-gegenereerd per aanvraag, bewerkbaar; lijkt op de termsheet-opening)
+  if (data.verzoekText) {
+    textPars(data.verzoekText, { before: 0, after: 80 }).forEach((p) => ch.push(p))
+    ch.push(empty(80))
+  }
+
+  // 3 - Verhaaltekst (open beschrijving)
   if (data.introParagraph) {
     textPars(data.introParagraph, { before: 40, after: 80 }).forEach((p) =>
       ch.push(p)
     )
+    ch.push(empty(80))
   }
 
-  // 3 - Financieringsopzet
+  // 4 - Financieringsopzet
   const finRows = data.financieringsopzet || []
   if (finRows.length) {
     ch.push(pitchSectionHead("Financieringsopzet"))
+    ch.push(par([tx("De financieringsopzet ziet er als volgt uit:")], { before: 0, after: 40 }))
 
     const tableW = Math.round(CONTENT * 0.65)
     const lblW = Math.round(tableW * 0.7)
@@ -268,98 +327,31 @@ export async function generatePitch(
     ch.push(empty(80))
   }
 
-  // 4 - LTV
-  const ltvRows = data.ltvRows || []
-  if (ltvRows.some((r) => Number(r.denominator) > 0)) {
-    ch.push(pitchSectionHead("LTV"))
-    ltvRows.forEach((row) => {
-      const teller = (row.numeratorParts || []).reduce(
-        (s, p) => s + (Number(p.amount) || 0),
-        0
-      )
-      const noemer = Number(row.denominator) || 0
-      if (teller <= 0 || noemer <= 0) return
-      const pct = ((teller / noemer) * 100).toFixed(1).replace(".", ",")
-      const lbl = row.label ? ` ${row.label}` : ""
-      ch.push(
-        par(
-          [
-            tx(
-              `De LTV${lbl} bedraagt: (${fmtEuro(teller)} / ${fmtEuro(noemer)}) = ${pct}%`
-            ),
-          ],
-          { before: 60, after: 60 }
-        )
-      )
-    })
+  // 5 - Zekerheden (standaard opsomming, zoals in de termsheet)
+  {
+    const zt = (data.zekerhedenText || "").trim()
+    if (zt) {
+      ch.push(pitchSectionHead("Zekerheden"))
+      zekerhedenPars(zt).forEach((p) => ch.push(p))
+      const ei = data.eersteInschrijving
+      if (ei?.enabled && ei.bedrag) {
+        const restTxt = ei.restschuld ? ` (actuele restschuld ${fmtEuro(ei.restschuld)})` : ""
+        ch.push(par([tx(`1e inschrijving van ${fmtEuro(ei.bedrag)} bij ${ei.bank || "-"}${restTxt}`)], { before: 40, after: 20 }))
+      }
+      if (data.verpandingHuurpenningen) {
+        ch.push(par([tx("Verpanding van huurpenningen")], { before: 20, after: 20 }))
+      }
+      ch.push(empty(80))
+    }
   }
 
-  // 5 - Zekerheden
-  ch.push(pitchSectionHead("Zekerheden"))
+  // 6 - Waarde onderpand + LTV (3 standaardvarianten: WOZ / taxatie / geschat)
   {
-    const rang = data.hypotheekRang || "1"
-    const bedrag = Number(data.hypotheekBedrag) || 0
-    const objects = (data.collateralObjects || []).filter((o) => o.description)
-    const rangTxt = rang === "1" ? "1e" : rang === "2" ? "2e" : rang + "e"
-
-    ch.push(
-      par([tx("Zekerheden:", { bold: true, color: C_BRAND })], {
-        before: 60,
-        after: 20,
-      })
-    )
-    ch.push(
-      par(
-        [
-          tx(
-            `Een ${rangTxt} recht van hypotheek ter hoogte van ${fmtEuro(bedrag)} op:`
-          ),
-        ],
-        { before: 20, after: 20 }
-      )
-    )
-
-    if (objects.length === 1) {
-      ch.push(
-        par([tx(objects[0].description)], {
-          before: 20,
-          after: 20,
-          indent: MM(6),
-        })
-      )
-    } else {
-      const alpha = "abcdefghij"
-      objects.forEach((obj, i) => {
-        ch.push(
-          par(
-            [tx(`${alpha[i] || i + 1}. ${obj.description}`)],
-            { before: 20, after: 20, indent: MM(6) }
-          )
-        )
-      })
-    }
-
-    const ei = data.eersteInschrijving
-    if (ei?.enabled && ei.bedrag) {
-      const restTxt = ei.restschuld
-        ? ` (actuele restschuld ${fmtEuro(ei.restschuld)})`
-        : ""
-      ch.push(
-        par(
-          [
-            tx(
-              `1e inschrijving van ${fmtEuro(ei.bedrag)} bij ${ei.bank || "-"}${restTxt}`
-            ),
-          ],
-          { before: 40, after: 20 }
-        )
-      )
-    }
-
-    if (data.verpandingHuurpenningen) {
-      ch.push(
-        par([tx("Verpanding van huurpenningen")], { before: 20, after: 20 })
-      )
+    const ltvText = buildLtvText(data)
+    if (ltvText) {
+      ch.push(pitchSectionHead("Waarde onderpand en LTV"))
+      textPars(ltvText, { before: 0, after: 40 }).forEach((p) => ch.push(p))
+      ch.push(empty(80))
     }
   }
 
@@ -379,52 +371,14 @@ export async function generatePitch(
       leenvormTxt = `Annuiteiten (${data.annuiteitenTermijn} maanden)`
     }
 
-    ch.push(
-      par(
-        [
-          tx("Leenvorm: ", { bold: true, color: C_BRAND }),
-          tx(leenvormTxt),
-        ],
-        { before: 60, after: 40 }
-      )
-    )
+    const suffix = bijAanvang ? " bij aanvang." : "."
+    const renteTxt = fee > 0
+      ? `${fmtN(gross)}% per jaar (nominaal) netto (${fmtN(netRate)}% per jaar minus ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
+      : `${fmtN(gross)}% per jaar (nominaal)${suffix}`
 
-    ch.push(
-      par(
-        [
-          tx("Hoofdsom: ", { bold: true, color: C_BRAND }),
-          tx(fmtEuro(hoofdsom)),
-        ],
-        { before: 40, after: 40 }
-      )
-    )
-
-    ch.push(
-      par(
-        [
-          tx("Looptijd: ", { bold: true, color: C_BRAND }),
-          tx(`${looptijd} maanden`),
-        ],
-        { before: 40, after: 40 }
-      )
-    )
-
-    const prefix = bijAanvang ? "bij aanvang " : ""
-    let renteTxt: string
-    if (fee > 0) {
-      renteTxt = `${prefix}${fmtN(gross)}% per jaar (nominaal) netto (${fmtN(netRate)}% per jaar minus ${fmtN(fee)}% per maand aan beheervergoeding)`
-    } else {
-      renteTxt = `${prefix}${fmtN(gross)}% per jaar (nominaal)`
-    }
-    ch.push(
-      par(
-        [
-          tx("Rente: ", { bold: true, color: C_BRAND }),
-          tx(renteTxt, { bold: true }),
-        ],
-        { before: 40, after: 40 }
-      )
-    )
+    ch.push(tabLine("Leenvorm", [tx(`${leenvormTxt}${hoofdsom > 0 ? ` ${fmtEuro(hoofdsom)}` : ""}`)]))
+    ch.push(tabLine("Looptijd", [tx(`${looptijd} maanden`)]))
+    ch.push(tabLine("Rente", [tx(renteTxt)]))
 
     ch.push(
       par([tx("Vervroegde aflossing:", { bold: true, color: C_BRAND })], {
@@ -443,15 +397,18 @@ export async function generatePitch(
         )
       )
     }
+    ch.push(empty(80))
   }
 
-  // 7 - Stichting Zekerhedenagent
+  // 7 - Stichting Zekerhedenagent (twee standaard alinea's, altijd)
   if (data.stichtingEnabled !== false && data.stichtingText) {
     ch.push(empty(80))
-    textPars(data.stichtingText.replace(/\n\n/g, "\n"), {
-      before: 40,
-      after: 60,
-    }).forEach((p) => ch.push(p))
+    const stPars = data.stichtingText.split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
+    stPars.forEach((para, i) => {
+      textPars(para, { before: 0, after: 40 }).forEach((p) => ch.push(p))
+      if (i < stPars.length - 1) ch.push(empty(80))
+    })
+    ch.push(empty(80))
   }
 
   // 8 - Enkele risico's

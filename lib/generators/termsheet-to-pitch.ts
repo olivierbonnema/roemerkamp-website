@@ -49,6 +49,42 @@ function totalMarktwaarde(aanvraag?: Record<string, unknown>): number {
   return toNumber(aanvraag.objectWaarde)
 }
 
+function fmtEuro(n: number): string {
+  return `€ ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(n || 0)},-`
+}
+
+// Personalized request sentence (like the termsheet opening). Editable afterwards.
+function buildVerzoek(termsheet: TermsheetData): string {
+  const salut = (termsheet.salutation || "").trim()
+  const lead = salut ? salut.charAt(0).toUpperCase() + salut.slice(1) : "De aanvrager"
+  const borrowers = termsheet.borrowers || []
+  const isPrive = borrowers.length > 0 && borrowers.every((b) => b.type !== "bv")
+  const priveTxt = isPrive ? " in privé" : ""
+  const verb = borrowers.length > 1 ? "hebben" : "heeft"
+  const amount = totalLoan(termsheet)
+  if (amount <= 0 && !salut) return ""
+  const doel = termsheet.doelFinanciering || "de gevraagde financiering"
+  const adres = termsheet.objects?.[0]?.address || ""
+  const adresTxt = adres ? ` aan ${adres}` : ""
+  const company = termsheet.kredietgever || "Lange & Partners Financieel Advies"
+  return `${lead}${priveTxt} ${verb} ${company} verzocht om een financiering van ${fmtEuro(amount)} met als doel ${doel}${adresTxt}.`
+}
+
+// Standard zekerheden enumeration (mirrors the termsheet format, editable).
+function buildZekerheden(termsheet: TermsheetData): string {
+  const objects = termsheet.objects || []
+  if (!objects.length) return ""
+  const rang = objects[0]?.hypotheekRank || "1e"
+  const rankWord = rang.startsWith("2") ? "tweede" : rang.startsWith("3") ? "derde" : "eerste"
+  const amount = totalLoan(termsheet)
+  return objects
+    .map((o, i) => {
+      const addr = o.address || o.description || `object ${i + 1}`
+      return `${i + 1}.) Een ${rankWord} recht van hypotheek ter hoogte van ${fmtEuro(amount)} wordt gevestigd op object ${i + 1} (${addr}) ten gunste van de Geldverstrekker tot zekerheid van de verstrekte lening.`
+    })
+    .join("\n")
+}
+
 export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<string, unknown>): Partial<PitchData> {
   const hoofdsom = totalLoan(termsheet)
   const looptijd = toNumber(termsheet.looptijd)
@@ -80,16 +116,10 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     loanDuration: looptijd || undefined,
     grossRate: typeof termsheet.rentePct === "number" ? termsheet.rentePct : undefined,
     leenvorm: deriveLeenvorm(termsheet),
-  }
-
-  // LTV - only when we know the market value (from the aanvraag)
-  if (hoofdsom > 0 && marktwaarde > 0) {
-    pitch.ltvRows = [{
-      label: "LTV",
-      numeratorParts: [{ label: "Lening", amount: hoofdsom }],
-      denominator: marktwaarde,
-      denominatorLabel: "marktwaarde",
-    }]
+    verzoekText: buildVerzoek(termsheet) || undefined,
+    zekerhedenText: buildZekerheden(termsheet) || undefined,
+    waardeType: marktwaarde > 0 ? "woz" : undefined,
+    waardeBedrag: marktwaarde || undefined,
   }
 
   // Financieringsopzet - a few safe rows from what we reliably know
