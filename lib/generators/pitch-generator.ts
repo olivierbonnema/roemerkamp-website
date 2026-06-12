@@ -4,24 +4,56 @@ import {
   PAGE_W,
   PAGE_H,
   MARGIN_SIDE,
-  C_BRAND,
-  C_BLACK,
-  C_HRULE,
   SZ_BODY,
   SZ_SMALL,
-  SZ_HEAD,
-  tx,
-  par,
+  tx as txBase,
+  par as parBase,
   empty,
   noBorder,
   noTableBorder,
   fmtEuro,
   fmtN,
-  textPars,
   getImageSize,
   logoType,
   logoBase64,
 } from "./docx-helpers"
+
+// ---------------------------------------------------------------------------
+// Pitch house style (navy + dense) — matches the hand-made reference pitch.
+// The shared docx-helpers default to a black body + purple headings with looser
+// spacing (used by the TERMSHEET). We override locally so the termsheet stays
+// untouched: navy text everywhere, headings the same size as the body (just
+// bold), tighter spacing, and navy rule lines.
+// ---------------------------------------------------------------------------
+const C_PITCH = "1F3864" // navy — the entire pitch
+const C_BRAND = C_PITCH // (was purple 2E2060) bold labels + headings → navy
+const C_HRULE = C_PITCH // (was light purple C8C4DC) rule lines → navy
+
+function tx(text: string, opts: Parameters<typeof txBase>[1] = {}) {
+  return txBase(text, { color: C_PITCH, ...opts })
+}
+
+function par(children: docx.ParagraphChild[], opts: Parameters<typeof parBase>[1] = {}) {
+  if (opts.hrule) {
+    return new docx.Paragraph({
+      children,
+      alignment: opts.align || docx.AlignmentType.LEFT,
+      spacing: { before: opts.before ?? 0, after: opts.after ?? 0 },
+      border: { top: { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE } },
+    })
+  }
+  // Tighter default than the shared helper (Schippers is dense / single-spaced).
+  return parBase(children, { before: 0, after: 60, ...opts })
+}
+
+function textPars(text: string, opts: { before?: number; after?: number } = {}) {
+  if (!text) return []
+  return text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => par([tx(l)], opts))
+}
 
 export interface PitchFinRow {
   label: string
@@ -115,9 +147,10 @@ function tcell(
 }
 
 function pitchSectionHead(text: string) {
-  return par([tx(text, { bold: true, color: C_BRAND, size: SZ_HEAD })], {
-    before: 220,
-    after: 80,
+  // Schippers: headings are the same size as body text, just bold navy.
+  return par([tx(text, { bold: true, color: C_BRAND, size: SZ_BODY })], {
+    before: 120,
+    after: 40,
   })
 }
 
@@ -171,35 +204,35 @@ export async function generatePitch(
         rightW
       )
 
-  const pitchHeader = new docx.Header({
-    children: [
-      new docx.Table({
-        width: { size: CONTENT, type: docx.WidthType.DXA },
-        borders: noTableBorder(),
-        columnWidths: [leftW, rightW],
-        rows: [
-          new docx.TableRow({
-            children: [
-              tcell(
-                par(
-                  [
-                    tx("Toelichting Lange Financieel Advies", {
-                      bold: true,
-                      size: SZ_BODY,
-                    }),
-                  ],
-                  { before: 0, after: 0 }
-                ),
-                leftW
-              ),
-              rightCell,
-            ],
-          }),
+  // Title + logo as the FIRST block of the document BODY — not a repeating Word
+  // header. (Per Olivier: "Toelichting Lange Financieel Advies" should be the
+  // first line of the document, not in the header.)
+  const titleBlock = new docx.Table({
+    width: { size: CONTENT, type: docx.WidthType.DXA },
+    borders: noTableBorder(),
+    columnWidths: [leftW, rightW],
+    rows: [
+      new docx.TableRow({
+        children: [
+          tcell(
+            par(
+              [
+                tx("Toelichting Lange Financieel Advies", {
+                  bold: true,
+                  size: SZ_BODY,
+                }),
+              ],
+              { before: 0, after: 0 }
+            ),
+            leftW
+          ),
+          rightCell,
         ],
       }),
-      par([], { hrule: true, before: 40, after: 0 }),
     ],
   })
+  ch.push(titleBlock as unknown as docx.Paragraph)
+  ch.push(par([], { hrule: true, before: 40, after: 80 }))
 
   // 1 - Inleidende zin
   if (data.introZin) {
@@ -535,8 +568,8 @@ export async function generatePitch(
           page: {
             size: { width: PAGE_W, height: PAGE_H },
             margin: {
-              top: MM(32),
-              bottom: MM(25),
+              top: MM(25),
+              bottom: MM(15),
               left: MARGIN_SIDE,
               right: MARGIN_SIDE,
               header: MM(7),
@@ -544,7 +577,6 @@ export async function generatePitch(
             },
           },
         },
-        headers: { default: pitchHeader },
         children: ch,
       },
     ],
