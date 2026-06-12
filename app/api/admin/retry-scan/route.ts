@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     fullName: data.naam || "",
     dob: data.geboortedatum || undefined,
     city: city || data.objectPlaats || undefined,
+    address: data.adres || undefined,
     company: data.bedrijfsnaam || undefined,
     kvkNummer: data.kvkNummer || undefined,
     role: isCompany ? "DGA / aanvrager" : undefined,

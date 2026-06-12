@@ -81,18 +81,23 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const s = body.subject || {}
-  const fullName = (s.fullName || "").trim()
   const type = s.type
+  const fullName = (s.fullName || "").trim()
+  const company = (s.company || "").trim()
 
-  if (!fullName) return NextResponse.json({ error: "Naam is verplicht." }, { status: 400 })
   if (!VALID_TYPES.includes(type)) return NextResponse.json({ error: "Ongeldig type." }, { status: 400 })
+  const needsPerson = type === "natural_person" || type === "both"
+  const needsCompany = type === "legal_entity" || type === "both"
+  if (needsPerson && !fullName) return NextResponse.json({ error: "Naam is verplicht." }, { status: 400 })
+  if (needsCompany && !company) return NextResponse.json({ error: "Bedrijfsnaam is verplicht." }, { status: 400 })
 
   const subject = cleanSubject({
     type,
     fullName,
     dob: s.dob?.trim() || undefined,
     city: s.city?.trim() || undefined,
-    company: s.company?.trim() || undefined,
+    address: s.address?.trim() || undefined,
+    company: company || undefined,
     kvkNummer: s.kvkNummer?.trim() || undefined,
     role: s.role?.trim() || undefined,
     sector: s.sector?.trim() || "vastgoed",

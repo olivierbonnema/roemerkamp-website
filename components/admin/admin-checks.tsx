@@ -10,6 +10,7 @@ interface CheckSubject {
   fullName: string
   dob?: string
   city?: string
+  address?: string
   company?: string
   kvkNummer?: string
   role?: string
@@ -43,9 +44,9 @@ interface AanvraagOption {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  natural_person: "Natuurlijk persoon",
-  legal_entity: "Rechtspersoon",
-  both: "Persoon + bedrijf",
+  natural_person: "Persoon",
+  legal_entity: "Bedrijf",
+  both: "Bedrijf",
 }
 
 function formatDate(iso: string | null) {
@@ -160,14 +161,20 @@ export function AdminChecks() {
       fullName: a.naam || "",
       dob: a.geboortedatum || "",
       city: city || a.objectPlaats || "",
+      address: a.adres || "",
       company: a.bedrijfsnaam || "",
       kvkNummer: a.kvkNummer || "",
     })
   }
 
   async function submitCheck() {
+    const isCompany = form.type !== "natural_person"
+    if (isCompany && !(form.company || "").trim()) {
+      setScanErrorModal({ title: "Bedrijfsnaam ontbreekt", message: "Vul de naam van het bedrijf in." })
+      return
+    }
     if (!form.fullName.trim()) {
-      setScanErrorModal({ title: "Naam ontbreekt", message: "Vul minimaal de volledige naam in." })
+      setScanErrorModal({ title: "Naam ontbreekt", message: isCompany ? "Vul de volledige naam van de vertegenwoordiger in." : "Vul de volledige naam van de persoon in." })
       return
     }
     setSubmitting(true)
@@ -224,18 +231,20 @@ export function AdminChecks() {
     const check = checks.find(c => c.id === detailId)
     if (check?.result) {
       const subj = check.subject
+      const displayName = subj.type === "natural_person" ? subj.fullName : (subj.company || subj.fullName)
       return (
         <div className="space-y-6">
           <button onClick={() => setDetailId(null)} className="text-sm font-sans text-[#311E86] hover:underline">← Terug naar checks</button>
 
           <div className="border border-gray-200 rounded-2xl p-6 bg-white">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm font-sans">
-              <Meta label="Naam" value={subj.fullName} />
-              <Meta label="Type" value={TYPE_LABELS[subj.type] || subj.type} />
+              {subj.type !== "natural_person" && subj.company && <Meta label="Bedrijf" value={subj.company} />}
+              {subj.type !== "natural_person" && subj.kvkNummer && <Meta label="KvK-nummer" value={subj.kvkNummer} />}
+              {subj.address && <Meta label="Adres" value={subj.address} />}
+              <Meta label={subj.type === "natural_person" ? "Naam" : "Vertegenwoordiger"} value={subj.fullName} />
               {subj.dob && <Meta label="Geboortedatum" value={subj.dob} />}
-              {subj.city && <Meta label="Plaats" value={subj.city} />}
-              {subj.company && <Meta label="Bedrijf" value={subj.company} />}
-              {subj.kvkNummer && <Meta label="KvK-nummer" value={subj.kvkNummer} />}
+              {subj.city && !subj.address && <Meta label="Plaats" value={subj.city} />}
+              <Meta label="Type" value={TYPE_LABELS[subj.type] || subj.type} />
               <Meta label="Uitgevoerd op" value={formatDate(check.completedAt || check.createdAt)} />
               {check.createdBy?.email && <Meta label="Uitgevoerd door" value={check.createdBy.email} />}
               {check.linkedAanvraagId && (
@@ -244,7 +253,7 @@ export function AdminChecks() {
             </div>
           </div>
 
-          <ScanResultView result={check.result} subjectName={subj.fullName} />
+          <ScanResultView result={check.result} subjectName={displayName} />
         </div>
       )
     }
@@ -274,9 +283,11 @@ export function AdminChecks() {
           <div key={c.id} className="border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#311E86]/30 transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
               <div>
-                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{subj.fullName || "—"}</p>
+                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{(subj.type === "natural_person" ? subj.fullName : subj.company) || subj.fullName || "—"}</p>
                 <p className="text-xs text-gray-400 font-sans mt-0.5">
-                  {TYPE_LABELS[subj.type] || subj.type} · {formatDate(c.createdAt)}
+                  {TYPE_LABELS[subj.type] || subj.type}
+                  {subj.type !== "natural_person" && subj.fullName ? ` · ${subj.fullName}` : ""}
+                  {` · ${formatDate(c.createdAt)}`}
                   {c.createdBy?.email ? ` · ${c.createdBy.email}` : ""}
                 </p>
                 {c.linkedAanvraagId && (
@@ -354,36 +365,65 @@ export function AdminChecks() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Volledige naam *" className="sm:col-span-2">
-                <input value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} placeholder="Voor- en achternaam" className={inputCls} />
-              </Field>
-              <Field label="Type *">
-                <select value={form.type} onChange={(e) => setField("type", e.target.value as CheckSubject["type"])} className={inputCls}>
-                  <option value="natural_person">Natuurlijk persoon</option>
-                  <option value="legal_entity">Rechtspersoon</option>
-                  <option value="both">Persoon + bedrijf</option>
-                </select>
-              </Field>
-              <Field label="Geboortedatum">
-                <input value={form.dob || ""} onChange={(e) => setField("dob", e.target.value)} placeholder="DD-MM-JJJJ" className={inputCls} />
-              </Field>
-              <Field label="Woon-/vestigingsplaats">
-                <input value={form.city || ""} onChange={(e) => setField("city", e.target.value)} placeholder="Plaats" className={inputCls} />
-              </Field>
-              <Field label="Bedrijfsnaam">
-                <input value={form.company || ""} onChange={(e) => setField("company", e.target.value)} placeholder="Statutaire naam" className={inputCls} />
-              </Field>
-              <Field label="KvK-nummer">
-                <input value={form.kvkNummer || ""} onChange={(e) => setField("kvkNummer", e.target.value)} placeholder="8 cijfers" className={inputCls} />
-              </Field>
-              <Field label="Leningbedrag">
-                <input value={form.loanAmount || ""} onChange={(e) => setField("loanAmount", e.target.value)} placeholder="bijv. 1500000" className={inputCls} />
-              </Field>
-              <Field label="Mede-aanvrager" className="sm:col-span-2">
-                <input value={form.coApplicant || ""} onChange={(e) => setField("coApplicant", e.target.value)} placeholder="Naam mede-aanvrager (optioneel)" className={inputCls} />
-              </Field>
+            {/* Wat checken we? */}
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-600 font-sans mb-1.5 block">Wat wilt u checken? *</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setField("type", "natural_person")}
+                  className={`px-4 py-2.5 text-sm font-medium font-sans rounded-lg border transition-colors ${form.type === "natural_person" ? "border-[#311E86] bg-[#311E86]/5 text-[#311E86]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                >
+                  Persoon
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setField("type", "both")}
+                  className={`px-4 py-2.5 text-sm font-medium font-sans rounded-lg border transition-colors ${form.type !== "natural_person" ? "border-[#311E86] bg-[#311E86]/5 text-[#311E86]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                >
+                  Bedrijf
+                </button>
+              </div>
             </div>
+
+            {form.type === "natural_person" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Volledige naam *" className="sm:col-span-2">
+                  <input value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} placeholder="Voor- en achternaam" className={inputCls} />
+                </Field>
+                <Field label="Geboortedatum">
+                  <input value={form.dob || ""} onChange={(e) => setField("dob", e.target.value)} placeholder="DD-MM-JJJJ" className={inputCls} />
+                </Field>
+                <Field label="Adres">
+                  <input value={form.address || ""} onChange={(e) => setField("address", e.target.value)} placeholder="Straat, nr, postcode, plaats" className={inputCls} />
+                </Field>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Bedrijfsnaam *" className="sm:col-span-2">
+                    <input value={form.company || ""} onChange={(e) => setField("company", e.target.value)} placeholder="Statutaire naam" className={inputCls} />
+                  </Field>
+                  <Field label="KvK-nummer">
+                    <input value={form.kvkNummer || ""} onChange={(e) => setField("kvkNummer", e.target.value)} placeholder="8 cijfers" className={inputCls} />
+                  </Field>
+                  <Field label="Bedrijfsadres">
+                    <input value={form.address || ""} onChange={(e) => setField("address", e.target.value)} placeholder="Straat, nr, postcode, plaats" className={inputCls} />
+                  </Field>
+                </div>
+                <div className="pt-3 border-t border-gray-100">
+                  <p className="text-xs font-semibold font-sans text-gray-500 uppercase tracking-wide mb-3">Vertegenwoordiger</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Field label="Volledige naam *">
+                      <input value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} placeholder="Voor- en achternaam" className={inputCls} />
+                    </Field>
+                    <Field label="Geboortedatum">
+                      <input value={form.dob || ""} onChange={(e) => setField("dob", e.target.value)} placeholder="DD-MM-JJJJ" className={inputCls} />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowForm(false)} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Annuleren</button>

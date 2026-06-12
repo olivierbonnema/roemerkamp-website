@@ -8,6 +8,7 @@ interface ScanSubject {
   fullName: string
   dob?: string
   city?: string
+  address?: string
   company?: string
   kvkNummer?: string
   role?: string
@@ -187,6 +188,7 @@ function buildSubjectBlock(subject: ScanSubject): string {
     lines.push(`- Full name: ${subject.fullName}`)
     if (subject.dob) lines.push(`- Date of birth: ${subject.dob}`)
     if (subject.city) lines.push(`- City / residence: ${subject.city}`)
+    if (subject.address && subject.type === "natural_person") lines.push(`- Address: ${subject.address}`)
     if (subject.company) lines.push(`- Current employer / company: ${subject.company}`)
     if (subject.role) lines.push(`- Role: ${subject.role}`)
     lines.push("")
@@ -196,6 +198,7 @@ function buildSubjectBlock(subject: ScanSubject): string {
     lines.push("LEGAL ENTITY:")
     if (subject.company) lines.push(`- Statutaire naam: ${subject.company}`)
     if (subject.kvkNummer) lines.push(`- KvK-nummer: ${subject.kvkNummer}`)
+    if (subject.address) lines.push(`- Adres: ${subject.address}`)
     lines.push(`- Sector: ${subject.sector || "vastgoed"}`)
     if (subject.city) lines.push(`- Vestigingsplaats: ${subject.city}`)
     lines.push("")
