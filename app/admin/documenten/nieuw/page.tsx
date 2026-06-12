@@ -21,15 +21,30 @@ export default function NieuwDocumentPage() {
   const prefillData = useMemo(() => {
     if (!isPrefill) return undefined
     try {
-      const raw = sessionStorage.getItem("termsheet-prefill")
+      const raw = sessionStorage.getItem("doc-prefill")
       if (raw) {
-        sessionStorage.removeItem("termsheet-prefill")
+        sessionStorage.removeItem("doc-prefill")
         return JSON.parse(raw)
       }
     } catch {
       // ignore
     }
     return undefined
+  }, [isPrefill])
+
+  // Link a prefilled document back to its source aanvraag (enables "Maak pitch" later).
+  const prefillAanvraagId = useMemo(() => {
+    if (!isPrefill) return null
+    try {
+      const v = sessionStorage.getItem("doc-aanvraagId")
+      if (v) {
+        sessionStorage.removeItem("doc-aanvraagId")
+        return v
+      }
+    } catch {
+      // ignore
+    }
+    return null
   }, [isPrefill])
 
   const [saving, setSaving] = useState(false)
@@ -73,7 +88,7 @@ export default function NieuwDocumentPage() {
       const res = await fetch("/api/admin/documents", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ id: crypto.randomUUID(), type: docType, name, data: formData, status: "concept" }),
+        body: JSON.stringify({ id: crypto.randomUUID(), type: docType, name, data: formData, status: "concept", ...(prefillAanvraagId ? { aanvraagId: prefillAanvraagId } : {}) }),
       })
       if (res.ok) {
         const result = await res.json()

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { Download, Save, Trash2, ArrowLeft, Eye, Send } from "lucide-react"
+import { Download, Save, Trash2, ArrowLeft, Eye, Send, FileText } from "lucide-react"
 import Link from "next/link"
 import TermsheetForm, { type TermsheetFormHandle } from "@/components/admin/termsheet-form"
 import PitchForm, { type PitchFormHandle } from "@/components/admin/pitch-form"
@@ -20,6 +20,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [makingPitch, setMakingPitch] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [showEsignPreview, setShowEsignPreview] = useState(false)
   const [showEsign, setShowEsign] = useState(false)
@@ -142,6 +143,35 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
   }
 
+  // Build a pitch from this termsheet (+ its linked aanvraag) and open it pre-filled.
+  const handleMakePitch = async () => {
+    if (!user || !doc) return
+    setMakingPitch(true)
+    try {
+      const termsheetData = getFormData()
+      if (!termsheetData) { alert("Geen termsheet-gegevens gevonden."); return }
+      const token = await user.getIdToken()
+      const res = await fetch("/api/admin/build-pitch", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ termsheetData, aanvraagId: doc.aanvraagId || null }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert("Pitch maken mislukt: " + (data.error || "onbekende fout"))
+        return
+      }
+      const { pitchData } = await res.json()
+      sessionStorage.setItem("doc-prefill", JSON.stringify(pitchData))
+      if (doc.aanvraagId) sessionStorage.setItem("doc-aanvraagId", String(doc.aanvraagId))
+      router.push("/admin/documenten/nieuw?type=pitch&prefill=1")
+    } catch {
+      alert("Pitch maken mislukt.")
+    } finally {
+      setMakingPitch(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="px-8 py-8">
@@ -249,6 +279,16 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
             <Download size={14} />
             {generating ? "Genereren..." : "Download .docx"}
           </button>
+          {isTermsheet && (
+            <button
+              onClick={handleMakePitch}
+              disabled={makingPitch}
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#311E86] text-[#311E86] rounded-lg text-sm font-medium hover:bg-[#311E86] hover:text-white disabled:opacity-50 transition-colors"
+            >
+              <FileText size={14} />
+              {makingPitch ? "Bezig..." : "Maak pitch"}
+            </button>
+          )}
           <button
             onClick={() => setShowEsign(true)}
             className={`flex items-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-medium transition-colors ${

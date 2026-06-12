@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { id, type, name, data } = body
+    const { id, type, name, data, aanvraagId } = body
     const now = new Date().toISOString()
 
     if (!id || !type || !data) {
@@ -35,10 +35,9 @@ export async function POST(req: NextRequest) {
     const existing = await adminDb.collection("documents").doc(id).get()
 
     if (existing.exists) {
-      await adminDb.collection("documents").doc(id).set(
-        { name, updatedAt: now, data },
-        { merge: true }
-      )
+      const update: Record<string, unknown> = { name, updatedAt: now, data }
+      if (aanvraagId) update.aanvraagId = aanvraagId
+      await adminDb.collection("documents").doc(id).set(update, { merge: true })
       await logActivity({
         action: "document_updated",
         userId: admin.uid,
@@ -48,13 +47,15 @@ export async function POST(req: NextRequest) {
         details: { name: name || "Naamloos" },
       })
     } else {
-      await adminDb.collection("documents").doc(id).set({
+      const docData: Record<string, unknown> = {
         id, type, name,
         createdAt: now,
         updatedAt: now,
         data,
         createdBy: admin.email || "",
-      })
+      }
+      if (aanvraagId) docData.aanvraagId = aanvraagId
+      await adminDb.collection("documents").doc(id).set(docData)
       await logActivity({
         action: "document_created",
         userId: admin.uid,

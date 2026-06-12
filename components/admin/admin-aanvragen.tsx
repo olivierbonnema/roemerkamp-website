@@ -282,7 +282,8 @@ export function AdminAanvragen() {
         return
       }
       const data = await res.json()
-      sessionStorage.setItem("termsheet-prefill", JSON.stringify(data.termsheetData))
+      sessionStorage.setItem("doc-prefill", JSON.stringify(data.termsheetData))
+      sessionStorage.setItem("doc-aanvraagId", aanvraagId)
       setExtraText("")
       setUploadedFiles([])
       setExtraTextModal(null)
