@@ -53,21 +53,92 @@ function fmtEuro(n: number): string {
   return `€ ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(n || 0)},-`
 }
 
-// Personalized request sentence (like the termsheet opening). Editable afterwards.
+// First-name → gender, to pick "de heer" / "mevrouw" (best-effort; falls back to the salutation).
+const V_NAMES = new Set(["anna","anne","anke","astrid","bianca","charlotte","claire","claudia","daniëlle","danielle","denise","diana","emma","esther","eva","femke","fleur","hanna","ilse","inge","ingrid","iris","jessica","judith","julia","karin","kim","laura","lieke","linda","lisa","lotte","maaike","manon","maria","marieke","marjan","martine","melissa","merel","miranda","monique","nadia","nathalie","nicole","nina","olga","petra","renate","roos","sandra","sanne","sarah","silvia","simone","sophie","susan","suzanne","sylvia","tamara","tessa","wendy","yvonne"])
+const M_NAMES = new Set(["alexander","arjan","bas","bob","bram","casper","christiaan","christian","cor","daan","daniel","david","dennis","dirk","erik","erwin","frank","geert","gerard","gerrit","hans","harm","hendrik","henk","hugo","jack","jan","jasper","jeroen","joost","jurgen","kees","kevin","klaas","lars","leon","lucas","luuk","maarten","marc","marco","mark","martijn","matthijs","max","michiel","nick","niels","olivier","patrick","paul","peter","piet","pieter","remco","rené","rene","rick","rob","robert","robin","ruben","sander","stefan","stijn","thijs","thomas","tim","tom","vincent","willem","wim","wouter"])
+
+function guessGender(name: string): "m" | "v" | "?" {
+  const first = (name.trim().split(/\s+/)[0] || "").toLowerCase().replace(/[.]+$/, "")
+  if (V_NAMES.has(first)) return "v"
+  if (M_NAMES.has(first)) return "m"
+  return "?"
+}
+
+function getLastName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return parts[0] || ""
+  const prefixes = new Set(["de", "van", "het", "der", "den", "ten", "ter", "la", "le", "du", "von"])
+  let i = parts.length - 1
+  while (i > 0 && prefixes.has(parts[i - 1].toLowerCase())) i--
+  return parts.slice(i).join(" ")
+}
+
+// "de heer" / "mevrouw" for a private person: guess from first name, else read the termsheet
+// salutation for that surname, else the neutral "de heer/mevrouw" placeholder (admin edits).
+function prefixFor(name: string, salutLower: string): string {
+  const g = guessGender(name)
+  if (g === "v") return "mevrouw"
+  if (g === "m") return "de heer"
+  const ln = getLastName(name).toLowerCase()
+  if (ln) {
+    const idx = salutLower.indexOf(ln)
+    if (idx >= 0) {
+      const ctx = salutLower.slice(Math.max(0, idx - 16), idx)
+      if (/mevrouw|mevr|\bmw\b/.test(ctx)) return "mevrouw"
+      if (/heer|dhr/.test(ctx)) return "de heer"
+    }
+  }
+  return "de heer/mevrouw"
+}
+
+// Best address for the verzoek: the object's address, else the first borrower's address.
+function objectAddress(termsheet: TermsheetData): string {
+  const obj = termsheet.objects?.[0]
+  if (obj?.address && obj.address.trim()) return obj.address.trim()
+  const b = (termsheet.borrowers || []).find((x) => (x.address || "").trim())
+  if (b) return [b.address, [b.postalCode, b.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+  return ""
+}
+
+// Personalized request sentence (like the termsheet opening), correct in every form
+// (one/two persons → heeft/hebben + de heer/mevrouw; BV → bedrijfsnaam + vertegenwoordiger).
 function buildVerzoek(termsheet: TermsheetData): string {
-  const salut = (termsheet.salutation || "").trim()
-  const lead = salut ? salut.charAt(0).toUpperCase() + salut.slice(1) : "De aanvrager"
   const borrowers = termsheet.borrowers || []
-  const isPrive = borrowers.length > 0 && borrowers.every((b) => b.type !== "bv")
-  const priveTxt = isPrive ? " in privé" : ""
-  const verb = borrowers.length > 1 ? "hebben" : "heeft"
   const amount = totalLoan(termsheet)
-  if (amount <= 0 && !salut) return ""
-  const doel = termsheet.doelFinanciering || "de gevraagde financiering"
-  const adres = termsheet.objects?.[0]?.address || ""
-  const adresTxt = adres ? ` aan ${adres}` : ""
+  if (!borrowers.length && amount <= 0) return ""
+
+  const salutLower = (termsheet.salutation || "").toLowerCase()
+  const parts: string[] = []
+  let allPrive = borrowers.length > 0
+  for (const b of borrowers) {
+    if (b.type === "bv") {
+      allPrive = false
+      const repName = b.vertegenwoordiger
+        ? `${b.vertegenwoordigerSalut ? b.vertegenwoordigerSalut + " " : ""}${b.vertegenwoordiger}`
+        : ""
+      const rep = repName ? `, vertegenwoordigd door ${repName}` : ""
+      parts.push(`${b.bvName || b.name || "de vennootschap"}${rep}`)
+    } else {
+      parts.push(`${prefixFor(b.name || "", salutLower)} ${getLastName(b.name || "")}`.trim())
+    }
+  }
+  let lead = parts.join(" en ") || "De aanvrager"
+  lead = lead.charAt(0).toUpperCase() + lead.slice(1)
+
+  const priveTxt = allPrive ? " in privé" : ""
+  const lastB = borrowers[borrowers.length - 1]
+  const lastBvRep = !!lastB && lastB.type === "bv" && !!lastB.vertegenwoordiger
+  const verb = borrowers.length > 1 ? "hebben" : "heeft"
   const company = termsheet.kredietgever || "Lange & Partners Financieel Advies"
-  return `${lead}${priveTxt} ${verb} ${company} verzocht om een financiering van ${fmtEuro(amount)} met als doel ${doel}${adresTxt}.`
+
+  const doel = termsheet.doelFinanciering || "de gevraagde financiering"
+  const adres = objectAddress(termsheet)
+  const doelHeeftObject = /\bvan\b/.test(doel) // e.g. "de aankoop van een beleggingspand"
+  const doelTxt = adres
+    ? `${doel}${doelHeeftObject ? "" : " van het pand"} aan de ${adres}`
+    : doel
+
+  return `${lead}${priveTxt}${lastBvRep ? "," : ""} ${verb} ${company} verzocht om een financiering van ${fmtEuro(amount)} met als doel ${doelTxt}.`
 }
 
 // Standard zekerheden enumeration (mirrors the termsheet format, editable).
