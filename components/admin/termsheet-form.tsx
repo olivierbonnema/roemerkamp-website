@@ -97,9 +97,18 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [borrowers, setBorrowers] = useState<Borrower[]>(
     (d.borrowers as unknown as Borrower[]) || [{ type: "privepersoon", name: "", address: "", postalCode: "", city: "" }]
   )
-  const [objects, setObjects] = useState<CollateralObject[]>(
-    (d.objects as unknown as CollateralObject[]) || [{ description: "", address: "", hypotheekRank: "1e", priorLienholders: [] }]
-  )
+  const [objects, setObjects] = useState<CollateralObject[]>(() => {
+    // Normalize on load: older termsheets (pre-2026-06-05) saved objects without
+    // hypotheekRank / priorLienholders, which crashes the zekerheden derivation.
+    const raw = (d.objects as unknown as CollateralObject[]) || []
+    const normalized = raw.map((o) => ({
+      description: o.description || "",
+      address: o.address || "",
+      hypotheekRank: o.hypotheekRank || "1e",
+      priorLienholders: o.priorLienholders || [],
+    }))
+    return normalized.length ? normalized : [{ description: "", address: "", hypotheekRank: "1e", priorLienholders: [] }]
+  })
   const [loanParts, setLoanParts] = useState<LoanPart[]>(
     (d.loanParts as unknown as LoanPart[]) || [{ amount: 0, typeLabel: "Lening bij aanvang" }]
   )
