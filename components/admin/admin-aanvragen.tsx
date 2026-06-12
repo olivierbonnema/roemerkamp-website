@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult } from "./scan-result-view"
-import { Upload, X, MessageSquare, Trash2, PlayCircle } from "lucide-react"
+import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote } from "lucide-react"
 
 interface Aanvraag {
   id: string
   naam: string
+  email?: string
+  bedrijfsnaam?: string
   aanvragerType: string
   objectType: string
   objectAdres: string
@@ -24,6 +26,9 @@ interface Aanvraag {
   aantalBestanden: number
   submittedByRole?: string
   partnerOrgId?: string
+  // Operational fields (admin-only)
+  assignedTo?: string
+  internalNote?: string
   // AI analysis fields (set by Python backend)
   analysisStatus?: string
   analysisRecommendation?: string
@@ -106,9 +111,30 @@ export function AdminAanvragen() {
   const [selectedChecks, setSelectedChecks] = useState<Set<string>>(new Set())
   const [deleteModal, setDeleteModal] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  // Operational polish: filters, staff list, owner assignment, internal notes
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [ownerFilter, setOwnerFilter] = useState("")
+  const [staff, setStaff] = useState<{ uid: string; email: string }[]>([])
+  const [noteModal, setNoteModal] = useState<string | null>(null)
+  const [noteText, setNoteText] = useState("")
+  const [savingNote, setSavingNote] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { loadAanvragen(); loadOrgs() }, [])
+  useEffect(() => { loadAanvragen(); loadOrgs(); loadStaff() }, [])
+
+  async function loadStaff() {
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/list-users", { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) return
+      const data = await res.json()
+      const list = (data.users || [])
+        .filter((u: { role?: string; email?: string }) => u.role !== "partner" && u.email)
+        .map((u: { uid: string; email: string }) => ({ uid: u.uid, email: u.email }))
+      setStaff(list)
+    } catch {}
+  }
 
   async function loadOrgs() {
     try {
@@ -198,6 +224,40 @@ export function AdminAanvragen() {
       }
     } finally {
       setStatusUpdating(null)
+    }
+  }
+
+  // Assign a behandelaar (admin email). "" = unassign. No email is sent to the applicant.
+  async function assignOwner(id: string, assignedTo: string) {
+    setAanvragen(prev => prev.map(a => a.id === id ? { ...a, assignedTo } : a))
+    try {
+      const token = await getToken()
+      await fetch(`/api/admin/aanvragen/${id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedTo }),
+      })
+    } catch {}
+  }
+
+  // Save the internal note (admin-only; never emailed or shown to the applicant).
+  async function saveNote(id: string) {
+    setSavingNote(true)
+    const internalNote = noteText
+    try {
+      const token = await getToken()
+      const res = await fetch(`/api/admin/aanvragen/${id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ internalNote }),
+      })
+      if (res.ok) {
+        setAanvragen(prev => prev.map(a => a.id === id ? { ...a, internalNote } : a))
+        setNoteModal(null)
+        setNoteText("")
+      }
+    } finally {
+      setSavingNote(false)
     }
   }
 
@@ -365,26 +425,63 @@ export function AdminAanvragen() {
   }
 
   const orgIds = Object.keys(orgMap)
-  const filteredAanvragen = partnerFilter
-    ? aanvragen.filter((a) => (partnerFilter === "__none__" ? !a.partnerOrgId : a.partnerOrgId === partnerFilter))
-    : aanvragen
+  const q = search.trim().toLowerCase()
+  const filteredAanvragen = aanvragen.filter((a) => {
+    if (partnerFilter) {
+      const keep = partnerFilter === "__none__" ? !a.partnerOrgId : a.partnerOrgId === partnerFilter
+      if (!keep) return false
+    }
+    if (statusFilter && a.status !== statusFilter) return false
+    if (ownerFilter) {
+      const keep = ownerFilter === "__none__" ? !a.assignedTo : a.assignedTo === ownerFilter
+      if (!keep) return false
+    }
+    if (q) {
+      const hay = [a.naam, a.email, a.bedrijfsnaam, a.objectAdres, a.objectPlaats].filter(Boolean).join(" ").toLowerCase()
+      if (!hay.includes(q)) return false
+    }
+    return true
+  })
+  const hasFilters = !!(search || statusFilter || ownerFilter || partnerFilter)
+  const filterSelectCls = "h-[32px] px-3 text-xs font-sans bg-white border border-gray-200 rounded-full text-gray-700 outline-none focus:border-[#311E86] transition-colors"
 
   return (
     <div className="space-y-3">
-      {orgIds.length > 0 && (
-        <div className="flex items-center gap-2 pb-1">
-          <label className="text-xs text-gray-400 font-sans">Filter op partner:</label>
-          <select
-            value={partnerFilter}
-            onChange={(e) => setPartnerFilter(e.target.value)}
-            className="h-[32px] px-3 text-xs font-sans bg-white border border-gray-200 rounded-full text-gray-700 outline-none focus:border-[#311E86] transition-colors"
-          >
-            <option value="">Alle aanvragen</option>
+      {/* Search + filter bar */}
+      <div className="flex flex-wrap items-center gap-2 pb-1">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Zoek op naam, e-mail, bedrijf, object..."
+          className="h-[32px] px-3.5 text-xs font-sans bg-white border border-gray-200 rounded-full text-gray-700 outline-none focus:border-[#311E86] transition-colors w-full sm:w-72"
+        />
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={filterSelectCls}>
+          <option value="">Alle statussen</option>
+          <option value="ingediend">Ingediend</option>
+          <option value="in_behandeling">In behandeling</option>
+          <option value="aanvullend_nodig">Aanvullende info nodig</option>
+          <option value="goedgekeurd">Goedgekeurd</option>
+          <option value="afgewezen">Afgewezen</option>
+        </select>
+        <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} className={filterSelectCls}>
+          <option value="">Alle behandelaars</option>
+          <option value="__none__">Niet toegewezen</option>
+          {staff.map((s) => <option key={s.uid} value={s.email}>{s.email}</option>)}
+        </select>
+        {orgIds.length > 0 && (
+          <select value={partnerFilter} onChange={(e) => setPartnerFilter(e.target.value)} className={filterSelectCls}>
+            <option value="">Alle partners</option>
             <option value="__none__">Direct ingediend (geen partner)</option>
             {orgIds.map((id) => <option key={id} value={id}>{orgMap[id]}</option>)}
           </select>
-        </div>
-      )}
+        )}
+        {hasFilters && (
+          <button onClick={() => { setSearch(""); setStatusFilter(""); setOwnerFilter(""); setPartnerFilter("") }} className="text-xs text-gray-400 hover:text-gray-600 font-sans">
+            Wis filters
+          </button>
+        )}
+        <span className="text-[11px] text-gray-400 font-sans ml-auto">{filteredAanvragen.length} van {aanvragen.length}</span>
+      </div>
       {filteredAanvragen.length === 0 && (
         <p className="text-gray-400 font-sans text-sm py-8">Geen aanvragen voor deze selectie.</p>
       )}
@@ -403,6 +500,11 @@ export function AdminAanvragen() {
                 {a.partnerOrgId && orgMap[a.partnerOrgId] && (
                   <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/8 text-[#311E86]">
                     Partner: {orgMap[a.partnerOrgId]}
+                  </span>
+                )}
+                {a.assignedTo && (
+                  <span className="inline-flex items-center gap-1 mt-1 ml-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-emerald-50 text-emerald-700">
+                    Behandelaar: {a.assignedTo.split("@")[0]}
                   </span>
                 )}
               </div>
@@ -452,6 +554,14 @@ export function AdminAanvragen() {
                 <p className="text-gray-900 font-medium">{a.aantalBestanden ?? 0} bestanden</p>
               </div>
             </div>
+
+            {/* Internal note preview (admin-only) */}
+            {a.internalNote && (
+              <div className="bg-amber-50/60 border border-amber-100 rounded-xl px-4 py-2.5 mb-4 flex items-start gap-2">
+                <StickyNote size={13} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs font-sans text-gray-600 whitespace-pre-wrap">{a.internalNote}</p>
+              </div>
+            )}
 
             {/* AI analysis summary (if completed) */}
             {a.analysisStatus === "completed" && (
@@ -517,6 +627,20 @@ export function AdminAanvragen() {
                 <option value="aanvullend_nodig">Aanvullende info nodig</option>
                 <option value="goedgekeurd">Goedgekeurd</option>
                 <option value="afgewezen">Afgewezen</option>
+              </select>
+
+              {/* Behandelaar / owner */}
+              <select
+                value={a.assignedTo || ""}
+                onChange={(e) => assignOwner(a.id, e.target.value)}
+                title="Behandelaar toewijzen"
+                className="h-[34px] px-3 text-xs font-sans bg-white border border-gray-200 rounded-full text-gray-600 outline-none focus:border-[#311E86] transition-colors max-w-[180px]"
+              >
+                <option value="">Niet toegewezen</option>
+                {staff.map((s) => <option key={s.uid} value={s.email}>{s.email}</option>)}
+                {a.assignedTo && !staff.some((s) => s.email === a.assignedTo) && (
+                  <option value={a.assignedTo}>{a.assignedTo}</option>
+                )}
               </select>
 
               {/* Running checks — show spinners */}
@@ -606,6 +730,15 @@ export function AdminAanvragen() {
               >
                 <MessageSquare size={12} />
                 Bericht sturen
+              </button>
+
+              {/* Internal note (admin-only) */}
+              <button
+                onClick={() => { setNoteModal(a.id); setNoteText(a.internalNote || "") }}
+                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-amber-300 hover:text-amber-600 transition-colors inline-flex items-center gap-1.5"
+              >
+                <StickyNote size={12} />
+                {a.internalNote ? "Notitie bewerken" : "Notitie"}
               </button>
 
               {/* OneDrive link */}
@@ -704,6 +837,41 @@ export function AdminAanvragen() {
                 className="px-5 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors disabled:opacity-50"
               >
                 {sendingMessage ? "Verzenden..." : "Verstuur bericht"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Internal note modal (admin-only — not emailed, not shown to applicant) */}
+      {noteModal && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setNoteModal(null); setNoteText("") }}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Interne notitie</h3>
+            <p className="text-sm text-gray-400 font-sans mb-5">
+              Alleen zichtbaar voor het LFA-team. De aanvrager ziet dit niet en krijgt geen e-mail.
+            </p>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Bijv. wacht op jaarcijfers 2025, of: gebeld op 10/6..."
+              rows={5}
+              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-sans focus:outline-none focus:border-[#1E3A5F] transition-colors resize-none mb-5"
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setNoteModal(null); setNoteText("") }}
+                className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={() => saveNote(noteModal)}
+                disabled={savingNote}
+                className="px-5 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors disabled:opacity-50"
+              >
+                {savingNote ? "Opslaan..." : "Opslaan"}
               </button>
             </div>
           </div>

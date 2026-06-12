@@ -18,6 +18,7 @@ export type ActivityAction =
   | "analysis_triggered"
   | "reputation_scan_triggered"
   | "background_check_created"
+  | "aanvraag_assigned"
   | "aanvraag_deleted"
   | "message_sent"
   | "document_accessed"

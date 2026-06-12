@@ -11,14 +11,32 @@ import {
   Plus,
   TrendingUp,
   Clock,
+  ShieldCheck,
 } from "lucide-react"
 
 interface Stats {
   aanvragen: number
   aanvragenOpen: number
+  pipelineValue: number
+  checks: number
   documents: number
   users: number
+  statusCounts: Record<string, number>
   recentActivity: ActivityItem[]
+}
+
+const STATUS_LABELS_DASH: Record<string, string> = {
+  ingediend: "Ingediend",
+  in_behandeling: "In behandeling",
+  aanvullend_nodig: "Aanvullend nodig",
+  goedgekeurd: "Goedgekeurd",
+  afgewezen: "Afgewezen",
+}
+
+function formatPipeline(v: number) {
+  if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1).replace(".", ",")} mln`
+  if (v >= 1_000) return `€${Math.round(v / 1000)}k`
+  return `€${v}`
 }
 
 interface ActivityItem {
@@ -49,6 +67,13 @@ const ACTION_LABELS: Record<string, string> = {
   aanvraag_deleted: "Aanvraag verwijderd",
   message_sent: "Bericht verzonden",
   document_accessed: "Documenten geopend",
+  document_esign_sent: "Ter ondertekening verstuurd",
+  partner_invited: "Partner uitgenodigd",
+  background_check_created: "Achtergrondcheck gestart",
+  aanvraag_assigned: "Behandelaar toegewezen",
+  login: "Ingelogd",
+  aanvraag_submitted: "Aanvraag ingediend",
+  document_uploaded: "Document geüpload",
 }
 
 
@@ -74,29 +99,40 @@ export function DashboardStats() {
   async function loadStats() {
     try {
       const token = await auth.currentUser?.getIdToken()
-      const [aanvragenRes, usersRes, docsRes, activityRes] = await Promise.all([
+      const [aanvragenRes, usersRes, docsRes, activityRes, checksRes] = await Promise.all([
         fetch("/api/admin/aanvragen", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/admin/list-users", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/admin/documents", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/admin/activity?limit=8", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/admin/checks", { headers: { Authorization: `Bearer ${token}` } }),
       ])
 
       const aanvragenData = aanvragenRes.ok ? await aanvragenRes.json() : { aanvragen: [] }
       const usersData = usersRes.ok ? await usersRes.json() : { users: [] }
       const docsData = docsRes.ok ? await docsRes.json() : { documents: [] }
       const activityData = activityRes.ok ? await activityRes.json() : { entries: [] }
+      const checksData = checksRes.ok ? await checksRes.json() : { checks: [] }
 
       const openStatuses = ["ingediend", "in_behandeling", "aanvullend_nodig"]
+      const aanvragenList: { status: string; leningBedrag?: string }[] = aanvragenData.aanvragen ?? []
+      const pipelineValue = aanvragenList
+        .filter((a) => openStatuses.includes(a.status))
+        .reduce((sum, a) => sum + (parseInt(a.leningBedrag || "0", 10) || 0), 0)
+      const statusCounts: Record<string, number> = {}
+      for (const a of aanvragenList) statusCounts[a.status] = (statusCounts[a.status] || 0) + 1
 
       setStats({
-        aanvragen: aanvragenData.aanvragen?.length ?? 0,
-        aanvragenOpen: aanvragenData.aanvragen?.filter((a: { status: string }) => openStatuses.includes(a.status)).length ?? 0,
+        aanvragen: aanvragenList.length,
+        aanvragenOpen: aanvragenList.filter((a) => openStatuses.includes(a.status)).length,
+        pipelineValue,
+        checks: checksData.checks?.length ?? 0,
         documents: docsData.documents?.length ?? 0,
         users: usersData.users?.length ?? 0,
+        statusCounts,
         recentActivity: activityData.entries ?? [],
       })
     } catch {
-      setStats({ aanvragen: 0, aanvragenOpen: 0, documents: 0, users: 0, recentActivity: [] })
+      setStats({ aanvragen: 0, aanvragenOpen: 0, pipelineValue: 0, checks: 0, documents: 0, users: 0, statusCounts: {}, recentActivity: [] })
     } finally {
       setLoading(false)
     }
@@ -135,11 +171,27 @@ export function DashboardStats() {
   const cards = [
     {
       label: "Open aanvragen",
-      value: stats.aanvragenOpen,
+      value: stats.aanvragenOpen as string | number,
       sub: `${stats.aanvragen} totaal`,
       icon: FolderOpen,
       color: "#1E3A5F",
       href: "/admin/aanvragen",
+    },
+    {
+      label: "Open pipeline",
+      value: formatPipeline(stats.pipelineValue),
+      sub: "openstaande aanvragen",
+      icon: TrendingUp,
+      color: "#1E3A5F",
+      href: "/admin/aanvragen",
+    },
+    {
+      label: "Achtergrondchecks",
+      value: stats.checks,
+      sub: "uitgevoerd",
+      icon: ShieldCheck,
+      color: "#1E3A5F",
+      href: "/admin/checks",
     },
     {
       label: "Documenten",
@@ -162,7 +214,7 @@ export function DashboardStats() {
   return (
     <div className="space-y-6">
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {cards.map((card) => (
           <Link
             key={card.label}
@@ -182,6 +234,19 @@ export function DashboardStats() {
           </Link>
         ))}
       </div>
+
+      {/* Status breakdown */}
+      {Object.values(stats.statusCounts).some((n) => n > 0) && (
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 bg-white rounded-xl border border-gray-200 px-5 py-3">
+          {Object.entries(STATUS_LABELS_DASH).map(([key, label]) =>
+            stats.statusCounts[key] ? (
+              <span key={key} className="text-[12px] font-sans text-gray-500">
+                <span className="font-medium text-gray-900">{stats.statusCounts[key]}</span> {label}
+              </span>
+            ) : null
+          )}
+        </div>
+      )}
 
       {/* Quick actions + Activity in two columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

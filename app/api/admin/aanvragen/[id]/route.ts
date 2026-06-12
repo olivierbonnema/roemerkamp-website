@@ -47,11 +47,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const { status } = await req.json()
+  const { status, assignedTo, internalNote } = await req.json()
 
-  const validStatuses = ["ingediend", "in_behandeling", "aanvullend_nodig", "goedgekeurd", "afgewezen"]
-  if (!validStatuses.includes(status)) {
-    return NextResponse.json({ error: "Ongeldige status." }, { status: 400 })
+  if (status === undefined && assignedTo === undefined && internalNote === undefined) {
+    return NextResponse.json({ error: "Niets om bij te werken." }, { status: 400 })
   }
 
   const STATUS_LABELS: Record<string, string> = {
@@ -62,34 +61,55 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     afgewezen: "Afgewezen",
   }
 
+  if (status !== undefined && !Object.keys(STATUS_LABELS).includes(status)) {
+    return NextResponse.json({ error: "Ongeldige status." }, { status: 400 })
+  }
+
+  const update: Record<string, unknown> = { updatedAt: new Date(), updatedBy: admin.email }
+  if (status !== undefined) update.status = status
+  if (assignedTo !== undefined) update.assignedTo = assignedTo       // "" = unassign
+  if (internalNote !== undefined) update.internalNote = internalNote // admin-only, never emailed
+
   try {
-    await adminDb.collection("aanvragen").doc(id).update({
-      status,
-      updatedAt: new Date(),
-      updatedBy: admin.email,
-    })
+    await adminDb.collection("aanvragen").doc(id).update(update)
 
-    await adminDb
-      .collection("aanvragen").doc(id)
-      .collection("berichten")
-      .add({
-        message: `Status gewijzigd naar: ${STATUS_LABELS[status] || status}`,
-        senderEmail: admin.email,
-        type: "status_update",
-        createdAt: new Date(),
+    // Status changes still post an in-portal message + activity log (unchanged).
+    if (status !== undefined) {
+      await adminDb
+        .collection("aanvragen").doc(id)
+        .collection("berichten")
+        .add({
+          message: `Status gewijzigd naar: ${STATUS_LABELS[status] || status}`,
+          senderEmail: admin.email,
+          type: "status_update",
+          createdAt: new Date(),
+        })
+
+      await logActivity({
+        action: "status_changed",
+        userId: admin.uid,
+        userEmail: admin.email || "",
+        targetId: id,
+        targetType: "aanvraag",
+        details: { status },
       })
+    }
 
-    await logActivity({
-      action: "status_changed",
-      userId: admin.uid,
-      userEmail: admin.email || "",
-      targetId: id,
-      targetType: "aanvraag",
-      details: { status },
-    })
+    // Owner assignment is logged but sends NO message/email to the applicant.
+    if (assignedTo !== undefined && status === undefined) {
+      await logActivity({
+        action: "aanvraag_assigned",
+        userId: admin.uid,
+        userEmail: admin.email || "",
+        targetId: id,
+        targetType: "aanvraag",
+        details: { assignedTo: assignedTo || "(niemand)" },
+      })
+    }
+    // internalNote: silent update — intentionally no message, email, or log.
 
     return NextResponse.json({ success: true })
   } catch {
-    return NextResponse.json({ error: "Status bijwerken mislukt." }, { status: 500 })
+    return NextResponse.json({ error: "Bijwerken mislukt." }, { status: 500 })
   }
 }
