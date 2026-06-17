@@ -185,14 +185,16 @@ function buildLtvText(data: PitchData): string {
   return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis} bedraagt circa ${pct}% en biedt daarmee ruim voldoende zekerheid voor de financiering.`
 }
 
-// A numbered list item, Schippers-style: the number hangs into the left margin and
-// the text aligns with the body left margin (so the numbering sits a tab to the left).
+// A numbered list item: a normal indented list INSIDE the text area (positive
+// hanging indent, so it renders identically in Word). The number sits a small
+// indent in from the left margin, the text follows after a tab; wrapped lines
+// align under the text.
 function numItem(numStr: string, text: string) {
   return new docx.Paragraph({
     children: [tx(numStr), tx("\t"), tx(text)],
     spacing: { before: 0, after: 0 },
-    indent: { left: 0, hanging: MM(6) },
-    tabStops: [{ type: docx.TabStopType.LEFT, position: 0 }],
+    indent: { left: MM(10), hanging: MM(5) },
+    tabStops: [{ type: docx.TabStopType.LEFT, position: MM(10) }],
   })
 }
 
