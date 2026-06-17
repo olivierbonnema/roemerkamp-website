@@ -127,7 +127,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [stichtingText, setStichtingText] = useState((d.stichtingText as string) || PD.stichting)
   const [spreidingEnabled, setSpreidingEnabled] = useState(d.spreidingEnabled !== false)
   const [spreidingText, setSpreidingText] = useState((d.spreidingText as string) || PD.spreiding)
-  const [cashplanningEnabled, setCashplanningEnabled] = useState(d.cashplanningEnabled !== false)
+  const [cashplanningEnabled, setCashplanningEnabled] = useState(d.cashplanningEnabled === true)
   const [cashplanningRaw, setCashplanningRaw] = useState((d.cashplanningRaw as string) || PD.cashplanning)
 
   const [risks, setRisks] = useState<Risk[]>(() => {

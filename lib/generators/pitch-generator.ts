@@ -42,8 +42,9 @@ function par(children: docx.ParagraphChild[], opts: Parameters<typeof parBase>[1
       border: { top: { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE } },
     })
   }
-  // Tighter default than the shared helper (Schippers is dense / single-spaced).
-  return parBase(children, { before: 0, after: 60, ...opts })
+  // Schippers rhythm: single-spaced, no "space after"; blocks are separated by a
+  // full blank line (empty()) instead of paragraph spacing.
+  return parBase(children, { before: 0, after: 0, ...opts })
 }
 
 function textPars(text: string, opts: { before?: number; after?: number } = {}) {
@@ -151,10 +152,11 @@ export interface PitchSettings {
 const CONTENT = PAGE_W - 2 * MARGIN_SIDE
 
 function pitchSectionHead(text: string) {
-  // Schippers: headings are the same size as body text, just bold navy.
+  // Schippers: headings are body size, bold navy; the gap before a heading comes
+  // from the blank line that separates blocks, so no before/after spacing here.
   return par([tx(text, { bold: true, color: C_BRAND, size: SZ_BODY })], {
-    before: 120,
-    after: 40,
+    before: 0,
+    after: 0,
   })
 }
 
@@ -194,12 +196,12 @@ function zekerhedenPars(text: string): docx.Paragraph[] {
       if (m) {
         return new docx.Paragraph({
           children: [tx(m[1]), tx("\t"), tx(m[2])],
-          spacing: { before: 20, after: 20 },
+          spacing: { before: 0, after: 0 },
           tabStops: [{ type: docx.TabStopType.LEFT, position: MM(8) }],
           indent: { left: MM(8), hanging: MM(8) },
         })
       }
-      return par([tx(line)], { before: 20, after: 20 })
+      return par([tx(line)])
     })
 }
 
@@ -244,37 +246,31 @@ export async function generatePitch(
   const pitchHeader = new docx.Header({ children: [headerPar] })
 
   // Title is the first line of the body (the logo lives in the header). No rule.
-  ch.push(
-    par([tx("Toelichting Lange Financieel Advies", { bold: true, size: SZ_BODY })], {
-      before: 0,
-      after: 120,
-    })
-  )
+  ch.push(par([tx("Toelichting Lange Financieel Advies", { bold: true, size: SZ_BODY })]))
+  ch.push(empty(0))
 
   // 1 - Inleidende zin
   if (data.introZin) {
-    ch.push(par([tx(data.introZin)], { before: 0, after: 80 }))
+    ch.push(par([tx(data.introZin)]))
+    ch.push(empty(0))
   }
 
   // 2 - Verzoek-zin (auto-gegenereerd per aanvraag, bewerkbaar; lijkt op de termsheet-opening)
   if (data.verzoekText) {
-    textPars(data.verzoekText, { before: 0, after: 80 }).forEach((p) => ch.push(p))
-    ch.push(empty(80))
+    textPars(data.verzoekText).forEach((p) => ch.push(p))
+    ch.push(empty(0))
   }
 
   // 3 - Verhaaltekst (open beschrijving)
   if (data.introParagraph) {
-    textPars(data.introParagraph, { before: 40, after: 80 }).forEach((p) =>
-      ch.push(p)
-    )
-    ch.push(empty(80))
+    textPars(data.introParagraph).forEach((p) => ch.push(p))
+    ch.push(empty(0))
   }
 
-  // 4 - Financieringsopzet
+  // 4 - Financieringsopzet (geen aparte kop, zoals Schippers: direct de intro-zin + tabel)
   const finRows = data.financieringsopzet || []
   if (finRows.length) {
-    ch.push(pitchSectionHead("Financieringsopzet"))
-    ch.push(par([tx("De financieringsopzet ziet er als volgt uit:")], { before: 0, after: 40 }))
+    ch.push(par([tx("De financieringsopzet ziet er als volgt uit:")]))
 
     const tableW = Math.round(CONTENT * 0.65)
     const lblW = Math.round(tableW * 0.7)
@@ -335,7 +331,7 @@ export async function generatePitch(
         rows,
       }) as unknown as docx.Paragraph
     )
-    ch.push(empty(80))
+    ch.push(empty(0))
   }
 
   // 5 - Zekerheden — lead-zin + genummerde onderpanden (pitch-format), met de
@@ -344,17 +340,18 @@ export async function generatePitch(
     const zt = (data.zekerhedenText || "").trim()
     const ltvText = buildLtvText(data)
     if (zt || ltvText) {
-      ch.push(pitchSectionHead("Zekerheden"))
+      ch.push(pitchSectionHead("Zekerheden:"))
       if (zt) zekerhedenPars(zt).forEach((p) => ch.push(p))
       if (ltvText) {
-        textPars(ltvText, { before: zt ? 80 : 0, after: 40 }).forEach((p) => ch.push(p))
+        if (zt) ch.push(empty(0))
+        textPars(ltvText).forEach((p) => ch.push(p))
       }
-      ch.push(empty(80))
+      ch.push(empty(0))
     }
   }
 
-  // 6 - Uitgangspunten van de Lening
-  ch.push(pitchSectionHead("Uitgangspunten van de Lening"))
+  // 6 - Uitgangspunten van de lening
+  ch.push(pitchSectionHead("Uitgangspunten van de lening"))
   {
     const leenvorm = data.leenvorm || "Aflossingsvrij"
     const hoofdsom = Number(data.hoofdsom) || 0
@@ -377,7 +374,7 @@ export async function generatePitch(
     ch.push(tabLine("Leenvorm", [tx(`${leenvormTxt}${hoofdsom > 0 ? ` ${fmtEuro(hoofdsom)}` : ""}`)]))
     ch.push(tabLine("Looptijd", [tx(`${looptijd} maanden`)]))
     ch.push(tabLine("Rente", [tx(renteTxt)]))
-    ch.push(empty(80))
+    ch.push(empty(0))
   }
 
   // 6b - Vervroegde aflossing (eigen kop, lijnt 1-op-1 met het formulier)
@@ -389,21 +386,21 @@ export async function generatePitch(
     if (erpLines.length) {
       ch.push(pitchSectionHead("Vervroegde aflossing"))
       erpLines.forEach((line) =>
-        ch.push(par([tx(line)], { bullet: 1, before: 20, after: 20, indent: MM(6) }))
+        ch.push(par([tx(line)], { bullet: 1, before: 0, after: 0, indent: MM(6) }))
       )
-      ch.push(empty(80))
+      ch.push(empty(0))
     }
   }
 
-  // 7 - Stichting Zekerhedenagent (twee standaard alinea's, altijd)
+  // 7 - Stichting Zekerhedenagent (twee standaard alinea's, altijd). De witregel
+  // ervoor komt al van het vorige blok.
   if (data.stichtingEnabled !== false && data.stichtingText) {
-    ch.push(empty(80))
     const stPars = data.stichtingText.split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
     stPars.forEach((para, i) => {
-      textPars(para, { before: 0, after: 40 }).forEach((p) => ch.push(p))
-      if (i < stPars.length - 1) ch.push(empty(80))
+      textPars(para).forEach((p) => ch.push(p))
+      if (i < stPars.length - 1) ch.push(empty(0))
     })
-    ch.push(empty(80))
+    ch.push(empty(0))
   }
 
   // 8 - Enkele risico's
@@ -411,44 +408,36 @@ export async function generatePitch(
   if (risks.length) {
     ch.push(pitchSectionHead("Enkele risico’s"))
 
+    // Genummerde titels (niet vet, zoals Schippers), dan een witregel.
     risks.forEach((r, i) => {
-      ch.push(
-        par(
-          [
-            tx(`${i + 1}. `, { bold: true }),
-            tx(r.title || "", { bold: true }),
-          ],
-          { before: 60, after: 20 }
-        )
-      )
+      ch.push(par([tx(`${i + 1}. `), tx(r.title || "")]))
     })
 
-    ch.push(empty(60))
+    ch.push(empty(0))
 
+    // "Ad N." (vet) + toelichting, met een witregel tussen elke.
     risks.forEach((r, i) => {
-      ch.push(
-        par(
-          [tx(`Ad ${i + 1}`, { bold: true }), tx(" "), tx(r.ad || "")],
-          { before: 60, after: 80 }
-        )
-      )
+      ch.push(par([tx(`Ad ${i + 1}.`, { bold: true }), tx(" "), tx(r.ad || "")]))
+      ch.push(empty(0))
     })
   }
 
   // 9 - Slotopmerking spreiding
   if (data.spreidingEnabled !== false && data.spreidingText) {
-    ch.push(par([tx(data.spreidingText)], { before: 100, after: 80 }))
+    ch.push(par([tx(data.spreidingText)]))
+    ch.push(empty(0))
   }
 
-  // 10 - Cashplanning
+  // 10 - Cashplanning (standaard uit; alleen als aangezet)
   if (data.cashplanningEnabled !== false && data.cashplanningText) {
-    ch.push(par([tx(data.cashplanningText)], { before: 80, after: 80 }))
+    ch.push(par([tx(data.cashplanningText)]))
+    ch.push(empty(0))
   }
 
   // 11 - Geldnemers
   const geldnemers = data.geldnemers || []
   if (geldnemers.length) {
-    ch.push(pitchSectionHead("Geldnemer(s)"))
+    ch.push(pitchSectionHead("Geldnemers:"))
     geldnemers.forEach((g) => {
       let line = g.name || ""
       if (g.type === "prive-bestuurder" && g.bvName) {
@@ -456,14 +445,12 @@ export async function generatePitch(
       } else if (g.type === "bv" && g.bvName) {
         line = g.bvName + (g.name ? `, vertegenwoordigd door ${g.name}` : "")
       }
-      ch.push(par([tx(line)], { before: 40, after: 40 }))
+      ch.push(par([tx(line)]))
     })
   }
 
   if (data.overdraagbaar) {
-    ch.push(
-      par([tx("De lening is overdraagbaar.")], { before: 40, after: 60 })
-    )
+    ch.push(par([tx("De lening is overdraagbaar.")]))
   }
 
   const doc = new docx.Document({
