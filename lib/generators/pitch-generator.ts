@@ -185,24 +185,36 @@ function buildLtvText(data: PitchData): string {
   return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis} bedraagt circa ${pct}% en biedt daarmee ruim voldoende zekerheid voor de financiering.`
 }
 
-// Render the standard zekerheden text; each "N.) ..." line is tab-separated + hanging.
+// A numbered list item, Schippers-style: the number hangs into the left margin and
+// the text aligns with the body left margin (so the numbering sits a tab to the left).
+function numItem(numStr: string, text: string) {
+  return new docx.Paragraph({
+    children: [tx(numStr), tx("\t"), tx(text)],
+    spacing: { before: 0, after: 0 },
+    indent: { left: 0, hanging: MM(6) },
+    tabStops: [{ type: docx.TabStopType.LEFT, position: 0 }],
+  })
+}
+
+// Render the zekerheden text: the lead sentence (plain), then a blank line, then the
+// numbered cadastral item(s) (outdented); any trailing sentence stays plain.
 function zekerhedenPars(text: string): docx.Paragraph[] {
-  return text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const m = line.match(/^(\d+[.)]+)\s+(.*)$/)
-      if (m) {
-        return new docx.Paragraph({
-          children: [tx(m[1]), tx("\t"), tx(m[2])],
-          spacing: { before: 0, after: 0 },
-          tabStops: [{ type: docx.TabStopType.LEFT, position: MM(8) }],
-          indent: { left: MM(8), hanging: MM(8) },
-        })
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean)
+  const out: docx.Paragraph[] = []
+  let gapDone = false
+  for (const line of lines) {
+    const m = line.match(/^(\d+[.)]+)\s+(.*)$/)
+    if (m) {
+      if (!gapDone) {
+        out.push(empty(0)) // witregel tussen de lead-zin en de genummerde aanduiding
+        gapDone = true
       }
-      return par([tx(line)])
-    })
+      out.push(numItem(m[1], m[2]))
+    } else {
+      out.push(par([tx(line)]))
+    }
+  }
+  return out
 }
 
 export async function generatePitch(
@@ -352,6 +364,7 @@ export async function generatePitch(
 
   // 6 - Uitgangspunten van de lening
   ch.push(pitchSectionHead("Uitgangspunten van de lening"))
+  ch.push(empty(0))
   {
     const leenvorm = data.leenvorm || "Aflossingsvrij"
     const hoofdsom = Number(data.hoofdsom) || 0
@@ -385,6 +398,7 @@ export async function generatePitch(
       .filter(Boolean)
     if (erpLines.length) {
       ch.push(pitchSectionHead("Vervroegde aflossing"))
+      ch.push(empty(0))
       erpLines.forEach((line) =>
         ch.push(par([tx(line)], { bullet: 1, before: 0, after: 0, indent: MM(6) }))
       )
@@ -408,9 +422,9 @@ export async function generatePitch(
   if (risks.length) {
     ch.push(pitchSectionHead("Enkele risico’s"))
 
-    // Genummerde titels (niet vet, zoals Schippers), dan een witregel.
+    // Genummerde titels (niet vet, nummer hangt in de kantlijn), dan een witregel.
     risks.forEach((r, i) => {
-      ch.push(par([tx(`${i + 1}. `), tx(r.title || "")]))
+      ch.push(numItem(`${i + 1}.`, r.title || ""))
     })
 
     ch.push(empty(0))
@@ -422,7 +436,13 @@ export async function generatePitch(
     })
   }
 
-  // 9 - Slotopmerking spreiding
+  // 9 - Slotopmerkingen (kop boven spreiding + cashplanning)
+  if (
+    (data.spreidingEnabled !== false && data.spreidingText) ||
+    (data.cashplanningEnabled !== false && data.cashplanningText)
+  ) {
+    ch.push(pitchSectionHead("Slotopmerkingen"))
+  }
   if (data.spreidingEnabled !== false && data.spreidingText) {
     ch.push(par([tx(data.spreidingText)]))
     ch.push(empty(0))
