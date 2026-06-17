@@ -376,9 +376,9 @@ export async function generatePitch(
     const looptijd = Number(data.loanDuration) || 0
     const gross = Number(data.grossRate) || 0
     const fee = Number(data.managementFee) || 0
-    // grossRate holds the NETTO rate (what the investor receives); the bruto (what
-    // the borrower pays) = netto + beheervergoeding * 12.
-    const bruto = parseFloat((gross + fee * 12).toFixed(3))
+    // grossRate holds the BRUTO rate (what the borrower pays); the netto (what the
+    // investor receives) = bruto - beheervergoeding * 12.
+    const netto = parseFloat((gross - fee * 12).toFixed(3))
     const bijAanvang = !!data.bijAanvang
 
     let leenvormTxt = leenvorm
@@ -388,7 +388,7 @@ export async function generatePitch(
 
     const suffix = bijAanvang ? " bij aanvang." : "."
     const renteTxt = fee > 0
-      ? `${fmtN(gross)}% per jaar (nominaal) netto (${fmtN(bruto)}% per jaar bruto minus ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
+      ? `${fmtN(gross)}% per jaar (nominaal) bruto (${fmtN(netto)}% per jaar netto na aftrek van ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
       : `${fmtN(gross)}% per jaar (nominaal)${suffix}`
 
     ch.push(tabLine("Leenvorm", [tx(`${leenvormTxt}${hoofdsom > 0 ? ` ${fmtEuro(hoofdsom)}` : ""}`)]))
