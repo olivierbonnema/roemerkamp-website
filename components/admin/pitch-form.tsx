@@ -116,7 +116,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [grossRate, setGrossRate] = useState<number>((d.grossRate as number) || 0)
   // Beheervergoeding is standaard 0,08% per maand.
   const [managementFee, setManagementFee] = useState<number>((d.managementFee as number) ?? 0.08)
-  const [bijAanvang, setBijAanvang] = useState(!!d.bijAanvang)
 
   const [erpPeriod, setErpPeriod] = useState<number>((d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0))
   const [erpText, setErpText] = useState(
@@ -233,7 +232,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         loanDuration,
         grossRate,
         managementFee,
-        bijAanvang,
         erpText,
         stichtingEnabled,
         stichtingText,
@@ -434,10 +432,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             <input type="number" step="0.001" value={managementFee || ""} onChange={(e) => setManagementFee(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
           </div>
         </div>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" checked={bijAanvang} onChange={(e) => setBijAanvang(e.target.checked)} />
-          Voeg &quot;bij aanvang&quot; toe aan renteformulering
-        </label>
         <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">{netRateDisplay}</div>
       </PitchSection>
 

@@ -379,14 +379,14 @@ export async function generatePitch(
     // grossRate holds the BRUTO rate (what the borrower pays); the netto (what the
     // investor receives) = bruto - beheervergoeding * 12.
     const netto = parseFloat((gross - fee * 12).toFixed(3))
-    const bijAanvang = !!data.bijAanvang
 
     let leenvormTxt = leenvorm
     if (leenvorm === "Annuiteiten" && data.annuiteitenTermijn) {
       leenvormTxt = `Annuiteiten (${data.annuiteitenTermijn} maanden)`
     }
 
-    const suffix = bijAanvang ? " bij aanvang." : "."
+    // "bij aanvang" wordt altijd toegevoegd.
+    const suffix = " bij aanvang."
     const renteTxt = fee > 0
       ? `${fmtN(netto)}% per jaar (nominaal) netto (${fmtN(gross)}% per jaar bruto minus ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
       : `${fmtN(gross)}% per jaar (nominaal)${suffix}`
