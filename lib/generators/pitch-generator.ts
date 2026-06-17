@@ -388,7 +388,7 @@ export async function generatePitch(
 
     const suffix = bijAanvang ? " bij aanvang." : "."
     const renteTxt = fee > 0
-      ? `${fmtN(gross)}% per jaar (nominaal) bruto (${fmtN(netto)}% per jaar netto na aftrek van ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
+      ? `${fmtN(netto)}% per jaar (nominaal) netto (${fmtN(gross)}% per jaar bruto minus ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
       : `${fmtN(gross)}% per jaar (nominaal)${suffix}`
 
     ch.push(tabLine("Leenvorm", [tx(`${leenvormTxt}${hoofdsom > 0 ? ` ${fmtEuro(hoofdsom)}` : ""}`)]))

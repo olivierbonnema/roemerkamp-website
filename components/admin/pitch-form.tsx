@@ -191,7 +191,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const netRateDisplay = useMemo(() => {
     const fmtN = (n: number) => String(n).replace(".", ",")
     if (managementFee > 0 && grossRate > 0) {
-      return `${fmtN(grossRate)}% per jaar (nominaal) bruto (${fmtN(nettoRate)}% per jaar netto na aftrek van ${fmtN(managementFee)}% per maand aan beheervergoeding)`
+      return `${fmtN(nettoRate)}% per jaar (nominaal) netto (${fmtN(grossRate)}% per jaar bruto minus ${fmtN(managementFee)}% per maand aan beheervergoeding)`
     } else if (grossRate > 0) {
       return `${fmtN(grossRate)}% per jaar (nominaal)`
     }
