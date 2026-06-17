@@ -6,6 +6,7 @@
 
 import type { TermsheetData } from "./termsheet-generator"
 import type { PitchData } from "./pitch-generator"
+import { buildZekerhedenText, type ZekerheidObject } from "./zekerheden"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
 
@@ -141,21 +142,6 @@ function buildVerzoek(termsheet: TermsheetData): string {
   return `${lead}${priveTxt}${lastBvRep ? "," : ""} ${verb} ${company} verzocht om een financiering van ${fmtEuro(amount)} met als doel ${doelTxt}.`
 }
 
-// Standard zekerheden enumeration (mirrors the termsheet format, editable).
-function buildZekerheden(termsheet: TermsheetData): string {
-  const objects = termsheet.objects || []
-  if (!objects.length) return ""
-  const rang = objects[0]?.hypotheekRank || "1e"
-  const rankWord = rang.startsWith("2") ? "tweede" : rang.startsWith("3") ? "derde" : "eerste"
-  const amount = totalLoan(termsheet)
-  return objects
-    .map((o, i) => {
-      const addr = o.address || o.description || `object ${i + 1}`
-      return `${i + 1}.) Een ${rankWord} recht van hypotheek ter hoogte van ${fmtEuro(amount)} wordt gevestigd op object ${i + 1} (${addr}) ten gunste van de Geldverstrekker tot zekerheid van de verstrekte lening.`
-    })
-    .join("\n")
-}
-
 export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<string, unknown>): Partial<PitchData> {
   const hoofdsom = totalLoan(termsheet)
   const looptijd = toNumber(termsheet.looptijd)
@@ -169,9 +155,13 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     bvName: b.type === "bv" ? (b.bvName || "") : "",
   }))
 
-  // Collateral: termsheet objects to pitch collateral (only the description field)
+  // Collateral: termsheet objects to pitch zekerheden — full structured fields, so
+  // the pitch's Zekerheden section matches the termsheet 1:1 (same fields + text).
   const collateralObjects = (termsheet.objects || []).map((o) => ({
     description: o.description || o.address || "",
+    address: o.address || "",
+    hypotheekRank: o.hypotheekRank || "1e",
+    priorLienholders: o.priorLienholders || [],
   }))
 
   // Mortgage rank from the first object ("1e" to "1")
@@ -188,7 +178,7 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     grossRate: typeof termsheet.rentePct === "number" ? termsheet.rentePct : undefined,
     leenvorm: deriveLeenvorm(termsheet),
     verzoekText: buildVerzoek(termsheet) || undefined,
-    zekerhedenText: buildZekerheden(termsheet) || undefined,
+    zekerhedenText: buildZekerhedenText((termsheet.objects || []) as ZekerheidObject[], hoofdsom) || undefined,
     waardeType: marktwaarde > 0 ? "woz" : undefined,
     waardeBedrag: marktwaarde || undefined,
   }

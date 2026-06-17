@@ -73,8 +73,18 @@ export interface PitchLtvRow {
   denominatorLabel: string
 }
 
+export interface PitchPriorLienholder {
+  name: string
+  inschrijving: number
+  currentOwed: number
+}
+
 export interface PitchCollateralObject {
   description: string
+  // Zekerheden fields (same as the termsheet); optional for back-compat with old pitches.
+  address?: string
+  hypotheekRank?: string
+  priorLienholders?: PitchPriorLienholder[]
 }
 
 export interface PitchEersteInschrijving {
@@ -127,6 +137,7 @@ export interface PitchData {
   // v2 (house format)
   verzoekText?: string
   zekerhedenText?: string
+  zekerhedenExtra?: string[]
   waardeType?: "woz" | "taxatie" | "geschat"
   waardeBedrag?: number
   ltvText?: string
@@ -327,20 +338,13 @@ export async function generatePitch(
     ch.push(empty(80))
   }
 
-  // 5 - Zekerheden (standaard opsomming, zoals in de termsheet)
+  // 5 - Zekerheden (standaard opsomming, identiek aan de termsheet; extra
+  // zekerheden zijn al in zekerhedenText meegenummerd)
   {
     const zt = (data.zekerhedenText || "").trim()
     if (zt) {
       ch.push(pitchSectionHead("Zekerheden"))
       zekerhedenPars(zt).forEach((p) => ch.push(p))
-      const ei = data.eersteInschrijving
-      if (ei?.enabled && ei.bedrag) {
-        const restTxt = ei.restschuld ? ` (actuele restschuld ${fmtEuro(ei.restschuld)})` : ""
-        ch.push(par([tx(`1e inschrijving van ${fmtEuro(ei.bedrag)} bij ${ei.bank || "-"}${restTxt}`)], { before: 40, after: 20 }))
-      }
-      if (data.verpandingHuurpenningen) {
-        ch.push(par([tx("Verpanding van huurpenningen")], { before: 20, after: 20 }))
-      }
       ch.push(empty(80))
     }
   }
@@ -379,25 +383,22 @@ export async function generatePitch(
     ch.push(tabLine("Leenvorm", [tx(`${leenvormTxt}${hoofdsom > 0 ? ` ${fmtEuro(hoofdsom)}` : ""}`)]))
     ch.push(tabLine("Looptijd", [tx(`${looptijd} maanden`)]))
     ch.push(tabLine("Rente", [tx(renteTxt)]))
+    ch.push(empty(80))
+  }
 
-    ch.push(
-      par([tx("Vervroegde aflossing:", { bold: true, color: C_BRAND })], {
-        before: 40,
-        after: 20,
-      })
-    )
+  // 6b - Vervroegde aflossing (eigen kop, lijnt 1-op-1 met het formulier)
+  {
     const erpLines = (data.erpText || "")
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean)
     if (erpLines.length) {
+      ch.push(pitchSectionHead("Vervroegde aflossing"))
       erpLines.forEach((line) =>
-        ch.push(
-          par([tx(line)], { bullet: 1, before: 20, after: 20, indent: MM(6) })
-        )
+        ch.push(par([tx(line)], { bullet: 1, before: 20, after: 20, indent: MM(6) }))
       )
+      ch.push(empty(80))
     }
-    ch.push(empty(80))
   }
 
   // 7 - Stichting Zekerhedenagent (twee standaard alinea's, altijd)

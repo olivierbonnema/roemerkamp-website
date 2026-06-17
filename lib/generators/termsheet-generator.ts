@@ -1,7 +1,8 @@
 "use client"
 
 import * as docx from "docx"
-import { numberToWords, fmtZegge } from "./number-to-words"
+import { fmtZegge } from "./number-to-words"
+import { buildZekerhedenText, type ZekerheidObject } from "./zekerheden"
 import {
   MM, PAGE_W, PAGE_H, MARGIN_SIDE,
   C_BRAND, C_GREY, C_BLACK, C_HRULE,
@@ -491,34 +492,13 @@ export async function generateTermsheet(
       zekerhedenPars.push(par([tx(line, { size: SZ_SMALL })], { before: 20, after: 20 }))
     }
   } else {
-    const rankWords: Record<string, string> = { "1e": "eerste", "2e": "tweede", "3e": "derde", "4e": "vierde" }
-    objects.forEach((o, idx) => {
-      const rank = o.hypotheekRank || "1e"
-      const rankWord = rankWords[rank] || "eerste"
-      const addr = o.address || `object ${idx + 1}`
-      const loanAmountWords = numberToWords(totalLoan)
-
-      const baseTxt = `${idx + 1}.) Een ${rankWord} recht van hypotheek ter hoogte van ${loanAmountWords} euro (${fmtEuro(totalLoan)}) wordt gevestigd op object ${idx + 1} (${addr}) ten gunste van de Geldverstrekker`
-      const runs: docx.TextRun[] = []
-
-      if (rank === "1e") {
-        runs.push(tx(baseTxt + " tot zekerheid van de verstrekte lening.", { size: SZ_SMALL }))
-      } else {
-        runs.push(tx(baseTxt + ".", { size: SZ_SMALL }))
-        if (o.priorLienholders && o.priorLienholders.length) {
-          const priors = o.priorLienholders
-          const priorTexts = priors.map((pl, pi) => {
-            const priorRankWord = rankWords[`${pi + 1}e`] || `${pi + 1}e`
-            const inschrijvingWords = numberToWords(pl.inschrijving)
-            const owedWords = numberToWords(pl.currentOwed)
-            return `een ${priorRankWord} recht van hypotheek ten gunste van de ${pl.name} met een inschrijving van ${inschrijvingWords} euro (${fmtEuro(pl.inschrijving)}) en een actuele hoofdsom van ${owedWords} euro (${fmtEuro(pl.currentOwed)}), welke zonder uitdrukkelijke toestemming niet mag worden verhoogd`
-          })
-          const priorSentence = ` Op dit object rust${priors.length > 1 ? "en" : ""} reeds ${priorTexts.join("; en ")}.`
-          runs.push(tx(priorSentence, { size: SZ_SMALL }))
-        }
-      }
-      zekerhedenPars.push(par(runs, { before: 20, after: 20 }))
-    })
+    // Same wording as the pitch — both go through the shared builder (lib/generators/zekerheden.ts).
+    buildZekerhedenText(objects as ZekerheidObject[], totalLoan)
+      .split("\n")
+      .filter((l) => l.trim())
+      .forEach((line) => {
+        zekerhedenPars.push(par([tx(line, { size: SZ_SMALL })], { before: 20, after: 20 }))
+      })
   }
   if (!zekerhedenPars.length) zekerhedenPars.push(par([tx("-", { size: SZ_SMALL })], { before: 50, after: 50 }))
 

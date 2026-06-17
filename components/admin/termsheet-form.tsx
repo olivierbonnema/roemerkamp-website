@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from "react"
-import { numberToWords } from "@/lib/generators/number-to-words"
 import { fmtEuro } from "@/lib/generators/docx-helpers"
+import { HYPOTHEEK_RANKS, RANK_LABELS, buildZekerhedenText } from "@/lib/generators/zekerheden"
 import {
   TERMSHEET_DEFAULTS as TD,
   buildDefaultVoorafCondities,
@@ -70,9 +70,6 @@ interface Props {
     notaris?: string
   }
 }
-
-const HYPOTHEEK_RANKS = ["1e", "2e", "3e", "4e"]
-const RANK_LABELS: Record<string, string> = { "1e": "eerste", "2e": "tweede", "3e": "derde", "4e": "vierde" }
 
 function Section({ id, title, isOpen, onToggle, children }: {
   id: string; title: string; isOpen: boolean; onToggle: (id: string) => void; children: React.ReactNode
@@ -186,26 +183,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
 
   const zekerhedenPreview = useMemo(() => {
     if (!objects.length || !totalLoan) return ""
-    return objects
-      .map((obj, idx) => {
-        const rankWord = RANK_LABELS[obj.hypotheekRank] || "eerste"
-        const addr = obj.address || `object ${idx + 1}`
-        let txt = `${idx + 1}.) Een ${rankWord} recht van hypotheek ter hoogte van ${numberToWords(totalLoan)} euro (${fmtEuro(totalLoan)}) wordt gevestigd op object ${idx + 1} (${addr}) ten gunste van de Geldverstrekker`
-        if (obj.hypotheekRank === "1e") {
-          txt += " tot zekerheid van de verstrekte lening."
-        } else {
-          txt += "."
-          if (obj.priorLienholders.length) {
-            const parts = obj.priorLienholders.map((pl, pi) => {
-              const priorRank = RANK_LABELS[`${pi + 1}e`] || `${pi + 1}e`
-              return `een ${priorRank} recht van hypotheek ten gunste van de ${pl.name || "..."} met een inschrijving van ${numberToWords(pl.inschrijving)} euro (${fmtEuro(pl.inschrijving)}) en een actuele hoofdsom van ${numberToWords(pl.currentOwed)} euro (${fmtEuro(pl.currentOwed)}), welke zonder uitdrukkelijke toestemming niet mag worden verhoogd`
-            })
-            txt += ` Op dit object rust${obj.priorLienholders.length > 1 ? "en" : ""} reeds ${parts.join("; en ")}.`
-          }
-        }
-        return txt
-      })
-      .join("\n")
+    return buildZekerhedenText(objects, totalLoan)
   }, [objects, totalLoan])
 
   // Auto-update zekerheden text when not manually edited
