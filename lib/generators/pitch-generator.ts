@@ -160,12 +160,15 @@ function pitchSectionHead(text: string) {
   })
 }
 
-// Tab-aligned "Label<tab>: value" line (Uitgangspunten van de lening).
+// Tab-aligned "Label<tab>: value" line (Uitgangspunten van de lening). A hanging
+// indent keeps a wrapped value on the next line aligned under the value (after the
+// ":"), instead of falling back to the label margin.
 function tabLine(label: string, valueRuns: docx.ParagraphChild[]) {
   return new docx.Paragraph({
     children: [tx(label, { bold: true, color: C_BRAND }), tx("\t: "), ...valueRuns],
     spacing: { before: 0, after: 0 },
     tabStops: [{ type: docx.TabStopType.LEFT, position: MM(30) }],
+    indent: { left: MM(32), hanging: MM(32) },
   })
 }
 
