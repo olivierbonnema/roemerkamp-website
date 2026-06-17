@@ -71,3 +71,39 @@ export function buildZekerhedenText(
 
   return lines.join("\n")
 }
+
+// PITCH-specific zekerheden (NOT the termsheet's legal enumeration): one lead
+// sentence with the amount + the rank, then a clean numbered list of the cadastral
+// descriptions, then optional extra securities as one trailing sentence. Renders
+// fine through `zekerhedenPars` (lead = plain paragraph, "N. …" = numbered).
+export function buildPitchZekerheden(
+  objects: { description: string; hypotheekRank?: string }[],
+  totalLoan: number,
+  extras: string[] = []
+): string {
+  const objs = objects.filter((o) => (o.description || "").trim())
+  if (!objs.length || !totalLoan) return ""
+
+  const rank = objs[0].hypotheekRank || "1e"
+  const rankWord = RANK_LABELS[rank] || "eerste"
+  const lead = `Ter zekerheid van deze financiering van ${fmtEuro(totalLoan)} wordt een ${rankWord} (${rank}) recht van hypotheek gevestigd op:`
+
+  const lines = objs.map((o, i) => {
+    let d = o.description.trim()
+    if (!/[.!?]$/.test(d)) d += "."
+    return `${i + 1}. ${d}`
+  })
+  const out = [lead, ...lines]
+
+  const ex = extras.map((e) => (e || "").trim()).filter(Boolean)
+  if (ex.length) {
+    const lowered = ex.map((e) => e.charAt(0).toLowerCase() + e.slice(1).replace(/[.]+$/, ""))
+    const joined =
+      lowered.length === 1
+        ? lowered[0]
+        : lowered.slice(0, -1).join(", ") + " en " + lowered[lowered.length - 1]
+    out.push(`Daarnaast strekt tot zekerheid: ${joined}.`)
+  }
+
+  return out.join("\n")
+}

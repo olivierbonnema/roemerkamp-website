@@ -6,7 +6,7 @@
 
 import type { TermsheetData } from "./termsheet-generator"
 import type { PitchData } from "./pitch-generator"
-import { buildZekerhedenText, type ZekerheidObject } from "./zekerheden"
+import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
 
@@ -178,7 +178,7 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     grossRate: typeof termsheet.rentePct === "number" ? termsheet.rentePct : undefined,
     leenvorm: deriveLeenvorm(termsheet),
     verzoekText: buildVerzoek(termsheet) || undefined,
-    zekerhedenText: buildZekerhedenText((termsheet.objects || []) as ZekerheidObject[], hoofdsom) || undefined,
+    zekerhedenText: buildPitchZekerheden((termsheet.objects || []) as ZekerheidObject[], hoofdsom) || undefined,
     waardeType: marktwaarde > 0 ? "woz" : undefined,
     waardeBedrag: marktwaarde || undefined,
   }

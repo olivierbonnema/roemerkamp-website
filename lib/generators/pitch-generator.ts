@@ -180,7 +180,7 @@ function buildLtvText(data: PitchData): string {
     : wt === "geschat" ? "De geschatte waarde van het onderpand"
     : "De WOZ-waarde van het onderpand"
   const basis = wt === "taxatie" ? "taxatiewaarde" : wt === "geschat" ? "geschatte waarde" : "WOZ-waarde"
-  return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis} bedraagt daarmee circa ${pct}%.`
+  return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis} bedraagt circa ${pct}% en biedt daarmee ruim voldoende zekerheid voor de financiering.`
 }
 
 // Render the standard zekerheden text; each "N.) ..." line is tab-separated + hanging.
@@ -338,23 +338,17 @@ export async function generatePitch(
     ch.push(empty(80))
   }
 
-  // 5 - Zekerheden (standaard opsomming, identiek aan de termsheet; extra
-  // zekerheden zijn al in zekerhedenText meegenummerd)
+  // 5 - Zekerheden — lead-zin + genummerde onderpanden (pitch-format), met de
+  // waarde/LTV-zin er direct onder (geen aparte kop, zoals Olivier's voorbeeld).
   {
     const zt = (data.zekerhedenText || "").trim()
-    if (zt) {
-      ch.push(pitchSectionHead("Zekerheden"))
-      zekerhedenPars(zt).forEach((p) => ch.push(p))
-      ch.push(empty(80))
-    }
-  }
-
-  // 6 - Waarde onderpand + LTV (3 standaardvarianten: WOZ / taxatie / geschat)
-  {
     const ltvText = buildLtvText(data)
-    if (ltvText) {
-      ch.push(pitchSectionHead("Waarde onderpand en LTV"))
-      textPars(ltvText, { before: 0, after: 40 }).forEach((p) => ch.push(p))
+    if (zt || ltvText) {
+      ch.push(pitchSectionHead("Zekerheden"))
+      if (zt) zekerhedenPars(zt).forEach((p) => ch.push(p))
+      if (ltvText) {
+        textPars(ltvText, { before: zt ? 80 : 0, after: 40 }).forEach((p) => ch.push(p))
+      }
       ch.push(empty(80))
     }
   }
