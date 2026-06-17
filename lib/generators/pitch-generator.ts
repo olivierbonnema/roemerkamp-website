@@ -436,9 +436,15 @@ export async function generatePitch(
 
     ch.push(empty(0))
 
-    // "Ad N." (vet) + toelichting, met een witregel tussen elke.
+    // "Ad N." (vet) + toelichting, met een witregel tussen elke. [LOOPTIJD] en
+    // [HOOFDSOM] worden met de echte waarden ingevuld.
+    const looptijdStr = String(data.loanDuration || "[LOOPTIJD]")
+    const hoofdsomStr = data.hoofdsom ? fmtEuro(Number(data.hoofdsom)) : "[HOOFDSOM]"
     risks.forEach((r, i) => {
-      ch.push(par([tx(`Ad ${i + 1}.`, { bold: true }), tx(" "), tx(r.ad || "")]))
+      const ad = (r.ad || "")
+        .replace(/\[LOOPTIJD\]/g, looptijdStr)
+        .replace(/\[HOOFDSOM\]/g, hoofdsomStr)
+      ch.push(par([tx(`Ad ${i + 1}.`, { bold: true }), tx(" "), tx(ad)]))
       ch.push(empty(0))
     })
   }
