@@ -121,19 +121,14 @@ export function addMonths(isoDate: string, months: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-export function buildErpText(opts: {
-  period?: string | number
-  minAmount?: number
-  fee?: number
-  aankondiging?: number
-}): string {
+// Vervroegde aflossing: standard boilerplate, the ONLY variable is the
+// boetevrije termijn (the months, repeated 3x). The € 50.000 minimum, € 250
+// administratievergoeding and the 1-maand aanzegtermijn are fixed.
+export function buildErpText(opts: { period?: string | number }): string {
   const p = opts.period || "..."
-  const amount = opts.minAmount ?? 50000
-  const fee = opts.fee ?? 250
-  const aank = opts.aankondiging ?? 1
   return [
-    `Bij vervroegde volledige of gedeeltelijke aflossing binnen ${p} maanden, wordt door de geldnemer de volledige rente over ${p} maanden minus de reeds betaalde vergoed over de pro rato aflossing.`,
-    `Vervroegde gedeeltelijke aflossing bedraagt te allen tijde minimaal € ${Number(amount).toLocaleString("nl-NL")},-.`,
-    `De aflosvergoeding bedraagt € ${Number(fee).toLocaleString("nl-NL")} ex BTW per aflossing en de Geldnemer dient een aankondigingstermijn van ${aank} maand in acht te nemen.`,
+    `Bij volledige of gedeeltelijke aflossing binnen ${p} maanden na passeren is een vergoeding verschuldigd ter hoogte van ${p} maanden termijnbedrag, verminderd met de reeds betaalde termijnbedragen.`,
+    `Na ${p} maanden kan boetevrij worden afgelost, met een aanzegtermijn van minimaal 1 maand.`,
+    `Vervroegde gedeeltelijke aflossing bedraagt minimaal € 50.000,- per transactie, met een administratievergoeding van € 250,- per keer.`,
   ].join("\n")
 }

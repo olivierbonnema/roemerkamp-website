@@ -118,11 +118,8 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [bijAanvang, setBijAanvang] = useState(!!d.bijAanvang)
 
   const [erpPeriod, setErpPeriod] = useState<number>((d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0))
-  const [erpMinAmount, setErpMinAmount] = useState<number>((d.erpMinAmount as number) ?? 50000)
-  const [erpFee, setErpFee] = useState<number>((d.erpFee as number) ?? 250)
-  const [erpAankondiging, setErpAankondiging] = useState<number>((d.erpAankondiging as number) ?? 1)
   const [erpText, setErpText] = useState(
-    (d.erpText as string) || buildErpText({ period: (d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0), minAmount: 50000, fee: 250, aankondiging: 1 })
+    (d.erpText as string) || buildErpText({ period: (d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0) })
   )
   const [erpEdited, setErpEdited] = useState(false)
 
@@ -205,10 +202,8 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   }, [cashplanningRaw, loanDuration])
 
   const updateErpIfNotEdited = useCallback(
-    (period: number, minAmt: number, fee: number, aank: number) => {
-      if (!erpEdited) {
-        setErpText(buildErpText({ period, minAmount: minAmt, fee, aankondiging: aank }))
-      }
+    (period: number) => {
+      if (!erpEdited) setErpText(buildErpText({ period }))
     },
     [erpEdited]
   )
@@ -444,29 +439,16 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">{netRateDisplay}</div>
       </PitchSection>
 
-      {/* 7. Vervroegde aflossing */}
+      {/* 7. Vervroegde aflossing — alleen de boetevrije termijn is variabel; de rest is standaard */}
       <PitchSection id="erp" title="Vervroegde aflossing" isOpen={isSectionOpen("erp")} onToggle={toggleSection}>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="text-xs text-gray-600 block">Boetevrije termijn (mnd)</label>
-            <input type="number" value={erpPeriod || ""} onChange={(e) => { const v = parseInt(e.target.value) || 0; setErpPeriod(v); updateErpIfNotEdited(v, erpMinAmount, erpFee, erpAankondiging) }} className="w-full border rounded px-2 py-1.5 text-sm" />
-          </div>
-          <div>
-            <label className="text-xs text-gray-600 block">Min. aflossing (€)</label>
-            <input type="number" value={erpMinAmount || ""} onChange={(e) => { const v = parseFloat(e.target.value) || 0; setErpMinAmount(v); updateErpIfNotEdited(erpPeriod, v, erpFee, erpAankondiging) }} className="w-full border rounded px-2 py-1.5 text-sm" />
-          </div>
-          <div>
-            <label className="text-xs text-gray-600 block">Aflosvergoeding (€ ex BTW)</label>
-            <input type="number" value={erpFee || ""} onChange={(e) => { const v = parseFloat(e.target.value) || 0; setErpFee(v); updateErpIfNotEdited(erpPeriod, erpMinAmount, v, erpAankondiging) }} className="w-full border rounded px-2 py-1.5 text-sm" />
-          </div>
+        <div className="w-[180px]">
+          <label className="text-xs text-gray-600 block">Boetevrije termijn (mnd)</label>
+          <input type="number" value={erpPeriod || ""} onChange={(e) => { const v = parseInt(e.target.value) || 0; setErpPeriod(v); updateErpIfNotEdited(v) }} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
-        <div className="w-[100px]">
-          <label className="text-xs text-gray-600 block">Aankondigingstermijn (mnd)</label>
-          <input type="number" value={erpAankondiging || ""} onChange={(e) => { const v = parseInt(e.target.value) || 0; setErpAankondiging(v); updateErpIfNotEdited(erpPeriod, erpMinAmount, erpFee, v) }} className="w-full border rounded px-2 py-1.5 text-sm" />
-        </div>
+        <p className="text-xs text-gray-500">De rest is standaard en wordt automatisch ingevuld: € 50.000,- minimum, € 250,- administratievergoeding en 1 maand aanzegtermijn.</p>
         <div>
-          <label className="text-xs text-gray-600 block">Tekst (elke regel wordt een bullet)</label>
-          <textarea value={erpText} onChange={(e) => { setErpText(e.target.value); setErpEdited(true) }} rows={5} className="w-full border rounded px-2 py-1.5 text-sm" />
+          <label className="text-xs text-gray-600 block">Tekst <span className="font-normal text-gray-400 text-[11px]">(automatisch, bewerkbaar; elke regel wordt een bullet)</span></label>
+          <textarea value={erpText} onChange={(e) => { setErpText(e.target.value); setErpEdited(true) }} rows={4} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
       </PitchSection>
 
