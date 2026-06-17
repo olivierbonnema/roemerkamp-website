@@ -442,10 +442,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           <input type="number" value={erpPeriod || ""} onChange={(e) => { const v = parseInt(e.target.value) || 0; setErpPeriod(v); updateErpIfNotEdited(v) }} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
         <p className="text-xs text-gray-500">De rest is standaard en wordt automatisch ingevuld: € 50.000,- minimum, € 250,- administratievergoeding en 1 maand aanzegtermijn.</p>
-        <div>
-          <label className="text-xs text-gray-600 block">Tekst <span className="font-normal text-gray-400 text-[11px]">(automatisch, bewerkbaar; elke regel wordt een bullet)</span></label>
-          <textarea value={erpText} onChange={(e) => { setErpText(e.target.value); setErpEdited(true) }} rows={4} className="w-full border rounded px-2 py-1.5 text-sm" />
-        </div>
       </PitchSection>
 
       {/* 8. Stichting */}
