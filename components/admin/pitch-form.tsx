@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useImperativeHandle, forwardRef, useMemo, useCallback } from "react"
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo, useCallback } from "react"
 import { fmtEuro } from "@/lib/generators/docx-helpers"
 import { PITCH_DEFAULTS as PD, buildErpText } from "@/lib/generators/form-defaults"
 import type { PitchData } from "@/lib/generators/pitch-generator"
@@ -208,6 +208,22 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
     },
     [erpEdited]
   )
+
+  // Boetevrije termijn is standaard de helft van de looptijd: vul automatisch bij als
+  // de looptijd wijzigt. (Mount overslaan zodat een opgeslagen/handmatige waarde blijft.)
+  const erpInitRef = useRef(true)
+  useEffect(() => {
+    if (erpInitRef.current) {
+      erpInitRef.current = false
+      return
+    }
+    if (loanDuration > 0) {
+      const half = Math.round(loanDuration / 2)
+      setErpPeriod(half)
+      setErpText(buildErpText({ period: half }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanDuration])
 
   useImperativeHandle(ref, () => ({
     getData: (): PitchData => {
