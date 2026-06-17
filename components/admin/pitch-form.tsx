@@ -114,7 +114,8 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [hoofdsom, setHoofdsom] = useState<number>((d.hoofdsom as number) || 0)
   const [loanDuration, setLoanDuration] = useState<number>((d.loanDuration as number) || 0)
   const [grossRate, setGrossRate] = useState<number>((d.grossRate as number) || 0)
-  const [managementFee, setManagementFee] = useState<number>((d.managementFee as number) || 0)
+  // Beheervergoeding is standaard 0,08% per maand.
+  const [managementFee, setManagementFee] = useState<number>((d.managementFee as number) ?? 0.08)
   const [bijAanvang, setBijAanvang] = useState(!!d.bijAanvang)
 
   const [erpPeriod, setErpPeriod] = useState<number>((d.erpPeriod as number) || (d.loanDuration ? Math.round((d.loanDuration as number) / 2) : 0))
@@ -184,17 +185,18 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
     if (!zekerhedenManual && zekerhedenPreview) setZekerhedenText(zekerhedenPreview)
   }, [zekerhedenPreview, zekerhedenManual])
 
-  const netRate = useMemo(() => parseFloat((grossRate + managementFee * 12).toFixed(3)), [grossRate, managementFee])
+  // grossRate = netto (investeerder); bruto (geldnemer) = netto + beheervergoeding * 12.
+  const brutoRate = useMemo(() => parseFloat((grossRate + managementFee * 12).toFixed(3)), [grossRate, managementFee])
 
   const netRateDisplay = useMemo(() => {
     const fmtN = (n: number) => String(n).replace(".", ",")
     if (managementFee > 0 && grossRate > 0) {
-      return `${fmtN(grossRate)}% per jaar (nominaal) netto (${fmtN(netRate)}% per jaar minus ${fmtN(managementFee)}% per maand aan beheervergoeding)`
+      return `${fmtN(grossRate)}% per jaar (nominaal) netto (${fmtN(brutoRate)}% per jaar bruto minus ${fmtN(managementFee)}% per maand aan beheervergoeding)`
     } else if (grossRate > 0) {
       return `${fmtN(grossRate)}% per jaar (nominaal)`
     }
     return "Netto rente: -"
-  }, [grossRate, managementFee, netRate])
+  }, [grossRate, managementFee, brutoRate])
 
   const cashplanningPreview = useMemo(() => {
     const text = cashplanningRaw.replace(/\[LOOPTIJD\]/g, String(loanDuration || "..."))
@@ -424,7 +426,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Bruto rente (% per jaar)</label>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">Netto rente (% per jaar)</label>
             <input type="number" step="0.001" value={grossRate || ""} onChange={(e) => setGrossRate(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
           </div>
           <div>
