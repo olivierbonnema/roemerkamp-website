@@ -43,6 +43,12 @@ export const PITCH_DEFAULTS = {
       defaultChecked: true,
     },
     {
+      id: "betaling-rentedepot",
+      title: "Betalingsproblemen (rentedepot)",
+      ad: "De rente gedurende de looptijd is via het rentedepot vooraf afgedekt, waardoor het risico op een betalingsachterstand gedurende de looptijd nihil is.",
+      defaultChecked: false,
+    },
+    {
       id: "vertraging-levering",
       title: "Vertraging levering",
       ad: 'De looptijd staat op [LOOPTIJD] maanden, wat voldoende comfort geeft als het toch iets uit mocht lopen. Mocht de levering helemaal niet doorgaan, dan moet de woning opnieuw in de verkoop. Dan zal mogelijk verlenging worden gevraagd. Dit scenario is zeer onwaarschijnlijk.',
