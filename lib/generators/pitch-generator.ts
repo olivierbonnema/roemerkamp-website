@@ -204,17 +204,14 @@ function numItem(numStr: string, text: string) {
 // Render the zekerheden text: the lead sentence (plain), then a blank line, then the
 // numbered cadastral item(s) (outdented); any trailing sentence stays plain.
 function zekerhedenPars(text: string): docx.Paragraph[] {
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean)
   const out: docx.Paragraph[] = []
-  let gapDone = false
-  for (const line of lines) {
-    const m = line.match(/^(\d+[.)]+)\s+(.*)$/)
-    if (m) {
-      if (!gapDone) {
-        out.push(empty(0)) // witregel tussen de lead-zin en de genummerde aanduiding
-        gapDone = true
-      }
-      out.push(numItem(m[1], m[2]))
+  for (const raw of text.split("\n")) {
+    const line = raw.trim()
+    if (!line) {
+      out.push(empty(0)) // witregel
+    } else if (line.startsWith("•")) {
+      // Opsommingsteken (onderpand / extra zekerheid), met hangende inspringing.
+      out.push(par([tx(line.replace(/^•\s*/, ""))], { bullet: 1, before: 0, after: 0, indent: MM(6) }))
     } else {
       out.push(par([tx(line)]))
     }

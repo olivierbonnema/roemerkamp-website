@@ -72,38 +72,75 @@ export function buildZekerhedenText(
   return lines.join("\n")
 }
 
-// PITCH-specific zekerheden (NOT the termsheet's legal enumeration): one lead
-// sentence with the amount + the rank, then a clean numbered list of the cadastral
-// descriptions, then optional extra securities as one trailing sentence. Renders
-// fine through `zekerhedenPars` (lead = plain paragraph, "N. …" = numbered).
+// € zonder ",-" suffix (voor de actuele hoofdsom van een voorliggende hypotheek).
+function eur0(n: number): string {
+  return `€ ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(n || 0)}`
+}
+
+// PITCH-specific zekerheden (NOT the termsheet's legal enumeration). Mirrors the
+// hand-made pitch layout, grouped by recht van hypotheek:
+//   Ter zekerheid van deze financiering van € X,- wordt een eerste (1e) recht van
+//   hypotheek gevestigd op:
+//   • <kadastrale omschrijving>                 (alle 1e-objecten als bullets)
+//
+//   Een tweede recht van hypotheek, achter een 1e hypotheek van € A,- met een
+//   actuele hoofdsom van € B, ter hoogte van <bedrag in woorden> euro (€ X,-), op:
+//   • <kadastrale omschrijving>                 (per 2e/3e-object een eigen zin)
+//
+//   Daarnaast strekt tot zekerheid:
+//   • verpanding van de huurpenningen en verpanding van het rentedepot.
+// Bullets zijn gemarkeerd met "• "; lege regels zijn witregels. De renderer
+// (`zekerhedenPars`) zet "• " om naar een opsommingsteken en lege regels naar witregels.
 export function buildPitchZekerheden(
-  objects: { description: string; hypotheekRank?: string }[],
+  objects: { description: string; hypotheekRank?: string; priorLienholders?: PriorLienholder[] }[],
   totalLoan: number,
   extras: string[] = []
 ): string {
   const objs = objects.filter((o) => (o.description || "").trim())
-  if (!objs.length || !totalLoan) return ""
-
-  const rank = objs[0].hypotheekRank || "1e"
-  const rankWord = RANK_LABELS[rank] || "eerste"
-  const lead = `Ter zekerheid van deze financiering van ${fmtEuro(totalLoan)} wordt een ${rankWord} (${rank}) recht van hypotheek gevestigd op:`
-
-  const lines = objs.map((o, i) => {
-    let d = o.description.trim()
-    if (!/[.!?]$/.test(d)) d += "."
-    return `${i + 1}. ${d}`
-  })
-  const out = [lead, ...lines]
-
   const ex = extras.map((e) => (e || "").trim()).filter(Boolean)
+  if (!objs.length && !ex.length) return ""
+
+  const lines: string[] = []
+  const bullet = (s: string) => `• ${s.trim().replace(/\s+/g, " ")}`
+  const gap = () => { if (lines.length) lines.push("") } // witregel tussen blokken
+
+  const eerste = objs.filter((o) => (o.hypotheekRank || "1e") === "1e")
+  const hogere = objs.filter((o) => (o.hypotheekRank || "1e") !== "1e")
+
+  // Eerste (1e) recht: alle 1e-objecten onder één inleidende zin.
+  if (eerste.length && totalLoan) {
+    lines.push(`Ter zekerheid van deze financiering van ${fmtEuro(totalLoan)} wordt een eerste (1e) recht van hypotheek gevestigd op:`)
+    lines.push("")
+    eerste.forEach((o) => lines.push(bullet(o.description)))
+  }
+
+  // Hogere rechten (2e/3e/…): per object een eigen zin met de voorliggende hypotheek/-en.
+  hogere.forEach((o) => {
+    const rank = o.hypotheekRank || "2e"
+    const rankWord = RANK_LABELS[rank] || rank
+    const priors = (o.priorLienholders || []).filter((p) => (p.inschrijving || 0) > 0 || (p.currentOwed || 0) > 0)
+    const priorTxt = priors
+      .map((p, idx) => `een ${idx + 1}e hypotheek van ${fmtEuro(p.inschrijving)} met een actuele hoofdsom van ${eur0(p.currentOwed)}`)
+      .join(" en ")
+    const achter = priorTxt ? `, achter ${priorTxt},` : ""
+    gap()
+    lines.push(`Een ${rankWord} recht van hypotheek${achter} ter hoogte van ${numberToWords(totalLoan)} euro (${fmtEuro(totalLoan)}), op:`)
+    lines.push("")
+    lines.push(bullet(o.description))
+  })
+
+  // Extra zekerheden (verpanding huurpenningen / rentedepot / bouwdepot / eigen).
   if (ex.length) {
+    gap()
+    lines.push("Daarnaast strekt tot zekerheid:")
+    lines.push("")
     const lowered = ex.map((e) => e.charAt(0).toLowerCase() + e.slice(1).replace(/[.]+$/, ""))
     const joined =
       lowered.length === 1
         ? lowered[0]
         : lowered.slice(0, -1).join(", ") + " en " + lowered[lowered.length - 1]
-    out.push(`Daarnaast strekt tot zekerheid: ${joined}.`)
+    lines.push(bullet(`${joined}.`))
   }
 
-  return out.join("\n")
+  return lines.join("\n")
 }

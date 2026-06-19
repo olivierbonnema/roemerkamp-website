@@ -4,7 +4,14 @@ import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo, 
 import { fmtEuro } from "@/lib/generators/docx-helpers"
 import { PITCH_DEFAULTS as PD, buildErpText } from "@/lib/generators/form-defaults"
 import type { PitchData } from "@/lib/generators/pitch-generator"
-import { HYPOTHEEK_RANKS, buildPitchZekerheden, type ZekerheidObject } from "@/lib/generators/zekerheden"
+import { HYPOTHEEK_RANKS, RANK_LABELS, buildPitchZekerheden, type ZekerheidObject } from "@/lib/generators/zekerheden"
+
+// Vaste extra-zekerheden (checkboxes); volgorde bepaalt de volgorde in de tekst.
+const STANDARD_EXTRAS = [
+  "Verpanding van de huurpenningen",
+  "Verpanding van het rentedepot",
+  "Verpanding van het bouwdepot",
+]
 
 interface FinRow {
   label: string
@@ -162,24 +169,45 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
       return next
     })
 
-  // Zekerheden: per-object kadastrale omschrijving + one shared "recht van hypotheek"
-  // rank (the lead sentence states one rank for the whole financing) + extras.
+  // Zekerheden: per-object kadastrale omschrijving + per-object recht van hypotheek
+  // (1e/2e/…) met voorliggende hypotheek/-en bij 2e+ rechten, plus extra zekerheden.
   const updateObject = (idx: number, updates: Partial<ZekerheidObject>) =>
     setCollateralObjects((prev) => prev.map((o, i) => (i === idx ? { ...o, ...updates } : o)))
   const addObject = () =>
-    setCollateralObjects((prev) => [...prev, { description: "", address: "", hypotheekRank: prev[0]?.hypotheekRank || "1e", priorLienholders: [] }])
+    setCollateralObjects((prev) => [...prev, { description: "", address: "", hypotheekRank: "1e", priorLienholders: [] }])
   const removeObject = (idx: number) => setCollateralObjects((prev) => prev.filter((_, i) => i !== idx))
-  const setAllObjectRanks = (rank: string) => setCollateralObjects((prev) => prev.map((o) => ({ ...o, hypotheekRank: rank })))
+  // Bij rang > 1e: maak (rang-1) voorliggende-hypotheek-slots aan (bestaande waarden behouden).
+  const changeHypotheekRank = (objIdx: number, newRank: string) => {
+    const numPriors = HYPOTHEEK_RANKS.indexOf(newRank)
+    setCollateralObjects((prev) =>
+      prev.map((o, i) => {
+        if (i !== objIdx) return o
+        const existing = o.priorLienholders || []
+        const newPriors = Array.from({ length: Math.max(numPriors, 0) }, (_, pi) => existing[pi] || { name: "", inschrijving: 0, currentOwed: 0 })
+        return { ...o, hypotheekRank: newRank, priorLienholders: newPriors }
+      })
+    )
+  }
+  const toggleExtra = (text: string) =>
+    setZekerhedenExtra((prev) => (prev.includes(text) ? prev.filter((e) => e !== text) : [...prev, text]))
   const addExtra = (text: string) => setZekerhedenExtra((prev) => [...prev, text])
   const updateExtra = (idx: number, text: string) => setZekerhedenExtra((prev) => prev.map((e, i) => (i === idx ? text : e)))
   const removeExtra = (idx: number) => setZekerhedenExtra((prev) => prev.filter((_, i) => i !== idx))
 
-  // Pitch zekerheden opsomming: lead-zin (bedrag + recht) + genummerde kadastrale
-  // omschrijvingen + extra's. Auto-fills the editable textarea until edited by hand.
+  // Extra's in vaste volgorde (standaard eerst, dan eigen) voor de gegenereerde tekst.
+  const orderedExtras = useMemo(
+    () => [
+      ...STANDARD_EXTRAS.filter((s) => zekerhedenExtra.includes(s)),
+      ...zekerhedenExtra.filter((e) => e.trim() && !STANDARD_EXTRAS.includes(e)),
+    ],
+    [zekerhedenExtra]
+  )
+
+  // Pitch zekerheden opsomming: per recht van hypotheek een zin + bullets, plus
+  // extra's. Auto-fills the editable textarea until edited by hand.
   const zekerhedenPreview = useMemo(() => {
-    if (!collateralObjects.length || !hoofdsom) return ""
-    return buildPitchZekerheden(collateralObjects, hoofdsom, zekerhedenExtra)
-  }, [collateralObjects, hoofdsom, zekerhedenExtra])
+    return buildPitchZekerheden(collateralObjects, hoofdsom, orderedExtras)
+  }, [collateralObjects, hoofdsom, orderedExtras])
   useEffect(() => {
     if (!zekerhedenManual && zekerhedenPreview) setZekerhedenText(zekerhedenPreview)
   }, [zekerhedenPreview, zekerhedenManual])
@@ -350,42 +378,59 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
 
       {/* 4. Zekerheden — pitch-format (lead-zin + genummerde omschrijvingen) + waarde/LTV eronder */}
       <PitchSection id="zekerheid" title="Zekerheden" isOpen={isSectionOpen("zekerheid")} onToggle={toggleSection}>
-        <p className="text-xs text-gray-500">De opsomming wordt automatisch opgesteld: een inleidende zin met het financieringsbedrag en het recht van hypotheek, gevolgd door de genummerde kadastrale omschrijving(en). Bewerkbaar.</p>
-        <div className="w-[230px]">
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Recht van hypotheek</label>
-          <select value={collateralObjects[0]?.hypotheekRank || "1e"} onChange={(e) => setAllObjectRanks(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-            {HYPOTHEEK_RANKS.map((r) => <option key={r} value={r}>{r} recht van hypotheek</option>)}
-          </select>
-        </div>
+        <p className="text-xs text-gray-500">De opsomming wordt automatisch opgesteld, gegroepeerd per recht van hypotheek: alle eerste rechten onder één zin; bij een tweede/derde recht een aparte zin met de voorliggende hypotheek/-en. Bewerkbaar.</p>
         {collateralObjects.map((o, i) => (
           <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-2">
               <span className="font-bold text-[#311E86] text-sm">Object {i + 1}</span>
               <button type="button" onClick={() => removeObject(i)} className="ml-auto text-red-400 hover:text-red-600 text-lg">×</button>
             </div>
-            <textarea placeholder="Volledige kadastrale omschrijving, bijv. het perceel grond met woning en verdere aanhorigheden, plaatselijk bekend ..., kadastraal bekend gemeente ..., sectie ... nummer ..., groot: ... m²" value={o.description} onChange={(e) => updateObject(i, { description: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm min-h-[80px]" />
+            <textarea placeholder="Volledige kadastrale omschrijving, bijv. een perceel grond met woning ..., plaatselijk bekend ..., kadastraal bekend gemeente ..., sectie ... nummer ..." value={o.description} onChange={(e) => updateObject(i, { description: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm min-h-[80px]" />
+            <div className="w-[230px]">
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Recht van hypotheek</label>
+              <select value={o.hypotheekRank || "1e"} onChange={(e) => changeHypotheekRank(i, e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+                {HYPOTHEEK_RANKS.map((r) => <option key={r} value={r}>{r} recht van hypotheek</option>)}
+              </select>
+            </div>
+            {(o.priorLienholders || []).map((pl, pi) => (
+              <div key={pi} className="border border-gray-200 rounded-lg p-2 bg-gray-50 space-y-1">
+                <div className="text-xs font-semibold text-gray-400 uppercase">Voorliggende {RANK_LABELS[`${pi + 1}e`] || `${pi + 1}e`} hypotheek</div>
+                <div className="flex gap-2 flex-wrap">
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="text-xs text-gray-600 block">Inschrijving (€)</label>
+                    <input type="number" value={pl.inschrijving || ""} onChange={(e) => { const np = [...(o.priorLienholders || [])]; np[pi] = { ...np[pi], inschrijving: parseFloat(e.target.value) || 0 }; updateObject(i, { priorLienholders: np }) }} className="w-full border rounded px-2 py-1.5 text-sm" />
+                  </div>
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="text-xs text-gray-600 block">Actuele hoofdsom (€)</label>
+                    <input type="number" value={pl.currentOwed || ""} onChange={(e) => { const np = [...(o.priorLienholders || [])]; np[pi] = { ...np[pi], currentOwed: parseFloat(e.target.value) || 0 }; updateObject(i, { priorLienholders: np }) }} className="w-full border rounded px-2 py-1.5 text-sm" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ))}
         <button type="button" onClick={addObject} className="text-sm text-[#311E86] hover:underline">+ Onderpand toevoegen</button>
 
         <div className="pt-2 border-t border-gray-100 space-y-2">
-          <label className="text-xs font-medium text-gray-600 block">Extra zekerheden</label>
-          {zekerhedenExtra.map((ex, i) => (
+          <label className="text-xs font-medium text-gray-600 block">Extra zekerheden <span className="font-normal text-gray-400 text-[11px]">(verschijnen onder &quot;Daarnaast strekt tot zekerheid:&quot;)</span></label>
+          {STANDARD_EXTRAS.map((s) => (
+            <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" checked={zekerhedenExtra.includes(s)} onChange={() => toggleExtra(s)} />
+              {s}
+            </label>
+          ))}
+          {zekerhedenExtra.map((ex, i) => (STANDARD_EXTRAS.includes(ex) ? null : (
             <div key={i} className="flex items-center gap-2">
-              <input value={ex} onChange={(e) => updateExtra(i, e.target.value)} placeholder="Bijv. Verpanding van de huurpenningen" className="flex-1 border rounded px-2 py-1.5 text-sm" />
+              <input value={ex} onChange={(e) => updateExtra(i, e.target.value)} placeholder="Eigen zekerheid, bijv. verpanding van de voorraden" className="flex-1 border rounded px-2 py-1.5 text-sm" />
               <button type="button" onClick={() => removeExtra(i)} className="text-red-400 hover:text-red-600 text-lg">×</button>
             </div>
-          ))}
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => addExtra("")} className="text-sm text-[#311E86] hover:underline">+ Zekerheid toevoegen</button>
-            <button type="button" onClick={() => addExtra("Verpanding van de huurpenningen")} className="text-xs text-gray-500 hover:text-[#311E86] border rounded px-2 py-0.5">+ Verpanding huurpenningen</button>
-            <button type="button" onClick={() => addExtra("Verpanding van het rentedepot")} className="text-xs text-gray-500 hover:text-[#311E86] border rounded px-2 py-0.5">+ Verpanding rentedepot</button>
-          </div>
+          )))}
+          <button type="button" onClick={() => addExtra("")} className="text-sm text-[#311E86] hover:underline">+ Eigen zekerheid toevoegen</button>
         </div>
 
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Opsomming <span className="font-normal text-gray-400 text-[11px]">(automatisch, bewerkbaar)</span></label>
-          <textarea value={zekerhedenText} onChange={(e) => { setZekerhedenText(e.target.value); setZekerhedenManual(true) }} rows={6} placeholder={"Ter zekerheid van deze financiering van € ... wordt een eerste (1e) recht van hypotheek gevestigd op:\n1. ..."} className="w-full border rounded px-2 py-1.5 text-sm" />
+          <textarea value={zekerhedenText} onChange={(e) => { setZekerhedenText(e.target.value); setZekerhedenManual(true) }} rows={7} placeholder={"Ter zekerheid van deze financiering van € ... wordt een eerste (1e) recht van hypotheek gevestigd op:\n• ..."} className="w-full border rounded px-2 py-1.5 text-sm" />
           {zekerhedenManual && (
             <button type="button" onClick={() => setZekerhedenManual(false)} className="text-xs text-[#311E86] hover:underline mt-1">↺ Opnieuw automatisch genereren</button>
           )}
