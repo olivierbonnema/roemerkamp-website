@@ -148,6 +148,12 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
   const marktwaarde = totalMarktwaarde(aanvraag)
   const eigenInbreng = toNumber(aanvraag?.eigenInbreng)
 
+  // Rente-/bouwdepot uit de leningdelen → automatisch als verpanding bij de zekerheden.
+  const depotExtras: string[] = []
+  const loanParts = termsheet.loanParts || []
+  if (loanParts.some((lp) => /rentedepot/i.test(lp.typeLabel || "") && (lp.amount || 0) > 0)) depotExtras.push("Verpanding van het rentedepot")
+  if (loanParts.some((lp) => /bouwdepot/i.test(lp.typeLabel || "") && (lp.amount || 0) > 0)) depotExtras.push("Verpanding van het bouwdepot")
+
   // Parties: termsheet borrowers to pitch geldnemers. For a B.V. the pitch name is the
   // company name and bvName holds the representative; for a person, just the name.
   const geldnemers = (termsheet.borrowers || []).map((b) => {
@@ -183,7 +189,8 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     grossRate: typeof termsheet.rentePct === "number" ? termsheet.rentePct : undefined,
     leenvorm: deriveLeenvorm(termsheet),
     verzoekText: buildVerzoek(termsheet) || undefined,
-    zekerhedenText: buildPitchZekerheden((termsheet.objects || []) as ZekerheidObject[], hoofdsom) || undefined,
+    zekerhedenText: buildPitchZekerheden((termsheet.objects || []) as ZekerheidObject[], hoofdsom, depotExtras) || undefined,
+    zekerhedenExtra: depotExtras.length ? depotExtras : undefined,
     waardeType: marktwaarde > 0 ? "woz" : undefined,
     waardeBedrag: marktwaarde || undefined,
   }
