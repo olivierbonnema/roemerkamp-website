@@ -154,7 +154,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [geldnemers, setGeldnemers] = useState<Geldnemer[]>(
     (d.geldnemers as Geldnemer[]) || [{ name: "", type: "prive", bvName: "" }]
   )
-  const [overdraagbaar, setOverdraagbaar] = useState(!!d.overdraagbaar)
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
   const toggleSection = (key: string) => setOpenSections((prev) => ({ ...prev, [key]: prev[key] === false ? true : prev[key] === undefined ? false : !prev[key] }))
@@ -286,7 +285,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         cashplanningEnabled,
         cashplanningText: cashplanningRaw.replace(/\[LOOPTIJD\]/g, String(loanDuration || "[LOOPTIJD]")),
         geldnemers: geldnemers.filter((g) => g.name),
-        overdraagbaar,
       }
     },
   }))
@@ -587,10 +585,6 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
           </div>
         ))}
         <button type="button" onClick={() => setGeldnemers((prev) => [...prev, { name: "", type: "prive", bvName: "" }])} className="text-sm text-[#2E2060] hover:underline">+ Geldnemer toevoegen</button>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" checked={overdraagbaar} onChange={(e) => setOverdraagbaar(e.target.checked)} />
-          Voeg overdraagbaarheidszin toe
-        </label>
       </PitchSection>
     </div>
   )

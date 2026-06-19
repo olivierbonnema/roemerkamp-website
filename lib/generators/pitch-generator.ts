@@ -478,10 +478,6 @@ export async function generatePitch(
     })
   }
 
-  if (data.overdraagbaar) {
-    ch.push(par([tx("De lening is overdraagbaar.")]))
-  }
-
   const doc = new docx.Document({
     creator: "Lange & Partners Document Generator",
     title: "Toelichting Lange Financieel Advies",
