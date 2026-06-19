@@ -14,6 +14,7 @@ import {
   type Leningdeel,
   type RepaymentType,
   leningdelenTotal,
+  loanPartsBaseTotal,
   leningdeelMonthly,
   computeLeningdeelMonthly,
   buildAflossingSummary,
@@ -168,7 +169,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
     () =>
       splitMode && leningdelen.length
         ? leningdelenTotal(leningdelen)
-        : loanParts.reduce((s, lp) => s + (lp.amount || 0), 0),
+        : loanPartsBaseTotal(loanParts),
     [splitMode, leningdelen, loanParts]
   )
   const adminComputed = useMemo(() => totalLoan * 0.0007, [totalLoan])

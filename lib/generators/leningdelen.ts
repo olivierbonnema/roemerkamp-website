@@ -42,6 +42,18 @@ export function leningdelenTotal(delen: Leningdeel[]): number {
   return (delen || []).reduce((s, d) => s + (Number(d.amount) || 0), 0)
 }
 
+/** Rente-/bouwdepot loan-part labels. These are held OUT of the loan ("van de
+ *  lening … aangehouden"), so they must NOT be added to the loan total. */
+export function isDepotLabel(typeLabel?: string): boolean {
+  return /^(rentedepot|bouwdepot)$/i.test((typeLabel || "").trim())
+}
+
+/** Loan total in non-split mode: the sum of the loan parts EXCLUDING any
+ *  rente-/bouwdepot (a depot is part of the loan, not added on top of it). */
+export function loanPartsBaseTotal(parts: { amount?: number; typeLabel?: string }[]): number {
+  return (parts || []).reduce((s, p) => (isDepotLabel(p.typeLabel) ? s : s + (Number(p.amount) || 0)), 0)
+}
+
 /** Whole months between two ISO dates (end - start), never negative. */
 export function monthsBetween(startISO?: string, endISO?: string): number {
   if (!startISO || !endISO) return 0

@@ -8,6 +8,7 @@ import type { TermsheetData } from "./termsheet-generator"
 import type { PitchData } from "./pitch-generator"
 import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
 import { PITCH_DEFAULTS } from "./form-defaults"
+import { loanPartsBaseTotal } from "./leningdelen"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
 
@@ -35,9 +36,12 @@ function deriveLeenvorm(t: TermsheetData): string {
 }
 
 function totalLoan(t: TermsheetData): number {
-  if (typeof t.loanAmount === "number" && t.loanAmount > 0) return t.loanAmount
+  // Prefer the structured breakdown so rente-/bouwdepot is never counted toward the
+  // loan — even for termsheets whose stored loanAmount still includes the depots
+  // (saved before depots were excluded from the total).
   if (t.leningdelen && t.leningdelen.length > 0) return t.leningdelen.reduce((s, d) => s + (d.amount || 0), 0)
-  if (t.loanParts && t.loanParts.length > 0) return t.loanParts.reduce((s, p) => s + (p.amount || 0), 0)
+  if (t.loanParts && t.loanParts.length > 0) return loanPartsBaseTotal(t.loanParts)
+  if (typeof t.loanAmount === "number" && t.loanAmount > 0) return t.loanAmount
   return 0
 }
 

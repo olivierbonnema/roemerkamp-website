@@ -14,6 +14,7 @@ import {
 import {
   type Leningdeel,
   leningdelenTotal,
+  loanPartsBaseTotal,
   leningdeelLines,
   buildAflossingSummary,
   termijnLines,
@@ -191,7 +192,7 @@ export async function generateTermsheet(
   const deadlineStr = fmtNlDate(data.signingDeadline || "")
   const totalLoan = hasLeningdelen
     ? leningdelenTotal(leningdelen)
-    : loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
+    : loanPartsBaseTotal(loanParts)
   const companyName = s.companyName || "Lange & Partners Financieel Advies"
   const loanTotalTxt = totalLoan > 0 ? fmtEuro(totalLoan) : "-"
 
@@ -408,6 +409,9 @@ export async function generateTermsheet(
     if (label === "Rentedepot") {
       const depotTxt = `Van de lening zal een bedrag van ${fmtEuro(lp.amount)} ${fmtZegge(lp.amount)} worden aangehouden op een rentedepot voor de betaling van de rente en kosten van de financiering voor de duur van ${looptijdMaanden || "-"} maanden. Er wordt over het rentedepot geen rente vergoed.`
       leningRows.push(condRow("Rentedepot", [par([tx(depotTxt, { size: SZ_SMALL })], { before: 50, after: 50 })]))
+    } else if (label === "Bouwdepot") {
+      const depotTxt = `Van de lening zal een bedrag van ${fmtEuro(lp.amount)} ${fmtZegge(lp.amount)} worden aangehouden in een bouwdepot. Over het bouwdepot wordt geen rente vergoed. Opname van het bouwdepot is met een minimale opname van € 25.000,-.`
+      leningRows.push(condRow("Bouwdepot", [par([tx(depotTxt, { size: SZ_SMALL })], { before: 50, after: 50 })]))
     } else {
       leningRows.push(condRow(label, [tx(`${fmtEuro(lp.amount)} ${fmtZegge(lp.amount)}`, { size: SZ_SMALL })]))
     }

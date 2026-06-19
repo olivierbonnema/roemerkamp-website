@@ -7,6 +7,7 @@ import { numberToWords, fmtZegge } from "./number-to-words"
 import {
   type Leningdeel,
   leningdelenTotal,
+  loanPartsBaseTotal,
   leningdeelLines,
   buildAflossingSummary,
   termijnLines,
@@ -177,7 +178,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
   const deadlineStr = fmtNlDate(data.signingDeadline || "")
   const totalLoan = hasLeningdelen
     ? leningdelenTotal(leningdelen)
-    : loanParts.reduce((sum, lp) => sum + (Number(lp.amount) || 0), 0)
+    : loanPartsBaseTotal(loanParts)
   const companyName = settings.companyName || "Lange & Partners Financieel Advies"
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
   const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "-"
@@ -317,6 +318,15 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
               <CondRow key={i} label="Rentedepot">
                 <V>
                   Van de lening zal een bedrag van {fmtEuro(lp.amount)} {fmtZegge(lp.amount)} worden aangehouden op een rentedepot voor de betaling van de rente en kosten van de financiering voor de duur van {looptijdMaanden || "-"} maanden. Er wordt over het rentedepot geen rente vergoed.
+                </V>
+              </CondRow>
+            )
+          }
+          if (label === "Bouwdepot") {
+            return (
+              <CondRow key={i} label="Bouwdepot">
+                <V>
+                  Van de lening zal een bedrag van {fmtEuro(lp.amount)} {fmtZegge(lp.amount)} worden aangehouden in een bouwdepot. Over het bouwdepot wordt geen rente vergoed. Opname van het bouwdepot is met een minimale opname van € 25.000,-.
                 </V>
               </CondRow>
             )
