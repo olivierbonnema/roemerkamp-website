@@ -573,13 +573,13 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
       <PitchSection id="geldnemers" title="Geldnemers" isOpen={isSectionOpen("geldnemers")} onToggle={toggleSection}>
         {geldnemers.map((g, i) => (
           <div key={i} className="flex gap-2 flex-wrap">
-            <input placeholder="Naam (persoon of B.V.)" value={g.name} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, name: e.target.value } : gn)))} className="flex-1 min-w-[170px] border rounded px-2 py-1.5 text-sm" />
+            <input placeholder="Naam (persoon of B.V.)" value={g.name} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, name: e.target.value } : gn)))} className="w-[220px] border rounded px-2 py-1.5 text-sm" />
             <select value={g.type} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, type: e.target.value as Geldnemer["type"] } : gn)))} className="border rounded px-2 py-1.5 text-sm">
               <option value="prive">in privé</option>
               <option value="bv">B.V.</option>
             </select>
             {g.type === "bv" && (
-              <input placeholder="Naam vertegenwoordiger" value={g.bvName} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, bvName: e.target.value } : gn)))} className="flex-1 min-w-[170px] border rounded px-2 py-1.5 text-sm" />
+              <input placeholder="Naam vertegenwoordiger" value={g.bvName} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, bvName: e.target.value } : gn)))} className="w-[220px] border rounded px-2 py-1.5 text-sm" />
             )}
             <button type="button" onClick={() => setGeldnemers((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg">×</button>
           </div>
