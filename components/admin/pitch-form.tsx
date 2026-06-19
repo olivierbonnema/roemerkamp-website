@@ -139,9 +139,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [cashplanningRaw, setCashplanningRaw] = useState((d.cashplanningRaw as string) || PD.cashplanning)
 
   const [risks, setRisks] = useState<Risk[]>(() => {
-    const saved = d.risks as Risk[] | undefined
-    return PD.riskPresets.map((preset) => {
-      const s = saved?.find((r) => r.id === preset.id)
+    const saved = (d.risks as Risk[] | undefined) || []
+    const presetIds = new Set(PD.riskPresets.map((p) => p.id))
+    const presetRisks = PD.riskPresets.map((preset) => {
+      const s = saved.find((r) => r.id === preset.id)
       return {
         id: preset.id,
         title: preset.title,
@@ -149,7 +150,12 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         ad: s ? s.ad : preset.ad,
       }
     })
+    // Behoud zelf-toegevoegde (eigen) risico's.
+    const custom = saved.filter((r) => !presetIds.has(r.id))
+    return [...presetRisks, ...custom]
   })
+  const addCustomRisk = () => setRisks((prev) => [...prev, { id: `custom-${Date.now()}`, title: "", checked: true, ad: "" }])
+  const removeRisk = (idx: number) => setRisks((prev) => prev.filter((_, i) => i !== idx))
 
   const [geldnemers, setGeldnemers] = useState<Geldnemer[]>(
     (d.geldnemers as Geldnemer[]) || [{ name: "", type: "prive", bvName: "" }]
@@ -279,7 +285,8 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         erpText,
         stichtingEnabled,
         stichtingText,
-        risks,
+        // Laat lege, niet-ingevulde eigen risico's weg.
+        risks: risks.filter((r) => !r.id.startsWith("custom-") || r.title.trim() || r.ad.trim()),
         spreidingEnabled,
         spreidingText,
         cashplanningEnabled,
@@ -526,19 +533,28 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
       {/* 9. Risico's */}
       <PitchSection id="risks" title="Enkele risico's" isOpen={isSectionOpen("risks")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">[LOOPTIJD] en [HOOFDSOM] worden automatisch ingevuld.</p>
-        {risks.map((r, i) => (
-          <div key={r.id} className="bg-gray-50 rounded-lg p-3 space-y-2">
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" checked={r.checked} onChange={(e) => {
-                setRisks((prev) => prev.map((risk, j) => (j === i ? { ...risk, checked: e.target.checked } : risk)))
-              }} className="mt-0.5" />
-              <span className="text-sm font-semibold">{r.title}</span>
-            </label>
-            {r.checked && (
-              <textarea value={r.ad} onChange={(e) => setRisks((prev) => prev.map((risk, j) => (j === i ? { ...risk, ad: e.target.value } : risk)))} rows={4} className="w-full border rounded px-2 py-1.5 text-sm" />
-            )}
-          </div>
-        ))}
+        {risks.map((r, i) => {
+          const isCustom = r.id.startsWith("custom-")
+          return (
+            <div key={r.id} className="bg-gray-50 rounded-lg p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <input id={`risk-${r.id}`} type="checkbox" checked={r.checked} onChange={(e) => setRisks((prev) => prev.map((risk, j) => (j === i ? { ...risk, checked: e.target.checked } : risk)))} className="mt-2" />
+                {isCustom ? (
+                  <input value={r.title} onChange={(e) => setRisks((prev) => prev.map((risk, j) => (j === i ? { ...risk, title: e.target.value } : risk)))} placeholder="Titel van het risico" className="flex-1 border rounded px-2 py-1.5 text-sm font-semibold" />
+                ) : (
+                  <label htmlFor={`risk-${r.id}`} className="text-sm font-semibold mt-1.5 cursor-pointer">{r.title}</label>
+                )}
+                {isCustom && (
+                  <button type="button" onClick={() => removeRisk(i)} className="text-red-400 hover:text-red-600 text-lg leading-none mt-1">×</button>
+                )}
+              </div>
+              {r.checked && (
+                <textarea value={r.ad} onChange={(e) => setRisks((prev) => prev.map((risk, j) => (j === i ? { ...risk, ad: e.target.value } : risk)))} rows={4} placeholder={isCustom ? "Toelichting bij dit risico (verschijnt als 'Ad N. ...')" : undefined} className="w-full border rounded px-2 py-1.5 text-sm" />
+              )}
+            </div>
+          )
+        })}
+        <button type="button" onClick={addCustomRisk} className="text-sm text-[#2E2060] hover:underline">+ Eigen risico toevoegen</button>
       </PitchSection>
 
       {/* 10. Spreiding */}
