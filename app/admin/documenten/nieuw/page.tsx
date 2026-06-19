@@ -242,9 +242,11 @@ export default function NieuwDocumentPage() {
 }
 
 function deriveDocName(type: string, data: unknown): string {
-  if (!data || typeof data !== "object") return type === "termsheet" ? "Termsheet" : "Pitch"
-  const borrowers = (data as Record<string, unknown>).borrowers as { name?: string }[] | undefined
-  const name = borrowers?.[0]?.name || ""
   const prefix = type === "termsheet" ? "Termsheet" : "Pitch"
+  if (!data || typeof data !== "object") return prefix
+  const d = data as Record<string, unknown>
+  // Termsheet bewaart "borrowers", pitch bewaart "geldnemers".
+  const parties = (type === "termsheet" ? d.borrowers : d.geldnemers) as { name?: string }[] | undefined
+  const name = parties?.[0]?.name || ""
   return name ? `${prefix} - ${name}` : prefix
 }
