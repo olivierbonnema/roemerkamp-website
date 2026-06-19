@@ -270,7 +270,8 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         zekerhedenText,
         waardeType,
         waardeBedrag,
-        financieringsopzet: finRows,
+        // "Gewenste financiering" is altijd gelijk aan het leenbedrag (hoofdsom).
+        financieringsopzet: finRows.map((r) => (r.label === "Gewenste financiering" ? { ...r, amount: hoofdsom } : r)),
         ltvRows,
         hypotheekRang,
         hypotheekBedrag,
@@ -368,7 +369,11 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
                   <input placeholder="Eigen omschrijving" value={row.label} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, label: e.target.value } : r)))} className="w-full border rounded px-2 py-1.5 text-sm" />
                 )}
               </div>
-              <input type="number" placeholder="Bedrag" value={row.amount || ""} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, amount: parseFloat(e.target.value) || 0 } : r)))} className="flex-1 border rounded px-2 py-1.5 text-sm self-start" />
+              {row.label === "Gewenste financiering" ? (
+                <input type="number" value={hoofdsom || ""} readOnly title="Gelijk aan het leenbedrag (hoofdsom, bij Uitgangspunten)" className="flex-1 border rounded px-2 py-1.5 text-sm self-start bg-gray-100 text-gray-500" />
+              ) : (
+                <input type="number" placeholder="Bedrag" value={row.amount || ""} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, amount: parseFloat(e.target.value) || 0 } : r)))} className="flex-1 border rounded px-2 py-1.5 text-sm self-start" />
+              )}
               <select value={row.type} onChange={(e) => setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, type: e.target.value as FinRow["type"] } : r)))} className="w-[105px] border rounded px-2 py-1.5 text-sm self-start">
                 <option value="normal">Normaal</option>
                 <option value="aftrek">Aftrek (-/-)</option>
