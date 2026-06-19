@@ -60,17 +60,17 @@ function PitchSection({ id, title, isOpen, onToggle, children }: {
   )
 }
 
-// Standard omschrijvingen for the financieringsopzet rows (+ "Zelf invullen…" for a custom one).
-const FIN_LABELS = [
-  "Aankoopsom",
-  "Marktwaarde onderpand",
-  "Verbouwingskosten",
-  "Bijkomende kosten",
-  "Kosten koper",
-  "Overdrachtsbelasting",
-  "Totaal",
-  "Inbreng eigen middelen",
-  "Gewenste financiering",
+// Standard omschrijvingen for the financieringsopzet rows (+ "Zelf invullen…" for a
+// custom one). Each option carries a default type that is applied when selected.
+const FIN_OPTIONS: { label: string; type: FinRow["type"] }[] = [
+  { label: "Herfinanciering bestaande lening", type: "aftrek" },
+  { label: "Benodigd werkkapitaal", type: "aftrek" },
+  { label: "Aankoop grond", type: "aftrek" },
+  { label: "Aankoop onderpand", type: "aftrek" },
+  { label: "Herfinancieringskosten", type: "aftrek" },
+  { label: "Waarvan rentedepot", type: "normal" },
+  { label: "Waarvan bouwdepot", type: "normal" },
+  { label: "Gewenste financiering", type: "result" },
 ]
 
 const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
@@ -301,7 +301,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
       <PitchSection id="fin" title="Financieringsopzet" isOpen={isSectionOpen("fin")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">Kies een standaard omschrijving of &quot;Zelf invullen…&quot;. Sleep de rijen aan de greep om de volgorde aan te passen. &quot;Aftrek&quot; voegt -/- toe; &quot;Totaal&quot;/&quot;Resultaat&quot; zijn vetgedrukt met een lijn erboven.</p>
         {finRows.map((row, i) => {
-          const isCustom = !FIN_LABELS.includes(row.label)
+          const isCustom = !FIN_OPTIONS.some((o) => o.label === row.label)
           return (
             <div
               key={i}
@@ -316,10 +316,18 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
               <div className="flex-[2] space-y-1">
                 <select
                   value={isCustom ? "__custom__" : row.label}
-                  onChange={(e) => { const v = e.target.value; setFinRows((prev) => prev.map((r, j) => (j === i ? { ...r, label: v === "__custom__" ? "" : v } : r))) }}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    setFinRows((prev) => prev.map((r, j) => {
+                      if (j !== i) return r
+                      if (v === "__custom__") return { ...r, label: "" }
+                      const opt = FIN_OPTIONS.find((o) => o.label === v)
+                      return { ...r, label: v, type: opt ? opt.type : r.type }
+                    }))
+                  }}
                   className="w-full border rounded px-2 py-1.5 text-sm"
                 >
-                  {FIN_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  {FIN_OPTIONS.map((o) => <option key={o.label} value={o.label}>{o.label}</option>)}
                   <option value="__custom__">Zelf invullen…</option>
                 </select>
                 {isCustom && (
