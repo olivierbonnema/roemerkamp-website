@@ -70,13 +70,14 @@ function PitchSection({ id, title, isOpen, onToggle, children }: {
 // Standard omschrijvingen for the financieringsopzet rows (+ "Zelf invullen…" for a
 // custom one). Each option carries a default type that is applied when selected.
 const FIN_OPTIONS: { label: string; type: FinRow["type"] }[] = [
-  { label: "Herfinanciering bestaande lening", type: "aftrek" },
-  { label: "Benodigd werkkapitaal", type: "aftrek" },
-  { label: "Aankoop grond", type: "aftrek" },
-  { label: "Aankoop onderpand", type: "aftrek" },
-  { label: "Herfinancieringskosten", type: "aftrek" },
+  { label: "Herfinanciering bestaande lening", type: "normal" },
+  { label: "Benodigd werkkapitaal", type: "normal" },
+  { label: "Aankoop grond", type: "normal" },
+  { label: "Aankoop onderpand", type: "normal" },
+  { label: "Herfinancieringskosten", type: "normal" },
   { label: "Waarvan rentedepot", type: "normal" },
   { label: "Waarvan bouwdepot", type: "normal" },
+  { label: "Inbreng eigen middelen", type: "aftrek" },
   { label: "Gewenste financiering", type: "result" },
 ]
 
