@@ -7,6 +7,7 @@
 import type { TermsheetData } from "./termsheet-generator"
 import type { PitchData } from "./pitch-generator"
 import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
+import { PITCH_DEFAULTS } from "./form-defaults"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
 
@@ -148,11 +149,23 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
   const marktwaarde = totalMarktwaarde(aanvraag)
   const eigenInbreng = toNumber(aanvraag?.eigenInbreng)
 
-  // Rente-/bouwdepot uit de leningdelen → automatisch als verpanding bij de zekerheden.
-  const depotExtras: string[] = []
+  // Rente-/bouwdepot uit de leningdelen.
   const loanParts = termsheet.loanParts || []
-  if (loanParts.some((lp) => /rentedepot/i.test(lp.typeLabel || "") && (lp.amount || 0) > 0)) depotExtras.push("Verpanding van het rentedepot")
-  if (loanParts.some((lp) => /bouwdepot/i.test(lp.typeLabel || "") && (lp.amount || 0) > 0)) depotExtras.push("Verpanding van het bouwdepot")
+  const hasRentedepot = loanParts.some((lp) => /rentedepot/i.test(lp.typeLabel || "") && (lp.amount || 0) > 0)
+  const hasBouwdepot = loanParts.some((lp) => /bouwdepot/i.test(lp.typeLabel || "") && (lp.amount || 0) > 0)
+  // → automatisch als verpanding bij de zekerheden.
+  const depotExtras: string[] = []
+  if (hasRentedepot) depotExtras.push("Verpanding van het rentedepot")
+  if (hasBouwdepot) depotExtras.push("Verpanding van het bouwdepot")
+  // → bij een rentedepot: "Betalingsproblemen (rentedepot)" aanvinken i.p.v. de normale.
+  const risks = hasRentedepot
+    ? PITCH_DEFAULTS.riskPresets.map((p) => ({
+        id: p.id,
+        title: p.title,
+        ad: p.ad,
+        checked: p.id === "betaling" ? false : p.id === "betaling-rentedepot" ? true : p.defaultChecked,
+      }))
+    : undefined
 
   // Parties: termsheet borrowers to pitch geldnemers. For a B.V. the pitch name is the
   // company name and bvName holds the representative; for a person, just the name.
@@ -191,6 +204,7 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     verzoekText: buildVerzoek(termsheet) || undefined,
     zekerhedenText: buildPitchZekerheden((termsheet.objects || []) as ZekerheidObject[], hoofdsom, depotExtras) || undefined,
     zekerhedenExtra: depotExtras.length ? depotExtras : undefined,
+    risks,
     waardeType: marktwaarde > 0 ? "woz" : undefined,
     waardeBedrag: marktwaarde || undefined,
   }
