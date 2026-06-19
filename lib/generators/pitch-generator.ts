@@ -103,9 +103,9 @@ export interface PitchRisk {
 }
 
 export interface PitchGeldnemer {
-  name: string
-  type: "prive" | "prive-bestuurder" | "bv"
-  bvName: string
+  name: string // persoon- of B.V.-naam
+  type: "prive" | "bv"
+  bvName: string // bij B.V.: naam van de vertegenwoordiger
 }
 
 export interface PitchData {
@@ -469,11 +469,10 @@ export async function generatePitch(
   if (geldnemers.length) {
     ch.push(pitchSectionHead("Geldnemers:"))
     geldnemers.forEach((g) => {
+      // name = persoon- of B.V.-naam; bvName = naam vertegenwoordiger (bij B.V.).
       let line = g.name || ""
-      if (g.type === "prive-bestuurder" && g.bvName) {
-        line += `, handelende in privé tevens als bestuurder van ${g.bvName}`
-      } else if (g.type === "bv" && g.bvName) {
-        line = g.bvName + (g.name ? `, vertegenwoordigd door ${g.name}` : "")
+      if (g.type === "bv" && g.bvName) {
+        line = `${g.name}, vertegenwoordigd door ${g.bvName}`
       }
       ch.push(par([tx(line)]))
     })

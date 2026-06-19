@@ -244,11 +244,10 @@ export function PitchPDF({ data, settings }: Props) {
           <View>
             <Text style={s.sectionHead}>Geldnemer(s)</Text>
             {geldnemers.map((g, i) => {
+              // name = persoon- of B.V.-naam; bvName = naam vertegenwoordiger (bij B.V.).
               let line = g.name || ""
-              if (g.type === "prive-bestuurder" && g.bvName) {
-                line += `, handelende in privé tevens als bestuurder van ${g.bvName}`
-              } else if (g.type === "bv" && g.bvName) {
-                line = g.bvName + (g.name ? `, vertegenwoordigd door ${g.name}` : "")
+              if (g.type === "bv" && g.bvName) {
+                line = `${g.name}, vertegenwoordigd door ${g.bvName}`
               }
               return <Text key={i} style={s.bodyText}>{line}</Text>
             })}

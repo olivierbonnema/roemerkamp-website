@@ -148,12 +148,17 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
   const marktwaarde = totalMarktwaarde(aanvraag)
   const eigenInbreng = toNumber(aanvraag?.eigenInbreng)
 
-  // Parties: termsheet borrowers to pitch geldnemers
-  const geldnemers = (termsheet.borrowers || []).map((b) => ({
-    name: b.name || "",
-    type: (b.type === "bv" ? "bv" : "prive") as "prive" | "prive-bestuurder" | "bv",
-    bvName: b.type === "bv" ? (b.bvName || "") : "",
-  }))
+  // Parties: termsheet borrowers to pitch geldnemers. For a B.V. the pitch name is the
+  // company name and bvName holds the representative; for a person, just the name.
+  const geldnemers = (termsheet.borrowers || []).map((b) => {
+    if (b.type === "bv") {
+      const rep = b.vertegenwoordiger
+        ? `${b.vertegenwoordigerSalut ? b.vertegenwoordigerSalut + " " : ""}${b.vertegenwoordiger}`
+        : ""
+      return { name: b.bvName || b.name || "", type: "bv" as const, bvName: rep }
+    }
+    return { name: b.name || "", type: "prive" as const, bvName: "" }
+  })
 
   // Collateral: termsheet objects to pitch zekerheden — full structured fields, so
   // the pitch's Zekerheden section matches the termsheet 1:1 (same fields + text).
