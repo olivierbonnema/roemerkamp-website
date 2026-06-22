@@ -3,28 +3,27 @@
 // Invoice (factuur) generator for the "opstartkosten" (start-up fee). Derived
 // from a saved termsheet: the client block + the opstartfee amount come from the
 // termsheet; the invoice number and date are supplied by the admin (no counter).
-// One A4 page, same letterhead/footer machinery as the termsheet generator, with
-// a professional invoice layout (title, meta block, shaded items table).
+// One A4 page, same letterhead/footer machinery as the termsheet generator.
+// Restrained, letter-style layout (no colour blocks) so it reads like a real
+// hand-made invoice rather than a template.
 
 import * as docx from "docx"
 import type { TermsheetData, TermsheetSettings } from "./termsheet-generator"
 import {
   MM, PAGE_W, PAGE_H, MARGIN_SIDE,
-  C_BRAND, C_GREY, C_HRULE,
+  C_BRAND, C_GREY, C_BLACK,
   SZ_SMALL, SZ_TINY,
   tx, par, empty, noTableBorder,
   fmtEuro, fmtNlDate,
   getImageSize, logoType, logoBase64,
 } from "./docx-helpers"
 
-const MARGIN_TOP = MM(32)
+const MARGIN_TOP = MM(34)
 const MARGIN_BOTTOM = MM(18)
 const MARGIN_HEADER = MM(7)
 const MARGIN_FOOTER = MM(8)
 const CONTENT = PAGE_W - 2 * MARGIN_SIDE
-
-const C_TINT = "EDEAF6" // light brand tint for the total row
-const C_WHITE = "FFFFFF"
+const C_RULE = "555555" // restrained dark-grey table rules
 
 // Stable company facts that must render identically on every invoice. These do
 // not live in settings (no admin UI / Firestore field for them) and never change.
@@ -34,20 +33,11 @@ const FOOTER_LINE_2 = "2011 VN Haarlem  |  www.langefa.nl  |  BTW NL8177.63.466.
 
 const ALIGN = docx.AlignmentType
 const DXA = docx.WidthType.DXA
-const lineBorder = { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE }
+const ruleLine = { style: docx.BorderStyle.SINGLE, size: 6, color: C_RULE }
 const noLine = { style: docx.BorderStyle.NONE }
 
 function salutWord(s?: string): string {
   return (s || "").toLowerCase().includes("mevr") ? "mevrouw" : "de heer"
-}
-
-// A thin brand accent rule (full content width).
-function brandRule(after: number) {
-  return new docx.Paragraph({
-    children: [tx("", { size: 2 })],
-    spacing: { before: 0, after },
-    border: { bottom: { style: docx.BorderStyle.SINGLE, size: 12, color: C_BRAND } },
-  })
 }
 
 export async function generateFactuur(
@@ -59,6 +49,7 @@ export async function generateFactuur(
   const b = (data.borrowers || [])[0] || ({} as TermsheetData["borrowers"][number])
   const isBv = b.type === "bv"
   const bedrag = opts.opstartBedrag != null ? opts.opstartBedrag : (data.entreekosten?.opstart || 0)
+  const place = data.city || "Haarlem"
   const dateStr = fmtNlDate(opts.invoiceDate || data.date || "")
   const logoDataUrl = s.logoDataUrl || ""
 
@@ -92,7 +83,7 @@ export async function generateFactuur(
         children: [tx(FOOTER_LINE_1, { size: SZ_TINY, color: C_GREY })],
         alignment: ALIGN.CENTER,
         spacing: { before: 60, after: 0 },
-        border: { top: { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE } },
+        border: { top: { style: docx.BorderStyle.SINGLE, size: 4, color: "CCCCCC" } },
       }),
       par([tx(FOOTER_LINE_2, { size: SZ_TINY, color: C_GREY })], { align: ALIGN.CENTER, before: 0, after: 0 }),
     ],
@@ -101,95 +92,75 @@ export async function generateFactuur(
   // ---- body ----
   const children: (docx.Paragraph | docx.Table)[] = []
 
-  // Title + accent rule
-  children.push(par([tx("Factuur", { bold: true, color: C_BRAND, size: 40 })], { before: 0, after: 40 }))
-  children.push(brandRule(220))
-
-  // Two columns: client address (left) + invoice meta (right)
-  const addrCell: docx.Paragraph[] = []
-  addrCell.push(par([tx("FACTUURADRES", { size: 14, color: C_GREY })], { before: 0, after: 40 }))
-  addrCell.push(par([tx(b.name || "", { bold: true, size: SZ_SMALL })], { before: 0, after: 10 }))
+  // Client address block (letter style, no labels)
+  children.push(par([tx(b.name || "", { bold: true, size: SZ_SMALL })], { before: 0, after: 10 }))
   if (isBv && b.vertegenwoordiger) {
-    addrCell.push(par([tx(`t.a.v. ${salutWord(b.vertegenwoordigerSalut)} ${b.vertegenwoordiger}`, { size: SZ_SMALL })], { before: 0, after: 10 }))
+    children.push(par([tx(`t.a.v. ${salutWord(b.vertegenwoordigerSalut)} ${b.vertegenwoordiger}`, { size: SZ_SMALL })], { before: 0, after: 10 }))
   }
-  if (b.address) addrCell.push(par([tx(b.address, { size: SZ_SMALL })], { before: 0, after: 10 }))
+  if (b.address) children.push(par([tx(b.address, { size: SZ_SMALL })], { before: 0, after: 10 }))
   if (b.postalCode || b.city) {
-    addrCell.push(par([tx(`${b.postalCode || ""}  ${(b.city || "").toUpperCase()}`.trim(), { size: SZ_SMALL })], { before: 0, after: 10 }))
+    children.push(par([tx(`${b.postalCode || ""}  ${(b.city || "").toUpperCase()}`.trim(), { size: SZ_SMALL })], { before: 0, after: 10 }))
   }
 
-  const metaRow = (label: string, value: string) => [
-    par([tx(label, { size: 14, color: C_GREY })], { align: ALIGN.RIGHT, before: 0, after: 0 }),
-    par([tx(value, { size: SZ_SMALL, bold: true })], { align: ALIGN.RIGHT, before: 0, after: 80 }),
-  ]
-  const metaCell: docx.Paragraph[] = [
-    ...metaRow("FACTUURNUMMER", opts.invoiceNumber),
-    ...metaRow("FACTUURDATUM", dateStr),
-  ]
+  children.push(empty(MM(14)))
 
-  const COL_L = Math.round(CONTENT * 0.6)
-  const COL_R = CONTENT - COL_L
-  children.push(new docx.Table({
-    width: { size: CONTENT, type: DXA },
-    columnWidths: [COL_L, COL_R],
-    layout: docx.TableLayoutType.FIXED,
-    borders: noTableBorder(),
-    rows: [
-      new docx.TableRow({
-        children: [
-          new docx.TableCell({ children: addrCell, borders: noTableBorder(), width: { size: COL_L, type: DXA }, margins: { top: 0, bottom: 0, left: 0, right: 80 } }),
-          new docx.TableCell({ children: metaCell, borders: noTableBorder(), width: { size: COL_R, type: DXA }, margins: { top: 0, bottom: 0, left: 80, right: 0 } }),
-        ],
-      }),
-    ],
+  // Place + date
+  children.push(par([tx(`${place}, ${dateStr}`, { size: SZ_SMALL })], { before: 0, after: 0 }))
+
+  children.push(empty(MM(6)))
+
+  // Factuurnummer (label + value, letter style)
+  children.push(new docx.Paragraph({
+    children: [tx("Factuurnummer", { size: SZ_SMALL }), tx("\t", { size: SZ_SMALL }), tx(opts.invoiceNumber, { size: SZ_SMALL, bold: true })],
+    spacing: { before: 0, after: 0 },
+    tabStops: [{ type: docx.TabStopType.LEFT, position: MM(42) }],
   }))
 
-  children.push(empty(MM(10)))
+  children.push(empty(MM(12)))
 
-  // Items table (shaded header, emphasized total)
-  const COL_DESC = Math.round(CONTENT * 0.72)
-  const COL_AMT = CONTENT - COL_DESC
-  const cpar = (text: string, o: { bold?: boolean; right?: boolean; color?: string } = {}) =>
-    par([tx(text, { size: SZ_SMALL, bold: o.bold, color: o.color })], { align: o.right ? ALIGN.RIGHT : ALIGN.LEFT, before: 0, after: 0 })
+  // Items table: compact, left-aligned, thin rules only (no fills) — like a
+  // typed invoice rather than a full-width template band.
+  const TBL_W = Math.round(CONTENT * 0.58)
+  const COL_DESC = Math.round(TBL_W * 0.62)
+  const COL_AMT = TBL_W - COL_DESC
+  const cpar = (text: string, o: { bold?: boolean; right?: boolean } = {}) =>
+    par([tx(text, { size: SZ_SMALL, bold: o.bold, color: C_BLACK })], { align: o.right ? ALIGN.RIGHT : ALIGN.LEFT, before: 0, after: 0 })
 
-  const itemRow = (
-    desc: docx.Paragraph, amt: docx.Paragraph,
-    o: { fill?: string; bottom?: boolean } = {}
-  ) => {
-    const shading = o.fill ? { fill: o.fill, type: docx.ShadingType.CLEAR, color: "auto" } : undefined
-    const borders = { top: noLine, bottom: o.bottom ? lineBorder : noLine, left: noLine, right: noLine }
+  const itemRow = (desc: docx.Paragraph, amt: docx.Paragraph, brd: { top?: boolean; bottom?: boolean } = {}) => {
+    const borders = { top: brd.top ? ruleLine : noLine, bottom: brd.bottom ? ruleLine : noLine, left: noLine, right: noLine }
     return new docx.TableRow({
       children: [
-        new docx.TableCell({ children: [desc], shading, borders, width: { size: COL_DESC, type: DXA }, margins: { top: 90, bottom: 90, left: 120, right: 80 } }),
-        new docx.TableCell({ children: [amt], shading, borders, width: { size: COL_AMT, type: DXA }, margins: { top: 90, bottom: 90, left: 80, right: 120 } }),
+        new docx.TableCell({ children: [desc], borders, width: { size: COL_DESC, type: DXA }, margins: { top: 70, bottom: 70, left: 0, right: 80 } }),
+        new docx.TableCell({ children: [amt], borders, width: { size: COL_AMT, type: DXA }, margins: { top: 70, bottom: 70, left: 80, right: 0 } }),
       ],
     })
   }
 
   children.push(new docx.Table({
-    width: { size: CONTENT, type: DXA },
+    width: { size: TBL_W, type: DXA },
     columnWidths: [COL_DESC, COL_AMT],
     layout: docx.TableLayoutType.FIXED,
     borders: noTableBorder(),
     rows: [
-      itemRow(cpar("Omschrijving", { bold: true, color: C_WHITE }), cpar("Bedrag", { bold: true, color: C_WHITE, right: true }), { fill: C_BRAND }),
-      itemRow(cpar("Opstartfee"), cpar(fmtEuro(bedrag), { right: true }), { bottom: true }),
-      itemRow(cpar("BTW: Vrijgesteld van BTW"), cpar("€", { right: true }), { bottom: true }),
-      itemRow(cpar("Totaal", { bold: true, color: C_BRAND }), cpar(fmtEuro(bedrag), { bold: true, color: C_BRAND, right: true }), { fill: C_TINT }),
+      itemRow(cpar("Omschrijving", { bold: true }), cpar("Bedrag", { bold: true, right: true }), { bottom: true }),
+      itemRow(cpar("Opstartfee"), cpar(fmtEuro(bedrag), { right: true })),
+      itemRow(cpar("BTW: Vrijgesteld van BTW"), cpar("€", { right: true })),
+      itemRow(cpar("Totaal", { bold: true }), cpar(fmtEuro(bedrag), { bold: true, right: true }), { top: true }),
     ],
   }))
 
-  children.push(empty(MM(12)))
+  children.push(empty(MM(14)))
 
   // Payment request
   children.push(par([tx(
     `Wij verzoeken u vriendelijk genoemd bedrag per omgaande over te maken naar ons rekeningnummer ${IBAN} t.n.v. Lange & partners te Haarlem onder vermelding van het factuurnummer.`,
     { size: SZ_SMALL })], { before: 0, after: 0 }))
 
-  children.push(empty(MM(10)))
+  children.push(empty(MM(12)))
 
   // Signature
   children.push(par([tx("Met vriendelijke groet,", { size: SZ_SMALL })], { before: 0, after: 0 }))
-  children.push(par([tx("Lange & partners Financieel Advies", { size: SZ_SMALL, bold: true })], { before: 0, after: 0 }))
+  children.push(par([tx("Lange & partners Financieel Advies", { size: SZ_SMALL })], { before: 0, after: 0 }))
 
   const doc = new docx.Document({
     creator: "Lange & Partners Document Generator",
