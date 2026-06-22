@@ -3,7 +3,8 @@
 // Invoice (factuur) generator for the "opstartkosten" (start-up fee). Derived
 // from a saved termsheet: the client block + the opstartfee amount come from the
 // termsheet; the invoice number and date are supplied by the admin (no counter).
-// One A4 page, same letterhead/footer machinery as the termsheet generator.
+// One A4 page, same letterhead/footer machinery as the termsheet generator, with
+// a professional invoice layout (title, meta block, shaded items table).
 
 import * as docx from "docx"
 import type { TermsheetData, TermsheetSettings } from "./termsheet-generator"
@@ -16,13 +17,14 @@ import {
   getImageSize, logoType, logoBase64,
 } from "./docx-helpers"
 
-const MARGIN_TOP = MM(35)
-const MARGIN_BOTTOM = MM(20)
+const MARGIN_TOP = MM(32)
+const MARGIN_BOTTOM = MM(18)
 const MARGIN_HEADER = MM(7)
 const MARGIN_FOOTER = MM(8)
 const CONTENT = PAGE_W - 2 * MARGIN_SIDE
-const COL_DESC = Math.round(CONTENT * 0.68)
-const COL_AMT = CONTENT - COL_DESC
+
+const C_TINT = "EDEAF6" // light brand tint for the total row
+const C_WHITE = "FFFFFF"
 
 // Stable company facts that must render identically on every invoice. These do
 // not live in settings (no admin UI / Firestore field for them) and never change.
@@ -30,31 +32,21 @@ const IBAN = "NL86 ABNA 0423 4510 57"
 const FOOTER_LINE_1 = "Wilhelminastraat 50  |  T 023-5173100  |  info@langefa.nl  |  NL86 ABNA 0423 4510 57  |  KvK 34269870"
 const FOOTER_LINE_2 = "2011 VN Haarlem  |  www.langefa.nl  |  BTW NL8177.63.466.B01  |  AFM 12017043"
 
+const ALIGN = docx.AlignmentType
+const DXA = docx.WidthType.DXA
+const lineBorder = { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE }
+const noLine = { style: docx.BorderStyle.NONE }
+
 function salutWord(s?: string): string {
   return (s || "").toLowerCase().includes("mevr") ? "mevrouw" : "de heer"
 }
 
-function rowBorders(top: boolean, bottom: boolean) {
-  const none = { style: docx.BorderStyle.NONE }
-  const line = { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE }
-  return { top: top ? line : none, bottom: bottom ? line : none, left: none, right: none }
-}
-
-function tableRow(desc: docx.Paragraph, amt: docx.Paragraph, opts: { top?: boolean; bottom?: boolean } = {}) {
-  const borders = rowBorders(!!opts.top, !!opts.bottom)
-  return new docx.TableRow({
-    children: [
-      new docx.TableCell({
-        children: [desc], borders,
-        width: { size: COL_DESC, type: docx.WidthType.DXA },
-        margins: { top: 60, bottom: 60, left: 0, right: 80 },
-      }),
-      new docx.TableCell({
-        children: [amt], borders,
-        width: { size: COL_AMT, type: docx.WidthType.DXA },
-        margins: { top: 60, bottom: 60, left: 80, right: 0 },
-      }),
-    ],
+// A thin brand accent rule (full content width).
+function brandRule(after: number) {
+  return new docx.Paragraph({
+    children: [tx("", { size: 2 })],
+    spacing: { before: 0, after },
+    border: { bottom: { style: docx.BorderStyle.SINGLE, size: 12, color: C_BRAND } },
   })
 }
 
@@ -67,7 +59,6 @@ export async function generateFactuur(
   const b = (data.borrowers || [])[0] || ({} as TermsheetData["borrowers"][number])
   const isBv = b.type === "bv"
   const bedrag = opts.opstartBedrag != null ? opts.opstartBedrag : (data.entreekosten?.opstart || 0)
-  const place = data.city || "Haarlem"
   const dateStr = fmtNlDate(opts.invoiceDate || data.date || "")
   const logoDataUrl = s.logoDataUrl || ""
 
@@ -79,98 +70,126 @@ export async function generateFactuur(
     })
   }
 
-  let headerLogoW = 240, headerLogoH = 80
+  let headerLogoW = 230, headerLogoH = 77
   if (logoDataUrl) {
     const dims = await getImageSize(logoDataUrl)
     const ratio = dims.h / dims.w
     headerLogoH = Math.round(ratio * headerLogoW)
   }
 
-  let header: docx.Header | undefined
-  if (logoDataUrl) {
-    header = new docx.Header({
+  // Letterhead in the page header: logo (or text fallback) top-right.
+  const headerChildren: docx.Paragraph[] = logoDataUrl
+    ? [new docx.Paragraph({ children: [makeLogoRun(headerLogoW, headerLogoH)], alignment: ALIGN.RIGHT, spacing: { before: 0, after: 0 } })]
+    : [
+        par([tx("LANGE & PARTNERS", { bold: true, color: C_BRAND, size: 30 })], { align: ALIGN.RIGHT, before: 0, after: 0 }),
+        par([tx("Financieel Advies", { color: C_GREY, size: 20 })], { align: ALIGN.RIGHT, before: 0, after: 0 }),
+      ]
+  const header = new docx.Header({ children: headerChildren })
+
+  const footer = new docx.Footer({
+    children: [
+      new docx.Paragraph({
+        children: [tx(FOOTER_LINE_1, { size: SZ_TINY, color: C_GREY })],
+        alignment: ALIGN.CENTER,
+        spacing: { before: 60, after: 0 },
+        border: { top: { style: docx.BorderStyle.SINGLE, size: 4, color: C_HRULE } },
+      }),
+      par([tx(FOOTER_LINE_2, { size: SZ_TINY, color: C_GREY })], { align: ALIGN.CENTER, before: 0, after: 0 }),
+    ],
+  })
+
+  // ---- body ----
+  const children: (docx.Paragraph | docx.Table)[] = []
+
+  // Title + accent rule
+  children.push(par([tx("Factuur", { bold: true, color: C_BRAND, size: 40 })], { before: 0, after: 40 }))
+  children.push(brandRule(220))
+
+  // Two columns: client address (left) + invoice meta (right)
+  const addrCell: docx.Paragraph[] = []
+  addrCell.push(par([tx("FACTUURADRES", { size: 14, color: C_GREY })], { before: 0, after: 40 }))
+  addrCell.push(par([tx(b.name || "", { bold: true, size: SZ_SMALL })], { before: 0, after: 10 }))
+  if (isBv && b.vertegenwoordiger) {
+    addrCell.push(par([tx(`t.a.v. ${salutWord(b.vertegenwoordigerSalut)} ${b.vertegenwoordiger}`, { size: SZ_SMALL })], { before: 0, after: 10 }))
+  }
+  if (b.address) addrCell.push(par([tx(b.address, { size: SZ_SMALL })], { before: 0, after: 10 }))
+  if (b.postalCode || b.city) {
+    addrCell.push(par([tx(`${b.postalCode || ""}  ${(b.city || "").toUpperCase()}`.trim(), { size: SZ_SMALL })], { before: 0, after: 10 }))
+  }
+
+  const metaRow = (label: string, value: string) => [
+    par([tx(label, { size: 14, color: C_GREY })], { align: ALIGN.RIGHT, before: 0, after: 0 }),
+    par([tx(value, { size: SZ_SMALL, bold: true })], { align: ALIGN.RIGHT, before: 0, after: 80 }),
+  ]
+  const metaCell: docx.Paragraph[] = [
+    ...metaRow("FACTUURNUMMER", opts.invoiceNumber),
+    ...metaRow("FACTUURDATUM", dateStr),
+  ]
+
+  const COL_L = Math.round(CONTENT * 0.6)
+  const COL_R = CONTENT - COL_L
+  children.push(new docx.Table({
+    width: { size: CONTENT, type: DXA },
+    columnWidths: [COL_L, COL_R],
+    layout: docx.TableLayoutType.FIXED,
+    borders: noTableBorder(),
+    rows: [
+      new docx.TableRow({
+        children: [
+          new docx.TableCell({ children: addrCell, borders: noTableBorder(), width: { size: COL_L, type: DXA }, margins: { top: 0, bottom: 0, left: 0, right: 80 } }),
+          new docx.TableCell({ children: metaCell, borders: noTableBorder(), width: { size: COL_R, type: DXA }, margins: { top: 0, bottom: 0, left: 80, right: 0 } }),
+        ],
+      }),
+    ],
+  }))
+
+  children.push(empty(MM(10)))
+
+  // Items table (shaded header, emphasized total)
+  const COL_DESC = Math.round(CONTENT * 0.72)
+  const COL_AMT = CONTENT - COL_DESC
+  const cpar = (text: string, o: { bold?: boolean; right?: boolean; color?: string } = {}) =>
+    par([tx(text, { size: SZ_SMALL, bold: o.bold, color: o.color })], { align: o.right ? ALIGN.RIGHT : ALIGN.LEFT, before: 0, after: 0 })
+
+  const itemRow = (
+    desc: docx.Paragraph, amt: docx.Paragraph,
+    o: { fill?: string; bottom?: boolean } = {}
+  ) => {
+    const shading = o.fill ? { fill: o.fill, type: docx.ShadingType.CLEAR, color: "auto" } : undefined
+    const borders = { top: noLine, bottom: o.bottom ? lineBorder : noLine, left: noLine, right: noLine }
+    return new docx.TableRow({
       children: [
-        new docx.Paragraph({
-          children: [makeLogoRun(headerLogoW, headerLogoH)],
-          alignment: docx.AlignmentType.RIGHT,
-          spacing: { before: 0, after: 0 },
-        }),
+        new docx.TableCell({ children: [desc], shading, borders, width: { size: COL_DESC, type: DXA }, margins: { top: 90, bottom: 90, left: 120, right: 80 } }),
+        new docx.TableCell({ children: [amt], shading, borders, width: { size: COL_AMT, type: DXA }, margins: { top: 90, bottom: 90, left: 80, right: 120 } }),
       ],
     })
   }
 
-  const footer = new docx.Footer({
-    children: [
-      par([tx(FOOTER_LINE_1, { size: SZ_TINY, color: C_GREY })], { align: docx.AlignmentType.CENTER, before: 0, after: 0 }),
-      par([tx(FOOTER_LINE_2, { size: SZ_TINY, color: C_GREY })], { align: docx.AlignmentType.CENTER, before: 0, after: 0 }),
-    ],
-  })
-
-  const children: (docx.Paragraph | docx.Table)[] = []
-
-  // Letterhead fallback when no logo configured (mirrors the termsheet cover).
-  if (!logoDataUrl) {
-    children.push(par([tx("LANGE & PARTNERS", { bold: true, color: C_BRAND, size: 32 })], { align: docx.AlignmentType.RIGHT, before: 0, after: 0 }))
-    children.push(par([tx("Financieel Advies", { color: C_GREY, size: 22 })], { align: docx.AlignmentType.RIGHT, before: 0, after: MM(12) }))
-  } else {
-    children.push(empty(MM(6)))
-  }
-
-  // Client address block
-  children.push(par([tx(b.name || "", { bold: true, size: SZ_SMALL })], { before: 0, after: 20 }))
-  if (isBv && b.vertegenwoordiger) {
-    children.push(par([tx(`t.a.v. ${salutWord(b.vertegenwoordigerSalut)} ${b.vertegenwoordiger}`, { size: SZ_SMALL })], { before: 0, after: 20 }))
-  }
-  if (b.address) children.push(par([tx(b.address, { size: SZ_SMALL })], { before: 0, after: 20 }))
-  if (b.postalCode || b.city) {
-    children.push(par([tx(`${b.postalCode || ""}  ${(b.city || "").toUpperCase()}`.trim(), { size: SZ_SMALL })], { before: 0, after: 20 }))
-  }
-
-  children.push(empty(MM(10)))
-
-  // Place + date
-  children.push(par([tx(`${place}, ${dateStr}`, { size: SZ_SMALL })], { before: 0, after: 20 }))
-
-  children.push(empty(MM(6)))
-
-  // Factuurnummer (tab-aligned label : value)
-  children.push(new docx.Paragraph({
-    children: [tx("Factuurnummer", { size: SZ_SMALL }), tx("\t", { size: SZ_SMALL }), tx(opts.invoiceNumber, { size: SZ_SMALL, bold: true })],
-    spacing: { before: 0, after: 20 },
-    tabStops: [{ type: docx.TabStopType.LEFT, position: MM(48) }],
-  }))
-
-  children.push(empty(MM(8)))
-
-  // Table: Omschrijving | bedrag
-  const cellPar = (text: string, opts2: { bold?: boolean; right?: boolean; brand?: boolean } = {}) =>
-    par([tx(text, { size: SZ_SMALL, bold: opts2.bold, color: opts2.brand ? C_BRAND : undefined })],
-      { align: opts2.right ? docx.AlignmentType.RIGHT : docx.AlignmentType.LEFT, before: 40, after: 40 })
-
   children.push(new docx.Table({
-    width: { size: CONTENT, type: docx.WidthType.DXA },
+    width: { size: CONTENT, type: DXA },
     columnWidths: [COL_DESC, COL_AMT],
+    layout: docx.TableLayoutType.FIXED,
     borders: noTableBorder(),
     rows: [
-      tableRow(cellPar("Omschrijving", { bold: true, brand: true }), cellPar("bedrag", { bold: true, brand: true, right: true }), { bottom: true }),
-      tableRow(cellPar("Opstartfee"), cellPar(fmtEuro(bedrag), { right: true })),
-      tableRow(cellPar("BTW: Vrijgesteld van BTW"), cellPar("€", { right: true })),
-      tableRow(cellPar("Totaal", { bold: true }), cellPar(fmtEuro(bedrag), { bold: true, right: true }), { top: true }),
+      itemRow(cpar("Omschrijving", { bold: true, color: C_WHITE }), cpar("Bedrag", { bold: true, color: C_WHITE, right: true }), { fill: C_BRAND }),
+      itemRow(cpar("Opstartfee"), cpar(fmtEuro(bedrag), { right: true }), { bottom: true }),
+      itemRow(cpar("BTW: Vrijgesteld van BTW"), cpar("€", { right: true }), { bottom: true }),
+      itemRow(cpar("Totaal", { bold: true, color: C_BRAND }), cpar(fmtEuro(bedrag), { bold: true, color: C_BRAND, right: true }), { fill: C_TINT }),
     ],
   }))
 
-  children.push(empty(MM(10)))
+  children.push(empty(MM(12)))
 
   // Payment request
   children.push(par([tx(
     `Wij verzoeken u vriendelijk genoemd bedrag per omgaande over te maken naar ons rekeningnummer ${IBAN} t.n.v. Lange & partners te Haarlem onder vermelding van het factuurnummer.`,
-    { size: SZ_SMALL })], { before: 0, after: 20 }))
+    { size: SZ_SMALL })], { before: 0, after: 0 }))
 
-  children.push(empty(MM(8)))
+  children.push(empty(MM(10)))
 
   // Signature
   children.push(par([tx("Met vriendelijke groet,", { size: SZ_SMALL })], { before: 0, after: 0 }))
-  children.push(par([tx("Lange & partners Financieel Advies", { size: SZ_SMALL })], { before: 0, after: 0 }))
+  children.push(par([tx("Lange & partners Financieel Advies", { size: SZ_SMALL, bold: true })], { before: 0, after: 0 }))
 
   const doc = new docx.Document({
     creator: "Lange & Partners Document Generator",
@@ -187,7 +206,7 @@ export async function generateFactuur(
             },
           },
         },
-        ...(header ? { headers: { default: header } } : {}),
+        headers: { default: header },
         footers: { default: footer },
         children,
       },
