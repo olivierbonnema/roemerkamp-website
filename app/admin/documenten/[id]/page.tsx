@@ -3,14 +3,15 @@
 import { useState, useRef, useEffect, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { Download, Save, Trash2, ArrowLeft, Eye, Send, FileText } from "lucide-react"
+import { Download, Save, Trash2, ArrowLeft, Eye, Send, FileText, Receipt } from "lucide-react"
 import Link from "next/link"
 import TermsheetForm, { type TermsheetFormHandle } from "@/components/admin/termsheet-form"
 import PitchForm, { type PitchFormHandle } from "@/components/admin/pitch-form"
-import { generateTermsheet } from "@/lib/generators/termsheet-generator"
+import { generateTermsheet, type TermsheetData } from "@/lib/generators/termsheet-generator"
 import { generatePitch } from "@/lib/generators/pitch-generator"
 import EsignModal from "@/components/admin/esign-panel"
 import DocxPreviewModal from "@/components/admin/docx-preview-modal"
+import InvoiceDialog from "@/components/admin/invoice-dialog"
 
 export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -21,6 +22,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [makingPitch, setMakingPitch] = useState(false)
+  const [showFactuur, setShowFactuur] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [showEsignPreview, setShowEsignPreview] = useState(false)
   const [showEsign, setShowEsign] = useState(false)
@@ -280,14 +282,23 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
             {generating ? "Genereren..." : "Download .docx"}
           </button>
           {isTermsheet && (
-            <button
-              onClick={handleMakePitch}
-              disabled={makingPitch}
-              className="flex items-center gap-2 px-4 py-2.5 border border-[#311E86] text-[#311E86] rounded-lg text-sm font-medium hover:bg-[#311E86] hover:text-white disabled:opacity-50 transition-colors"
-            >
-              <FileText size={14} />
-              {makingPitch ? "Bezig..." : "Maak pitch"}
-            </button>
+            <>
+              <button
+                onClick={() => setShowFactuur(true)}
+                className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                <Receipt size={14} />
+                Factuur opstartkosten
+              </button>
+              <button
+                onClick={handleMakePitch}
+                disabled={makingPitch}
+                className="flex items-center gap-2 px-4 py-2.5 border border-[#311E86] text-[#311E86] rounded-lg text-sm font-medium hover:bg-[#311E86] hover:text-white disabled:opacity-50 transition-colors"
+              >
+                <FileText size={14} />
+                {makingPitch ? "Bezig..." : "Maak pitch"}
+              </button>
+            </>
           )}
           <button
             onClick={() => setShowEsign(true)}
@@ -311,6 +322,16 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           <PitchForm ref={pitchRef} initialData={docData} settings={settings} />
         )}
       </div>
+
+      {/* Factuur opstartkosten dialog */}
+      {isTermsheet && (
+        <InvoiceDialog
+          open={showFactuur}
+          onClose={() => setShowFactuur(false)}
+          getData={() => getFormData() as TermsheetData | undefined}
+          settings={settings}
+        />
+      )}
 
       {/* E-sign modal */}
       <EsignModal
