@@ -23,12 +23,12 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: FolderOpen },
   { href: "/admin/checks", label: "Checks", icon: ShieldCheck },
-  { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 },
+  // { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 }, // hidden
   { href: "/admin/documenten", label: "Documenten", icon: FileText },
   { href: "/admin/gebruikers", label: "Gebruikers", icon: Users },
   { href: "/admin/partners", label: "Partners", icon: Handshake },
   { href: "/admin/activiteit", label: "Activiteit", icon: Activity },
-  { href: "/admin/blog", label: "Blog", icon: Newspaper },
+  // { href: "/admin/blog", label: "Blog", icon: Newspaper }, // hidden
 ]
 
 const BOTTOM_ITEMS = [
