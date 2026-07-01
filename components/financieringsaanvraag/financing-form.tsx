@@ -119,6 +119,26 @@ const emptyObject = (): ObjectData => ({
   type: "", typeAnders: "", adres: "", huisnummer: "", postcode: "", plaats: "", waarde: "", huurinkomsten: "",
 })
 
+// Postcode + huisnummer -> straat + plaats via the free PDOK Locatieserver
+// (Dutch government geocoder, no API key). Returns null on any failure so the
+// user can always still type manually.
+async function pdokLookup(postcode: string, huisnummer: string): Promise<{ straat: string; plaats: string } | null> {
+  const pc = (postcode || "").replace(/\s+/g, "").toUpperCase()
+  const hn = (huisnummer || "").trim()
+  if (!/^\d{4}[A-Z]{2}$/.test(pc) || !hn) return null
+  try {
+    const q = encodeURIComponent(`${pc} ${hn}`)
+    const res = await fetch(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${q}&fl=straatnaam,woonplaatsnaam&fq=type:adres&rows=1`)
+    if (!res.ok) return null
+    const data = await res.json()
+    const doc = data?.response?.docs?.[0]
+    if (!doc || (!doc.straatnaam && !doc.woonplaatsnaam)) return null
+    return { straat: doc.straatnaam || "", plaats: doc.woonplaatsnaam || "" }
+  } catch {
+    return null
+  }
+}
+
 /* ── Currency helpers ── */
 function formatCurrency(raw: string): string {
   if (!raw) return ""
@@ -374,7 +394,10 @@ export function FinancingForm() {
   const [kvkNummer, setKvkNummer] = useState(s("kvkNummer", ""))
   const [email, setEmail] = useState(s("email", ""))
   const [telefoon, setTelefoon] = useState(s("telefoon", ""))
-  const [adres, setAdres] = useState(s("adres", ""))
+  const [adres, setAdres] = useState(s("adres", ""))            // straatnaam (auto-filled)
+  const [adresHuisnummer, setAdresHuisnummer] = useState(s("adresHuisnummer", ""))
+  const [adresPostcode, setAdresPostcode] = useState(s("adresPostcode", ""))
+  const [adresPlaats, setAdresPlaats] = useState(s("adresPlaats", ""))
   const [geboortedatum, setGeboortedatum] = useState(s("geboortedatum", ""))
   const [burgerlijkStaat, setBurgerlijkStaat] = useState(s("burgerlijkStaat", ""))
   const [medeNaam, setMedeNaam] = useState(s("medeNaam", ""))
@@ -407,23 +430,27 @@ export function FinancingForm() {
   const resolveObjType = (o: ObjectData) => (o.type === "Anders" && (o.typeAnders || "").trim() ? o.typeAnders.trim() : o.type)
   const objectFullAdres = (o: ObjectData) => `${o.adres || ""} ${o.huisnummer || ""}`.trim()
 
-  // Postcode + huisnummer -> straat + plaats via PDOK Locatieserver (free, no key).
+  // Postcode + huisnummer -> straat + plaats via PDOK (free, no key).
   const lookupObjectAddress = async (idx: number) => {
     const o = objects[idx]
     if (!o) return
-    const pc = (o.postcode || "").replace(/\s+/g, "").toUpperCase()
-    const hn = (o.huisnummer || "").trim()
-    if (!/^\d{4}[A-Z]{2}$/.test(pc) || !hn) return
-    try {
-      const q = encodeURIComponent(`${pc} ${hn}`)
-      const res = await fetch(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${q}&fl=straatnaam,woonplaatsnaam&fq=type:adres&rows=1`)
-      if (!res.ok) return
-      const data = await res.json()
-      const doc = data?.response?.docs?.[0]
-      if (!doc || (!doc.straatnaam && !doc.woonplaatsnaam)) return
-      setObjects((prev) => prev.map((obj, i) => (i === idx ? { ...obj, adres: doc.straatnaam || obj.adres, plaats: doc.woonplaatsnaam || obj.plaats } : obj)))
-      setErrors((prev) => { const n = { ...prev }; delete n[`obj_${idx}_adres`]; delete n[`obj_${idx}_plaats`]; return n })
-    } catch { /* silent — user can still type manually */ }
+    const r = await pdokLookup(o.postcode, o.huisnummer)
+    if (!r) return
+    setObjects((prev) => prev.map((obj, i) => (i === idx ? { ...obj, adres: r.straat || obj.adres, plaats: r.plaats || obj.plaats } : obj)))
+    setErrors((prev) => { const n = { ...prev }; delete n[`obj_${idx}_adres`]; delete n[`obj_${idx}_plaats`]; return n })
+  }
+  const lookupAanvragerAddress = async () => {
+    const r = await pdokLookup(adresPostcode, adresHuisnummer)
+    if (!r) return
+    if (r.straat) setAdres(r.straat)
+    if (r.plaats) setAdresPlaats(r.plaats)
+  }
+  // Applicant address as one combined string ("Straat 12, 1234 AB Plaats") — what
+  // downstream (Firestore, splitAddress in the termsheet extractor) expects.
+  const aanvragerFullAdres = () => {
+    const l1 = `${adres} ${adresHuisnummer}`.trim()
+    const l2 = `${adresPostcode} ${adresPlaats}`.trim()
+    return [l1, l2].filter(Boolean).join(", ")
   }
 
   // Documenten
@@ -436,6 +463,7 @@ export function FinancingForm() {
   useEffect(() => {
     saveDraft(draftId, {
       step, aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
+      adresHuisnummer, adresPostcode, adresPlaats,
       geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders,
@@ -446,6 +474,7 @@ export function FinancingForm() {
     return () => clearTimeout(draftTimerRef.current)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId, step, aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
+      adresHuisnummer, adresPostcode, adresPlaats,
       geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders])
@@ -538,7 +567,7 @@ export function FinancingForm() {
     try {
       const formData = new FormData()
       const fields: Record<string, string> = {
-        aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
+        aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres: aanvragerFullAdres(),
         geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
         leningDoel: resolveDoel(), leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
         wanneerNodig, aflossingstype, uitstrategie: resolveExit(),
@@ -633,12 +662,24 @@ export function FinancingForm() {
             </Field>
           </TwoCol>
 
+          <Field label="Telefoonnummer" required error={errors.telefoon}>
+            <Input value={telefoon} onChange={(v) => { setTelefoon(v); clearError("telefoon") }} placeholder="Telefoonnummer" type="tel" error={!!errors.telefoon} />
+          </Field>
+
           <TwoCol>
-            <Field label="Telefoonnummer" required error={errors.telefoon}>
-              <Input value={telefoon} onChange={(v) => { setTelefoon(v); clearError("telefoon") }} placeholder="Telefoonnummer" type="tel" error={!!errors.telefoon} />
+            <Field label="Postcode">
+              <Input value={adresPostcode} onChange={setAdresPostcode} onBlur={lookupAanvragerAddress} placeholder="1234 AB" />
             </Field>
-            <Field label="Adres">
-              <Input value={adres} onChange={setAdres} placeholder="Straat, huisnr, postcode, plaats" />
+            <Field label="Huisnummer">
+              <Input value={adresHuisnummer} onChange={setAdresHuisnummer} onBlur={lookupAanvragerAddress} placeholder="12" />
+            </Field>
+          </TwoCol>
+          <TwoCol>
+            <Field label="Straatnaam" hint="Vult automatisch op basis van postcode + huisnummer">
+              <Input value={adres} onChange={setAdres} placeholder="Straatnaam" />
+            </Field>
+            <Field label="Plaats">
+              <Input value={adresPlaats} onChange={setAdresPlaats} placeholder="Plaats" />
             </Field>
           </TwoCol>
 
@@ -804,7 +845,7 @@ export function FinancingForm() {
             {kvkNummer && <ReviewRow label="KvK-nummer" value={kvkNummer} />}
             <ReviewRow label="E-mail" value={fmt(email)} />
             <ReviewRow label="Telefoon" value={fmt(telefoon)} />
-            {adres && <ReviewRow label="Adres" value={adres} />}
+            {aanvragerFullAdres() && <ReviewRow label="Adres" value={aanvragerFullAdres()} />}
             {geboortedatum && <ReviewRow label="Geboortedatum" value={geboortedatum} />}
             {burgerlijkStaat && <ReviewRow label="Burgerlijke staat" value={burgerlijkStaat} />}
             {(burgerlijkStaat === "Gehuwd" || burgerlijkStaat === "Geregistreerd partnerschap") && medeNaam && (
