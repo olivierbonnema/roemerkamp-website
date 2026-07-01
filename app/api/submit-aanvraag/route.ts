@@ -156,7 +156,6 @@ export async function POST(req: NextRequest) {
   const looptijd          = get("looptijd")
   const eigenInbreng      = get("eigenInbreng")
   const bestaandeSchulden = get("bestaandeSchulden")
-  const toelichting       = get("toelichting")
   const wanneerNodig      = get("wanneerNodig")
   const aflossingstype    = get("aflossingstype")
   const uitstrategie      = get("uitstrategie")
@@ -271,7 +270,6 @@ export async function POST(req: NextRequest) {
     eigenInbreng      ? `Eigen inbreng: €${eigenInbreng}` : "",
     bestaandeSchulden ? `Bestaande schulden: €${bestaandeSchulden}` : "",
     uitstrategie      ? `Exit strategy: ${uitstrategie}` : "",
-    toelichting       ? `Toelichting: ${toelichting}` : "",
     "",
     "--- DOCUMENTEN ---",
     `Aantal bestanden: ${allFiles.length}`,
@@ -313,7 +311,6 @@ export async function POST(req: NextRequest) {
       aflossingstype,
       wanneerNodig,
       uitstrategie,
-      toelichting,
       driveFolderUrl: "",
       driveFolderId: "",
       aantalBestanden: allFiles.length,
@@ -519,7 +516,6 @@ export async function POST(req: NextRequest) {
               row("Eigen inbreng", fmtEur(eigenInbreng)),
               row("Bestaande schulden", fmtEur(bestaandeSchulden)),
               row("Exit strategy", uitstrategie),
-              row("Toelichting", toelichting),
             ].join(""))}
             ${section("Documenten", [
               row("Aantal bestanden", `${allFiles.length}`),

@@ -23,6 +23,7 @@ const PROPERTY_TYPES = [
   "Commercieel: industrieel",
   "Gemengd gebruik",
   "Grond / ontwikkellocatie",
+  "Anders",
 ]
 
 const LOAN_PURPOSES = [
@@ -31,6 +32,7 @@ const LOAN_PURPOSES = [
   "Overbruggingsfinanciering",
   "Ontwikkelfinanciering",
   "Renovatiefinanciering",
+  "Anders",
 ]
 
 const BURGERLIJKE_STAAT_OPTIONS = [
@@ -104,7 +106,9 @@ function deleteDraft(draftId: string) {
 /* ── Object type ── */
 interface ObjectData {
   type: string
-  adres: string
+  typeAnders: string
+  adres: string       // straatnaam (auto-filled from postcode + huisnummer)
+  huisnummer: string
   postcode: string
   plaats: string
   waarde: string
@@ -112,7 +116,7 @@ interface ObjectData {
 }
 
 const emptyObject = (): ObjectData => ({
-  type: "", adres: "", postcode: "", plaats: "", waarde: "", huurinkomsten: "",
+  type: "", typeAnders: "", adres: "", huisnummer: "", postcode: "", plaats: "", waarde: "", huurinkomsten: "",
 })
 
 /* ── Currency helpers ── */
@@ -178,14 +182,15 @@ function Field({ label, required, hint, error, children }: {
   )
 }
 
-function Input({ value, onChange, placeholder, type = "text", error }: {
-  value: string; onChange: (v: string) => void; placeholder: string; type?: string; error?: boolean
+function Input({ value, onChange, placeholder, type = "text", error, onBlur }: {
+  value: string; onChange: (v: string) => void; placeholder: string; type?: string; error?: boolean; onBlur?: () => void
 }) {
   return (
     <input
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
       placeholder={placeholder}
       className={`w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border rounded-full text-gray-900 placeholder:text-gray-400 outline-none transition-colors ${
         error ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-[#1E3A5F]"
@@ -386,14 +391,40 @@ export function FinancingForm() {
 
   // Financiering
   const [leningDoel, setLeningDoel] = useState(s("leningDoel", ""))
+  const [leningDoelAnders, setLeningDoelAnders] = useState(s("leningDoelAnders", ""))
   const [leningBedrag, setLeningBedrag] = useState(s("leningBedrag", ""))
   const [looptijd, setLooptijd] = useState(s("looptijd", ""))
   const [eigenInbreng, setEigenInbreng] = useState(s("eigenInbreng", ""))
   const [bestaandeSchulden, setBestaandeSchulden] = useState(s("bestaandeSchulden", ""))
-  const [toelichting, setToelichting] = useState(s("toelichting", ""))
   const [wanneerNodig, setWanneerNodig] = useState(s("wanneerNodig", ""))
   const [aflossingstype, setAflossingstype] = useState(s("aflossingstype", ""))
   const [uitstrategie, setUitstrategie] = useState(s("uitstrategie", ""))
+  const [uitstrategieAnders, setUitstrategieAnders] = useState(s("uitstrategieAnders", ""))
+
+  // "Anders" free-text resolvers — send the typed value downstream, not the literal "Anders".
+  const resolveDoel = () => (leningDoel === "Anders" && leningDoelAnders.trim() ? leningDoelAnders.trim() : leningDoel)
+  const resolveExit = () => (uitstrategie === "Anders" && uitstrategieAnders.trim() ? uitstrategieAnders.trim() : uitstrategie)
+  const resolveObjType = (o: ObjectData) => (o.type === "Anders" && (o.typeAnders || "").trim() ? o.typeAnders.trim() : o.type)
+  const objectFullAdres = (o: ObjectData) => `${o.adres || ""} ${o.huisnummer || ""}`.trim()
+
+  // Postcode + huisnummer -> straat + plaats via PDOK Locatieserver (free, no key).
+  const lookupObjectAddress = async (idx: number) => {
+    const o = objects[idx]
+    if (!o) return
+    const pc = (o.postcode || "").replace(/\s+/g, "").toUpperCase()
+    const hn = (o.huisnummer || "").trim()
+    if (!/^\d{4}[A-Z]{2}$/.test(pc) || !hn) return
+    try {
+      const q = encodeURIComponent(`${pc} ${hn}`)
+      const res = await fetch(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${q}&fl=straatnaam,woonplaatsnaam&fq=type:adres&rows=1`)
+      if (!res.ok) return
+      const data = await res.json()
+      const doc = data?.response?.docs?.[0]
+      if (!doc || (!doc.straatnaam && !doc.woonplaatsnaam)) return
+      setObjects((prev) => prev.map((obj, i) => (i === idx ? { ...obj, adres: doc.straatnaam || obj.adres, plaats: doc.woonplaatsnaam || obj.plaats } : obj)))
+      setErrors((prev) => { const n = { ...prev }; delete n[`obj_${idx}_adres`]; delete n[`obj_${idx}_plaats`]; return n })
+    } catch { /* silent — user can still type manually */ }
+  }
 
   // Documenten
   const [files, setFiles] = useState<Record<string, File[]>>({})
@@ -406,8 +437,8 @@ export function FinancingForm() {
     saveDraft(draftId, {
       step, aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
-      objects, leningDoel, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
-      toelichting, wanneerNodig, aflossingstype, uitstrategie,
+      objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
+      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders,
     })
     clearTimeout(draftTimerRef.current)
     setDraftSaved(true)
@@ -416,8 +447,8 @@ export function FinancingForm() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId, step, aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
-      objects, leningDoel, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
-      toelichting, wanneerNodig, aflossingstype, uitstrategie])
+      objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
+      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders])
 
   const addFiles = (catId: string, newFiles: File[]) =>
     setFiles((prev) => ({ ...prev, [catId]: [...(prev[catId] || []), ...newFiles] }))
@@ -452,8 +483,9 @@ export function FinancingForm() {
     if (currentStep === 1) {
       objects.forEach((obj, idx) => {
         if (!obj.type) newErrors[`obj_${idx}_type`] = "Selecteer het type vastgoed"
-        if (!obj.adres) newErrors[`obj_${idx}_adres`] = "Vul het adres in"
         if (!obj.postcode) newErrors[`obj_${idx}_postcode`] = "Vul de postcode in"
+        if (!obj.huisnummer) newErrors[`obj_${idx}_huisnummer`] = "Vul het huisnummer in"
+        if (!obj.adres) newErrors[`obj_${idx}_adres`] = "Vul de straatnaam in"
         if (!obj.plaats) newErrors[`obj_${idx}_plaats`] = "Vul de plaats in"
       })
     }
@@ -508,11 +540,20 @@ export function FinancingForm() {
       const fields: Record<string, string> = {
         aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
         geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
-        leningDoel, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden, toelichting,
-        wanneerNodig, aflossingstype, uitstrategie,
+        leningDoel: resolveDoel(), leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
+        wanneerNodig, aflossingstype, uitstrategie: resolveExit(),
       }
       for (const [key, value] of Object.entries(fields)) formData.append(key, value)
-      formData.append("objects", JSON.stringify(objects))
+      // Send the original object shape: resolved type + combined "straat huisnummer" adres.
+      const submitObjects = objects.map((o) => ({
+        type: resolveObjType(o),
+        adres: objectFullAdres(o),
+        postcode: o.postcode,
+        plaats: o.plaats,
+        waarde: o.waarde,
+        huurinkomsten: o.huurinkomsten,
+      }))
+      formData.append("objects", JSON.stringify(submitObjects))
       for (const [catId, catFiles] of Object.entries(files))
         for (const file of catFiles)
           formData.append(`file::${catId}`, file, file.name)
@@ -643,12 +684,22 @@ export function FinancingForm() {
               <Field label="Type vastgoed" required error={errors[`obj_${idx}_type`]}>
                 <Select value={obj.type} onChange={(v) => updateObject(idx, "type", v)} options={PROPERTY_TYPES} placeholder="Selecteer type vastgoed" error={!!errors[`obj_${idx}_type`]} />
               </Field>
-              <Field label="Adres van het object" required error={errors[`obj_${idx}_adres`]}>
-                <Input value={obj.adres} onChange={(v) => updateObject(idx, "adres", v)} placeholder="Straatnaam en huisnummer" error={!!errors[`obj_${idx}_adres`]} />
-              </Field>
+              {obj.type === "Anders" && (
+                <Field label="Type vastgoed (anders)">
+                  <Input value={obj.typeAnders || ""} onChange={(v) => updateObject(idx, "typeAnders", v)} placeholder="Omschrijf het type vastgoed" />
+                </Field>
+              )}
               <TwoCol>
                 <Field label="Postcode" required error={errors[`obj_${idx}_postcode`]}>
-                  <Input value={obj.postcode} onChange={(v) => updateObject(idx, "postcode", v)} placeholder="1234 AB" error={!!errors[`obj_${idx}_postcode`]} />
+                  <Input value={obj.postcode} onChange={(v) => updateObject(idx, "postcode", v)} onBlur={() => lookupObjectAddress(idx)} placeholder="1234 AB" error={!!errors[`obj_${idx}_postcode`]} />
+                </Field>
+                <Field label="Huisnummer" required error={errors[`obj_${idx}_huisnummer`]}>
+                  <Input value={obj.huisnummer || ""} onChange={(v) => updateObject(idx, "huisnummer", v)} onBlur={() => lookupObjectAddress(idx)} placeholder="12" error={!!errors[`obj_${idx}_huisnummer`]} />
+                </Field>
+              </TwoCol>
+              <TwoCol>
+                <Field label="Straatnaam" required error={errors[`obj_${idx}_adres`]} hint="Vult automatisch op basis van postcode + huisnummer">
+                  <Input value={obj.adres} onChange={(v) => updateObject(idx, "adres", v)} placeholder="Straatnaam" error={!!errors[`obj_${idx}_adres`]} />
                 </Field>
                 <Field label="Plaats" required error={errors[`obj_${idx}_plaats`]}>
                   <Input value={obj.plaats} onChange={(v) => updateObject(idx, "plaats", v)} placeholder="Plaats" error={!!errors[`obj_${idx}_plaats`]} />
@@ -680,6 +731,11 @@ export function FinancingForm() {
           <Field label="Doel van de financiering" required error={errors.leningDoel}>
             <Select value={leningDoel} onChange={(v) => { setLeningDoel(v); clearError("leningDoel") }} options={LOAN_PURPOSES} placeholder="Selecteer financieringsdoel" error={!!errors.leningDoel} />
           </Field>
+          {leningDoel === "Anders" && (
+            <Field label="Doel (anders)">
+              <Input value={leningDoelAnders} onChange={setLeningDoelAnders} placeholder="Omschrijf het doel van de financiering" />
+            </Field>
+          )}
 
           <TwoCol>
             <Field label="Gewenst leningbedrag" required error={errors.leningBedrag}>
@@ -713,10 +769,11 @@ export function FinancingForm() {
           <Field label="Exit strategy" hint="Hoe wordt de financiering aan het einde van de looptijd afgelost?">
             <Select value={uitstrategie} onChange={setUitstrategie} options={UITSTRATEGIE_OPTIONS} placeholder="Selecteer exit strategy" />
           </Field>
-
-          <Field label="Toelichting" hint="Aanvullende informatie over uw aanvraag">
-            <Textarea value={toelichting} onChange={setToelichting} placeholder="Beschrijf eventueel de situatie, het plan of bijzondere omstandigheden..." rows={4} />
-          </Field>
+          {uitstrategie === "Anders" && (
+            <Field label="Exit strategy (anders)">
+              <Input value={uitstrategieAnders} onChange={setUitstrategieAnders} placeholder="Omschrijf uw exit strategy" />
+            </Field>
+          )}
         </div>
       )
 
@@ -760,8 +817,8 @@ export function FinancingForm() {
 
           {objects.map((obj, idx) => (
             <ReviewSection key={idx} title={objects.length > 1 ? `Object ${idx + 1}` : "Object"}>
-              <ReviewRow label="Type" value={fmt(obj.type)} />
-              <ReviewRow label="Adres" value={fmt(obj.adres)} />
+              <ReviewRow label="Type" value={fmt(resolveObjType(obj))} />
+              <ReviewRow label="Adres" value={fmt(objectFullAdres(obj))} />
               <ReviewRow label="Postcode / Plaats" value={`${obj.postcode} ${obj.plaats}`.trim() || "-"} />
               <ReviewRow label="Marktwaarde" value={obj.waarde ? fmtCurrency(obj.waarde) : "-"} />
               {obj.huurinkomsten && <ReviewRow label="Huurinkomsten" value={`${fmtCurrency(obj.huurinkomsten)} / maand`} />}
@@ -769,15 +826,14 @@ export function FinancingForm() {
           ))}
 
           <ReviewSection title="Financiering">
-            <ReviewRow label="Doel" value={fmt(leningDoel)} />
+            <ReviewRow label="Doel" value={fmt(resolveDoel())} />
             <ReviewRow label="Leningbedrag" value={fmtCurrency(leningBedrag)} />
             <ReviewRow label="Looptijd" value={fmt(looptijd)} />
             {aflossingstype && <ReviewRow label="Aflossingstype" value={aflossingstype} />}
             {eigenInbreng && <ReviewRow label="Eigen inbreng" value={fmtCurrency(eigenInbreng)} />}
             {bestaandeSchulden && <ReviewRow label="Bestaande schulden" value={fmtCurrency(bestaandeSchulden)} />}
             {wanneerNodig && <ReviewRow label="Financiering nodig op" value={wanneerNodig} />}
-            {uitstrategie && <ReviewRow label="Exit strategy" value={uitstrategie} />}
-            {toelichting && <ReviewRow label="Toelichting" value={toelichting} />}
+            {uitstrategie && <ReviewRow label="Exit strategy" value={resolveExit()} />}
           </ReviewSection>
 
           <ReviewSection title="Documenten">
