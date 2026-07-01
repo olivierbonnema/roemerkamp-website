@@ -72,6 +72,28 @@ export function buildZekerhedenText(
   return lines.join("\n")
 }
 
+// Rente-/bouwdepot loan parts -> extra zekerheden lines, appended to the termsheet
+// enumeration via `extras`. A rentedepot prepays the interest; a bouwdepot funds
+// construction draws — so the two get different wording. No trailing period here
+// (buildZekerhedenText adds it).
+export function depotZekerheden(
+  loanParts: { amount?: number; typeLabel?: string }[],
+  looptijdMaanden: number
+): string[] {
+  const out: string[] = []
+  for (const lp of loanParts || []) {
+    const label = (lp.typeLabel || "").trim()
+    const amount = lp.amount || 0
+    if (amount <= 0) continue
+    if (label === "Rentedepot") {
+      out.push(`Verpanding van het rentedepot à ${fmtEuro(amount)} dat de maandelijkse rente en kosten dekt gedurende de looptijd van ${looptijdMaanden || "-"} maanden`)
+    } else if (label === "Bouwdepot") {
+      out.push(`Verpanding van het bouwdepot à ${fmtEuro(amount)} dat gedurende de bouw-/verbouwperiode wordt aangehouden en per bouwtermijn wordt uitgekeerd`)
+    }
+  }
+  return out
+}
+
 // € zonder ",-" suffix (voor de actuele hoofdsom van een voorliggende hypotheek).
 function eur0(n: number): string {
   return `€ ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(n || 0)}`

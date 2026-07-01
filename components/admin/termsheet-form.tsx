@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from "react"
 import { fmtEuro } from "@/lib/generators/docx-helpers"
-import { HYPOTHEEK_RANKS, RANK_LABELS, buildZekerhedenText } from "@/lib/generators/zekerheden"
+import { HYPOTHEEK_RANKS, RANK_LABELS, buildZekerhedenText, depotZekerheden } from "@/lib/generators/zekerheden"
 import {
   TERMSHEET_DEFAULTS as TD,
   buildDefaultVoorafCondities,
+  buildBeschikbaarheid,
   addDays,
   addMonths,
 } from "@/lib/generators/form-defaults"
@@ -150,7 +151,13 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [verzekering, setVerzekering] = useState((d as Record<string, unknown>).verzekering as string ?? TD.verzekering)
   const [condities, setCondities] = useState((d as Record<string, unknown>).condities as string ?? TD.condities)
   const [toepasselijkRecht, setToepasselijkRecht] = useState((d as Record<string, unknown>).toepasselijkRecht as string ?? TD.toepasselijkRecht)
-  const [beschikbaarheid, setBeschikbaarheid] = useState((d as Record<string, unknown>).beschikbaarheid as string ?? TD.beschikbaarheid)
+  const [beschikbaarheid, setBeschikbaarheid] = useState(
+    ((d as Record<string, unknown>).beschikbaarheid as string) ??
+      buildBeschikbaarheid(((d as Record<string, unknown>).validityDate as string) || addMonths(addDays(baseDate, 7), 1))
+  )
+  // True once the user hand-edits, or when editing a saved termsheet — so the
+  // auto-cascade below never overwrites a customised/existing beschikbaarheid.
+  const [beschikbaarheidManual, setBeschikbaarheidManual] = useState(!!(d as Record<string, unknown>).beschikbaarheid)
   const [overdracht, setOverdracht] = useState((d as Record<string, unknown>).overdracht as string ?? TD.overdracht)
   const [notaris, setNotaris] = useState((d as Record<string, unknown>).notaris as string || s.notaris || "Smith Boeser van Grafhorst notarissen te Haarlem")
   const [signingAdvisor, setSigningAdvisor] = useState((d as Record<string, unknown>).signingAdvisor as string || s.advisorName || "")
@@ -182,10 +189,18 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   )
   const totalComputed = useMemo(() => termijnTotaalComputed + adminComputed, [termijnTotaalComputed, adminComputed])
 
+  const looptijdMaanden = useMemo(() => {
+    const m = looptijd.match(/(\d+)\s*(mnd|maand|maanden)/i)
+    const j = looptijd.match(/(\d+)\s*(jr|jaar|jaren)/i)
+    if (m) return parseInt(m[1])
+    if (j) return parseInt(j[1]) * 12
+    return parseInt(looptijd) || 0
+  }, [looptijd])
+
   const zekerhedenPreview = useMemo(() => {
     if (!objects.length || !totalLoan) return ""
-    return buildZekerhedenText(objects, totalLoan)
-  }, [objects, totalLoan])
+    return buildZekerhedenText(objects, totalLoan, depotZekerheden(loanParts, looptijdMaanden))
+  }, [objects, totalLoan, loanParts, looptijdMaanden])
 
   // Auto-update zekerheden text when not manually edited
   useEffect(() => {
@@ -193,6 +208,13 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       setZekerhedenText(zekerhedenPreview)
     }
   }, [zekerhedenPreview, zekerhedenManual])
+
+  // Beschikbaarheid tracks the Geldigheidsduur date unless hand-edited/loaded.
+  useEffect(() => {
+    if (!beschikbaarheidManual) {
+      setBeschikbaarheid(buildBeschikbaarheid(validityDate))
+    }
+  }, [validityDate, beschikbaarheidManual])
 
   const berekenTermijn = useCallback(() => {
     const P = totalLoan
@@ -741,7 +763,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Beschikbaarheid</label>
-          <textarea value={beschikbaarheid} onChange={(e) => setBeschikbaarheid(e.target.value)} rows={2} className="w-full border rounded px-2 py-1.5 text-sm" />
+          <textarea value={beschikbaarheid} onChange={(e) => { setBeschikbaarheid(e.target.value); setBeschikbaarheidManual(true) }} rows={2} className="w-full border rounded px-2 py-1.5 text-sm" />
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Overdracht</label>

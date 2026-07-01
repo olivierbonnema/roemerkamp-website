@@ -28,6 +28,19 @@ export const TERMSHEET_DEFAULTS = {
   ],
 }
 
+// Long Dutch date ("8 augustus 2026") — matches the Geldigheidsduur row's fmtNlDate.
+function fmtNlLong(iso: string): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
+}
+
+// Beschikbaarheid default that references the Geldigheidsduur (validityDate) date.
+export function buildBeschikbaarheid(validityIso: string): string {
+  return `De lening is beschikbaar na ondertekening van de leningsovereenkomst en afgifte van alle gevraagde zekerheden, doch uiterlijk tot ${fmtNlLong(validityIso)} na dagtekening van deze Termsheet.`
+}
+
 export const PITCH_DEFAULTS = {
   introOpties: [
     "Via een goede relatie uit ons netwerk kregen we de volgende financieringsaanvraag.",

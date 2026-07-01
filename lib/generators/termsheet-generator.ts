@@ -2,7 +2,7 @@
 
 import * as docx from "docx"
 import { fmtZegge } from "./number-to-words"
-import { buildZekerhedenText, type ZekerheidObject } from "./zekerheden"
+import { buildZekerhedenText, depotZekerheden, type ZekerheidObject } from "./zekerheden"
 import {
   MM, PAGE_W, PAGE_H, MARGIN_SIDE,
   C_BRAND, C_GREY, C_BLACK, C_HRULE,
@@ -497,7 +497,8 @@ export async function generateTermsheet(
     }
   } else {
     // Same wording as the pitch — both go through the shared builder (lib/generators/zekerheden.ts).
-    buildZekerhedenText(objects as ZekerheidObject[], totalLoan)
+    // Rente-/bouwdepot loan parts are appended as extra zekerheden.
+    buildZekerhedenText(objects as ZekerheidObject[], totalLoan, depotZekerheden(loanParts, looptijdMaanden))
       .split("\n")
       .filter((l) => l.trim())
       .forEach((line) => {
