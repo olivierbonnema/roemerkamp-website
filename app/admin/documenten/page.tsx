@@ -14,9 +14,22 @@ interface Document {
   createdAt: string
   updatedAt: string
   createdBy: string
+  data?: Record<string, unknown>
 }
 
 type FilterType = "all" | "termsheet" | "pitch"
+
+// Display name derived from the document's own data — borrowers for a termsheet,
+// geldnemers for a pitch — so pitches show a name too (also for older pitches
+// whose stored name is just "Pitch"). Falls back to the stored name.
+function displayName(doc: Document): string {
+  const d = doc.data
+  const parties = (doc.type === "termsheet" ? d?.borrowers : d?.geldnemers) as { name?: string }[] | undefined
+  const name = parties?.[0]?.name?.trim()
+  const prefix = doc.type === "termsheet" ? "Termsheet" : "Pitch"
+  if (name) return `${prefix} - ${name}`
+  return doc.name || "Naamloos"
+}
 
 export default function DocumentenPage() {
   const { user } = useAuth()
@@ -178,7 +191,7 @@ export default function DocumentenPage() {
                         <FileText size={15} className={doc.type === "termsheet" ? "text-[#1E3A5F]" : "text-[#311E86]"} />
                       </div>
                       <span className="font-medium text-gray-900 group-hover:text-[#1E3A5F] transition-colors">
-                        {doc.name || "Naamloos"}
+                        {displayName(doc)}
                       </span>
                     </Link>
                   </td>
@@ -213,7 +226,7 @@ export default function DocumentenPage() {
                   <td className="px-5 py-3.5 text-gray-400 font-sans text-[13px]">{fmtDate(doc.updatedAt || doc.createdAt)}</td>
                   <td className="px-3 py-3.5">
                     <button
-                      onClick={(e) => { e.preventDefault(); handleDelete(doc.id, doc.name) }}
+                      onClick={(e) => { e.preventDefault(); handleDelete(doc.id, displayName(doc)) }}
                       className="p-1.5 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 size={14} />
