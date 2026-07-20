@@ -3,7 +3,7 @@ import { adminDb } from "@/lib/firebase-admin"
 
 const anthropic = new Anthropic()
 
-interface ScanSubject {
+export interface ScanSubject {
   type: "natural_person" | "legal_entity" | "both"
   fullName: string
   dob?: string
@@ -15,6 +15,13 @@ interface ScanSubject {
   sector?: string
   loanAmount?: string
   coApplicant?: string
+}
+
+export interface SubjectResult {
+  subjectName: string
+  subjectType: string
+  result: Record<string, unknown> | null
+  error: string | null
 }
 
 const SYSTEM_PROMPT = `# Rol
@@ -207,6 +214,20 @@ function buildSubjectBlock(subject: ScanSubject): string {
   lines.push(`PURPOSE: loan_underwriting`)
   if (subject.loanAmount) lines.push(`LOAN AMOUNT: €${subject.loanAmount}`)
 
+  // Type-aware search scope: a private individual must NOT be run through
+  // entity-level company checks; a company gets the registry-heavy tiers.
+  lines.push("")
+  if (subject.type === "natural_person") {
+    lines.push("SEARCH SCOPE (particulier / natural person):")
+    lines.push("- Run Tiers 1-6 in full on this individual.")
+    lines.push("- Tier 7: ONLY a LIGHT check for undisclosed directorships or personal links to bankrupt/insolvent companies, searched on this person's NAME (e.g. \"<name>\" KvK bestuurder, \"<name>\" faillissement). Do NOT run entity-level KvK financials or UBO analysis — there is no company subject here.")
+    lines.push("- Tier 8 (vastgoed): run it — this person is borrowing against real estate (investor/landlord/owner), so sector-specific disputes are in scope.")
+  } else if (subject.type === "legal_entity") {
+    lines.push("SEARCH SCOPE (bedrijf / legal entity):")
+    lines.push("- Prioritise Tier 2 (insolventie/faillissement of the entity), Tier 7 (KvK history + UBO gap), Tier 4 (toezicht) and Tier 8 (sector).")
+    lines.push("- Tiers 1/3/5/6 apply to the entity name; individual directors/representatives are scanned separately as their own subjects.")
+  }
+
   if (subject.coApplicant) {
     lines.push("")
     lines.push(`ADDITIONAL: Also scan co-applicant: ${subject.coApplicant}`)
@@ -309,6 +330,44 @@ export function cleanSubject(subject: ScanSubject): ScanSubject {
   return out as unknown as ScanSubject
 }
 
+/**
+ * Build the list of subjects to scan from an aanvraag. Each subject gets its OWN
+ * full check with a type-appropriate search scope:
+ *  - particulier: the applicant + each co-applicant, as separate natural persons.
+ *  - bedrijf: the company (legal entity) + each representative as a natural person.
+ */
+export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined)
+  const naam = str(data.naam)
+  const medeNaam = str(data.medeNaam)
+  const bedrijfsnaam = str(data.bedrijfsnaam)
+  const adres = str(data.adres)
+  const city = adres ? adres.split(",").pop()?.trim() || undefined : undefined
+  const plaats = city || str(data.objectPlaats)
+  const loanAmount = str(data.leningBedrag)
+  const isCompany = str(data.aanvragerType) !== "Particulier" && !!bedrijfsnaam
+
+  const subjects: ScanSubject[] = []
+  if (isCompany) {
+    subjects.push({
+      type: "legal_entity",
+      fullName: bedrijfsnaam!,
+      company: bedrijfsnaam,
+      kvkNummer: str(data.kvkNummer),
+      address: adres,
+      city: plaats,
+      sector: "vastgoed",
+      loanAmount,
+    })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, address: adres, company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, city: plaats, company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
+  } else {
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, address: adres, loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, city: plaats, loanAmount })
+  }
+  return subjects.map(cleanSubject)
+}
+
 async function mirrorToAanvraag(aanvraagId: string, fields: Record<string, unknown>): Promise<void> {
   try {
     await adminDb.collection("aanvragen").doc(aanvraagId).update(fields)
@@ -332,7 +391,10 @@ export async function runBackgroundCheck(checkId: string): Promise<void> {
   }
 
   const data = snap.data()!
-  const subject = data.subject as ScanSubject
+  // New checks carry `subjects` (array). Fall back to the legacy single `subject`.
+  const subjects: ScanSubject[] = Array.isArray(data.subjects) && data.subjects.length
+    ? (data.subjects as ScanSubject[])
+    : (data.subject ? [data.subject as ScanSubject] : [])
   const linkedAanvraagId = data.linkedAanvraagId as string | undefined
 
   await ref.update({ status: "scanning", startedAt: new Date() })
@@ -340,26 +402,53 @@ export async function runBackgroundCheck(checkId: string): Promise<void> {
     await mirrorToAanvraag(linkedAanvraagId, { reputationScanStatus: "scanning", reputationScanStarted: new Date() })
   }
 
+  if (!subjects.length) {
+    const msg = "Geen subject om te scannen."
+    await ref.update({ status: "error", error: msg }).catch(() => {})
+    if (linkedAanvraagId) await mirrorToAanvraag(linkedAanvraagId, { reputationScanStatus: "error", reputationScanError: msg })
+    return
+  }
+
+  // Each subject gets its OWN full scan, run in parallel.
+  const settled = await Promise.allSettled(subjects.map((s) => performReputationScan(s)))
+  const results: SubjectResult[] = subjects.map((s, i) => {
+    const r = settled[i]
+    if (r.status === "rejected") console.error(`[background-check] ${checkId} subject "${s.fullName}" failed:`, mapScanError(r.reason))
+    return {
+      subjectName: s.fullName,
+      subjectType: s.type,
+      result: r.status === "fulfilled" ? r.value : null,
+      error: r.status === "rejected" ? mapScanError(r.reason) : null,
+    }
+  })
+
+  const anySucceeded = results.some((r) => r.result)
+  // Back-compat single result MUST belong to the back-compat single subject
+  // (subjects[0]) so the Checks register never pairs one subject's identity with
+  // another subject's verdict. May be null if subject[0] failed — the full
+  // per-subject picture lives in `results`.
+  const primary = results[0]?.result ?? null
+
   try {
-    const result = await performReputationScan(subject)
-    await ref.update({ status: "completed", result, completedAt: new Date() })
-    if (linkedAanvraagId) {
-      await mirrorToAanvraag(linkedAanvraagId, {
-        reputationScanStatus: "completed",
-        reputationScanResult: result,
-        reputationScanCompleted: new Date(),
-      })
-    }
-  } catch (err) {
-    const userError = mapScanError(err)
-    console.error(`[background-check] ERROR for ${checkId}:`, userError)
-    try {
-      await ref.update({ status: "error", error: userError })
+    if (anySucceeded) {
+      // `result` (single, = primary) kept for back-compat with the Checks register.
+      await ref.update({ status: "completed", results, result: primary, completedAt: new Date() })
       if (linkedAanvraagId) {
-        await mirrorToAanvraag(linkedAanvraagId, { reputationScanStatus: "error", reputationScanError: userError })
+        await mirrorToAanvraag(linkedAanvraagId, {
+          reputationScanStatus: "completed",
+          reputationScanResults: results,
+          reputationScanResult: primary, // back-compat with the single-result display
+          reputationScanCompleted: new Date(),
+        })
       }
-    } catch (writeErr) {
-      console.error(`[background-check] CRITICAL: Failed to write error status for ${checkId}:`, writeErr)
+    } else {
+      const msg = results.map((r) => r.error).filter(Boolean).join(" | ") || "Scan mislukt."
+      await ref.update({ status: "error", error: msg, results })
+      if (linkedAanvraagId) {
+        await mirrorToAanvraag(linkedAanvraagId, { reputationScanStatus: "error", reputationScanError: msg })
+      }
     }
+  } catch (writeErr) {
+    console.error(`[background-check] CRITICAL: Failed to write result for ${checkId}:`, writeErr)
   }
 }

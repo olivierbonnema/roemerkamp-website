@@ -13,6 +13,14 @@ export interface ScanResult {
   gapsAndManualChecks: string[]
 }
 
+// One subject's result inside a multi-subject background check.
+export interface SubjectResult {
+  subjectName: string
+  subjectType: string
+  result: ScanResult | null
+  error: string | null
+}
+
 export const SCAN_RESULT_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   CLEAR:              { label: "Schoon",           color: "#065F46", bg: "#ECFDF5" },
   ADVERSE_FOUND:      { label: "Bevindingen",      color: "#991B1B", bg: "#FEF2F2" },

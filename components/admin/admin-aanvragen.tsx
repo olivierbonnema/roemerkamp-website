@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
-import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult } from "./scan-result-view"
+import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult, type SubjectResult } from "./scan-result-view"
 import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote } from "lucide-react"
 
 interface Aanvraag {
@@ -56,6 +56,7 @@ interface Aanvraag {
   reputationScanStatus?: string
   reputationScanError?: string
   reputationScanResult?: ScanResult
+  reputationScanResults?: SubjectResult[]
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -97,6 +98,56 @@ function formatCurrency(raw: string) {
   return isNaN(num) ? raw : `€ ${num.toLocaleString("nl-NL")}`
 }
 
+// Combine per-subject scan results into one "worst-case" summary for the card
+// badge/summary (killSignal from ANY subject; worst scanStatus). Falls back to
+// the legacy single result.
+const SCAN_STATUS_ORDER = ["CLEAR", "INSUFFICIENT_DATA", "AMBIGUOUS", "ADVERSE_FOUND"]
+function overallScan(a: { reputationScanResults?: SubjectResult[]; reputationScanResult?: ScanResult }): ScanResult | undefined {
+  const list = (a.reputationScanResults || []).map((r) => r.result).filter(Boolean) as ScanResult[]
+  if (!list.length) return a.reputationScanResult
+  // Base the summary text/findings on a kill-signal subject when one exists, so the
+  // ⛔ reason is what's shown; otherwise on the worst status.
+  const killers = list.filter((r) => r.killSignal)
+  const pool = killers.length ? killers : list
+  const base = pool.reduce((w, r) =>
+    SCAN_STATUS_ORDER.indexOf(r.scanStatus) > SCAN_STATUS_ORDER.indexOf(w.scanStatus) ? r : w, pool[0])
+  return {
+    ...base,
+    killSignal: list.some((r) => r.killSignal),
+    adverseHits: list.reduce((s, r) => s + (r.adverseHits || 0), 0),
+  }
+}
+
+// Editable subject in the "Personen bewerken" modal (mirrors the server's
+// ScanSubject fields that an admin may correct before (re)running a check).
+type EditableSubject = {
+  type: "natural_person" | "legal_entity"
+  fullName: string
+  dob?: string
+  city?: string
+  address?: string
+  company?: string
+  kvkNummer?: string
+  role?: string
+}
+
+// Client-side mirror of the server's deriveSubjects — prefills the editor.
+function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
+  const city = a.adres ? a.adres.split(",").pop()?.trim() || undefined : undefined
+  const plaats = city || a.objectPlaats || undefined
+  const isCompany = a.aanvragerType !== "Particulier" && !!a.bedrijfsnaam
+  const out: EditableSubject[] = []
+  if (isCompany) {
+    if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, city: plaats })
+    if (a.naam) out.push({ type: "natural_person", fullName: a.naam, dob: a.geboortedatum, city: plaats, address: a.adres, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" })
+    if (a.medeNaam) out.push({ type: "natural_person", fullName: a.medeNaam, city: plaats, company: a.bedrijfsnaam, role: "medevertegenwoordiger" })
+  } else {
+    if (a.naam) out.push({ type: "natural_person", fullName: a.naam, dob: a.geboortedatum, city: plaats, address: a.adres })
+    if (a.medeNaam) out.push({ type: "natural_person", fullName: a.medeNaam, city: plaats })
+  }
+  return out
+}
+
 // One label/value line in the overview modal (hidden when the value is empty).
 function OvRow({ label, value }: { label: string; value?: string | number | null }) {
   if (value === undefined || value === null || value === "") return null
@@ -134,6 +185,7 @@ export function AdminAanvragen() {
   const [sendingMessage, setSendingMessage] = useState(false)
   const [checksModal, setChecksModal] = useState<string | null>(null)
   const [selectedChecks, setSelectedChecks] = useState<Set<string>>(new Set())
+  const [scanEditor, setScanEditor] = useState<{ aanvraagId: string; subjects: EditableSubject[] } | null>(null)
   const [deleteModal, setDeleteModal] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   // Operational polish: filters, staff list, owner assignment, internal notes
@@ -345,15 +397,15 @@ export function AdminAanvragen() {
     }
   }
 
-  async function retryScan(aanvraagId: string) {
+  async function retryScan(aanvraagId: string, subjects?: EditableSubject[]) {
     setRetryingScan(aanvraagId)
-    setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanError: undefined, reputationScanResult: undefined } : a))
+    setAanvragen(prev => prev.map(a => a.id === aanvraagId ? { ...a, reputationScanStatus: "scanning", reputationScanError: undefined, reputationScanResult: undefined, reputationScanResults: undefined } : a))
     try {
       const token = await getToken()
       fetch("/api/admin/retry-scan", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ aanvraagId }),
+        body: JSON.stringify({ aanvraagId, ...(subjects && subjects.length ? { subjects } : {}) }),
       }).then(async res => {
         if (!res.ok) {
           const data = await res.json()
@@ -367,6 +419,21 @@ export function AdminAanvragen() {
     } finally {
       setRetryingScan(null)
     }
+  }
+
+  const openScanEditor = (a: Aanvraag) => setScanEditor({ aanvraagId: a.id, subjects: deriveEditableSubjects(a) })
+  const updateSubject = (i: number, patch: Partial<EditableSubject>) =>
+    setScanEditor((prev) => prev ? { ...prev, subjects: prev.subjects.map((s, j) => j === i ? { ...s, ...patch } : s) } : prev)
+  const removeSubject = (i: number) =>
+    setScanEditor((prev) => prev ? { ...prev, subjects: prev.subjects.filter((_, j) => j !== i) } : prev)
+  const addSubject = () =>
+    setScanEditor((prev) => prev ? { ...prev, subjects: [...prev.subjects, { type: "natural_person", fullName: "" }] } : prev)
+  const runEditedScan = () => {
+    if (!scanEditor) return
+    const subjects = scanEditor.subjects.filter((s) => s.fullName.trim())
+    if (!subjects.length) { setScanErrorModal({ title: "Geen personen", message: "Vul minstens één naam in om te checken." }); return }
+    retryScan(scanEditor.aanvraagId, subjects)
+    setScanEditor(null)
   }
 
   async function sendMessage(aanvraagId: string) {
@@ -431,17 +498,30 @@ export function AdminAanvragen() {
 
   if (scanDetailId) {
     const scanAanvraag = aanvragen.find(a => a.id === scanDetailId)
-    const result = scanAanvraag?.reputationScanResult
-    if (!result) {
+    const multi = scanAanvraag?.reputationScanResults
+    const single = scanAanvraag?.reputationScanResult
+    if (!scanAanvraag || (!multi?.length && !single)) {
       setScanDetailId(null)
     } else {
+      const items: SubjectResult[] = multi?.length
+        ? multi
+        : [{ subjectName: scanAanvraag.naam, subjectType: "natural_person", result: single!, error: null }]
       return (
         <div className="space-y-6">
           <button onClick={() => setScanDetailId(null)} className="text-sm font-sans text-[#311E86] hover:underline">
             ← Terug naar aanvragen
           </button>
-
-          <ScanResultView result={result} subjectName={scanAanvraag.naam} />
+          {items.length > 1 && (
+            <p className="text-sm font-sans text-gray-500">{items.length} aparte checks — één per persoon/bedrijf.</p>
+          )}
+          {items.map((it, i) => it.result ? (
+            <ScanResultView key={i} result={it.result} subjectName={it.subjectName} />
+          ) : (
+            <div key={i} className="border border-red-200 bg-red-50 rounded-2xl p-6">
+              <h2 className="font-serif text-lg text-red-800 mb-1">Achtergrondcheck – {it.subjectName}</h2>
+              <p className="text-sm font-sans text-red-700">Deze check is mislukt: {it.error || "onbekende fout"}</p>
+            </div>
+          ))}
         </div>
       )
     }
@@ -516,6 +596,7 @@ export function AdminAanvragen() {
         const status = STATUS_LABELS[a.status] ?? { label: a.status, color: "#374151", bg: "#F3F4F6" }
         const aiStatus = a.analysisStatus ? AI_STATUS_LABELS[a.analysisStatus] : null
         const recommendation = a.analysisRecommendation ? RECOMMENDATION_LABELS[a.analysisRecommendation] : null
+        const scan = overallScan(a)
 
         return (
           <div key={a.id} className="border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#311E86]/30 transition-colors">
@@ -551,8 +632,8 @@ export function AdminAanvragen() {
                     AI: {recommendation.label}
                   </span>
                 )}
-                {a.reputationScanResult?.scanStatus && (() => {
-                  const result = SCAN_RESULT_LABELS[a.reputationScanResult!.scanStatus]
+                {scan?.scanStatus && (() => {
+                  const result = SCAN_RESULT_LABELS[scan.scanStatus]
                   if (!result) return null
                   return (
                     <span
@@ -560,7 +641,7 @@ export function AdminAanvragen() {
                       style={{ color: result.color, backgroundColor: result.bg }}
                     >
                       🛡️ {result.label}
-                      {a.reputationScanResult!.killSignal && " ⛔"}
+                      {scan.killSignal && " ⛔"}
                     </span>
                   )
                 })()}
@@ -621,18 +702,18 @@ export function AdminAanvragen() {
             )}
 
             {/* Reputation scan summary (if results exist) */}
-            {a.reputationScanResult && (
-              <div className={`rounded-xl px-4 py-3 mb-4 ${a.reputationScanResult.killSignal ? "bg-red-50 border border-red-200" : a.reputationScanResult.scanStatus === "CLEAR" ? "bg-emerald-50" : "bg-amber-50"}`}>
+            {scan && (
+              <div className={`rounded-xl px-4 py-3 mb-4 ${scan.killSignal ? "bg-red-50 border border-red-200" : scan.scanStatus === "CLEAR" ? "bg-emerald-50" : "bg-amber-50"}`}>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-sans text-gray-600">
-                    <strong className="text-gray-800">Achtergrondcheck:</strong>{" "}
-                    {a.reputationScanResult.overallAssessment?.slice(0, 150)}
-                    {(a.reputationScanResult.overallAssessment?.length || 0) > 150 && "..."}
+                    <strong className="text-gray-800">Achtergrondcheck{(a.reputationScanResults?.length || 0) > 1 ? ` (${a.reputationScanResults!.length} personen)` : ""}:</strong>{" "}
+                    {scan.overallAssessment?.slice(0, 150)}
+                    {(scan.overallAssessment?.length || 0) > 150 && "..."}
                   </div>
                 </div>
-                {a.reputationScanResult.adverseHits > 0 && (
+                {scan.adverseHits > 0 && (
                   <div className="mt-2 space-y-1">
-                    {a.reputationScanResult.topFindings?.slice(0, 3).map((f, i) => (
+                    {scan.topFindings?.slice(0, 3).map((f, i) => (
                       <div key={i} className="text-xs font-sans flex items-start gap-1.5">
                         <span className={`inline-block w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
                           f.severity === "CRITICAL" ? "bg-red-600" :
@@ -694,7 +775,7 @@ export function AdminAanvragen() {
               {/* Checks uitvoeren - combined button */}
               {a.analysisStatus !== "analyzing" && a.reputationScanStatus !== "scanning" && (
                 <>
-                  {a.analysisStatus === "completed" || a.reputationScanResult ? (
+                  {a.analysisStatus === "completed" || scan ? (
                     <div className="flex items-center gap-2">
                       {a.analysisStatus === "completed" && (
                         <button
@@ -704,11 +785,11 @@ export function AdminAanvragen() {
                           AI Analyse bekijken
                         </button>
                       )}
-                      {a.reputationScanResult && (
+                      {scan && (
                         <button
                           onClick={() => setScanDetailId(a.id)}
                           className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
-                            a.reputationScanResult.killSignal
+                            scan.killSignal
                               ? "bg-red-600 text-white hover:bg-red-700"
                               : "border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white"
                           }`}
@@ -718,6 +799,13 @@ export function AdminAanvragen() {
                       )}
                     </div>
                   ) : null}
+
+                  <button
+                    onClick={() => openScanEditor(a)}
+                    className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:border-[#311E86] hover:text-[#311E86] transition-colors"
+                  >
+                    Personen bewerken &amp; check draaien
+                  </button>
 
                   {a.analysisStatus === "data_ready" && (a.dossierUrl || a.driveFolderUrl) && (
                     <a
@@ -1072,6 +1160,72 @@ export function AdminAanvragen() {
           </div>
         )
       })()}
+
+      {/* Personen bewerken & check draaien */}
+      {scanEditor && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setScanEditor(null)}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-1">
+              <h3 className="font-serif text-xl text-[#1E3A5F]">Personen voor achtergrondcheck</h3>
+              <button onClick={() => setScanEditor(null)} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
+            </div>
+            <p className="text-sm text-gray-400 font-sans mb-5">
+              Vul volledige namen aan (bijv. voluit i.p.v. een initiaal) voor een betrouwbaardere check. Elke persoon/bedrijf wordt <strong>apart</strong> gescand met een passende zoekstrategie.
+            </p>
+
+            <div className="space-y-4">
+              {scanEditor.subjects.map((s, i) => (
+                <div key={i} className="border border-gray-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <select
+                      value={s.type}
+                      onChange={(e) => updateSubject(i, { type: e.target.value as EditableSubject["type"] })}
+                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 font-sans bg-white"
+                    >
+                      <option value="natural_person">Persoon</option>
+                      <option value="legal_entity">Bedrijf</option>
+                    </select>
+                    <button onClick={() => removeSubject(i)} className="text-xs text-gray-400 hover:text-red-500 font-sans transition-colors">Verwijderen</button>
+                  </div>
+                  <input
+                    value={s.fullName}
+                    onChange={(e) => updateSubject(i, { fullName: e.target.value })}
+                    placeholder={s.type === "legal_entity" ? "Statutaire bedrijfsnaam" : "Volledige naam (voluit, niet alleen initiaal)"}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    {s.type === "natural_person" ? (
+                      <>
+                        <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                        <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Plaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                      </>
+                    ) : (
+                      <>
+                        <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                        <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Vestigingsplaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button onClick={addSubject} className="w-full py-2.5 text-sm font-sans border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#311E86] hover:text-[#311E86] transition-colors">
+                + Persoon / bedrijf toevoegen
+              </button>
+            </div>
+
+            {scanEditor.subjects.some((s) => s.type === "legal_entity") && !scanEditor.subjects.some((s) => s.type === "natural_person") && (
+              <p className="text-xs font-sans text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3">
+                Alleen het bedrijf staat ingesteld. Voeg de vertegenwoordiger/DGA (persoon) toe voor een volledige WWFT-check.
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setScanEditor(null)} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Annuleren</button>
+              <button onClick={runEditedScan} className="px-5 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors">Check draaien</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteModal && (() => {
         const da = aanvragen.find(a => a.id === deleteModal)

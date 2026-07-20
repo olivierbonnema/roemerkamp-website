@@ -3,7 +3,7 @@ import { after } from "next/server"
 import { FieldValue } from "firebase-admin/firestore"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
-import { cleanSubject } from "@/lib/reputation-scan"
+import { cleanSubject, deriveSubjects, type ScanSubject } from "@/lib/reputation-scan"
 
 export const maxDuration = 60
 
@@ -28,31 +28,22 @@ export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { aanvraagId } = await req.json()
+  const { aanvraagId, subjects: customSubjects } = await req.json()
   if (!aanvraagId) return NextResponse.json({ error: "aanvraagId required" }, { status: 400 })
 
   const doc = await adminDb.collection("aanvragen").doc(aanvraagId).get()
   if (!doc.exists) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const data = doc.data()!
-  const city = data.adres ? data.adres.split(",").pop()?.trim() || "" : ""
-  const isCompany = data.aanvragerType !== "Particulier" && data.bedrijfsnaam
-
   const baseUrl = process.env.PORTAL_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
-  const subject = cleanSubject({
-    type: isCompany ? "both" : "natural_person",
-    fullName: data.naam || "",
-    dob: data.geboortedatum || undefined,
-    city: city || data.objectPlaats || undefined,
-    address: data.adres || undefined,
-    company: data.bedrijfsnaam || undefined,
-    kvkNummer: data.kvkNummer || undefined,
-    role: isCompany ? "DGA / aanvrager" : undefined,
-    sector: "vastgoed",
-    loanAmount: data.leningBedrag || undefined,
-    coApplicant: data.medeNaam || undefined,
-  })
+  // Each subject is scanned separately. Custom (admin-edited) subjects override
+  // the auto-derived ones; otherwise derive per type (persons / company + reps).
+  const subjects: ScanSubject[] = Array.isArray(customSubjects) && customSubjects.length
+    ? (customSubjects as ScanSubject[]).filter((s) => s && s.fullName && s.fullName.trim()).map(cleanSubject)
+    : deriveSubjects(data)
+
+  if (!subjects.length) return NextResponse.json({ error: "Geen subject om te scannen." }, { status: 400 })
 
   // Optimistically mark the enquiry as scanning so the card shows the spinner
   // immediately (the worker mirrors the same fields when it starts).
@@ -64,7 +55,8 @@ export async function POST(req: NextRequest) {
 
   // Record the check in the central register, linked to this enquiry.
   const checkRef = await adminDb.collection("background_checks").add({
-    subject,
+    subjects,
+    subject: subjects[0], // back-compat single field for the Checks register
     status: "scanning",
     linkedAanvraagId: aanvraagId,
     createdBy: { uid: admin.uid, email: admin.email || "" },
