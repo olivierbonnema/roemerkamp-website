@@ -147,9 +147,6 @@ function splitName(full: string): { voornaam: string; achternaam: string } {
 
 // Client-side mirror of the server's deriveSubjects — prefills the editor.
 function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
-  const rawCity = a.adres ? a.adres.split(",").pop()?.trim() : undefined
-  // Keep only the town name (strip a leading Dutch postcode like "3704 BN").
-  const plaats = (rawCity ? rawCity.replace(/^\d{4}\s?[A-Z]{2}\s+/i, "").trim() : "") || a.objectPlaats || undefined
   const isCompany = a.aanvragerType !== "Particulier" && !!a.bedrijfsnaam
   const loanAmount = a.leningBedrag || undefined
   const person = (naam: string, extra: Partial<EditableSubject>): EditableSubject => {
@@ -158,7 +155,7 @@ function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   }
   const out: EditableSubject[] = []
   if (isCompany) {
-    if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, city: plaats, loanAmount })
+    if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, loanAmount })
     if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
     if (a.medeNaam) out.push(person(a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
   } else {
@@ -491,10 +488,7 @@ export function AdminAanvragen() {
               <>
                 <input value={s.fullName || ""} onChange={(e) => updateSubject(i, { fullName: e.target.value })} placeholder="Statutaire bedrijfsnaam" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
                 <input value={s.address || ""} onChange={(e) => updateSubject(i, { address: e.target.value })} placeholder="Volledig adres (straat, huisnummer, postcode, plaats)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
-                <div className="grid grid-cols-2 gap-2">
-                  <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                  <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Vestigingsplaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                </div>
+                <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
               </>
             )}
           </div>

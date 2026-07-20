@@ -209,7 +209,6 @@ function buildSubjectBlock(subject: ScanSubject): string {
     if (subject.kvkNummer) lines.push(`- KvK-nummer: ${subject.kvkNummer}`)
     if (subject.address) lines.push(`- Adres: ${subject.address}`)
     lines.push(`- Sector: ${subject.sector || "vastgoed"}`)
-    if (subject.city) lines.push(`- Vestigingsplaats: ${subject.city}`)
     lines.push("")
   }
 
@@ -344,9 +343,6 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
   const medeNaam = str(data.medeNaam)
   const bedrijfsnaam = str(data.bedrijfsnaam)
   const adres = str(data.adres)
-  const rawCity = adres ? adres.split(",").pop()?.trim() : undefined
-  // Keep only the town name (strip a leading Dutch postcode like "3704 BN").
-  const plaats = (rawCity ? rawCity.replace(/^\d{4}\s?[A-Z]{2}\s+/i, "").trim() : "") || str(data.objectPlaats)
   const loanAmount = str(data.leningBedrag)
   const isCompany = str(data.aanvragerType) !== "Particulier" && !!bedrijfsnaam
 
@@ -358,7 +354,6 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
       company: bedrijfsnaam,
       kvkNummer: str(data.kvkNummer),
       address: adres,
-      city: plaats,
       sector: "vastgoed",
       loanAmount,
     })
