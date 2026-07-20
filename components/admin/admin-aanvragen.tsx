@@ -158,10 +158,10 @@ function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   const out: EditableSubject[] = []
   if (isCompany) {
     if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, city: plaats, loanAmount })
-    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, address: a.adres, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
+    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
     if (a.medeNaam) out.push(person(a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
   } else {
-    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, address: a.adres }))
+    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum }))
     if (a.medeNaam) out.push(person(a.medeNaam, {}))
   }
   return out

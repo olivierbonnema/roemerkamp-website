@@ -195,7 +195,9 @@ function buildSubjectBlock(subject: ScanSubject): string {
     lines.push(`- Full name: ${subject.fullName}`)
     if (subject.dob) lines.push(`- Date of birth: ${subject.dob}`)
     if (subject.city) lines.push(`- City / residence: ${subject.city}`)
-    if (subject.address && subject.type === "natural_person") lines.push(`- Address: ${subject.address}`)
+    // Street address is intentionally omitted for natural persons — name + DOB +
+    // city are enough to disambiguate an OSINT match, and the full address is
+    // unnecessary PII in the search prompt.
     if (subject.company) lines.push(`- Current employer / company: ${subject.company}`)
     if (subject.role) lines.push(`- Role: ${subject.role}`)
     lines.push("")
@@ -359,10 +361,10 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
       sector: "vastgoed",
       loanAmount,
     })
-    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, address: adres, company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
     if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, city: plaats, company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
   } else {
-    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, address: adres, loanAmount })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, loanAmount })
     if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, city: plaats, loanAmount })
   }
   return subjects.map(cleanSubject)
