@@ -26,6 +26,20 @@ interface Aanvraag {
   aantalBestanden: number
   submittedByRole?: string
   partnerOrgId?: string
+  // Full submitted detail (already on the doc; used by the overview modal)
+  telefoon?: string
+  adres?: string
+  kvkNummer?: string
+  geboortedatum?: string
+  burgerlijkStaat?: string
+  medeNaam?: string
+  medeEmail?: string
+  eigenInbreng?: string
+  bestaandeSchulden?: string
+  aflossingstype?: string
+  uitstrategie?: string
+  wanneerNodig?: string
+  objects?: { type?: string; adres?: string; postcode?: string; plaats?: string; waarde?: string; huurinkomsten?: string }[]
   // Operational fields (admin-only)
   assignedTo?: string
   internalNote?: string
@@ -83,6 +97,17 @@ function formatCurrency(raw: string) {
   return isNaN(num) ? raw : `€ ${num.toLocaleString("nl-NL")}`
 }
 
+// One label/value line in the overview modal (hidden when the value is empty).
+function OvRow({ label, value }: { label: string; value?: string | number | null }) {
+  if (value === undefined || value === null || value === "") return null
+  return (
+    <div className="flex justify-between gap-4 py-1.5 border-b border-gray-50 text-sm">
+      <span className="text-gray-400 font-sans">{label}</span>
+      <span className="text-gray-900 font-sans font-medium text-right">{String(value)}</span>
+    </div>
+  )
+}
+
 async function getToken() {
   return auth.currentUser?.getIdToken()
 }
@@ -117,6 +142,7 @@ export function AdminAanvragen() {
   const [ownerFilter, setOwnerFilter] = useState("")
   const [staff, setStaff] = useState<{ uid: string; email: string }[]>([])
   const [noteModal, setNoteModal] = useState<string | null>(null)
+  const [overviewId, setOverviewId] = useState<string | null>(null)
   const [noteText, setNoteText] = useState("")
   const [savingNote, setSavingNote] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -496,7 +522,14 @@ export function AdminAanvragen() {
             {/* Header: name + badges */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
               <div>
-                <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "-"}</p>
+                <button
+                  type="button"
+                  onClick={() => setOverviewId(a.id)}
+                  className="font-serif text-lg text-[#1E3A5F] font-normal text-left hover:underline decoration-[#311E86]/40 underline-offset-2 cursor-pointer"
+                  title="Bekijk het overzicht van deze aanvraag"
+                >
+                  {a.naam || "-"}
+                </button>
                 <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
                 {a.partnerOrgId && orgMap[a.partnerOrgId] && (
                   <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/8 text-[#311E86]">
@@ -967,6 +1000,79 @@ export function AdminAanvragen() {
       })()}
 
       {/* Delete confirmation modal */}
+      {/* Overzicht aanvraag */}
+      {overviewId && (() => {
+        const ov = aanvragen.find((x) => x.id === overviewId)
+        if (!ov) return null
+        const objs = ov.objects && ov.objects.length ? ov.objects : null
+        const sectionTitle = "text-xs font-semibold uppercase tracking-wide text-[#311E86] font-sans mb-2"
+        return (
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setOverviewId(null)}>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-start justify-between mb-5">
+                <div>
+                  <h3 className="font-serif text-xl text-[#1E3A5F]">{ov.naam || "Aanvraag"}</h3>
+                  <p className="text-sm text-gray-400 font-sans">Overzicht van de aanvraag · {formatDate(ov.createdAt)}</p>
+                </div>
+                <button onClick={() => setOverviewId(null)} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
+              </div>
+
+              <section className="mb-5">
+                <h4 className={sectionTitle}>Aanvrager</h4>
+                <OvRow label="Type aanvrager" value={ov.aanvragerType} />
+                <OvRow label="Naam" value={ov.naam} />
+                <OvRow label="Bedrijfsnaam" value={ov.bedrijfsnaam} />
+                <OvRow label="KvK-nummer" value={ov.kvkNummer} />
+                <OvRow label="E-mail" value={ov.email} />
+                <OvRow label="Telefoon" value={ov.telefoon} />
+                <OvRow label="Adres" value={ov.adres} />
+                <OvRow label="Geboortedatum" value={ov.geboortedatum} />
+                <OvRow label="Burgerlijke staat" value={ov.burgerlijkStaat} />
+                <OvRow label="Medeaanvrager" value={ov.medeNaam} />
+                <OvRow label="E-mail medeaanvrager" value={ov.medeEmail} />
+              </section>
+
+              <section className="mb-5">
+                <h4 className={sectionTitle}>{objs && objs.length > 1 ? "Objecten" : "Object"}</h4>
+                {objs ? objs.map((o, i) => (
+                  <div key={i} className={objs.length > 1 ? "mb-3" : ""}>
+                    {objs.length > 1 && <p className="text-xs font-semibold text-gray-600 font-sans mb-1">Object {i + 1}</p>}
+                    <OvRow label="Type vastgoed" value={o.type} />
+                    <OvRow label="Adres" value={[o.adres, [o.postcode, o.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")} />
+                    <OvRow label="Marktwaarde" value={o.waarde ? formatCurrency(o.waarde) : ""} />
+                    <OvRow label="Huurinkomsten (p/m)" value={o.huurinkomsten ? formatCurrency(o.huurinkomsten) : ""} />
+                  </div>
+                )) : (
+                  <OvRow label="Adres" value={[ov.objectAdres, ov.objectPlaats].filter(Boolean).join(", ")} />
+                )}
+              </section>
+
+              <section className="mb-5">
+                <h4 className={sectionTitle}>Financiering</h4>
+                <OvRow label="Doel" value={ov.leningDoel} />
+                <OvRow label="Leningbedrag" value={ov.leningBedrag ? formatCurrency(ov.leningBedrag) : ""} />
+                <OvRow label="Looptijd" value={ov.looptijd} />
+                <OvRow label="Eigen inbreng" value={ov.eigenInbreng ? formatCurrency(ov.eigenInbreng) : ""} />
+                <OvRow label="Bestaande hypotheekschuld" value={ov.bestaandeSchulden ? formatCurrency(ov.bestaandeSchulden) : ""} />
+                <OvRow label="Aflossingstype" value={ov.aflossingstype} />
+                <OvRow label="Exit strategy" value={ov.uitstrategie} />
+                <OvRow label="Financiering nodig op" value={ov.wanneerNodig} />
+              </section>
+
+              <section>
+                <h4 className={sectionTitle}>Documenten</h4>
+                <OvRow label="Aantal bestanden" value={`${ov.aantalBestanden ?? 0}`} />
+                {ov.driveFolderUrl && (
+                  <a href={ov.driveFolderUrl} target="_blank" rel="noreferrer" className="inline-block mt-1 text-sm text-[#311E86] hover:underline font-sans">
+                    Documentenmap openen ↗
+                  </a>
+                )}
+              </section>
+            </div>
+          </div>
+        )
+      })()}
+
       {deleteModal && (() => {
         const da = aanvragen.find(a => a.id === deleteModal)
         return (
