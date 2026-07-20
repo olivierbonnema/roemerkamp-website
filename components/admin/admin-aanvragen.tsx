@@ -131,6 +131,7 @@ type EditableSubject = {
   company?: string
   kvkNummer?: string
   role?: string
+  loanAmount?: string
 }
 
 // Split a stored name into first name(s) + surname (tussenvoegsel-aware), so the
@@ -149,13 +150,14 @@ function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   const city = a.adres ? a.adres.split(",").pop()?.trim() || undefined : undefined
   const plaats = city || a.objectPlaats || undefined
   const isCompany = a.aanvragerType !== "Particulier" && !!a.bedrijfsnaam
+  const loanAmount = a.leningBedrag || undefined
   const person = (naam: string, extra: Partial<EditableSubject>): EditableSubject => {
     const { voornaam, achternaam } = splitName(naam)
-    return { type: "natural_person", voornaam, achternaam, city: plaats, ...extra }
+    return { type: "natural_person", voornaam, achternaam, city: plaats, loanAmount, ...extra }
   }
   const out: EditableSubject[] = []
   if (isCompany) {
-    if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, city: plaats })
+    if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, city: plaats, loanAmount })
     if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, address: a.adres, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
     if (a.medeNaam) out.push(person(a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
   } else {
@@ -438,35 +440,76 @@ export function AdminAanvragen() {
     }
   }
 
-  const openScanEditor = (a: Aanvraag) => setScanEditor({ aanvraagId: a.id, subjects: deriveEditableSubjects(a) })
   const updateSubject = (i: number, patch: Partial<EditableSubject>) =>
     setScanEditor((prev) => prev ? { ...prev, subjects: prev.subjects.map((s, j) => j === i ? { ...s, ...patch } : s) } : prev)
   const removeSubject = (i: number) =>
     setScanEditor((prev) => prev ? { ...prev, subjects: prev.subjects.filter((_, j) => j !== i) } : prev)
   const addSubject = () =>
-    setScanEditor((prev) => prev ? { ...prev, subjects: [...prev.subjects, { type: "natural_person", fullName: "" }] } : prev)
-  const runEditedScan = () => {
-    if (!scanEditor) return
-    // Compose fullName from voornaam + achternaam (person) or the entity name, and
-    // send a clean ScanSubject-shaped payload (no voornaam/achternaam scaffolding).
-    const subjects = scanEditor.subjects
-      .map((s): EditableSubject => {
-        const fullName = s.type === "natural_person"
-          ? `${s.voornaam || ""} ${s.achternaam || ""}`.trim()
-          : (s.fullName || "").trim()
-        const out: EditableSubject = { type: s.type, fullName }
-        if (s.dob) out.dob = s.dob
-        if (s.city) out.city = s.city
-        if (s.address) out.address = s.address
-        if (s.company) out.company = s.company
-        if (s.kvkNummer) out.kvkNummer = s.kvkNummer
-        if (s.role) out.role = s.role
-        return out
-      })
-      .filter((s) => (s.fullName || "").trim())
-    if (!subjects.length) { setScanErrorModal({ title: "Geen personen", message: "Vul minstens één naam in om te checken." }); return }
-    retryScan(scanEditor.aanvraagId, subjects)
-    setScanEditor(null)
+    setScanEditor((prev) => prev ? { ...prev, subjects: [...prev.subjects, { type: "natural_person" }] } : prev)
+  // Compose ScanSubject-shaped payload: fullName from voornaam+achternaam (person)
+  // or the entity name; drop empty/undefined fields.
+  const composeSubjects = (subjects: EditableSubject[]): EditableSubject[] =>
+    subjects.map((s): EditableSubject => {
+      const fullName = s.type === "natural_person"
+        ? `${s.voornaam || ""} ${s.achternaam || ""}`.trim()
+        : (s.fullName || "").trim()
+      const out: EditableSubject = { type: s.type, fullName }
+      if (s.dob) out.dob = s.dob
+      if (s.city) out.city = s.city
+      if (s.address) out.address = s.address
+      if (s.company) out.company = s.company
+      if (s.kvkNummer) out.kvkNummer = s.kvkNummer
+      if (s.role) out.role = s.role
+      if (s.loanAmount) out.loanAmount = s.loanAmount
+      return out
+    }).filter((s) => (s.fullName || "").trim())
+
+  // The editable persons/companies list, shown inside the "Checks uitvoeren" modal.
+  const renderSubjectEditor = () => {
+    if (!scanEditor) return null
+    return (
+      <div className="space-y-3 mt-3">
+        {scanEditor.subjects.map((s, i) => (
+          <div key={i} className="border border-gray-200 rounded-xl p-3 bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <select value={s.type} onChange={(e) => updateSubject(i, { type: e.target.value as EditableSubject["type"] })} className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 font-sans bg-white">
+                <option value="natural_person">Persoon</option>
+                <option value="legal_entity">Bedrijf</option>
+              </select>
+              <button onClick={() => removeSubject(i)} className="text-xs text-gray-400 hover:text-red-500 font-sans transition-colors">Verwijderen</button>
+            </div>
+            {s.type === "natural_person" ? (
+              <>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <input value={s.voornaam || ""} onChange={(e) => updateSubject(i, { voornaam: e.target.value })} placeholder="Voornaam (voluit)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                  <input value={s.achternaam || ""} onChange={(e) => updateSubject(i, { achternaam: e.target.value })} placeholder="Achternaam" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                  <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Plaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                </div>
+              </>
+            ) : (
+              <>
+                <input value={s.fullName || ""} onChange={(e) => updateSubject(i, { fullName: e.target.value })} placeholder="Statutaire bedrijfsnaam" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                  <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Vestigingsplaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+        <button onClick={addSubject} className="w-full py-2 text-sm font-sans border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#311E86] hover:text-[#311E86] transition-colors">
+          + Persoon / bedrijf toevoegen
+        </button>
+        {scanEditor.subjects.some((s) => s.type === "legal_entity") && !scanEditor.subjects.some((s) => s.type === "natural_person") && (
+          <p className="text-xs font-sans text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+            Alleen het bedrijf staat ingesteld. Voeg de vertegenwoordiger/DGA (persoon) toe voor een volledige WWFT-check.
+          </p>
+        )}
+      </div>
+    )
   }
 
   async function sendMessage(aanvraagId: string) {
@@ -847,20 +890,13 @@ export function AdminAanvragen() {
                   {/* Show "Checks uitvoeren" if at least one check can be (re)started */}
                   {a.driveFolderId && (
                     <button
-                      onClick={() => { setChecksModal(a.id); setSelectedChecks(new Set()) }}
+                      onClick={() => { setChecksModal(a.id); setSelectedChecks(new Set()); setScanEditor({ aanvraagId: a.id, subjects: deriveEditableSubjects(a) }) }}
                       className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors inline-flex items-center gap-1.5"
                     >
                       <PlayCircle size={13} />
                       Checks uitvoeren
                     </button>
                   )}
-
-                  <button
-                    onClick={() => openScanEditor(a)}
-                    className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:border-[#311E86] hover:text-[#311E86] transition-colors"
-                  >
-                    Personen bewerken &amp; check draaien
-                  </button>
                 </>
               )}
 
@@ -1049,13 +1085,14 @@ export function AdminAanvragen() {
         }
         const runSelected = () => {
           if (selectedChecks.has("analysis")) triggerAnalysis(checksModal)
-          if (selectedChecks.has("scan")) retryScan(checksModal)
+          if (selectedChecks.has("scan")) retryScan(checksModal, scanEditor ? composeSubjects(scanEditor.subjects) : undefined)
           setChecksModal(null)
           setSelectedChecks(new Set())
+          setScanEditor(null)
         }
         return (
-          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setChecksModal(null)}>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setChecksModal(null); setScanEditor(null) }}>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Checks uitvoeren</h3>
               <p className="text-sm text-gray-400 font-sans mb-5">Selecteer welke checks u wilt starten voor {ca.naam}.</p>
               <div className="space-y-3">
@@ -1080,29 +1117,28 @@ export function AdminAanvragen() {
                   </label>
                 )}
                 {scanRunnable && (
-                  <label
-                    className={`flex items-start gap-3 w-full text-left px-4 py-3 rounded-lg border cursor-pointer transition-colors ${
-                      selectedChecks.has("scan") ? "border-teal-500 bg-teal-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedChecks.has("scan")}
-                      onChange={() => toggleCheck("scan")}
-                      className="mt-0.5 accent-teal-600"
-                    />
-                    <div>
-                      <p className="text-sm font-medium font-sans text-gray-900">
-                        {ca.reputationScanResult ? "Achtergrondcheck opnieuw" : ca.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Achtergrondcheck"}
-                      </p>
-                      <p className="text-xs text-gray-400 font-sans mt-0.5">OSINT scan op aanvrager via web search</p>
-                    </div>
-                  </label>
+                  <div className={`rounded-lg border p-3 transition-colors ${selectedChecks.has("scan") ? "border-teal-500 bg-teal-50" : "border-gray-200"}`}>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedChecks.has("scan")}
+                        onChange={() => toggleCheck("scan")}
+                        className="mt-0.5 accent-teal-600"
+                      />
+                      <div>
+                        <p className="text-sm font-medium font-sans text-gray-900">
+                          {ca.reputationScanResult ? "Achtergrondcheck opnieuw" : ca.reputationScanStatus === "error" ? "Achtergrondcheck opnieuw" : "Achtergrondcheck"}
+                        </p>
+                        <p className="text-xs text-gray-400 font-sans mt-0.5">OSINT-scan — elke persoon/bedrijf wordt <strong>apart</strong> gecheckt. Vul hieronder de gegevens aan (bijv. de volledige voornaam) voor een betrouwbaardere match.</p>
+                      </div>
+                    </label>
+                    {renderSubjectEditor()}
+                  </div>
                 )}
               </div>
               <div className="flex justify-end gap-2 mt-5">
                 <button
-                  onClick={() => setChecksModal(null)}
+                  onClick={() => { setChecksModal(null); setScanEditor(null) }}
                   className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annuleren
@@ -1193,73 +1229,6 @@ export function AdminAanvragen() {
           </div>
         )
       })()}
-
-      {/* Personen bewerken & check draaien */}
-      {scanEditor && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setScanEditor(null)}>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between mb-1">
-              <h3 className="font-serif text-xl text-[#1E3A5F]">Personen voor achtergrondcheck</h3>
-              <button onClick={() => setScanEditor(null)} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
-            </div>
-            <p className="text-sm text-gray-400 font-sans mb-5">
-              Vul volledige namen aan (bijv. voluit i.p.v. een initiaal) voor een betrouwbaardere check. Elke persoon/bedrijf wordt <strong>apart</strong> gescand met een passende zoekstrategie.
-            </p>
-
-            <div className="space-y-4">
-              {scanEditor.subjects.map((s, i) => (
-                <div key={i} className="border border-gray-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <select
-                      value={s.type}
-                      onChange={(e) => updateSubject(i, { type: e.target.value as EditableSubject["type"] })}
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 font-sans bg-white"
-                    >
-                      <option value="natural_person">Persoon</option>
-                      <option value="legal_entity">Bedrijf</option>
-                    </select>
-                    <button onClick={() => removeSubject(i)} className="text-xs text-gray-400 hover:text-red-500 font-sans transition-colors">Verwijderen</button>
-                  </div>
-                  {s.type === "natural_person" ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <input value={s.voornaam || ""} onChange={(e) => updateSubject(i, { voornaam: e.target.value })} placeholder="Voornaam (voluit)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                        <input value={s.achternaam || ""} onChange={(e) => updateSubject(i, { achternaam: e.target.value })} placeholder="Achternaam" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                        <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Plaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <input value={s.fullName || ""} onChange={(e) => updateSubject(i, { fullName: e.target.value })} placeholder="Statutaire bedrijfsnaam" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                        <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Vestigingsplaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-              <button onClick={addSubject} className="w-full py-2.5 text-sm font-sans border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#311E86] hover:text-[#311E86] transition-colors">
-                + Persoon / bedrijf toevoegen
-              </button>
-            </div>
-
-            {scanEditor.subjects.some((s) => s.type === "legal_entity") && !scanEditor.subjects.some((s) => s.type === "natural_person") && (
-              <p className="text-xs font-sans text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3">
-                Alleen het bedrijf staat ingesteld. Voeg de vertegenwoordiger/DGA (persoon) toe voor een volledige WWFT-check.
-              </p>
-            )}
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setScanEditor(null)} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Annuleren</button>
-              <button onClick={runEditedScan} className="px-5 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors">Check draaien</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {deleteModal && (() => {
         const da = aanvragen.find(a => a.id === deleteModal)
