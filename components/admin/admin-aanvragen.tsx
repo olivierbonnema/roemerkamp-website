@@ -122,7 +122,9 @@ function overallScan(a: { reputationScanResults?: SubjectResult[]; reputationSca
 // ScanSubject fields that an admin may correct before (re)running a check).
 type EditableSubject = {
   type: "natural_person" | "legal_entity"
-  fullName: string
+  voornaam?: string   // natural person: first name(s)
+  achternaam?: string // natural person: surname (incl. tussenvoegsel)
+  fullName?: string   // legal entity: statutaire naam; persons are composed from voornaam + achternaam
   dob?: string
   city?: string
   address?: string
@@ -131,19 +133,34 @@ type EditableSubject = {
   role?: string
 }
 
+// Split a stored name into first name(s) + surname (tussenvoegsel-aware), so the
+// prefill lands in the right column. The admin corrects it from there.
+function splitName(full: string): { voornaam: string; achternaam: string } {
+  const parts = (full || "").trim().split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return { voornaam: "", achternaam: parts[0] || "" }
+  const prefixes = new Set(["de", "van", "het", "der", "den", "ten", "ter", "la", "le", "du", "von"])
+  let i = parts.length - 1
+  while (i > 0 && prefixes.has(parts[i - 1].toLowerCase())) i--
+  return { voornaam: parts.slice(0, i).join(" "), achternaam: parts.slice(i).join(" ") }
+}
+
 // Client-side mirror of the server's deriveSubjects — prefills the editor.
 function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   const city = a.adres ? a.adres.split(",").pop()?.trim() || undefined : undefined
   const plaats = city || a.objectPlaats || undefined
   const isCompany = a.aanvragerType !== "Particulier" && !!a.bedrijfsnaam
+  const person = (naam: string, extra: Partial<EditableSubject>): EditableSubject => {
+    const { voornaam, achternaam } = splitName(naam)
+    return { type: "natural_person", voornaam, achternaam, city: plaats, ...extra }
+  }
   const out: EditableSubject[] = []
   if (isCompany) {
     if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, city: plaats })
-    if (a.naam) out.push({ type: "natural_person", fullName: a.naam, dob: a.geboortedatum, city: plaats, address: a.adres, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" })
-    if (a.medeNaam) out.push({ type: "natural_person", fullName: a.medeNaam, city: plaats, company: a.bedrijfsnaam, role: "medevertegenwoordiger" })
+    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, address: a.adres, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
+    if (a.medeNaam) out.push(person(a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
   } else {
-    if (a.naam) out.push({ type: "natural_person", fullName: a.naam, dob: a.geboortedatum, city: plaats, address: a.adres })
-    if (a.medeNaam) out.push({ type: "natural_person", fullName: a.medeNaam, city: plaats })
+    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, address: a.adres }))
+    if (a.medeNaam) out.push(person(a.medeNaam, {}))
   }
   return out
 }
@@ -430,7 +447,23 @@ export function AdminAanvragen() {
     setScanEditor((prev) => prev ? { ...prev, subjects: [...prev.subjects, { type: "natural_person", fullName: "" }] } : prev)
   const runEditedScan = () => {
     if (!scanEditor) return
-    const subjects = scanEditor.subjects.filter((s) => s.fullName.trim())
+    // Compose fullName from voornaam + achternaam (person) or the entity name, and
+    // send a clean ScanSubject-shaped payload (no voornaam/achternaam scaffolding).
+    const subjects = scanEditor.subjects
+      .map((s): EditableSubject => {
+        const fullName = s.type === "natural_person"
+          ? `${s.voornaam || ""} ${s.achternaam || ""}`.trim()
+          : (s.fullName || "").trim()
+        const out: EditableSubject = { type: s.type, fullName }
+        if (s.dob) out.dob = s.dob
+        if (s.city) out.city = s.city
+        if (s.address) out.address = s.address
+        if (s.company) out.company = s.company
+        if (s.kvkNummer) out.kvkNummer = s.kvkNummer
+        if (s.role) out.role = s.role
+        return out
+      })
+      .filter((s) => (s.fullName || "").trim())
     if (!subjects.length) { setScanErrorModal({ title: "Geen personen", message: "Vul minstens één naam in om te checken." }); return }
     retryScan(scanEditor.aanvraagId, subjects)
     setScanEditor(null)
@@ -800,13 +833,6 @@ export function AdminAanvragen() {
                     </div>
                   ) : null}
 
-                  <button
-                    onClick={() => openScanEditor(a)}
-                    className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:border-[#311E86] hover:text-[#311E86] transition-colors"
-                  >
-                    Personen bewerken &amp; check draaien
-                  </button>
-
                   {a.analysisStatus === "data_ready" && (a.dossierUrl || a.driveFolderUrl) && (
                     <a
                       href={a.dossierUrl || a.driveFolderUrl}
@@ -828,6 +854,13 @@ export function AdminAanvragen() {
                       Checks uitvoeren
                     </button>
                   )}
+
+                  <button
+                    onClick={() => openScanEditor(a)}
+                    className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:border-[#311E86] hover:text-[#311E86] transition-colors"
+                  >
+                    Personen bewerken &amp; check draaien
+                  </button>
                 </>
               )}
 
@@ -1187,25 +1220,26 @@ export function AdminAanvragen() {
                     </select>
                     <button onClick={() => removeSubject(i)} className="text-xs text-gray-400 hover:text-red-500 font-sans transition-colors">Verwijderen</button>
                   </div>
-                  <input
-                    value={s.fullName}
-                    onChange={(e) => updateSubject(i, { fullName: e.target.value })}
-                    placeholder={s.type === "legal_entity" ? "Statutaire bedrijfsnaam" : "Volledige naam (voluit, niet alleen initiaal)"}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    {s.type === "natural_person" ? (
-                      <>
+                  {s.type === "natural_person" ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input value={s.voornaam || ""} onChange={(e) => updateSubject(i, { voornaam: e.target.value })} placeholder="Voornaam (voluit)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                        <input value={s.achternaam || ""} onChange={(e) => updateSubject(i, { achternaam: e.target.value })} placeholder="Achternaam" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
                         <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                         <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Plaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                      </>
-                    ) : (
-                      <>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <input value={s.fullName || ""} onChange={(e) => updateSubject(i, { fullName: e.target.value })} placeholder="Statutaire bedrijfsnaam" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
+                      <div className="grid grid-cols-2 gap-2">
                         <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                         <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Vestigingsplaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
               <button onClick={addSubject} className="w-full py-2.5 text-sm font-sans border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#311E86] hover:text-[#311E86] transition-colors">
