@@ -147,8 +147,9 @@ function splitName(full: string): { voornaam: string; achternaam: string } {
 
 // Client-side mirror of the server's deriveSubjects — prefills the editor.
 function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
-  const city = a.adres ? a.adres.split(",").pop()?.trim() || undefined : undefined
-  const plaats = city || a.objectPlaats || undefined
+  const rawCity = a.adres ? a.adres.split(",").pop()?.trim() : undefined
+  // Keep only the town name (strip a leading Dutch postcode like "3704 BN").
+  const plaats = (rawCity ? rawCity.replace(/^\d{4}\s?[A-Z]{2}\s+/i, "").trim() : "") || a.objectPlaats || undefined
   const isCompany = a.aanvragerType !== "Particulier" && !!a.bedrijfsnaam
   const loanAmount = a.leningBedrag || undefined
   const person = (naam: string, extra: Partial<EditableSubject>): EditableSubject => {

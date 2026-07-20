@@ -344,8 +344,9 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
   const medeNaam = str(data.medeNaam)
   const bedrijfsnaam = str(data.bedrijfsnaam)
   const adres = str(data.adres)
-  const city = adres ? adres.split(",").pop()?.trim() || undefined : undefined
-  const plaats = city || str(data.objectPlaats)
+  const rawCity = adres ? adres.split(",").pop()?.trim() : undefined
+  // Keep only the town name (strip a leading Dutch postcode like "3704 BN").
+  const plaats = (rawCity ? rawCity.replace(/^\d{4}\s?[A-Z]{2}\s+/i, "").trim() : "") || str(data.objectPlaats)
   const loanAmount = str(data.leningBedrag)
   const isCompany = str(data.aanvragerType) !== "Particulier" && !!bedrijfsnaam
 
