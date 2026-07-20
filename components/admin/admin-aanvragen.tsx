@@ -154,7 +154,7 @@ function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   const loanAmount = a.leningBedrag || undefined
   const person = (naam: string, extra: Partial<EditableSubject>): EditableSubject => {
     const { voornaam, achternaam } = splitName(naam)
-    return { type: "natural_person", voornaam, achternaam, city: plaats, loanAmount, ...extra }
+    return { type: "natural_person", voornaam, achternaam, loanAmount, ...extra }
   }
   const out: EditableSubject[] = []
   if (isCompany) {
@@ -485,10 +485,7 @@ export function AdminAanvragen() {
                   <input value={s.voornaam || ""} onChange={(e) => updateSubject(i, { voornaam: e.target.value })} placeholder="Voornaam (voluit)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                   <input value={s.achternaam || ""} onChange={(e) => updateSubject(i, { achternaam: e.target.value })} placeholder="Achternaam" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                  <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Plaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
-                </div>
+                <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
               </>
             ) : (
               <>

@@ -362,11 +362,11 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
       sector: "vastgoed",
       loanAmount,
     })
-    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
-    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, city: plaats, company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
   } else {
-    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), city: plaats, loanAmount })
-    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, city: plaats, loanAmount })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, loanAmount })
   }
   return subjects.map(cleanSubject)
 }
