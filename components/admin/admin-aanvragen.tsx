@@ -490,6 +490,7 @@ export function AdminAanvragen() {
             ) : (
               <>
                 <input value={s.fullName || ""} onChange={(e) => updateSubject(i, { fullName: e.target.value })} placeholder="Statutaire bedrijfsnaam" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
+                <input value={s.address || ""} onChange={(e) => updateSubject(i, { address: e.target.value })} placeholder="Volledig adres (straat, huisnummer, postcode, plaats)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans mb-2 focus:outline-none focus:border-[#1E3A5F]" />
                 <div className="grid grid-cols-2 gap-2">
                   <input value={s.kvkNummer || ""} onChange={(e) => updateSubject(i, { kvkNummer: e.target.value })} placeholder="KvK-nummer" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                   <input value={s.city || ""} onChange={(e) => updateSubject(i, { city: e.target.value })} placeholder="Vestigingsplaats" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
