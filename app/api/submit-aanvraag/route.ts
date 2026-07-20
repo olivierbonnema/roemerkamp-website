@@ -268,7 +268,7 @@ export async function POST(req: NextRequest) {
     aflossingstype    ? `Aflossingstype: ${aflossingstype}` : "",
     wanneerNodig      ? `Financiering nodig op: ${wanneerNodig}` : "",
     eigenInbreng      ? `Eigen inbreng: €${eigenInbreng}` : "",
-    bestaandeSchulden ? `Bestaande schulden: €${bestaandeSchulden}` : "",
+    bestaandeSchulden ? `Bestaande hypotheekschuld: €${bestaandeSchulden}` : "",
     uitstrategie      ? `Exit strategy: ${uitstrategie}` : "",
     "",
     "--- DOCUMENTEN ---",
@@ -514,7 +514,7 @@ export async function POST(req: NextRequest) {
               row("Aflossingstype", aflossingstype),
               row("Financiering nodig op", wanneerNodig),
               row("Eigen inbreng", fmtEur(eigenInbreng)),
-              row("Bestaande schulden", fmtEur(bestaandeSchulden)),
+              row("Bestaande hypotheekschuld", fmtEur(bestaandeSchulden)),
               row("Exit strategy", uitstrategie),
             ].join(""))}
             ${section("Documenten", [

@@ -15,12 +15,8 @@ const STEPS = [
 ]
 
 const PROPERTY_TYPES = [
-  "Woning: eengezins",
-  "Woning: meergezins",
-  "Woning: appartement",
-  "Commercieel: kantoor",
-  "Commercieel: retail",
-  "Commercieel: industrieel",
+  "Wonen",
+  "Commercieel",
   "Gemengd gebruik",
   "Grond / ontwikkellocatie",
   "Anders",
@@ -48,6 +44,7 @@ const AFLOSSINGSTYPE_OPTIONS = [
   "Lineair",
   "Aflossingsvrij",
   "Bullet",
+  "Gemengde leenvorm",
   "Geen voorkeur",
 ]
 
@@ -64,8 +61,8 @@ const DOC_CATEGORIES = [
   { id: "financieringsmemorandum",label: "Financieringsmemorandum",        desc: "Toelichting financiering",                              required: true,  particulier: true,  zakelijk: true  },
   { id: "werkgeversverklaring",   label: "Werkgeversverklaring",           desc: "Verklaring van uw werkgever",                           required: false, particulier: true,  zakelijk: false },
   { id: "arbeidsovereenkomst",    label: "Arbeidsovereenkomst",            desc: "Huidig arbeidscontract",                                required: false, particulier: true,  zakelijk: false },
-  { id: "loonstroken",            label: "Drie meest recente loonstroken", desc: "Loonstroken van de afgelopen drie maanden",             required: false, particulier: true,  zakelijk: false },
-  { id: "ib_aangifte",            label: "IB Aangifte",                    desc: "Inkomstenbelastingaangifte",                            required: false, particulier: true,  zakelijk: false },
+  { id: "loonstroken",            label: "Loonstroken",                    desc: "Loonstroken van de afgelopen drie maanden",             required: false, particulier: true,  zakelijk: false },
+  { id: "ib_aangifte",            label: "IB Aangifte",                    desc: "Inkomstenbelastingaangifte van de afgelopen drie jaar", required: false, particulier: true,  zakelijk: false },
   { id: "kvk",                    label: "KvK-uittreksel",                 desc: "Inschrijving Kamer van Koophandel",                      required: false, particulier: false, zakelijk: true  },
   { id: "jaarcijfers",            label: "Jaarcijfers",                    desc: "Jaarrekeningen van de afgelopen drie jaar",             required: false, particulier: false, zakelijk: true  },
   { id: "entiteit",               label: "Financiële stukken entiteit",    desc: "Actuele balans en winst-/verliesrekening",              required: false, particulier: false, zakelijk: true  },
@@ -112,11 +109,12 @@ interface ObjectData {
   postcode: string
   plaats: string
   waarde: string
+  verhuurd: boolean
   huurinkomsten: string
 }
 
 const emptyObject = (): ObjectData => ({
-  type: "", typeAnders: "", adres: "", huisnummer: "", postcode: "", plaats: "", waarde: "", huurinkomsten: "",
+  type: "", typeAnders: "", adres: "", huisnummer: "", postcode: "", plaats: "", waarde: "", verhuurd: false, huurinkomsten: "",
 })
 
 // Postcode + huisnummer -> straat + plaats via the free PDOK Locatieserver
@@ -580,7 +578,7 @@ export function FinancingForm() {
         postcode: o.postcode,
         plaats: o.plaats,
         waarde: o.waarde,
-        huurinkomsten: o.huurinkomsten,
+        huurinkomsten: o.verhuurd ? o.huurinkomsten : "",
       }))
       formData.append("objects", JSON.stringify(submitObjects))
       for (const [catId, catFiles] of Object.entries(files))
@@ -750,10 +748,21 @@ export function FinancingForm() {
                 <Field label="Geschatte marktwaarde" required hint="Op basis van taxatie of recente waardebepaling">
                   <CurrencyInput value={obj.waarde} onChange={(v) => updateObject(idx, "waarde", v)} placeholder="0" />
                 </Field>
-                <Field label="Huurinkomsten (per maand)" hint="Indien van toepassing">
-                  <CurrencyInput value={obj.huurinkomsten} onChange={(v) => updateObject(idx, "huurinkomsten", v)} placeholder="0" />
+                <Field label="Is het object verhuurd?">
+                  <button
+                    type="button"
+                    onClick={() => setObjects((prev) => prev.map((o, i) => (i === idx ? { ...o, verhuurd: !o.verhuurd, huurinkomsten: o.verhuurd ? "" : o.huurinkomsten } : o)))}
+                    className={`h-[46px] px-6 rounded-full text-sm font-sans border transition-colors cursor-pointer ${obj.verhuurd ? "bg-[#1E3A5F] text-white border-[#1E3A5F]" : "bg-white text-gray-600 border-gray-300 hover:border-[#1E3A5F]"}`}
+                  >
+                    {obj.verhuurd ? "Ja, verhuurd" : "Nee"}
+                  </button>
                 </Field>
               </TwoCol>
+              {obj.verhuurd && (
+                <Field label="Huurinkomsten (per maand)" hint="Bruto huur per maand">
+                  <CurrencyInput value={obj.huurinkomsten} onChange={(v) => updateObject(idx, "huurinkomsten", v)} placeholder="0" />
+                </Field>
+              )}
             </div>
           ))}
 
@@ -793,7 +802,7 @@ export function FinancingForm() {
             <Field label="Eigen inbreng" hint="Bedrag dat u zelf inlegt">
               <CurrencyInput value={eigenInbreng} onChange={setEigenInbreng} placeholder="0" />
             </Field>
-            <Field label="Bestaande schulden" hint="Totaal aan lopende verplichtingen">
+            <Field label="Bestaande hypotheekschuld" hint="Openstaande hypotheekschuld op bestaand bezit">
               <CurrencyInput value={bestaandeSchulden} onChange={setBestaandeSchulden} placeholder="0" />
             </Field>
           </TwoCol>
@@ -872,7 +881,7 @@ export function FinancingForm() {
             <ReviewRow label="Looptijd" value={fmt(looptijd)} />
             {aflossingstype && <ReviewRow label="Aflossingstype" value={aflossingstype} />}
             {eigenInbreng && <ReviewRow label="Eigen inbreng" value={fmtCurrency(eigenInbreng)} />}
-            {bestaandeSchulden && <ReviewRow label="Bestaande schulden" value={fmtCurrency(bestaandeSchulden)} />}
+            {bestaandeSchulden && <ReviewRow label="Bestaande hypotheekschuld" value={fmtCurrency(bestaandeSchulden)} />}
             {wanneerNodig && <ReviewRow label="Financiering nodig op" value={wanneerNodig} />}
             {uitstrategie && <ReviewRow label="Exit strategy" value={resolveExit()} />}
           </ReviewSection>
