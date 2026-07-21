@@ -117,6 +117,17 @@ const emptyObject = (): ObjectData => ({
   type: "", typeAnders: "", adres: "", huisnummer: "", postcode: "", plaats: "", waarde: "", verhuurd: false, huurinkomsten: "",
 })
 
+// Split a full name into first name(s) + surname (tussenvoegsel-aware) — used to
+// seed the split fields from an older draft that only stored a single name.
+function splitFullName(full: string): { voornaam: string; achternaam: string } {
+  const parts = (full || "").trim().split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return { voornaam: "", achternaam: parts[0] || "" }
+  const prefixes = new Set(["de", "van", "het", "der", "den", "ten", "ter", "la", "le", "du", "von"])
+  let i = parts.length - 1
+  while (i > 0 && prefixes.has(parts[i - 1].toLowerCase())) i--
+  return { voornaam: parts.slice(0, i).join(" "), achternaam: parts.slice(i).join(" ") }
+}
+
 // Postcode + huisnummer -> straat + plaats via the free PDOK Locatieserver
 // (Dutch government geocoder, no API key). Returns null on any failure so the
 // user can always still type manually.
@@ -387,7 +398,9 @@ export function FinancingForm() {
 
   // Aanvrager
   const [aanvragerType, setAanvragerType] = useState(s("aanvragerType", ""))
-  const [naam, setNaam] = useState(s("naam", ""))
+  const [voornaam, setVoornaam] = useState(s("voornaam", "") || splitFullName(s("naam", "")).voornaam)
+  const [achternaam, setAchternaam] = useState(s("achternaam", "") || splitFullName(s("naam", "")).achternaam)
+  const naam = `${voornaam} ${achternaam}`.trim()
   const [bedrijfsnaam, setBedrijfsnaam] = useState(s("bedrijfsnaam", ""))
   const [kvkNummer, setKvkNummer] = useState(s("kvkNummer", ""))
   const [email, setEmail] = useState(s("email", ""))
@@ -398,7 +411,9 @@ export function FinancingForm() {
   const [adresPlaats, setAdresPlaats] = useState(s("adresPlaats", ""))
   const [geboortedatum, setGeboortedatum] = useState(s("geboortedatum", ""))
   const [burgerlijkStaat, setBurgerlijkStaat] = useState(s("burgerlijkStaat", ""))
-  const [medeNaam, setMedeNaam] = useState(s("medeNaam", ""))
+  const [medeVoornaam, setMedeVoornaam] = useState(s("medeVoornaam", "") || splitFullName(s("medeNaam", "")).voornaam)
+  const [medeAchternaam, setMedeAchternaam] = useState(s("medeAchternaam", "") || splitFullName(s("medeNaam", "")).achternaam)
+  const medeNaam = `${medeVoornaam} ${medeAchternaam}`.trim()
   const [medeEmail, setMedeEmail] = useState(s("medeEmail", ""))
 
   // Objects
@@ -460,9 +475,9 @@ export function FinancingForm() {
   // Auto-save draft
   useEffect(() => {
     saveDraft(draftId, {
-      step, aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
+      step, aanvragerType, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       adresHuisnummer, adresPostcode, adresPlaats,
-      geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
+      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders,
     })
@@ -471,9 +486,9 @@ export function FinancingForm() {
     draftTimerRef.current = setTimeout(() => setDraftSaved(false), 2000)
     return () => clearTimeout(draftTimerRef.current)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftId, step, aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
+  }, [draftId, step, aanvragerType, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       adresHuisnummer, adresPostcode, adresPlaats,
-      geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
+      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders])
 
@@ -501,7 +516,8 @@ export function FinancingForm() {
         if (!bedrijfsnaam) newErrors.bedrijfsnaam = "Vul de bedrijfsnaam in"
         if (!kvkNummer) newErrors.kvkNummer = "Vul het KvK-nummer in"
       }
-      if (!naam) newErrors.naam = "Vul uw naam in"
+      if (!voornaam.trim()) newErrors.voornaam = "Vul uw voornaam in"
+      if (!achternaam.trim()) newErrors.achternaam = "Vul uw achternaam in"
       if (!email) newErrors.email = "Vul uw e-mailadres in"
       if (!telefoon) newErrors.telefoon = "Vul uw telefoonnummer in"
       if (!geboortedatum) newErrors.geboortedatum = "Vul uw geboortedatum in"
@@ -565,8 +581,8 @@ export function FinancingForm() {
     try {
       const formData = new FormData()
       const fields: Record<string, string> = {
-        aanvragerType, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres: aanvragerFullAdres(),
-        geboortedatum, burgerlijkStaat, medeNaam, medeEmail,
+        aanvragerType, naam, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres: aanvragerFullAdres(),
+        geboortedatum, burgerlijkStaat, medeNaam, medeVoornaam, medeAchternaam, medeEmail,
         leningDoel: resolveDoel(), leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
         wanneerNodig, aflossingstype, uitstrategie: resolveExit(),
       }
@@ -652,13 +668,16 @@ export function FinancingForm() {
           )}
 
           <TwoCol>
-            <Field label="Volledige naam" required error={errors.naam}>
-              <Input value={naam} onChange={(v) => { setNaam(v); clearError("naam") }} placeholder="Naam" error={!!errors.naam} />
+            <Field label="Voornaam" required error={errors.voornaam}>
+              <Input value={voornaam} onChange={(v) => { setVoornaam(v); clearError("voornaam") }} placeholder="Voornaam" error={!!errors.voornaam} />
             </Field>
-            <Field label="E-mailadres" required error={errors.email}>
-              <Input value={email} onChange={(v) => { setEmail(v); clearError("email") }} placeholder="E-mailadres" type="email" error={!!errors.email} />
+            <Field label="Achternaam" required error={errors.achternaam}>
+              <Input value={achternaam} onChange={(v) => { setAchternaam(v); clearError("achternaam") }} placeholder="Achternaam" error={!!errors.achternaam} />
             </Field>
           </TwoCol>
+          <Field label="E-mailadres" required error={errors.email}>
+            <Input value={email} onChange={(v) => { setEmail(v); clearError("email") }} placeholder="E-mailadres" type="email" error={!!errors.email} />
+          </Field>
 
           <Field label="Telefoonnummer" required error={errors.telefoon}>
             <Input value={telefoon} onChange={(v) => { setTelefoon(v); clearError("telefoon") }} placeholder="Telefoonnummer" type="tel" error={!!errors.telefoon} />
@@ -695,13 +714,16 @@ export function FinancingForm() {
             <div className="mt-1 mb-5 border border-gray-200 rounded-2xl p-5">
               <p className="text-[13px] font-semibold text-gray-700 font-sans mb-4">Medeaanvrager</p>
               <TwoCol>
-                <Field label="Volledige naam">
-                  <Input value={medeNaam} onChange={setMedeNaam} placeholder="Naam partner" />
+                <Field label="Voornaam">
+                  <Input value={medeVoornaam} onChange={setMedeVoornaam} placeholder="Voornaam partner" />
                 </Field>
-                <Field label="E-mailadres">
-                  <Input value={medeEmail} onChange={setMedeEmail} placeholder="E-mailadres partner" type="email" />
+                <Field label="Achternaam">
+                  <Input value={medeAchternaam} onChange={setMedeAchternaam} placeholder="Achternaam partner" />
                 </Field>
               </TwoCol>
+              <Field label="E-mailadres">
+                <Input value={medeEmail} onChange={setMedeEmail} placeholder="E-mailadres partner" type="email" />
+              </Field>
             </div>
           )}
         </div>

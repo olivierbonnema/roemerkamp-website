@@ -141,6 +141,8 @@ export async function POST(req: NextRequest) {
   }
 
   const naam              = get("naam")
+  const voornaam          = get("voornaam")
+  const achternaam        = get("achternaam")
   const email             = get("email")
   const aanvragerType     = get("aanvragerType")
   const bedrijfsnaam      = get("bedrijfsnaam")
@@ -150,6 +152,8 @@ export async function POST(req: NextRequest) {
   const geboortedatum     = get("geboortedatum")
   const burgerlijkStaat   = get("burgerlijkStaat")
   const medeNaam          = get("medeNaam")
+  const medeVoornaam      = get("medeVoornaam")
+  const medeAchternaam    = get("medeAchternaam")
   const medeEmail         = get("medeEmail")
   const leningDoel        = get("leningDoel")
   const leningBedrag      = get("leningBedrag")
@@ -287,6 +291,8 @@ export async function POST(req: NextRequest) {
       status: "ingediend",
       createdAt: new Date(),
       naam,
+      voornaam,
+      achternaam,
       aanvragerType,
       bedrijfsnaam,
       kvkNummer,
@@ -295,6 +301,8 @@ export async function POST(req: NextRequest) {
       geboortedatum,
       burgerlijkStaat,
       medeNaam,
+      medeVoornaam,
+      medeAchternaam,
       medeEmail,
       objectType,
       objectAdres,

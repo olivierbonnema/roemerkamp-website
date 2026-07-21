@@ -32,7 +32,11 @@ interface Aanvraag {
   kvkNummer?: string
   geboortedatum?: string
   burgerlijkStaat?: string
+  voornaam?: string
+  achternaam?: string
   medeNaam?: string
+  medeVoornaam?: string
+  medeAchternaam?: string
   medeEmail?: string
   eigenInbreng?: string
   bestaandeSchulden?: string
@@ -149,18 +153,20 @@ function splitName(full: string): { voornaam: string; achternaam: string } {
 function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   const isCompany = a.aanvragerType !== "Particulier" && !!a.bedrijfsnaam
   const loanAmount = a.leningBedrag || undefined
-  const person = (naam: string, extra: Partial<EditableSubject>): EditableSubject => {
-    const { voornaam, achternaam } = splitName(naam)
-    return { type: "natural_person", voornaam, achternaam, loanAmount, ...extra }
+  // Use the stored voornaam/achternaam (new aanvragen) so the boxes are exact;
+  // fall back to splitting the single name for older aanvragen.
+  const person = (vn: string | undefined, an: string | undefined, fallback: string | undefined, extra: Partial<EditableSubject>): EditableSubject => {
+    const split = splitName(fallback || "")
+    return { type: "natural_person", voornaam: (vn || "").trim() || split.voornaam, achternaam: (an || "").trim() || split.achternaam, loanAmount, ...extra }
   }
   const out: EditableSubject[] = []
   if (isCompany) {
     if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, loanAmount })
-    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
-    if (a.medeNaam) out.push(person(a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
+    if (a.naam) out.push(person(a.voornaam, a.achternaam, a.naam, { dob: a.geboortedatum, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
+    if (a.medeNaam) out.push(person(a.medeVoornaam, a.medeAchternaam, a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
   } else {
-    if (a.naam) out.push(person(a.naam, { dob: a.geboortedatum }))
-    if (a.medeNaam) out.push(person(a.medeNaam, {}))
+    if (a.naam) out.push(person(a.voornaam, a.achternaam, a.naam, { dob: a.geboortedatum }))
+    if (a.medeNaam) out.push(person(a.medeVoornaam, a.medeAchternaam, a.medeNaam, {}))
   }
   return out
 }
