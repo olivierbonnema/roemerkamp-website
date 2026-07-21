@@ -5,25 +5,51 @@ import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { ArrowLeft, Upload, X, CheckCircle2, Clock, FileText, Send } from "lucide-react"
 
+interface AanvraagObject {
+  type?: string
+  adres?: string
+  postcode?: string
+  plaats?: string
+  waarde?: string
+  huurinkomsten?: string
+}
+
 interface Aanvraag {
   id: string
   status: string
   createdAt: string | null
   naam: string
   aanvragerType: string
+  bedrijfsnaam?: string
+  kvkNummer?: string
+  telefoon?: string
+  adres?: string
+  geboortedatum?: string
+  burgerlijkStaat?: string
+  medeNaam?: string
+  medeEmail?: string
   objectType: string
   objectAdres: string
+  objectPostcode?: string
   objectPlaats: string
+  objectWaarde?: string
+  huurinkomsten?: string
+  objects?: AanvraagObject[]
   leningDoel: string
   leningBedrag: string
   looptijd: string
+  eigenInbreng?: string
+  bestaandeSchulden?: string
+  aflossingstype?: string
+  wanneerNodig?: string
+  uitstrategie?: string
   aantalBestanden: number
+  documentsUploaded?: number
 }
 
 interface Bericht {
   id: string
   message: string
-  senderEmail: string
   type: "admin_message" | "status_update" | "document_upload"
   createdAt: string | null
 }
@@ -64,10 +90,32 @@ function formatDateTime(iso: string | null) {
   })
 }
 
-function formatCurrency(raw: string) {
-  if (!raw) return "-"
-  const num = parseInt(raw, 10)
-  return isNaN(num) ? raw : `€ ${num.toLocaleString("nl-NL")}`
+function formatCurrency(raw?: string) {
+  if (!raw) return ""
+  const num = parseInt(String(raw).replace(/[^\d-]/g, ""), 10)
+  return isNaN(num) ? String(raw) : `€ ${num.toLocaleString("nl-NL")}`
+}
+
+// A date-only value the applicant entered (e.g. "1990-12-15"). Falls back to the
+// raw string if it isn't a parseable date.
+function formatDateStr(raw?: string) {
+  if (!raw) return ""
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) return raw
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
+}
+
+// One label/value cell. Renders nothing when the value is empty, so a group
+// never shows blank rows for fields the applicant left out.
+function Field({ label, value }: { label: string; value?: string | number | null }) {
+  const v = value === 0 ? "0" : (typeof value === "string" ? value.trim() : value)
+  if (v === undefined || v === null || v === "") return null
+  return (
+    <div>
+      <span className="text-gray-400 text-[12px]">{label}</span>
+      <p className="text-gray-900 font-medium break-words">{v}</p>
+    </div>
+  )
 }
 
 async function getToken() {
@@ -193,6 +241,21 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
   const isTerminal = aanvraag.status === "goedgekeurd" || aanvraag.status === "afgewezen"
   const needsInfo = aanvraag.status === "aanvullend_nodig"
 
+  // Prefer the multi-object array; fall back to the flat single-object fields
+  // for older aanvragen that predate it.
+  const hasObjectData = (o: AanvraagObject) => !!(o.type || o.adres || o.plaats || o.waarde || o.postcode)
+  const objectList: AanvraagObject[] = (aanvraag.objects && aanvraag.objects.length > 0
+    ? aanvraag.objects
+    : [{
+        type: aanvraag.objectType,
+        adres: aanvraag.objectAdres,
+        postcode: aanvraag.objectPostcode,
+        plaats: aanvraag.objectPlaats,
+        waarde: aanvraag.objectWaarde,
+        huurinkomsten: aanvraag.huurinkomsten,
+      }]
+  ).filter(hasObjectData)
+
   return (
     <div className="space-y-8">
       {/* Back button */}
@@ -255,43 +318,74 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
         </div>
       </div>
 
-      {/* Application summary */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Aanvraag gegevens</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
-          <div>
-            <span className="text-gray-400 text-[12px]">Naam</span>
-            <p className="text-gray-900 font-medium">{aanvraag.naam || "-"}</p>
+      {/* Full application overview — everything the applicant submitted. Admin-only
+          data (background checks, AI analysis, internal notes) is never sent to
+          this view; the API strips it server-side for non-admins. */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+        <h2 className="font-serif text-xl text-[#1E3A5F]">Aanvraag gegevens</h2>
+
+        {/* Aanvrager */}
+        <div>
+          <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">Aanvrager</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
+            <Field label="Naam" value={aanvraag.naam} />
+            <Field label="Type aanvrager" value={aanvraag.aanvragerType} />
+            <Field label="Bedrijfsnaam" value={aanvraag.bedrijfsnaam} />
+            <Field label="KvK-nummer" value={aanvraag.kvkNummer} />
+            <Field label="Telefoon" value={aanvraag.telefoon} />
+            <Field label="Adres" value={aanvraag.adres} />
+            <Field label="Geboortedatum" value={formatDateStr(aanvraag.geboortedatum)} />
+            <Field label="Burgerlijke staat" value={aanvraag.burgerlijkStaat} />
+            <Field label="Medeaanvrager" value={aanvraag.medeNaam} />
+            <Field label="E-mail medeaanvrager" value={aanvraag.medeEmail} />
+            <Field label="Ingediend op" value={formatDate(aanvraag.createdAt)} />
           </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Ingediend op</span>
-            <p className="text-gray-900 font-medium">{formatDate(aanvraag.createdAt)}</p>
+        </div>
+
+        {/* Object(en) */}
+        {objectList.length > 0 && (
+          <div className="pt-4 border-t border-gray-100">
+            <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">
+              {objectList.length > 1 ? "Objecten" : "Object"}
+            </h3>
+            <div className="space-y-4">
+              {objectList.map((o, i) => (
+                <div key={i}>
+                  {objectList.length > 1 && (
+                    <p className="text-[12px] text-gray-400 font-sans mb-2">Object {i + 1}</p>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
+                    <Field label="Type vastgoed" value={o.type} />
+                    <Field label="Adres" value={[o.adres, o.postcode, o.plaats].filter(Boolean).join(", ")} />
+                    <Field label="Geschatte marktwaarde" value={formatCurrency(o.waarde)} />
+                    <Field label="Huurinkomsten (p/m)" value={formatCurrency(o.huurinkomsten)} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Object</span>
-            <p className="text-gray-900 font-medium truncate">
-              {[aanvraag.objectAdres, aanvraag.objectPlaats].filter(Boolean).join(", ") || "-"}
-            </p>
+        )}
+
+        {/* Financiering */}
+        <div className="pt-4 border-t border-gray-100">
+          <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">Financiering</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
+            <Field label="Doel financiering" value={aanvraag.leningDoel} />
+            <Field label="Leningbedrag" value={formatCurrency(aanvraag.leningBedrag)} />
+            <Field label="Looptijd" value={aanvraag.looptijd} />
+            <Field label="Aflossingstype" value={aanvraag.aflossingstype} />
+            <Field label="Financiering nodig op" value={formatDateStr(aanvraag.wanneerNodig)} />
+            <Field label="Eigen inbreng" value={formatCurrency(aanvraag.eigenInbreng)} />
+            <Field label="Bestaande hypotheekschuld" value={formatCurrency(aanvraag.bestaandeSchulden)} />
+            <Field label="Exitstrategie" value={aanvraag.uitstrategie} />
           </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Type vastgoed</span>
-            <p className="text-gray-900 font-medium">{aanvraag.objectType || "-"}</p>
-          </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Leningbedrag</span>
-            <p className="text-gray-900 font-medium">{formatCurrency(aanvraag.leningBedrag)}</p>
-          </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Looptijd</span>
-            <p className="text-gray-900 font-medium">{aanvraag.looptijd || "-"}</p>
-          </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Doel financiering</span>
-            <p className="text-gray-900 font-medium">{aanvraag.leningDoel || "-"}</p>
-          </div>
-          <div>
-            <span className="text-gray-400 text-[12px]">Documenten</span>
-            <p className="text-gray-900 font-medium">{aanvraag.aantalBestanden ?? 0} bestanden</p>
+        </div>
+
+        {/* Documenten */}
+        <div className="pt-4 border-t border-gray-100">
+          <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">Documenten</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
+            <Field label="Aantal documenten" value={`${aanvraag.documentsUploaded ?? aanvraag.aantalBestanden ?? 0} bestanden`} />
           </div>
         </div>
       </div>

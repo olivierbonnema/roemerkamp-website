@@ -10,6 +10,33 @@ function isAdminEmail(email: string) {
   return (!!domain && e.endsWith(`@${domain}`)) || emails.includes(e)
 }
 
+// Fields a partner or client is allowed to see: only what the applicant
+// themselves submitted, plus the status we assign. Everything an admin adds
+// later — reputation/background checks, AI analysis, dossier data, internal
+// notes, assignments, OneDrive links, workflow timestamps — is deliberately
+// left out. A whitelist (not a blacklist) means any NEW admin-only field is
+// excluded by default and can never leak into the partner-facing response.
+const APPLICANT_FIELDS = [
+  "status",
+  "naam", "voornaam", "achternaam",
+  "aanvragerType", "bedrijfsnaam", "kvkNummer",
+  "telefoon", "adres", "geboortedatum", "burgerlijkStaat", "userEmail",
+  "medeNaam", "medeVoornaam", "medeAchternaam", "medeEmail",
+  "objectType", "objectAdres", "objectPostcode", "objectPlaats", "objectWaarde", "huurinkomsten",
+  "objects",
+  "leningDoel", "leningBedrag", "looptijd", "eigenInbreng", "bestaandeSchulden",
+  "aflossingstype", "wanneerNodig", "uitstrategie",
+  "aantalBestanden", "documentsUploaded",
+] as const
+
+function pickApplicantView(data: FirebaseFirestore.DocumentData) {
+  const out: Record<string, unknown> = {}
+  for (const key of APPLICANT_FIELDS) {
+    if (data[key] !== undefined) out[key] = data[key]
+  }
+  return out
+}
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) {
@@ -32,8 +59,9 @@ export async function GET(req: NextRequest) {
 
   try {
     // Admin → all; partner → their whole firm's deals; client → only their own.
+    const admin = isAdminEmail(email)
     let snap
-    if (isAdminEmail(email)) {
+    if (admin) {
       snap = await adminDb.collection("aanvragen").get()
     } else if (partnerOrg) {
       snap = await adminDb.collection("aanvragen").where("partnerOrgId", "==", partnerOrg).get()
@@ -44,10 +72,16 @@ export async function GET(req: NextRequest) {
     const aanvragen = snap.docs
       .map((doc) => {
         const data = doc.data()
+        const createdAt = data.createdAt?.toDate?.()?.toISOString() ?? null
+        // Non-admins (partners + clients) only ever receive applicant-submitted
+        // fields — never the admin-only data (see pickApplicantView).
+        if (!admin) {
+          return { id: doc.id, ...pickApplicantView(data), createdAt }
+        }
         return {
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+          createdAt,
           updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
         }
       })

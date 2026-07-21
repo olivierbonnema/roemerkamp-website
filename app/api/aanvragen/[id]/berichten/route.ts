@@ -49,11 +49,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     .orderBy("createdAt", "asc")
     .get()
 
-  const berichten = snap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-  }))
+  const berichten = snap.docs.map(doc => {
+    const d = doc.data()
+    const createdAt = d.createdAt?.toDate?.()?.toISOString() ?? null
+    // Non-admins (partners + clients) never receive senderEmail — that carries
+    // real staff email addresses on status updates / admin messages. The detail
+    // view shows a generic author label ("Lange Financieel Advies") anyway.
+    if (!isAdmin) {
+      return { id: doc.id, message: d.message, type: d.type, createdAt }
+    }
+    return { id: doc.id, ...d, createdAt }
+  })
 
   return NextResponse.json({ berichten })
 }

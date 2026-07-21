@@ -18,7 +18,7 @@ interface Aanvraag {
   leningDoel: string
   leningBedrag: string
   looptijd: string
-  driveFolderUrl: string
+  driveFolderUrl?: string // admin-only; not sent to partners/clients by the API
   aantalBestanden: number
 }
 
