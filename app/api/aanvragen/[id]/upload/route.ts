@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
-import { isPartner, getPartnerOrgId } from "@/lib/partners"
+import { resolvePartnerOrg } from "@/lib/partners"
 import { logActivity } from "@/lib/activity-log"
 
 const ALLOWED_FILE_TYPES = new Set([
@@ -73,7 +73,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!aanvraag.exists) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const data = aanvraag.data()!
-  const ownsAsPartner = isPartner(decoded) && !!data.partnerOrgId && data.partnerOrgId === getPartnerOrgId(decoded)
+  const partnerOrg = await resolvePartnerOrg(decoded)
+  const ownsAsPartner = !!partnerOrg && !!data.partnerOrgId && data.partnerOrgId === partnerOrg
   if (data.userId !== decoded.uid && !ownsAsPartner) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }

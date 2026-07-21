@@ -3,7 +3,7 @@ import { SITE_URL } from "@/lib/site"
 import { sendEmail } from "@/lib/brevo"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
-import { isPartner, getPartnerOrgId } from "@/lib/partners"
+import { resolvePartnerOrg } from "@/lib/partners"
 import { logActivity } from "@/lib/activity-log"
 
 const ALLOWED_FILE_TYPES = new Set([
@@ -131,10 +131,11 @@ export async function POST(req: NextRequest) {
       const decoded = await adminAuth.verifyIdToken(idToken)
       userId = decoded.uid
       userEmail = decoded.email ?? null
-      if (isPartner(decoded)) {
-        submittedByRole = "partner"
-        partnerOrgId = getPartnerOrgId(decoded)
-      }
+      // Resolve via claim, falling back to the users doc, so a partner with a
+      // stale token still stamps their firm's org on the new aanvraag — otherwise
+      // colleagues wouldn't see it (see resolvePartnerOrg).
+      partnerOrgId = await resolvePartnerOrg(decoded)
+      if (partnerOrgId) submittedByRole = "partner"
     } catch {
       // Token invalid - still allow submission but won't be linked to a user
     }
