@@ -65,3 +65,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Partnerorganisatie aanmaken mislukt." }, { status: 500 })
   }
 }
+
+// Rename / edit an existing organization. Aanvragen and users reference an org by
+// its id (never by a stored copy of the name), and both invite-partner and
+// submit-aanvraag read the name live by id — so updating this one doc is enough,
+// no denormalized copies to keep in sync.
+export async function PATCH(req: NextRequest) {
+  const admin = await verifyAdmin(req)
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { id, name, contactEmail, kvk } = await req.json()
+  if (!id || !String(id).trim()) {
+    return NextResponse.json({ error: "Organisatie-id ontbreekt." }, { status: 400 })
+  }
+  if (!name || !String(name).trim()) {
+    return NextResponse.json({ error: "Naam is verplicht." }, { status: 400 })
+  }
+
+  try {
+    const ref = adminDb.collection("partnerOrganizations").doc(String(id))
+    const snap = await ref.get()
+    if (!snap.exists) {
+      return NextResponse.json({ error: "Organisatie niet gevonden." }, { status: 404 })
+    }
+    await ref.update({
+      name: String(name).trim(),
+      contactEmail: contactEmail ? String(contactEmail).trim() : "",
+      kvk: kvk ? String(kvk).trim() : "",
+      updatedAt: new Date(),
+      updatedBy: admin.email,
+    })
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: "Partnerorganisatie bijwerken mislukt." }, { status: 500 })
+  }
+}

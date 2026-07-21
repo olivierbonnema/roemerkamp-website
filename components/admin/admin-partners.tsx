@@ -80,6 +80,14 @@ export function AdminPartners() {
   const [orgError, setOrgError] = useState("")
   const [orgSuccess, setOrgSuccess] = useState("")
 
+  // Inline edit of an existing organization (name / contact / KvK)
+  const [editingOrgId, setEditingOrgId] = useState<string | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editEmail, setEditEmail] = useState("")
+  const [editKvk, setEditKvk] = useState("")
+  const [savingOrg, setSavingOrg] = useState(false)
+  const [editError, setEditError] = useState("")
+
   // Invite-advisor form
   const [inviteOrgId, setInviteOrgId] = useState("")
   const [inviteEmail, setInviteEmail] = useState("")
@@ -138,6 +146,42 @@ export function AdminPartners() {
       setOrgError((err as Error).message || "Organisatie aanmaken mislukt.")
     } finally {
       setCreatingOrg(false)
+    }
+  }
+
+  function startEditOrg(org: PartnerOrg) {
+    setEditingOrgId(org.id)
+    setEditName(org.name || "")
+    setEditEmail(org.contactEmail || "")
+    setEditKvk(org.kvk || "")
+    setEditError("")
+  }
+
+  function cancelEditOrg() {
+    setEditingOrgId(null)
+    setEditError("")
+  }
+
+  async function saveOrg(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editName.trim()) { setEditError("Naam is verplicht."); return }
+    setSavingOrg(true)
+    setEditError("")
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/partner-organizations", {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingOrgId, name: editName, contactEmail: editEmail, kvk: editKvk }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Mislukt")
+      setEditingOrgId(null)
+      loadAll()
+    } catch (err: unknown) {
+      setEditError((err as Error).message || "Organisatie bijwerken mislukt.")
+    } finally {
+      setSavingOrg(false)
     }
   }
 
@@ -286,10 +330,42 @@ export function AdminPartners() {
             return (
               <div key={org.id} className="border border-gray-200 rounded-xl bg-white overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-900 font-sans">{org.name}</p>
-                  <p className="text-[12px] text-gray-400 font-sans mt-0.5">
-                    {[org.contactEmail, org.kvk ? `KvK ${org.kvk}` : "", `${advisors.length} ${advisors.length === 1 ? "adviseur" : "adviseurs"}`].filter(Boolean).join(" · ")}
-                  </p>
+                  {editingOrgId === org.id ? (
+                    <form onSubmit={saveOrg} className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Naam organisatie" aria-label="Naam organisatie" required autoFocus
+                          className="w-full h-[40px] px-4 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors" />
+                        <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Contact-e-mail (optioneel)" aria-label="Contact-e-mail"
+                          className="w-full h-[40px] px-4 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors" />
+                      </div>
+                      <input type="text" value={editKvk} onChange={(e) => setEditKvk(e.target.value)} placeholder="KvK-nummer (optioneel)" aria-label="KvK-nummer"
+                        className="w-full sm:max-w-xs h-[40px] px-4 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors" />
+                      {editError && <p className="text-sm text-red-500 font-sans">{editError}</p>}
+                      <div className="flex items-center gap-2">
+                        <button type="submit" disabled={savingOrg}
+                          className="px-5 py-2 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                          {savingOrg ? "Opslaan…" : "Opslaan"}
+                        </button>
+                        <button type="button" onClick={cancelEditOrg} disabled={savingOrg}
+                          className="px-5 py-2 text-sm font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60">
+                          Annuleren
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 font-sans">{org.name}</p>
+                        <p className="text-[12px] text-gray-400 font-sans mt-0.5">
+                          {[org.contactEmail, org.kvk ? `KvK ${org.kvk}` : "", `${advisors.length} ${advisors.length === 1 ? "adviseur" : "adviseurs"}`].filter(Boolean).join(" · ")}
+                        </p>
+                      </div>
+                      <button onClick={() => startEditOrg(org)}
+                        className="shrink-0 text-xs text-[#311E86] hover:underline font-sans transition-colors">
+                        Bewerken
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="divide-y divide-gray-50">
                   {advisors.length === 0 ? (
