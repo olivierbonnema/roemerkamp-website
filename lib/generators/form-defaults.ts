@@ -38,7 +38,7 @@ function fmtNlLong(iso: string): string {
 
 // Beschikbaarheid default that references the Geldigheidsduur (validityDate) date.
 export function buildBeschikbaarheid(validityIso: string): string {
-  return `De lening is beschikbaar na ondertekening van de leningsovereenkomst en afgifte van alle gevraagde zekerheden, doch uiterlijk tot ${fmtNlLong(validityIso)} na dagtekening van deze Termsheet.`
+  return `De lening is beschikbaar na ondertekening van de leningsovereenkomst en afgifte van alle gevraagde zekerheden, doch uiterlijk tot ${fmtNlLong(validityIso)}.`
 }
 
 export const PITCH_DEFAULTS = {
