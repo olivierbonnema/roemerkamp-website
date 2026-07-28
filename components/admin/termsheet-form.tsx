@@ -165,7 +165,10 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [validityDate, setValidityDate] = useState((d as Record<string, unknown>).validityDate as string || addMonths(addDays(baseDate, 7), 1))
 
   const [zekerhedenText, setZekerhedenText] = useState((d as Record<string, unknown>).zekerhedenText as string || "")
-  const [zekerhedenManual, setZekerhedenManual] = useState(false)
+  // Treat a saved zekerheden text as hand-edited so the auto-cascade below never
+  // overwrites it on load — mirrors beschikbaarheidManual. Without this, reopening
+  // a termsheet silently replaces a customised zekerheden with the recomputed one.
+  const [zekerhedenManual, setZekerhedenManual] = useState(!!(d as Record<string, unknown>).zekerhedenText)
   const [bepalingen, setBepalingen] = useState<string[]>((d as Record<string, unknown>).bepalingen as string[] || [])
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
@@ -309,6 +312,9 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   }
 
   useEffect(() => {
+    // Only auto-suggest afsluitkosten for a NEW termsheet. When editing a saved
+    // one, never override the stored value — not even a deliberate 0.
+    if ((d as Record<string, unknown>).entreekosten) return
     if (totalLoan > 0 && entree.afsluit === 0) {
       const auto = Math.max(Math.round(totalLoan * 0.01), 3000)
       setEntree((prev) => ({ ...prev, afsluit: auto, annulering: prev.annulering || auto }))
@@ -317,8 +323,15 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
 
   useImperativeHandle(ref, () => ({
     getData: (): TermsheetData => {
-      const filteredBorrowers = borrowers.filter((b) => b.name || b.bvName)
-      const filteredObjects = objects.filter((o) => o.description)
+      // Drop only genuinely-empty rows. Keep anything the user filled in — a
+      // borrower with just an address, or an object with an address/prior lien
+      // but no kadastrale omschrijving — so partially-filled rows aren't lost.
+      const filteredBorrowers = borrowers.filter(
+        (b) => b.name || b.bvName || b.address || b.city || b.vertegenwoordiger
+      )
+      const filteredObjects = objects.filter(
+        (o) => o.description || o.address || (o.priorLienholders && o.priorLienholders.length > 0)
+      )
       const filteredLoanParts = loanParts.filter((lp) => lp.amount > 0)
       const filteredVooraf = vooraf.filter((c) => c.text)
       return {
@@ -341,7 +354,10 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           priorLienholders: o.priorLienholders,
         })),
         loanParts: filteredLoanParts,
-        leningdelen: splitMode ? leningdelen.filter((dl) => dl.amount > 0) : undefined,
+        // Send [] (not undefined) when split mode is off: undefined is dropped by
+        // JSON, and Firestore merge:true would then keep the stale leningdelen,
+        // making split mode impossible to turn off. An empty array clears it.
+        leningdelen: splitMode ? leningdelen.filter((dl) => dl.amount > 0) : [],
         loanAmount: totalLoan,
         advisorName,
         reference,
