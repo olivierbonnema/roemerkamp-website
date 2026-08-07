@@ -75,7 +75,7 @@ export interface TermsheetData {
   loanParts: LoanPart[]
   leningdelen?: Leningdeel[]
   voorafgaandeCondities: VoorafConditie[]
-  entreekosten: { afsluit: number; opstart: number; annulering: number; opstartVoldaan?: boolean }
+  entreekosten: { afsluit: number; opstart: number; annulering: number; opstartVoldaan?: boolean; opstartReedsBetaald?: number }
   date?: string
   validityDate?: string
   signingDeadline?: string
@@ -445,13 +445,21 @@ export async function generateTermsheet(
   const entreeLines: string[] = []
   if (entree.afsluit) entreeLines.push(`Afsluitkosten: ${fmtEuro(entree.afsluit)}`)
   if (entree.opstart) {
-    const restant = (entree.afsluit || 0) - entree.opstart
-    const naPassering = fmtEuro(restant > 0 ? restant : 0)
-    entreeLines.push(
-      entree.opstartVoldaan
-        ? `Opstartkosten: ${fmtEuro(entree.opstart)} zijn reeds voldaan. De opstartkosten zullen worden verrekend met de totale afsluitkosten, waardoor bij passering nog ${naPassering} is te voldoen.`
-        : `Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${naPassering} is te voldoen.`
-    )
+    const reedsBetaald = entree.opstartReedsBetaald || 0
+    if (entree.opstartVoldaan && reedsBetaald > 0) {
+      // A part of the opstartkosten was already paid; state the remainder still due.
+      const restant = entree.opstart - reedsBetaald
+      entreeLines.push(
+        restant > 0
+          ? `Opstartkosten: ${fmtEuro(entree.opstart)}, waarvan ${fmtEuro(reedsBetaald)} reeds is voldaan. Het resterende bedrag van ${fmtEuro(restant)} dient direct bij ondertekening van de termsheet te worden voldaan.`
+          : `Opstartkosten: ${fmtEuro(entree.opstart)}, waarvan ${fmtEuro(reedsBetaald)} reeds is voldaan.`
+      )
+    } else {
+      const naPassering = (entree.afsluit || 0) - entree.opstart
+      entreeLines.push(
+        `Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${fmtEuro(naPassering > 0 ? naPassering : 0)} is te voldoen.`
+      )
+    }
   }
   if (entree.annulering) entreeLines.push(`Annuleringskosten: ${fmtEuro(entree.annulering)}`)
   const entreePars = entreeLines.length

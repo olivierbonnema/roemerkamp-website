@@ -56,9 +56,10 @@ interface Entreekosten {
   afsluit: number
   opstart: number
   annulering: number
-  // When true, the opstartkosten were already paid ("reeds voldaan") rather than
-  // due at signing — changes the wording of the opstartkosten line.
+  // When true, part of the opstartkosten was already paid; opstartReedsBetaald
+  // holds that amount, and the opstartkosten line states how much still remains.
   opstartVoldaan?: boolean
+  opstartReedsBetaald?: number
 }
 
 export interface TermsheetFormHandle {
@@ -129,6 +130,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
     opstart: (d as Record<string, unknown>).entreekosten ? ((d as Record<string, unknown>).entreekosten as Entreekosten).opstart : 0,
     annulering: (d as Record<string, unknown>).entreekosten ? ((d as Record<string, unknown>).entreekosten as Entreekosten).annulering : 0,
     opstartVoldaan: (d as Record<string, unknown>).entreekosten ? !!((d as Record<string, unknown>).entreekosten as Entreekosten).opstartVoldaan : false,
+    opstartReedsBetaald: (d as Record<string, unknown>).entreekosten ? (((d as Record<string, unknown>).entreekosten as Entreekosten).opstartReedsBetaald || 0) : 0,
   })
 
   const [advisorName, setAdvisorName] = useState((d as Record<string, unknown>).advisorName as string || s.advisorName || "")
@@ -743,10 +745,22 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           {entree.opstart > 0 && (
             <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
               <input type="checkbox" checked={!!entree.opstartVoldaan} onChange={(e) => setEntree((p) => ({ ...p, opstartVoldaan: e.target.checked }))} />
-              Opstartkosten zijn reeds voldaan (i.p.v. te voldoen bij ondertekening)
+              Een deel van de opstartkosten is al betaald
             </label>
           )}
-          {entree.opstart > 0 && entree.afsluit > 0 && (
+          {entree.opstart > 0 && entree.opstartVoldaan && (
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-600 block">Reeds betaald (€)</label>
+                <input type="number" value={entree.opstartReedsBetaald || ""} onChange={(e) => setEntree((p) => ({ ...p, opstartReedsBetaald: parseFloat(e.target.value) || 0 }))} className="w-full border rounded px-2 py-1.5 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 block">Nog te voldoen opstartkosten (berekend)</label>
+                <input readOnly value={`€ ${Math.max(entree.opstart - (entree.opstartReedsBetaald || 0), 0).toLocaleString("nl-NL")},-`} className="w-full border rounded px-2 py-1.5 text-sm bg-gray-50 text-gray-500" />
+              </div>
+            </div>
+          )}
+          {entree.opstart > 0 && entree.afsluit > 0 && !entree.opstartVoldaan && (
             <div className="mt-2">
               <label className="text-xs text-gray-400 block">Restant bij passering (berekend)</label>
               <input readOnly value={`€ ${Math.max(entree.afsluit - entree.opstart, 0).toLocaleString("nl-NL")},-`} className="w-full border rounded px-2 py-1.5 text-sm bg-gray-50 text-gray-500" />
