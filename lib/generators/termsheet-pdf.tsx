@@ -172,7 +172,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
   const leningdelen = (data.leningdelen || []) as Leningdeel[]
   const hasLeningdelen = leningdelen.length > 0
   const vooraf = data.voorafgaandeCondities || []
-  const entree = data.entreekosten || { afsluit: 0, opstart: 0, annulering: 0 }
+  const entree = data.entreekosten || { afsluit: 0, opstart: 0, annulering: 0, opstartVoldaan: false }
   const dateStr = fmtNlDate(data.date || "")
   const validityStr = fmtNlDate(data.validityDate || "")
   const deadlineStr = fmtNlDate(data.signingDeadline || "")
@@ -198,7 +198,12 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
   if (entree.afsluit) entreeLines.push(`Afsluitkosten: ${fmtEuro(entree.afsluit)}`)
   if (entree.opstart) {
     const restant = (entree.afsluit || 0) - entree.opstart
-    entreeLines.push(`Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${fmtEuro(restant > 0 ? restant : 0)} is te voldoen.`)
+    const naPassering = fmtEuro(restant > 0 ? restant : 0)
+    entreeLines.push(
+      entree.opstartVoldaan
+        ? `Opstartkosten: ${fmtEuro(entree.opstart)} zijn reeds voldaan. De opstartkosten zullen worden verrekend met de totale afsluitkosten, waardoor bij passering nog ${naPassering} is te voldoen.`
+        : `Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${naPassering} is te voldoen.`
+    )
   }
   if (entree.annulering) entreeLines.push(`Annuleringskosten: ${fmtEuro(entree.annulering)}`)
 

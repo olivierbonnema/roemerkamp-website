@@ -56,6 +56,9 @@ interface Entreekosten {
   afsluit: number
   opstart: number
   annulering: number
+  // When true, the opstartkosten were already paid ("reeds voldaan") rather than
+  // due at signing — changes the wording of the opstartkosten line.
+  opstartVoldaan?: boolean
 }
 
 export interface TermsheetFormHandle {
@@ -125,6 +128,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
     afsluit: (d as Record<string, unknown>).entreekosten ? ((d as Record<string, unknown>).entreekosten as Entreekosten).afsluit : 0,
     opstart: (d as Record<string, unknown>).entreekosten ? ((d as Record<string, unknown>).entreekosten as Entreekosten).opstart : 0,
     annulering: (d as Record<string, unknown>).entreekosten ? ((d as Record<string, unknown>).entreekosten as Entreekosten).annulering : 0,
+    opstartVoldaan: (d as Record<string, unknown>).entreekosten ? !!((d as Record<string, unknown>).entreekosten as Entreekosten).opstartVoldaan : false,
   })
 
   const [advisorName, setAdvisorName] = useState((d as Record<string, unknown>).advisorName as string || s.advisorName || "")
@@ -736,6 +740,12 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
               <input type="number" value={entree.annulering || ""} onChange={(e) => setEntree((p) => ({ ...p, annulering: parseFloat(e.target.value) || 0 }))} className="w-full border rounded px-2 py-1.5 text-sm" />
             </div>
           </div>
+          {entree.opstart > 0 && (
+            <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+              <input type="checkbox" checked={!!entree.opstartVoldaan} onChange={(e) => setEntree((p) => ({ ...p, opstartVoldaan: e.target.checked }))} />
+              Opstartkosten zijn reeds voldaan (i.p.v. te voldoen bij ondertekening)
+            </label>
+          )}
           {entree.opstart > 0 && entree.afsluit > 0 && (
             <div className="mt-2">
               <label className="text-xs text-gray-400 block">Restant bij passering (berekend)</label>

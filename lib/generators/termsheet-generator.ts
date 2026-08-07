@@ -75,7 +75,7 @@ export interface TermsheetData {
   loanParts: LoanPart[]
   leningdelen?: Leningdeel[]
   voorafgaandeCondities: VoorafConditie[]
-  entreekosten: { afsluit: number; opstart: number; annulering: number }
+  entreekosten: { afsluit: number; opstart: number; annulering: number; opstartVoldaan?: boolean }
   date?: string
   validityDate?: string
   signingDeadline?: string
@@ -446,8 +446,11 @@ export async function generateTermsheet(
   if (entree.afsluit) entreeLines.push(`Afsluitkosten: ${fmtEuro(entree.afsluit)}`)
   if (entree.opstart) {
     const restant = (entree.afsluit || 0) - entree.opstart
+    const naPassering = fmtEuro(restant > 0 ? restant : 0)
     entreeLines.push(
-      `Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${fmtEuro(restant > 0 ? restant : 0)} is te voldoen.`
+      entree.opstartVoldaan
+        ? `Opstartkosten: ${fmtEuro(entree.opstart)} zijn reeds voldaan. De opstartkosten zullen worden verrekend met de totale afsluitkosten, waardoor bij passering nog ${naPassering} is te voldoen.`
+        : `Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${naPassering} is te voldoen.`
     )
   }
   if (entree.annulering) entreeLines.push(`Annuleringskosten: ${fmtEuro(entree.annulering)}`)
