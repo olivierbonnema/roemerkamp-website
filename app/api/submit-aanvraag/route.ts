@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/brevo"
 import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
+import { DIRECT_UPLOAD_MAX_FILE_SIZE } from "@/lib/onedrive-direct"
 import { logActivity } from "@/lib/activity-log"
 
 const ALLOWED_FILE_TYPES = new Set([
@@ -203,6 +204,34 @@ export async function POST(req: NextRequest) {
   }
   const allFiles = Object.values(filesByCategory).flat()
 
+  // Direct-upload mode: the client sends only file METADATA here and uploads
+  // the bytes straight to OneDrive afterwards via /upload-session (chunked).
+  // That keeps this request far under Vercel's ±4.5MB body cap regardless of
+  // how large the documents are. The legacy embedded-files path stays intact.
+  let metaFiles: { cat: string; name: string; size: number }[] = []
+  if (allFiles.length === 0) {
+    try {
+      const parsed = JSON.parse(String(get("fileMeta") || "[]"))
+      if (Array.isArray(parsed)) {
+        metaFiles = parsed
+          .filter((m) => m && typeof m.name === "string" && typeof m.size === "number")
+          .slice(0, 100)
+          .map((m) => ({ cat: String(m.cat || "overig"), name: String(m.name), size: Number(m.size) }))
+      }
+    } catch { /* no/invalid metadata → plain no-documents submission */ }
+    for (const m of metaFiles) {
+      const ext = "." + m.name.split(".").pop()?.toLowerCase()
+      if (!ALLOWED_EXTENSIONS.has(ext)) {
+        return NextResponse.json({ error: `Bestandstype niet toegestaan: ${m.name}` }, { status: 400 })
+      }
+      if (m.size <= 0 || m.size > DIRECT_UPLOAD_MAX_FILE_SIZE) {
+        return NextResponse.json({ error: `Bestand te groot (max 250MB): ${m.name}` }, { status: 400 })
+      }
+    }
+  }
+  const metaMode = metaFiles.length > 0
+  const totalDocCount = metaMode ? metaFiles.length : allFiles.length
+
   // File validation
   let totalSize = 0
   for (const file of allFiles) {
@@ -227,10 +256,14 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     )
   }
-  const filesSummary = Object.entries(filesByCategory)
-    .filter(([, v]) => v.length > 0)
-    .map(([cat, f]) => `${cat}: ${f.map(f => f.name).join(", ")}`)
-    .join(" | ") || "Geen documenten"
+  const metaByCat: Record<string, string[]> = {}
+  for (const m of metaFiles) (metaByCat[m.cat] ||= []).push(m.name)
+  const filesSummary = metaMode
+    ? Object.entries(metaByCat).map(([cat, names]) => `${cat}: ${names.join(", ")}`).join(" | ")
+    : Object.entries(filesByCategory)
+        .filter(([, v]) => v.length > 0)
+        .map(([cat, f]) => `${cat}: ${f.map(f => f.name).join(", ")}`)
+        .join(" | ") || "Geen documenten"
 
   // Pre-read all file buffers while the request is still open
   const fileBuffers = await Promise.all(allFiles.map(async (file) => ({
@@ -277,9 +310,39 @@ export async function POST(req: NextRequest) {
     uitstrategie      ? `Exit strategy: ${uitstrategie}` : "",
     "",
     "--- DOCUMENTEN ---",
-    `Aantal bestanden: ${allFiles.length}`,
+    `Aantal bestanden: ${totalDocCount}`,
     filesSummary,
   ].filter(line => line !== "").join("\n")
+
+  /* ── OneDrive folder name (also used by the background job further down) ── */
+  const date = new Date().toISOString().slice(0, 10)
+  // SharePoint/OneDrive forbid \ / : * ? " < > | and reject names that end with a
+  // "." or space - e.g. a company name ending in "B.V."/"N.V." or trailing initials.
+  // Without this, folder creation silently fails and the documents never upload.
+  const rawFolderName = `${date} - ${naam || email}`
+  const folderName =
+    rawFolderName
+      .replace(/[\\/:*?"<>|]/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/[.\s]+$/g, "")
+      .replace(/^[.\s]+/g, "")
+      .trim() || date
+
+  // In direct-upload mode, create the folder BEFORE responding so the client's
+  // /upload-session calls find driveFolderId immediately (no race with the
+  // background job). Failure here is non-fatal: upload-session self-heals.
+  let preFolderId = ""
+  let preFolderUrl = ""
+  if (metaMode) {
+    try {
+      const token = await getMsToken()
+      const folder = await createOneDriveFolder(token, folderName)
+      preFolderId = folder.id
+      preFolderUrl = folder.webUrl
+    } catch (err) {
+      console.error("Synchronous OneDrive folder create failed (background job will retry):", err)
+    }
+  }
 
   /* ── Save to Firestore immediately ── */
   let docRef: FirebaseFirestore.DocumentReference | null = null
@@ -320,12 +383,13 @@ export async function POST(req: NextRequest) {
       aflossingstype,
       wanneerNodig,
       uitstrategie,
-      driveFolderUrl: "",
-      driveFolderId: "",
-      aantalBestanden: allFiles.length,
-      // "pending" until the background upload finishes; a record stuck on
-      // "pending" means the upload was cut off (e.g. function timeout).
-      uploadStatus: allFiles.length > 0 ? "pending" : "ok",
+      driveFolderUrl: preFolderUrl,
+      driveFolderId: preFolderId,
+      aantalBestanden: totalDocCount,
+      // "pending" until the upload finishes (background job for the legacy
+      // embedded path; the client + /upload-complete for direct mode). A record
+      // stuck on "pending" means the upload was cut off.
+      uploadStatus: totalDocCount > 0 ? "pending" : "ok",
       documentsUploaded: 0,
     })
   } catch (err) {
@@ -345,36 +409,38 @@ export async function POST(req: NextRequest) {
   }
 
   /* ── Upload to OneDrive after the response is sent ── */
-  const date = new Date().toISOString().slice(0, 10)
-  // SharePoint/OneDrive forbid \ / : * ? " < > | and reject names that end with a
-  // "." or space - e.g. a company name ending in "B.V."/"N.V." or trailing initials.
-  // Without this, folder creation silently fails and the documents never upload.
-  const rawFolderName = `${date} - ${naam || email}`
-  const folderName =
-    rawFolderName
-      .replace(/[\\/:*?"<>|]/g, " ")
-      .replace(/\s+/g, " ")
-      .replace(/[.\s]+$/g, "")
-      .replace(/^[.\s]+/g, "")
-      .trim() || date
-
   after(async () => {
     try {
       const token = await getMsToken()
-      const { id, webUrl } = await createOneDriveFolder(token, folderName)
-      await uploadToOneDrive(token, id, "aanvraag-samenvatting.txt", Buffer.from(summaryText, "utf-8"), "text/plain")
+      let folderId = preFolderId
+      let folderUrl = preFolderUrl
+      if (!folderId && docRef) {
+        // The upload-session endpoint self-heals a missing folder; re-read the
+        // doc first so we never create a second folder next to that one.
+        const fresh = await docRef.get()
+        folderId = fresh.data()?.driveFolderId || ""
+        folderUrl = fresh.data()?.driveFolderUrl || ""
+      }
+      if (!folderId) {
+        const created = await createOneDriveFolder(token, folderName)
+        folderId = created.id
+        folderUrl = created.webUrl
+      }
+      await uploadToOneDrive(token, folderId, "aanvraag-samenvatting.txt", Buffer.from(summaryText, "utf-8"), "text/plain")
       let uploaded = 0
       for (const file of fileBuffers) {
-        await uploadToOneDrive(token, id, file.name, file.buffer, file.type)
+        await uploadToOneDrive(token, folderId, file.name, file.buffer, file.type)
         uploaded++
       }
       if (docRef) {
-        await docRef.update({
-          driveFolderUrl: webUrl,
-          driveFolderId: id,
-          uploadStatus: "ok",
-          documentsUploaded: uploaded,
-        })
+        // In direct-upload mode the browser + /upload-complete own the
+        // uploadStatus/documentsUploaded fields; only record the folder here.
+        const update: Record<string, unknown> = { driveFolderUrl: folderUrl, driveFolderId: folderId }
+        if (!metaMode) {
+          update.uploadStatus = "ok"
+          update.documentsUploaded = uploaded
+        }
+        await docRef.update(update)
       }
     } catch (err) {
       // A OneDrive/SharePoint failure must NOT be silent: flag the record and
@@ -398,7 +464,7 @@ export async function POST(req: NextRequest) {
             <p style="margin:16px 0;padding:12px 14px;background:#f9fafb;border-left:3px solid #F75D20;">
               <strong>Aanvrager:</strong> ${naam || "-"}<br>
               <strong>E-mail:</strong> ${email || "-"}<br>
-              <strong>Aantal bestanden:</strong> ${allFiles.length}<br>
+              <strong>Aantal bestanden:</strong> ${totalDocCount}<br>
               <strong>Aanvraag-ID:</strong> ${docRef?.id || "-"}
             </p>
             <p><strong>Foutmelding:</strong><br><code style="color:#b91c1c;">${msg.slice(0, 400)}</code></p>
@@ -413,8 +479,11 @@ export async function POST(req: NextRequest) {
     // Reputation scan and AI analysis are triggered manually from the admin panel
   })
 
-  let driveFolderUrl = ""
-  let folderId = ""
+  // In direct-upload mode the folder already exists at email time, so the
+  // internal notification can include the folder link + analysis trigger
+  // (legacy mode creates the folder after the response → stays empty there).
+  const driveFolderUrl = preFolderUrl
+  const folderId = preFolderId
 
   /* ── Email layout helpers ── */
   const BASE_URL = SITE_URL
@@ -555,5 +624,6 @@ export async function POST(req: NextRequest) {
     console.error("Email error:", err)
   }
 
-  return NextResponse.json({ success: true })
+  // The id lets the client run its direct-to-OneDrive uploads for this aanvraag.
+  return NextResponse.json({ success: true, id: docRef?.id ?? null })
 }

@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { auth } from "@/lib/firebase"
+import { uploadFilesDirect } from "@/lib/upload-direct"
 
 /* ── Constants ── */
 const STEPS = [
@@ -569,6 +570,10 @@ export function FinancingForm() {
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [docError, setDocError] = useState(false)
+  // Direct-to-OneDrive upload feedback: progress label during submit, and the
+  // names of files that failed (shown on the success screen).
+  const [uploadProgress, setUploadProgress] = useState("")
+  const [uploadWarnings, setUploadWarnings] = useState<string[]>([])
 
   const next = () => {
     if (!validateStep(step)) { scrollToTop(); return }
@@ -628,11 +633,26 @@ export function FinancingForm() {
         huurinkomsten: o.verhuurd ? o.huurinkomsten : "",
       }))
       formData.append("objects", JSON.stringify(submitObjects))
-      for (const [catId, catFiles] of Object.entries(files))
-        for (const file of catFiles)
-          formData.append(`file::${catId}`, file, file.name)
       const idToken = user ? await auth.currentUser?.getIdToken() : null
-      if (idToken) formData.append("idToken", idToken)
+
+      const allSelectedFiles = Object.values(files).flat()
+      if (idToken) {
+        // Direct-upload mode: send only file METADATA with the submission; the
+        // bytes go straight from the browser to OneDrive afterwards (chunked),
+        // so the hosting platform's ±4.5MB request cap no longer limits the
+        // documents.
+        formData.append("idToken", idToken)
+        formData.append("fileMeta", JSON.stringify(
+          Object.entries(files).flatMap(([catId, catFiles]) =>
+            catFiles.map((f) => ({ cat: catId, name: f.name, size: f.size }))
+          )
+        ))
+      } else {
+        // No login (shouldn't happen behind AuthGuard): legacy embedded upload.
+        for (const [catId, catFiles] of Object.entries(files))
+          for (const file of catFiles)
+            formData.append(`file::${catId}`, file, file.name)
+      }
 
       formData.append("_csrf", "1")
       const res = await fetch("/api/submit-aanvraag", { method: "POST", body: formData })
@@ -640,10 +660,32 @@ export function FinancingForm() {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || `Server error ${res.status}`)
       }
+      const resData = await res.json().catch(() => ({}))
+
+      // Upload the documents directly to OneDrive, file by file, with progress.
+      if (idToken && resData.id && allSelectedFiles.length > 0) {
+        const results = await uploadFilesDirect(resData.id, idToken, allSelectedFiles, (p) => {
+          setUploadProgress(`Documenten uploaden… bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
+        })
+        setUploadProgress("")
+        const okNames = results.filter((r) => r.ok).map((r) => r.fileName)
+        const failed = results.filter((r) => !r.ok)
+        try {
+          await fetch(`/api/aanvragen/${resData.id}/upload-complete`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ context: "submit", fileNames: okNames }),
+          })
+        } catch { /* counters self-heal on the next upload */ }
+        if (failed.length > 0) {
+          setUploadWarnings(failed.map((f) => f.fileName))
+        }
+      }
+
       deleteDraft(draftId)
       setSubmitted(true)
     } catch (err) { setSubmitError((err as Error).message || "Er is iets misgegaan. Probeer het opnieuw.") }
-    finally { setSubmitting(false) }
+    finally { setSubmitting(false); setUploadProgress("") }
   }
 
   const fmt = (v: string) => v || "-"
@@ -659,6 +701,17 @@ export function FinancingForm() {
         <p className="text-base text-gray-400 leading-relaxed mb-8 font-sans">
           Bedankt voor uw financieringsaanvraag. Uw documenten worden verwerkt en u ontvangt binnen twee werkdagen een eerste beoordeling van ons team.
         </p>
+        {uploadWarnings.length > 0 && (
+          <div className="mb-8 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 text-left font-sans">
+            <p className="text-[13px] font-medium text-amber-800">
+              Let op: {uploadWarnings.length === 1 ? "één document kon" : `${uploadWarnings.length} documenten konden`} niet worden geüpload:
+            </p>
+            <p className="text-[13px] text-amber-700 mt-1">{uploadWarnings.join(", ")}</p>
+            <p className="text-[13px] text-amber-700 mt-1">
+              Uw aanvraag is wél ontvangen. U kunt {uploadWarnings.length === 1 ? "dit document" : "deze documenten"} alsnog toevoegen via &ldquo;Mijn aanvragen&rdquo;.
+            </p>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button onClick={() => router.push("/mijn-aanvragen")}
             className="px-8 py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors">
@@ -1043,7 +1096,7 @@ export function FinancingForm() {
             {submitError && <p className="text-sm text-red-500 font-sans">{submitError}</p>}
             <button onClick={handleSubmit} disabled={submitting || missingRequiredDocs.length > 0}
               className="px-8 py-3 text-sm font-medium font-sans border-none rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-              {submitting ? "Bezig met verzenden…" : "Aanvraag indienen"}
+              {submitting ? (uploadProgress || "Bezig met verzenden…") : "Aanvraag indienen"}
             </button>
           </div>
         )}

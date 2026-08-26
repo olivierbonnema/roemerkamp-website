@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
+import { uploadFilesDirect } from "@/lib/upload-direct"
 import { ArrowLeft, Upload, X, CheckCircle2, Clock, FileText, Send } from "lucide-react"
 
 interface AanvraagObject {
@@ -130,6 +131,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
   const [error, setError] = useState("")
 
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState("")
   const [uploadSuccess, setUploadSuccess] = useState("")
   const [uploadError, setUploadError] = useState("")
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -190,30 +192,38 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
 
     try {
       const token = await getToken()
-      const formData = new FormData()
-      for (const file of selectedFiles) {
-        formData.append("files", file)
-      }
+      if (!token) { setUploadError("Niet ingelogd. Ververs de pagina en probeer het opnieuw."); return }
 
-      const res = await fetch(`/api/aanvragen/${aanvraagId}/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+      // Direct-to-OneDrive: chunked uploads straight from the browser, so large
+      // documents are no longer limited by the hosting platform's request cap.
+      const results = await uploadFilesDirect(aanvraagId, token, selectedFiles, (p) => {
+        setUploadProgress(`Bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
       })
+      setUploadProgress("")
+      const okNames = results.filter((r) => r.ok).map((r) => r.fileName)
+      const failed = results.filter((r) => !r.ok)
 
-      if (!res.ok) {
-        const data = await res.json()
-        setUploadError(data.error || "Upload mislukt.")
-        return
+      if (okNames.length > 0) {
+        await fetch(`/api/aanvragen/${aanvraagId}/upload-complete`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ context: "extra", fileNames: okNames }),
+        })
       }
 
-      setUploadSuccess(`${selectedFiles.length} ${selectedFiles.length === 1 ? "document" : "documenten"} succesvol geupload.`)
-      setSelectedFiles([])
-      loadData()
+      if (failed.length > 0) {
+        setUploadError(`Niet geüpload: ${failed.map((f) => f.fileName).join(", ")}. Probeer het opnieuw.`)
+      }
+      if (okNames.length > 0) {
+        setUploadSuccess(`${okNames.length} ${okNames.length === 1 ? "document" : "documenten"} succesvol geupload.`)
+        setSelectedFiles((prev) => prev.filter((f) => !okNames.includes(f.name)))
+        loadData()
+      }
     } catch {
       setUploadError("Upload mislukt. Probeer het opnieuw.")
     } finally {
       setUploading(false)
+      setUploadProgress("")
     }
   }
 
@@ -486,7 +496,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
                 disabled={uploading}
                 className="mt-3 px-6 py-2.5 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-50"
               >
-                {uploading ? "Bezig met uploaden..." : "Documenten uploaden"}
+                {uploading ? (uploadProgress || "Bezig met uploaden...") : "Documenten uploaden"}
               </button>
             </div>
           )}
