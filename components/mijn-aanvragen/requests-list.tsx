@@ -27,11 +27,22 @@ interface Draft {
   step: number
   savedAt: string | null
   naam: string
+  // Post-split drafts store the name as separate fields; naam may be absent.
+  voornaam?: string
+  achternaam?: string
+  email?: string
+  bedrijfsnaam?: string
   aanvragerType: string
   leningDoel: string
   leningBedrag: string
   looptijd: string
   objects: Array<{ type: string; adres: string; plaats: string }>
+}
+
+// Display name for a draft: composed naam, else voornaam/achternaam (drafts
+// saved after the name split stored only the parts), else bedrijfsnaam.
+function draftName(d: Draft): string {
+  return d.naam || `${d.voornaam || ""} ${d.achternaam || ""}`.trim() || d.bedrijfsnaam || ""
 }
 
 type Tab = "alles" | "ingediend" | "concept"
@@ -76,7 +87,8 @@ function StatusBadge({ status }: { status: string }) {
 function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }) {
   const router = useRouter()
   const stepsTotal = STEP_LABELS.length
-  const stepsDone = Math.min(draft.step, stepsTotal)
+  // step is a 0-based index; being ON the first step means "Stap 1 van 5".
+  const stepsDone = Math.min((draft.step ?? 0) + 1, stepsTotal)
   const pct = Math.round((stepsDone / stepsTotal) * 100)
   const firstObject = draft.objects?.[0]
 
@@ -85,7 +97,7 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div>
           <p className="font-serif text-lg text-[#1E3A5F] font-normal">
-            {draft.naam || "Naamloos concept"}
+            {draftName(draft) || "Naamloos concept"}
           </p>
           <p className="text-xs text-gray-400 font-sans mt-0.5">
             Laatst opgeslagen: {formatDate(draft.savedAt)}
@@ -286,7 +298,10 @@ export function RequestsList() {
         const all = JSON.parse(raw) as Record<string, Omit<Draft, "id">>
         const list = Object.entries(all)
           .map(([id, data]) => ({ id, ...data } as Draft))
-          .filter(d => d.naam || d.leningDoel || d.objects?.[0]?.adres)
+          // Show any draft with real content. Checking only naam/doel/adres hid
+          // drafts interrupted on the first step entirely — the user then had no
+          // way at all to resume them.
+          .filter(d => draftName(d) || d.email || d.leningDoel || d.leningBedrag || d.objects?.[0]?.adres || d.objects?.[0]?.type)
           .sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""))
         setDrafts(list)
       }

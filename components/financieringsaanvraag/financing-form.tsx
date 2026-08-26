@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { auth } from "@/lib/firebase"
 
@@ -356,27 +356,26 @@ export function FinancingForm() {
   const router = useRouter()
   const { user } = useAuth()
 
-  // Derive draft ID from URL on first render (client-only)
-  const [draftId] = useState<string>(() => {
-    if (typeof window === "undefined") return `draft_${Date.now()}`
-    const params = new URLSearchParams(window.location.search)
-    return params.get("draft") || `draft_${Date.now()}`
-  })
+  // Derive draft ID from the router's search params, NOT window.location: during
+  // a client-side navigation the App Router updates window.location only at
+  // commit, so reading it in a useState initializer (render phase) sees the OLD
+  // URL — "Doorgaan" on a concept then opened a blank form and silently saved
+  // everything to a fresh hidden draft. useSearchParams reflects the in-flight
+  // navigation during render, so resume works on client navigation too.
+  const searchParams = useSearchParams()
+  const [draftId] = useState<string>(() => searchParams.get("draft") || `draft_${Date.now()}`)
 
   // Ensure the draft ID is always in the URL
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (!params.get("draft")) {
+    if (!searchParams.get("draft")) {
       const url = new URL(window.location.href)
       url.searchParams.set("draft", draftId)
       window.history.replaceState({}, "", url.toString())
     }
-  }, [draftId])
+  }, [draftId, searchParams])
 
-  // Load this draft's saved data
-  const [draft] = useState<Record<string, unknown>>(() => loadDraft(
-    typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("draft") || "") : ""
-  ))
+  // Load this draft's saved data (derived from draftId — single source of truth)
+  const [draft] = useState<Record<string, unknown>>(() => loadDraft(draftId))
 
   const s = <T,>(key: string, fallback: T): T => (key in draft ? (draft[key] as T) : fallback)
 
@@ -416,8 +415,21 @@ export function FinancingForm() {
   const medeNaam = `${medeVoornaam} ${medeAchternaam}`.trim()
   const [medeEmail, setMedeEmail] = useState(s("medeEmail", ""))
 
-  // Objects
-  const [objects, setObjects] = useState<ObjectData[]>(s<ObjectData[]>("objects", [emptyObject()]))
+  // Objects. Normalize on load: drafts saved before the PDOK change stored the
+  // house number inside `adres` and have no `huisnummer` key — which blocked
+  // step 1 on "Vul het huisnummer in" and, once typed, duplicated the number in
+  // the submitted address ("Hoofdstraat 12 12"). Split it out here and spread
+  // emptyObject() so every ObjectData key exists.
+  const [objects, setObjects] = useState<ObjectData[]>(() =>
+    s<ObjectData[]>("objects", [emptyObject()]).map((o) => {
+      const n = { ...emptyObject(), ...o }
+      if (!n.huisnummer && n.adres) {
+        const m = n.adres.match(/^(.*\S)\s+(\d[\w-]*)$/)
+        if (m) { n.adres = m[1]; n.huisnummer = m[2] }
+      }
+      return n
+    })
+  )
   const updateObject = (idx: number, field: keyof ObjectData, value: string) => {
     setObjects((prev) => prev.map((o, i) => (i === idx ? { ...o, [field]: value } : o)))
     setErrors((prev) => { const next = { ...prev }; delete next[`obj_${idx}_${field}`]; return next })
@@ -468,18 +480,30 @@ export function FinancingForm() {
 
   // Documenten
   const [files, setFiles] = useState<Record<string, File[]>>({})
+  // A resumed concept that had already reached the documents step: the selected
+  // FILES are not stored in a concept (only their names), so they must be
+  // re-added — tell the user explicitly instead of silently blocking.
+  const resumedPastDocs = "step" in draft && (draft.step as number) >= 3
+  const draftFileNameList = Object.values(s<Record<string, string[]>>("fileNames", {})).flat()
 
   const clearError = (key: string) =>
     setErrors((prev) => { const next = { ...prev }; delete next[key]; return next })
 
-  // Auto-save draft
+  // Auto-save draft. Skips the very first run (mount): saving on mount wrote a
+  // junk empty draft on every visit, and on resume it immediately rewrote the
+  // stored draft before the user changed anything.
+  const draftDidMount = useRef(false)
   useEffect(() => {
+    if (!draftDidMount.current) { draftDidMount.current = true; return }
     saveDraft(draftId, {
-      step, aanvragerType, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
+      step, aanvragerType, voornaam, achternaam, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       adresHuisnummer, adresPostcode, adresPlaats,
-      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail,
+      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeNaam, medeEmail,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders,
+      // File objects cannot be stored in localStorage; keep the NAMES so a
+      // resumed draft can show which documents were selected before.
+      fileNames: Object.fromEntries(Object.entries(files).map(([id, fs]) => [id, fs.map((f) => f.name)])),
     })
     clearTimeout(draftTimerRef.current)
     setDraftSaved(true)
@@ -490,7 +514,7 @@ export function FinancingForm() {
       adresHuisnummer, adresPostcode, adresPlaats,
       geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
-      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders])
+      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, files])
 
   const addFiles = (catId: string, newFiles: File[]) =>
     setFiles((prev) => ({ ...prev, [catId]: [...(prev[catId] || []), ...newFiles] }))
@@ -577,6 +601,13 @@ export function FinancingForm() {
   }
 
   const handleSubmit = async () => {
+    // Re-validate every form step before submitting. The step indicator allows
+    // free jumps and a resumed draft restores its saved step, so without this a
+    // drifted/incomplete draft could be submitted unvalidated. On failure, jump
+    // to the first invalid step with its fields highlighted.
+    for (let i = 0; i <= 2; i++) {
+      if (!validateStep(i)) { setStep(i); scrollToTop(); return }
+    }
     setSubmitError(""); setSubmitting(true)
     try {
       const formData = new FormData()
@@ -633,7 +664,10 @@ export function FinancingForm() {
             className="px-8 py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors">
             Mijn aanvragen bekijken
           </button>
-          <button onClick={() => router.push("/financieringsaanvraag")}
+          {/* Hard navigation: a same-route router.push keeps this component
+              instance (and submitted=true) alive, so the button did nothing.
+              A full load guarantees a clean form with a fresh draft id. */}
+          <button onClick={() => window.location.assign("/financieringsaanvraag")}
             className="px-8 py-3 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-900 cursor-pointer hover:border-[#1E3A5F] transition-colors">
             Nieuwe aanvraag
           </button>
@@ -855,6 +889,15 @@ export function FinancingForm() {
           <p className="font-sans text-sm text-gray-400 mb-7">
             Upload de benodigde documenten. Verplichte documenten zijn gemarkeerd. U kunt bestanden slepen of op &ldquo;Uploaden&rdquo; klikken.
           </p>
+          {resumedPastDocs && missingRequiredDocs.length > 0 && (
+            <div className="mb-5 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 font-sans">
+              <p className="text-[13px] font-medium text-amber-800">Let op: bestanden worden niet bij een concept bewaard.</p>
+              <p className="text-[13px] text-amber-700 mt-1">
+                Voeg uw documenten opnieuw toe om verder te kunnen gaan.
+                {draftFileNameList.length > 0 && <> Eerder geselecteerd: <span className="font-medium">{draftFileNameList.join(", ")}</span>.</>}
+              </p>
+            </div>
+          )}
           {visibleDocs.map((cat) => (
             <DocUploadCard key={cat.id} cat={cat} files={files} onAdd={addFiles} onRemove={removeFile} />
           ))}
@@ -988,8 +1031,13 @@ export function FinancingForm() {
           <div className="flex flex-col items-end gap-2">
             {missingRequiredDocs.length > 0 && (
               <p className="text-xs text-gray-400 font-sans text-right">
+                {resumedPastDocs && <>Bestanden worden niet bij een concept bewaard.{" "}</>}
                 Upload verplichte documenten om in te dienen:{" "}
                 <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
+                {" — "}
+                <button type="button" onClick={() => { setStep(3); scrollToTop() }} className="text-[#311E86] underline cursor-pointer">
+                  naar documenten
+                </button>
               </p>
             )}
             {submitError && <p className="text-sm text-red-500 font-sans">{submitError}</p>}

@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { Header } from "@/components/header"
 import { PortalFooter } from "@/components/portal-footer"
 import { FinancingForm } from "@/components/financieringsaanvraag/financing-form"
@@ -42,7 +43,11 @@ export default function FinancieringsaanvraagPage() {
         <section className="max-w-3xl mx-auto px-4 py-12 pb-20">
           <AuthGuard>
             <PartnerIntakeNote />
-            <FinancingForm />
+            {/* Suspense is required because FinancingForm reads useSearchParams
+                (the ?draft= id) on a statically rendered page. */}
+            <Suspense>
+              <FinancingForm />
+            </Suspense>
           </AuthGuard>
         </section>
       </main>
