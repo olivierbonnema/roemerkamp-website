@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse, after } from "next/server"
 import { SITE_URL } from "@/lib/site"
 import { sendEmail } from "@/lib/brevo"
-import { createHmac } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
 import { DIRECT_UPLOAD_MAX_FILE_SIZE } from "@/lib/onedrive-direct"
@@ -517,11 +516,6 @@ export async function POST(req: NextRequest) {
   // internal notification can include the folder link + analysis trigger
   // (legacy mode creates the folder after the response → stays empty there).
   const driveFolderUrl = preFolderUrl
-  // Intentionally NOT preFolderId: the "Start AI Analyse" button in the internal
-  // email calls /api/trigger-analysis, which addresses the PERSONAL OneDrive
-  // drive, while this id belongs to the SharePoint library — the button would
-  // 404 silently. Analysis is started from the admin panel instead.
-  const folderId = ""
 
   /* ── Email layout helpers ── */
   const BASE_URL = SITE_URL
@@ -600,13 +594,6 @@ export async function POST(req: NextRequest) {
           <a href="${driveFolderUrl}" style="display:inline-block;margin-bottom:12px;margin-right:8px;padding:9px 18px;background:#311E86;color:#fff;border-radius:4px;font-size:13px;text-decoration:none;font-weight:500;">
             Documenten in OneDrive →
           </a>` : ""}
-          ${folderId ? (() => {
-            const token = createHmac("sha256", process.env.TRIGGER_SECRET || "fallback").update(folderId).digest("hex")
-            const triggerUrl = `${SITE_URL}/api/trigger-analysis?folderId=${folderId}&token=${token}`
-            return `<a href="${triggerUrl}" style="display:inline-block;margin-bottom:24px;padding:9px 18px;background:#F75D20;color:#fff;border-radius:4px;font-size:13px;text-decoration:none;font-weight:500;">
-            ▶ Start AI Analyse
-          </a>`
-          })() : ""}
           <table style="width:100%;border-collapse:collapse;">
             ${section("Aanvrager", [
               row("Ingediend via partner", partnerOrgName),

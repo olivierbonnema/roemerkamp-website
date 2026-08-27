@@ -129,3 +129,39 @@ export async function countFolderDocuments(token: string, folderId: string): Pro
     (c) => c.file && (c.size ?? 0) > 0 && (c.name || "").toLowerCase() !== "aanvraag-samenvatting.txt"
   ).length
 }
+
+// Read helpers for an aanvraag folder in the SHARED SharePoint library. The
+// dossier folders moved there on 2026-06-05 (commit 4557e08), so anything
+// consuming aanvraag.driveFolderId must address this drive — not the personal
+// one, which silently returns nothing for a SharePoint item id.
+export async function listFolderFiles(
+  token: string,
+  folderId: string
+): Promise<{ name: string; id: string; mimeType: string; size: number }[]> {
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${folderId}/children?$top=500`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`OneDrive folder listing failed (${res.status}): ${body.slice(0, 300)}`)
+  }
+  const data = await res.json()
+  return (data.value || [])
+    .filter((f: Record<string, unknown>) => f.file)
+    .map((f: Record<string, unknown>) => ({
+      name: f.name as string,
+      id: f.id as string,
+      mimeType: (f.file as Record<string, string>)?.mimeType || "",
+      size: (f.size as number) || 0,
+    }))
+}
+
+export async function downloadFile(token: string, itemId: string): Promise<Buffer> {
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${itemId}/content`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) throw new Error(`OneDrive download failed: ${res.status}`)
+  return Buffer.from(await res.arrayBuffer())
+}

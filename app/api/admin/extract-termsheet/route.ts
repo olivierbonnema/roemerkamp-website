@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+// The aanvraag dossier lives in the SHARED SharePoint library (since 2026-06-05);
+// aanvraag.driveFolderId is an item id on THAT drive. Reading it through the
+// personal-drive endpoints silently returned nothing, so the AI pre-fill ran
+// without any dossier documents.
+import { getMsToken, listFolderFiles, downloadFile } from "@/lib/onedrive-direct"
 import Anthropic from "@anthropic-ai/sdk"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
-const ONEDRIVE_USER = process.env.ONEDRIVE_USER_EMAIL!
 const anthropic = new Anthropic()
 
 async function verifyAdmin(req: NextRequest) {
@@ -16,50 +20,6 @@ async function verifyAdmin(req: NextRequest) {
   } catch {
     return null
   }
-}
-
-async function getMsToken(): Promise<string> {
-  const res = await fetch(
-    `https://login.microsoftonline.com/${process.env.MICROSOFT_TENANT_ID}/oauth2/v2.0/token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: process.env.MICROSOFT_CLIENT_ID!,
-        client_secret: process.env.MICROSOFT_CLIENT_SECRET!,
-        scope: "https://graph.microsoft.com/.default",
-      }),
-    }
-  )
-  const data = await res.json()
-  return data.access_token
-}
-
-async function listOneDriveFiles(token: string, folderId: string): Promise<{ name: string; id: string; mimeType: string; size: number }[]> {
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${folderId}/children`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-  if (!res.ok) return []
-  const data = await res.json()
-  return (data.value || [])
-    .filter((f: Record<string, unknown>) => f.file)
-    .map((f: Record<string, unknown>) => ({
-      name: f.name as string,
-      id: f.id as string,
-      mimeType: (f.file as Record<string, string>)?.mimeType || "",
-      size: (f.size as number) || 0,
-    }))
-}
-
-async function downloadFile(token: string, itemId: string): Promise<Buffer> {
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${ONEDRIVE_USER}/drive/items/${itemId}/content`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-  if (!res.ok) throw new Error(`Download failed: ${res.status}`)
-  return Buffer.from(await res.arrayBuffer())
 }
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
@@ -442,7 +402,7 @@ export async function POST(req: NextRequest) {
     if (aanvraag.driveFolderId) {
       try {
         const msToken = await getMsToken()
-        const files = await listOneDriveFiles(msToken, aanvraag.driveFolderId as string)
+        const files = await listFolderFiles(msToken, aanvraag.driveFolderId as string)
 
         const parsableFiles = files.filter((f) => {
           const lower = f.name.toLowerCase()
@@ -465,8 +425,11 @@ export async function POST(req: NextRequest) {
           }
         }
         documentText = textParts.join("\n\n")
-      } catch {
-        // OneDrive unavailable - continue with direct fields only
+      } catch (err) {
+        // Continue with the directly-supplied fields, but make the failure
+        // visible: silently swallowing it is how the wrong-drive bug stayed
+        // hidden — the pre-fill just quietly ran without any dossier documents.
+        console.error("extract-termsheet: reading the dossier folder failed:", err)
       }
     }
 
