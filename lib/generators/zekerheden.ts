@@ -32,17 +32,36 @@ export interface ZekerheidObject {
 // Standard zekerheden enumeration. `objects` -> numbered mortgage lines (identical
 // to the termsheet); `extras` -> extra free-text securities appended with continued
 // numbering. One line per item, newline-joined.
+// One generated zekerheid, with a stable `key` identifying WHAT it covers
+// (which object / which depot). The key lets mergeZekerhedenText below match a
+// regenerated line against the corresponding line in hand-edited text.
+export interface ZekerheidLine {
+  key: string
+  body: string
+}
+
 export function buildZekerhedenText(
   objects: ZekerheidObject[],
   totalLoan: number,
   extras: string[] = []
 ): string {
-  const lines: string[] = []
+  return buildZekerhedenLines(objects, totalLoan, extras)
+    .map((l, i) => `${i + 1}.) ${l.body}`)
+    .join("\n")
+}
+
+// The unnumbered bodies behind buildZekerhedenText — same content, same order.
+export function buildZekerhedenLines(
+  objects: ZekerheidObject[],
+  totalLoan: number,
+  extras: string[] = []
+): ZekerheidLine[] {
+  const lines: ZekerheidLine[] = []
 
   objects.forEach((obj, idx) => {
     const rankWord = RANK_LABELS[obj.hypotheekRank] || "eerste"
     const addr = obj.address || `object ${idx + 1}`
-    let txt = `${idx + 1}.) Een ${rankWord} recht van hypotheek ter hoogte van ${numberToWords(totalLoan)} euro (${fmtEuro(totalLoan)}) wordt gevestigd op object ${idx + 1} (${addr}) ten gunste van de Geldverstrekker`
+    let txt = `Een ${rankWord} recht van hypotheek ter hoogte van ${numberToWords(totalLoan)} euro (${fmtEuro(totalLoan)}) wordt gevestigd op object ${idx + 1} (${addr}) ten gunste van de Geldverstrekker`
     if (obj.hypotheekRank === "1e") {
       txt += " tot zekerheid van de verstrekte lening."
     } else {
@@ -56,20 +75,26 @@ export function buildZekerhedenText(
         txt += ` Op dit object rust${priors.length > 1 ? "en" : ""} reeds ${parts.join("; en ")}.`
       }
     }
-    lines.push(txt)
+    lines.push({ key: `object:${idx}`, body: txt })
   })
 
-  // Extra securities (pitch only): continue the numbering after the objects.
-  const offset = objects.length
+  // Extra securities: continue after the objects. A depot gets a stable key so
+  // it can be recognised later; other extras key on their own text.
   extras
     .filter((e) => e && e.trim())
-    .forEach((e, k) => {
+    .forEach((e) => {
       let t = e.trim()
       if (!/[.!?]$/.test(t)) t += "."
-      lines.push(`${offset + k + 1}.) ${t}`)
+      const lower = t.toLowerCase()
+      const key = lower.includes("rentedepot")
+        ? "depot:rente"
+        : lower.includes("bouwdepot")
+        ? "depot:bouw"
+        : `extra:${lower.replace(/[^a-z]/g, "").slice(0, 40)}`
+      lines.push({ key, body: t })
     })
 
-  return lines.join("\n")
+  return lines
 }
 
 // Rente-/bouwdepot loan parts -> extra zekerheden lines, appended to the termsheet
@@ -165,4 +190,114 @@ export function buildPitchZekerheden(
   }
 
   return lines.join("\n")
+}
+
+/* ── Bijwerken van een handmatig aangepaste zekerheden-tekst ──────────────── */
+
+export interface ZekerhedenMergeResult {
+  text: string
+  added: number      // zekerheden die er nog niet in stonden
+  refreshed: number  // standaardregels opnieuw opgebouwd (bedrag/rang bijgewerkt)
+  kept: number       // eigen regels die ongemoeid zijn gebleven
+}
+
+// Strip the "1.) " numbering so a line can be compared on content alone.
+function stripNumbering(line: string): string {
+  return line.replace(/^\s*\d+\s*[.)]+\s*/, "").trim()
+}
+
+// Neutralise the parts that legitimately change (amounts, rank, address) so two
+// lines about the SAME zekerheid compare equal unless the wording itself was
+// hand-edited.
+function normalizeZekerheid(s: string): string {
+  return s
+    .replace(/\s+/g, " ")
+    .replace(/op\s+object\s+\d+\s*\([^)]*\)/gi, "op object «n» («adres»)")
+    .replace(/van\s+[^()]*?\s*euro\s*\([^)]*\)/gi, "van «bedrag» euro («bedrag»)")
+    .replace(/à\s*€\s?[\d.,]+,?-?/gi, "à «bedrag»")
+    .replace(/€\s?[\d.,]+,?-?/g, "«bedrag»")
+    .replace(/\b\d+\b/g, "«n»")
+    .replace(/\b(een)\s+(eerste|tweede|derde|vierde)\s+recht\b/gi, "$1 «rang» recht")
+    .trim()
+    .toLowerCase()
+}
+
+// Which zekerheid does an existing line describe? Returns a key matching
+// buildZekerhedenLines(), or null when it is the user's own addition.
+function classifyZekerheid(body: string, objects: ZekerheidObject[]): string | null {
+  const l = body.toLowerCase()
+  if (l.includes("rentedepot")) return "depot:rente"
+  if (l.includes("bouwdepot")) return "depot:bouw"
+  if (l.includes("recht van hypotheek")) {
+    const m = body.match(/\bobject\s+(\d+)\b/i)
+    if (m) {
+      const idx = parseInt(m[1], 10) - 1
+      if (idx >= 0 && idx < objects.length) return `object:${idx}`
+    }
+    for (let i = 0; i < objects.length; i++) {
+      const addr = (objects[i].address || "").trim().toLowerCase()
+      if (addr && l.includes(addr)) return `object:${i}`
+    }
+    // A mortgage line we cannot tie to a current object (e.g. the object was
+    // removed): treat as the user's own text and keep it.
+  }
+  return null
+}
+
+// Bring a hand-edited zekerheden text up to date with the form: every standard
+// zekerheid is rebuilt from the current objects/depots (so amounts and rank are
+// correct), zekerheden that were not in the text yet are added, and the user's
+// own lines are preserved. A standard line the user REWROTE is never silently
+// discarded — the rebuilt version is placed directly above it so the difference
+// is visible and they can delete whichever they don't want.
+export function mergeZekerhedenText(
+  currentText: string,
+  objects: ZekerheidObject[],
+  totalLoan: number,
+  extras: string[] = []
+): ZekerhedenMergeResult {
+  const slots = buildZekerhedenLines(objects, totalLoan, extras)
+  const existing = currentText
+    .split("\n")
+    .map(stripNumbering)
+    .filter((l) => l.length > 0)
+
+  const consumed = new Set<number>()
+  const out: string[] = []
+  let added = 0
+  let refreshed = 0
+  let kept = 0
+
+  for (const slot of slots) {
+    const matchIdx = existing.findIndex(
+      (body, i) => !consumed.has(i) && classifyZekerheid(body, objects) === slot.key
+    )
+    out.push(slot.body)
+    if (matchIdx === -1) {
+      added++
+      continue
+    }
+    consumed.add(matchIdx)
+    if (normalizeZekerheid(existing[matchIdx]) === normalizeZekerheid(slot.body)) {
+      refreshed++
+    } else {
+      // Hand-edited: keep their wording right below the rebuilt line.
+      out.push(existing[matchIdx])
+      refreshed++
+      kept++
+    }
+  }
+
+  existing.forEach((body, i) => {
+    if (consumed.has(i)) return
+    out.push(body)
+    kept++
+  })
+
+  return {
+    text: out.map((body, i) => `${i + 1}.) ${body}`).join("\n"),
+    added,
+    refreshed,
+    kept,
+  }
 }

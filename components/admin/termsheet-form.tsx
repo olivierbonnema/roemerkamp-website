@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from "react"
 import { fmtEuro } from "@/lib/generators/docx-helpers"
-import { HYPOTHEEK_RANKS, RANK_LABELS, buildZekerhedenText, depotZekerheden } from "@/lib/generators/zekerheden"
+import { HYPOTHEEK_RANKS, RANK_LABELS, buildZekerhedenText, depotZekerheden, mergeZekerhedenText } from "@/lib/generators/zekerheden"
 import {
   TERMSHEET_DEFAULTS as TD,
   buildDefaultVoorafCondities,
@@ -217,6 +217,27 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
       setZekerhedenText(zekerhedenPreview)
     }
   }, [zekerhedenPreview, zekerhedenManual])
+
+  // "Zekerheden bijwerken": rebuild the standard zekerheden from the current
+  // objects/depots (so amounts and rank are current), add the ones that were not
+  // in the text yet, and keep the user's own lines. Unlike "terugzetten naar
+  // automatische tekst" this never throws away hand-written zekerheden.
+  const [zekerhedenNote, setZekerhedenNote] = useState("")
+  const bijwerkenZekerheden = () => {
+    const result = mergeZekerhedenText(
+      zekerhedenText,
+      objects,
+      totalLoan,
+      depotZekerheden(loanParts, looptijdMaanden)
+    )
+    setZekerhedenText(result.text)
+    setZekerhedenManual(true)
+    const parts: string[] = []
+    if (result.added) parts.push(`${result.added} toegevoegd`)
+    if (result.refreshed) parts.push(`${result.refreshed} bijgewerkt`)
+    if (result.kept) parts.push(`${result.kept} eigen regel${result.kept > 1 ? "s" : ""} behouden`)
+    setZekerhedenNote(parts.length ? parts.join(" · ") : "Er waren geen nieuwe zekerheden.")
+  }
 
   // Beschikbaarheid tracks the Geldigheidsduur date unless hand-edited/loaded.
   useEffect(() => {
@@ -782,11 +803,19 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Zekerheden <span className="font-normal text-gray-400 text-[11px]">(automatisch gegenereerd, bewerkbaar)</span></label>
-          <textarea value={zekerhedenText} onChange={(e) => { setZekerhedenText(e.target.value); setZekerhedenManual(true) }} rows={6} className="w-full border rounded px-2 py-1.5 text-sm" />
+          <textarea value={zekerhedenText} onChange={(e) => { setZekerhedenText(e.target.value); setZekerhedenManual(true); setZekerhedenNote("") }} rows={6} className="w-full border rounded px-2 py-1.5 text-sm" />
           {zekerhedenManual && (
-            <button type="button" onClick={() => { setZekerhedenManual(false); setZekerhedenText(zekerhedenPreview) }} className="text-xs text-[#2E2060] hover:underline mt-1">
-              Terugzetten naar automatische tekst
-            </button>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+              <button type="button" onClick={bijwerkenZekerheden}
+                title="Voegt zekerheden toe die nog niet in de tekst staan en werkt de bedragen in de standaardregels bij. Uw eigen regels blijven staan."
+                className="text-xs text-[#2E2060] hover:underline font-medium">
+                Zekerheden bijwerken
+              </button>
+              <button type="button" onClick={() => { setZekerhedenManual(false); setZekerhedenText(zekerhedenPreview); setZekerhedenNote("") }} className="text-xs text-gray-400 hover:underline">
+                Terugzetten naar automatische tekst
+              </button>
+              {zekerhedenNote && <span className="text-xs text-emerald-600">{zekerhedenNote}</span>}
+            </div>
           )}
         </div>
         <div>
