@@ -14,6 +14,8 @@ import { logActivity } from "@/lib/activity-log"
 // detail page → also writes the berichten entry + activity log the old
 // multipart route used to write.
 
+export const maxDuration = 60
+
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
   .toLowerCase().split(",").map(e => e.trim()).filter(Boolean)
@@ -52,8 +54,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const body = await req.json().catch(() => ({}))
   const context: "submit" | "extra" = body.context === "extra" ? "extra" : "submit"
+  // Names are display-only (the counts come from the Graph recount below); cap
+  // count and per-name length so a hostile payload can't blow up the berichten
+  // document or the activity log.
   const fileNames: string[] = Array.isArray(body.fileNames)
-    ? body.fileNames.filter((n: unknown) => typeof n === "string").slice(0, 100)
+    ? body.fileNames
+        .filter((n: unknown) => typeof n === "string" && (n as string).trim())
+        .slice(0, 100)
+        .map((n: string) => n.slice(0, 200))
     : []
 
   try {

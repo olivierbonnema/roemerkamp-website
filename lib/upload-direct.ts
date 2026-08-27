@@ -8,6 +8,9 @@ const CHUNK_SIZE = 16 * 320 * 1024
 
 export interface DirectUploadResult {
   ok: boolean
+  // The name as the user selected it (used to reconcile local UI state)…
+  originalName: string
+  // …and as the server sanitized/stored it (used for berichten/bookkeeping).
   fileName: string
   error?: string
 }
@@ -19,16 +22,28 @@ export async function uploadFileDirect(
   onProgress?: (uploadedBytes: number, totalBytes: number) => void
 ): Promise<DirectUploadResult> {
   // 1. Ask our server for a pre-authenticated, single-file upload session.
-  const sessionRes = await fetch(`/api/aanvragen/${aanvraagId}/upload-session`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
-  })
-  if (!sessionRes.ok) {
-    const data = await sessionRes.json().catch(() => ({}))
-    return { ok: false, fileName: file.name, error: data.error || "Upload voorbereiden mislukt." }
+  // Wrapped in try/catch: a network failure here must yield a per-file failure
+  // result, NOT an exception — the caller may already have submitted the
+  // aanvraag, and an exception would read as "submission failed, try again",
+  // inviting a duplicate submission.
+  let uploadUrl: string
+  let fileName: string
+  try {
+    const sessionRes = await fetch(`/api/aanvragen/${aanvraagId}/upload-session`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
+    })
+    if (!sessionRes.ok) {
+      const data = await sessionRes.json().catch(() => ({}))
+      return { ok: false, originalName: file.name, fileName: file.name, error: data.error || "Upload voorbereiden mislukt." }
+    }
+    const session = await sessionRes.json()
+    uploadUrl = session.uploadUrl
+    fileName = session.fileName || file.name
+  } catch {
+    return { ok: false, originalName: file.name, fileName: file.name, error: "Upload voorbereiden mislukt. Controleer uw verbinding." }
   }
-  const { uploadUrl, fileName } = await sessionRes.json()
 
   // 2. PUT the chunks straight to Microsoft. Each failed chunk gets one retry.
   let offset = 0
@@ -51,19 +66,20 @@ export async function uploadFileDirect(
       }
     }
     if (!res || (!res.ok && res.status !== 202)) {
-      return { ok: false, fileName, error: `Upload van "${file.name}" is mislukt. Controleer uw verbinding en probeer het opnieuw.` }
+      return { ok: false, originalName: file.name, fileName, error: `Upload van "${file.name}" is mislukt. Controleer uw verbinding en probeer het opnieuw.` }
     }
     offset = end
     onProgress?.(offset, file.size)
   }
-  return { ok: true, fileName }
+  return { ok: true, originalName: file.name, fileName }
 }
 
 // Upload a list of files sequentially; reports overall progress across the
-// combined byte total. Returns the per-file results.
+// combined byte total. getToken is called per file so a long upload (large
+// dossiers can take longer than a Firebase token's ~1h lifetime) keeps working.
 export async function uploadFilesDirect(
   aanvraagId: string,
-  idToken: string,
+  getToken: () => Promise<string | null | undefined>,
   files: File[],
   onProgress?: (info: { fileIndex: number; fileCount: number; fileName: string; pct: number }) => void
 ): Promise<DirectUploadResult[]> {
@@ -72,7 +88,14 @@ export async function uploadFilesDirect(
   const results: DirectUploadResult[] = []
   for (let i = 0; i < files.length; i++) {
     const f = files[i]
-    const result = await uploadFileDirect(aanvraagId, idToken, f, (uploaded) => {
+    let token: string | null | undefined
+    try { token = await getToken() } catch { token = null }
+    if (!token) {
+      results.push({ ok: false, originalName: f.name, fileName: f.name, error: "Niet ingelogd. Ververs de pagina en probeer het opnieuw." })
+      doneBytes += f.size
+      continue
+    }
+    const result = await uploadFileDirect(aanvraagId, token, f, (uploaded) => {
       const pct = Math.round(((doneBytes + uploaded) / totalBytes) * 100)
       onProgress?.({ fileIndex: i + 1, fileCount: files.length, fileName: f.name, pct: Math.min(pct, 100) })
     })

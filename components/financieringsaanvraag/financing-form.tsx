@@ -663,22 +663,36 @@ export function FinancingForm() {
       const resData = await res.json().catch(() => ({}))
 
       // Upload the documents directly to OneDrive, file by file, with progress.
+      // A fresh token is fetched per file: a large dossier can take longer than
+      // a token's lifetime. Upload failures never throw — the aanvraag is
+      // already submitted, so they are reported on the success screen instead.
       if (idToken && resData.id && allSelectedFiles.length > 0) {
-        const results = await uploadFilesDirect(resData.id, idToken, allSelectedFiles, (p) => {
-          setUploadProgress(`Documenten uploaden… bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
-        })
+        const results = await uploadFilesDirect(
+          resData.id,
+          () => auth.currentUser?.getIdToken() ?? Promise.resolve(null),
+          allSelectedFiles,
+          (p) => setUploadProgress(`Documenten uploaden… bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
+        )
         setUploadProgress("")
         const okNames = results.filter((r) => r.ok).map((r) => r.fileName)
         const failed = results.filter((r) => !r.ok)
-        try {
-          await fetch(`/api/aanvragen/${resData.id}/upload-complete`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ context: "submit", fileNames: okNames }),
-          })
-        } catch { /* counters self-heal on the next upload */ }
+        if (okNames.length > 0) {
+          // Retry once: without this ping the aanvraag stays on "pending" even
+          // though every document arrived.
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const token = await auth.currentUser?.getIdToken()
+              const done = await fetch(`/api/aanvragen/${resData.id}/upload-complete`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ context: "submit", fileNames: okNames }),
+              })
+              if (done.ok) break
+            } catch { /* retried once; admin sees uploadStatus "pending" otherwise */ }
+          }
+        }
         if (failed.length > 0) {
-          setUploadWarnings(failed.map((f) => f.fileName))
+          setUploadWarnings(failed.map((f) => f.originalName))
         }
       }
 

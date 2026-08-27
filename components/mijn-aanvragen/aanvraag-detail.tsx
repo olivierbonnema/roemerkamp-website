@@ -191,32 +191,38 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
     setUploadSuccess("")
 
     try {
-      const token = await getToken()
-      if (!token) { setUploadError("Niet ingelogd. Ververs de pagina en probeer het opnieuw."); return }
-
       // Direct-to-OneDrive: chunked uploads straight from the browser, so large
       // documents are no longer limited by the hosting platform's request cap.
-      const results = await uploadFilesDirect(aanvraagId, token, selectedFiles, (p) => {
-        setUploadProgress(`Bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
-      })
+      // A fresh token is fetched per file (a big batch can outlive one token).
+      const results = await uploadFilesDirect(
+        aanvraagId,
+        () => auth.currentUser?.getIdToken() ?? Promise.resolve(null),
+        selectedFiles,
+        (p) => setUploadProgress(`Bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
+      )
       setUploadProgress("")
-      const okNames = results.filter((r) => r.ok).map((r) => r.fileName)
+      const ok = results.filter((r) => r.ok)
       const failed = results.filter((r) => !r.ok)
 
-      if (okNames.length > 0) {
+      if (ok.length > 0) {
+        const token = await getToken()
         await fetch(`/api/aanvragen/${aanvraagId}/upload-complete`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ context: "extra", fileNames: okNames }),
+          body: JSON.stringify({ context: "extra", fileNames: ok.map((r) => r.fileName) }),
         })
       }
 
       if (failed.length > 0) {
-        setUploadError(`Niet geüpload: ${failed.map((f) => f.fileName).join(", ")}. Probeer het opnieuw.`)
+        setUploadError(`Niet geüpload: ${failed.map((f) => f.originalName).join(", ")}. Probeer het opnieuw.`)
       }
-      if (okNames.length > 0) {
-        setUploadSuccess(`${okNames.length} ${okNames.length === 1 ? "document" : "documenten"} succesvol geupload.`)
-        setSelectedFiles((prev) => prev.filter((f) => !okNames.includes(f.name)))
+      if (ok.length > 0) {
+        setUploadSuccess(`${ok.length} ${ok.length === 1 ? "document" : "documenten"} succesvol geupload.`)
+        // Match on the ORIGINAL name: the server may have sanitized the stored
+        // name, and comparing against that would leave uploaded files selected
+        // (a second click would then upload duplicates).
+        const okOriginals = new Set(ok.map((r) => r.originalName))
+        setSelectedFiles((prev) => prev.filter((f) => !okOriginals.has(f.name)))
         loadData()
       }
     } catch {

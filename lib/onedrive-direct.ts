@@ -112,7 +112,7 @@ export async function createUploadSession(token: string, folderId: string, fileN
 // reflect what is actually in OneDrive rather than what a client claims.
 export async function countFolderDocuments(token: string, folderId: string): Promise<number> {
   const res = await fetch(
-    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${folderId}/children?$select=name,file&$top=500`,
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${folderId}/children?$select=name,file,size&$top=500`,
     { headers: { Authorization: `Bearer ${token}` } }
   )
   if (!res.ok) {
@@ -120,6 +120,12 @@ export async function countFolderDocuments(token: string, folderId: string): Pro
     throw new Error(`OneDrive folder listing failed (${res.status}): ${body.slice(0, 300)}`)
   }
   const data = await res.json()
-  const children: Array<{ name?: string; file?: unknown }> = data.value || []
-  return children.filter((c) => c.file && c.name !== "aanvraag-samenvatting.txt").length
+  const children: Array<{ name?: string; file?: unknown; size?: number }> = data.value || []
+  // Excludes the summary case-insensitively (SharePoint names are
+  // case-insensitive) and zero-byte items: an upload session can leave a 0-byte
+  // placeholder behind when it is never completed, and real 0-byte uploads are
+  // rejected at session time — so anything empty is not a delivered document.
+  return children.filter(
+    (c) => c.file && (c.size ?? 0) > 0 && (c.name || "").toLowerCase() !== "aanvraag-samenvatting.txt"
+  ).length
 }

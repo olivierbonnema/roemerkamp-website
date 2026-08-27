@@ -3,8 +3,16 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
 import {
   getMsToken, createOneDriveFolder, createUploadSession, sanitizeDriveName,
-  DIRECT_UPLOAD_MAX_FILE_SIZE, UPLOAD_ALLOWED_EXTENSIONS,
+  countFolderDocuments, DIRECT_UPLOAD_MAX_FILE_SIZE, UPLOAD_ALLOWED_EXTENSIONS,
 } from "@/lib/onedrive-direct"
+
+// Cold start + Firestore reads + up to three Graph calls; keep headroom above
+// the default function duration like the other Graph-touching routes.
+export const maxDuration = 60
+
+// Sanity ceiling on documents per aanvraag: the direct-upload flow has no total
+// size cap, so bound the number of files a caller can park in a dossier.
+const MAX_DOCS_PER_AANVRAAG = 150
 
 // Mints a Microsoft Graph upload session so the browser can upload a document
 // DIRECTLY to the aanvraag's SharePoint folder in chunks. This bypasses
@@ -54,10 +62,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!UPLOAD_ALLOWED_EXTENSIONS.has(ext)) {
     return NextResponse.json({ error: `Bestandstype niet toegestaan: ${fileName}` }, { status: 400 })
   }
-  if (fileSize <= 0 || fileSize > DIRECT_UPLOAD_MAX_FILE_SIZE) {
+  if (fileSize <= 0) {
+    return NextResponse.json({ error: `Leeg bestand kan niet worden geüpload: ${fileName}` }, { status: 400 })
+  }
+  if (fileSize > DIRECT_UPLOAD_MAX_FILE_SIZE) {
     return NextResponse.json({ error: `Bestand te groot (max 250MB): ${fileName}` }, { status: 400 })
   }
-  if (fileName === "aanvraag-samenvatting.txt") {
+  // Case-insensitive: SharePoint's namespace is, so a case-variant would
+  // collide with (or be mistaken for) the generated summary file.
+  if (fileName.toLowerCase() === "aanvraag-samenvatting.txt") {
     return NextResponse.json({ error: "Deze bestandsnaam is gereserveerd." }, { status: 400 })
   }
 
@@ -72,8 +85,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const date = new Date().toISOString().slice(0, 10)
       const folderName = sanitizeDriveName(`${date} - ${data.naam || data.userEmail || id}`) || date
       const folder = await createOneDriveFolder(token, folderName)
-      folderId = folder.id
-      await ref.update({ driveFolderId: folder.id, driveFolderUrl: folder.webUrl })
+      // Claim the folder transactionally: the submit route's background job may
+      // be healing the same missing folder concurrently. Whoever writes first
+      // wins and everyone uses that folder, so documents can never be split
+      // across two folders (the loser's empty folder is simply unused).
+      folderId = await adminDb.runTransaction(async (tx) => {
+        const snap = await tx.get(ref)
+        const existing = snap.data()?.driveFolderId as string | undefined
+        if (existing) return existing
+        tx.update(ref, { driveFolderId: folder.id, driveFolderUrl: folder.webUrl })
+        return folder.id
+      })
+    }
+
+    const existingDocs = await countFolderDocuments(token, folderId)
+    if (existingDocs >= MAX_DOCS_PER_AANVRAAG) {
+      return NextResponse.json({ error: "Maximum aantal documenten voor deze aanvraag bereikt." }, { status: 400 })
     }
 
     const uploadUrl = await createUploadSession(token, folderId, fileName)

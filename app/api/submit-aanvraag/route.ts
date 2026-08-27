@@ -209,7 +209,11 @@ export async function POST(req: NextRequest) {
   // That keeps this request far under Vercel's ±4.5MB body cap regardless of
   // how large the documents are. The legacy embedded-files path stays intact.
   let metaFiles: { cat: string; name: string; size: number }[] = []
-  if (allFiles.length === 0) {
+  // Direct-upload metadata is only honored for AUTHENTICATED submitters: the
+  // follow-up upload-session/upload-complete calls require the owner's token,
+  // so an anonymous fileMeta could never be completed — it would only create
+  // orphaned "pending" records and empty SharePoint folders.
+  if (allFiles.length === 0 && userId) {
     try {
       const parsed = JSON.parse(String(get("fileMeta") || "[]"))
       if (Array.isArray(parsed)) {
@@ -224,7 +228,10 @@ export async function POST(req: NextRequest) {
       if (!ALLOWED_EXTENSIONS.has(ext)) {
         return NextResponse.json({ error: `Bestandstype niet toegestaan: ${m.name}` }, { status: 400 })
       }
-      if (m.size <= 0 || m.size > DIRECT_UPLOAD_MAX_FILE_SIZE) {
+      if (m.size <= 0) {
+        return NextResponse.json({ error: `Leeg bestand kan niet worden geüpload: ${m.name}` }, { status: 400 })
+      }
+      if (m.size > DIRECT_UPLOAD_MAX_FILE_SIZE) {
         return NextResponse.json({ error: `Bestand te groot (max 250MB): ${m.name}` }, { status: 400 })
       }
     }
@@ -396,6 +403,17 @@ export async function POST(req: NextRequest) {
     console.error("Firestore save error:", err)
   }
 
+  // In direct-upload mode the documents ONLY exist in the browser at this point;
+  // without a saved doc there is no id to upload against, so a swallowed save
+  // failure would silently lose every document while showing a success screen.
+  // Fail loudly instead — nothing was persisted, so a retry is safe.
+  if (metaMode && !docRef) {
+    return NextResponse.json(
+      { error: "Aanvraag opslaan is mislukt. Probeer het opnieuw." },
+      { status: 500 }
+    )
+  }
+
   // Record a partner/client submission in the activity log (logged-in submitters only).
   if (docRef && userId) {
     await logActivity({
@@ -414,17 +432,26 @@ export async function POST(req: NextRequest) {
       const token = await getMsToken()
       let folderId = preFolderId
       let folderUrl = preFolderUrl
-      if (!folderId && docRef) {
-        // The upload-session endpoint self-heals a missing folder; re-read the
-        // doc first so we never create a second folder next to that one.
-        const fresh = await docRef.get()
-        folderId = fresh.data()?.driveFolderId || ""
-        folderUrl = fresh.data()?.driveFolderUrl || ""
-      }
       if (!folderId) {
         const created = await createOneDriveFolder(token, folderName)
         folderId = created.id
         folderUrl = created.webUrl
+        if (docRef) {
+          // Claim transactionally: the client's upload-session may be healing
+          // the same missing folder right now. First writer wins, so documents
+          // and the summary always land in ONE folder.
+          const ref = docRef
+          const claimed = await adminDb.runTransaction(async (tx) => {
+            const snap = await tx.get(ref)
+            const existing = snap.data()?.driveFolderId as string | undefined
+            const existingUrl = snap.data()?.driveFolderUrl as string | undefined
+            if (existing) return { id: existing, url: existingUrl || "" }
+            tx.update(ref, { driveFolderId: created.id, driveFolderUrl: created.webUrl })
+            return { id: created.id, url: created.webUrl }
+          })
+          folderId = claimed.id
+          folderUrl = claimed.url || folderUrl
+        }
       }
       await uploadToOneDrive(token, folderId, "aanvraag-samenvatting.txt", Buffer.from(summaryText, "utf-8"), "text/plain")
       let uploaded = 0
@@ -449,7 +476,14 @@ export async function POST(req: NextRequest) {
       const msg = err instanceof Error ? err.message : String(err)
       if (docRef) {
         try {
-          await docRef.update({ uploadStatus: "failed", uploadError: msg.slice(0, 500) })
+          // In direct-upload mode the client + /upload-complete own uploadStatus
+          // (documents go straight to OneDrive); only record the error so a
+          // failed summary upload can't mark a complete dossier as failed.
+          await docRef.update(
+            metaMode
+              ? { uploadError: msg.slice(0, 500) }
+              : { uploadStatus: "failed", uploadError: msg.slice(0, 500) }
+          )
         } catch (updateErr) {
           console.error("Failed to flag upload failure on aanvraag:", updateErr)
         }
@@ -483,7 +517,11 @@ export async function POST(req: NextRequest) {
   // internal notification can include the folder link + analysis trigger
   // (legacy mode creates the folder after the response → stays empty there).
   const driveFolderUrl = preFolderUrl
-  const folderId = preFolderId
+  // Intentionally NOT preFolderId: the "Start AI Analyse" button in the internal
+  // email calls /api/trigger-analysis, which addresses the PERSONAL OneDrive
+  // drive, while this id belongs to the SharePoint library — the button would
+  // 404 silently. Analysis is started from the admin panel instead.
+  const folderId = ""
 
   /* ── Email layout helpers ── */
   const BASE_URL = SITE_URL
@@ -596,7 +634,7 @@ export async function POST(req: NextRequest) {
               row("Exit strategy", uitstrategie),
             ].join(""))}
             ${section("Documenten", [
-              row("Aantal bestanden", `${allFiles.length}`),
+              row("Aantal bestanden", `${totalDocCount}`),
               row("Details", filesSummary),
             ].join(""))}
           </table>
