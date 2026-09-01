@@ -45,57 +45,47 @@ verify something, say so. Never fabricate.
 5. Paywalled sources (FD, NRC, Quote): cite headline + outlet + date + URL,
    mark as "headline only, body paywalled" if you couldn't read the body.
 
-# Search Protocol - run each tier, log every query
+# Search Protocol
+
+Queries are grouped with OR so that ONE search covers what would otherwise take
+four. This is deliberate: the protocol must be completed IN FULL for every
+subject. Never silently skip a tier - if a tier yields nothing, log its queries
+with zero useful hits so the audit trail shows it actually ran. You may add
+follow-up queries when a hit needs corroboration; that is encouraged.
+
+Substitute <name> with the subject's full name in quotes. For a legal entity,
+also run the KvK number where a query supports it.
 
 ### Tier 1 - Strafrechtelijk
-- "<name>" fraude
-- "<name>" oplichting
-- "<name>" witwassen
-- "<name>" veroordeeld
-- "<name>" aangehouden
-- "<name>" vervolgd OR vervolging
-- "<name>" verdachte OR verdacht
-- "<name>" "Openbaar Ministerie" OR OM
-- "<name>" FIOD
-- "<name>" belastingfraude OR "fiscale fraude"
-- "<name>" "valsheid in geschrifte"
-- "<name>" verduistering
-- "<name>" omkoping OR corruptie
-- "<name>" strafzaak OR strafvonnis
-- "<name>" schikking transactie OM
-- "<name>" site:rechtspraak.nl
+- "<name>" (fraude OR oplichting OR witwassen OR verduistering)
+- "<name>" (veroordeeld OR verdachte OR strafzaak OR aangehouden OR vervolgd)
+- "<name>" (FIOD OR "Openbaar Ministerie" OR belastingfraude OR "valsheid in geschrifte" OR omkoping)
 
 ### Tier 2 - Faillissement & Distress
-- "<name>" faillissement
-- "<name>" failliet
-- "<name>" "surseance van betaling"
-- "<name>" WSNP
-- "<name>" WHOA
-- "<name>" curator OR bewindvoerder
-- "<name>" doorstart
-- "<name>" beslag OR beslaglegging
-- "<name>" schuldsanering
-- Direct registry: insolventies.rechtspraak.nl - search by name and/or KvK.
-- For natural persons: check curatele- en bewindregister on rechtspraak.nl.
+Dutch insolvency rulings are published BY LAW in the Staatscourant, and drimble
+mirrors the Centraal Insolventieregister on ordinary indexed pages. Those two are
+findable by name; the CIR's own search form is not. Always run both:
+- "<name>" site:officielebekendmakingen.nl
+- "<name>" site:drimble.nl
+- "<name>" (faillissement OR failliet OR surseance OR WSNP OR schuldsanering)
+- "<name>" (curator OR bewindvoerder OR beslaglegging OR doorstart OR WHOA)
 
 ### Tier 3 - Civiele Procedures
-- "<name>" rechtszaak OR rechtbank
-- "<name>" vonnis OR uitspraak
-- "<name>" gedaagde OR eiser
-- "<name>" "kort geding"
-- "<name>" "hoger beroep"
-- "<name>" ECLI
+Published Dutch case law ANONYMISES natural persons ([verdachte], initials), so
+name queries on rechtspraak.nl can essentially never match a private individual.
+- Legal entities: "<name>" site:rechtspraak.nl and "<name>" (vonnis OR "kort geding" OR "hoger beroep" OR ECLI)
+- Natural persons: SKIP the rechtspraak.nl and ECLI queries - they cost budget and
+  prove nothing. Run "<name>" (rechtszaak OR rechtbank OR vonnis OR gedaagde)
+  instead, and state in cleanProfile/overallAssessment that criminal and civil
+  history of a private individual is only visible through the press, because
+  published judgments are anonymised. A CLEAR verdict must not suggest that court
+  records were checked.
 
 ### Tier 4 - Toezichthouders
-- "<name>" AFM
-- "<name>" DNB
-- "<name>" ACM
-- "<name>" Belastingdienst boete OR navordering
-- "<name>" "last onder dwangsom"
-- "<name>" "bestuurlijke boete"
-- "<name>" waarschuwing AFM
-- Direct check: afm.nl/registers - is subject on a register or warning list?
-- Direct check: dnb.nl openbaar register - same.
+- "<name>" (AFM OR DNB OR ACM OR Belastingdienst)
+- "<name>" ("last onder dwangsom" OR "bestuurlijke boete" OR waarschuwing OR navordering)
+The AFM and DNB registers are search forms and cannot be queried here: ALWAYS add
+a gap entry that afm.nl and dnb.nl must be checked manually.
 
 ### Tier 5 - Sanctions & PEP
 OFAC's search is a form and the EU list is a downloadable file - neither is
@@ -111,30 +101,36 @@ ALWAYS add a gap entry stating that a formal, deterministic screening against th
 official EU/UN/NL lists is a separate manual step: a web search is a first pass,
 not compliant screening.
 
-### Tier 6 - Adverse Media (Dutch press)
-- site:fd.nl "<name>"
-- site:nrc.nl "<name>"
-- site:ftm.nl "<name>"
-- site:quotenet.nl "<name>"
-- site:volkskrant.nl "<name>"
-- site:nos.nl "<name>"
-- site:bnr.nl "<name>"
-- site:pointer.kro-ncrv.nl "<name>"
-- site:zembla.bnnvara.nl "<name>"
-- "<name>" controverse OR schandaal OR omstreden
-- "<name>" oplichting ervaring OR klacht
-- "<name>" Radar OR Kassa
+### Tier 6 - Adverse Media
+The site: operator can be OR-combined, so cover the outlets in three queries
+instead of nine. Regional and mass-market press matter most for real estate:
+- "<name>" (site:fd.nl OR site:nrc.nl OR site:ftm.nl OR site:quotenet.nl)
+- "<name>" (site:telegraaf.nl OR site:ad.nl OR site:nos.nl OR site:volkskrant.nl OR site:bnr.nl)
+- "<name>" (site:pointer.kro-ncrv.nl OR site:zembla.bnnvara.nl OR Radar OR Kassa)
+- "<name>" (controverse OR schandaal OR omstreden OR klacht OR misstand)
+Also run one broad query with the subject's city or province when known, to catch
+regional dailies outside the list above.
 
-### Tier 7 - Bedrijfsinformatie & Netwerk
-- KvK lookup at kvk.nl/zoeken - search entity name and/or KvK.
-- Note: UBO data is NOT publicly accessible since Nov 2022 - flag as gap.
-- Cross-entity: "<name>" KvK bestuurder OR directeur
-- Secondary: openkvk.nl, drimble.nl, companyinfo.nl for historical roles.
+### Tier 7 - Bedrijfsinformatie & Netwerk (legal entities)
+The KvK's own register is a search form; use the indexed mirrors instead:
+- "<name>" (site:drimble.nl OR site:openkvk.nl OR site:companyinfo.nl)
+- "<name>" (bestuurder OR directeur OR aandeelhouder) KvK
+Check these Dutch pre-lending red flags explicitly and report each as a finding
+when present (INFO when merely notable, higher when it points to risk):
+- jaarrekeningen not deposited or deposited late (art. 2:394 BW - a director
+  liability signal);
+- changes of director or shareholder shortly before the application;
+- turboliquidatie or dissolution of other entities of the same director;
+- incorporation date very recent relative to the loan amount (empty-shell signal);
+- group structure / 403-verklaring - which entity actually carries liability;
+- registered address shared with many other entities (letterbox signal).
+UBO data has not been public since Nov 2022 - always flag as a gap.
 
-### Tier 8 - Sectorspecifiek (vastgoed focus)
-- Huurder-verhuurder rechtszaken
-- Taxatie-fraude
-- VvE conflicten
+### Tier 8 - Sector (vastgoed)
+- "<name>" (huurcommissie OR huurgeschil OR "verhuurder rechtszaak")
+- "<name>" (taxatiefraude OR taxateur tuchtrecht)
+- "<name>" (VvE conflict OR "VvE rechtszaak")
+- "<name>" (huisjesmelker OR "achterstallig onderhoud" OR handhaving gemeente)
 
 # Name-Match Discipline
 
@@ -461,13 +457,50 @@ export async function runBackgroundCheck(checkId: string): Promise<void> {
 
   // Each subject gets its OWN full scan, run in parallel.
   const settled = await Promise.allSettled(subjects.map((s) => performReputationScan(s)))
+// What an open-web scan can NEVER cover, per subject type. Every scan produced
+// roughly this list anyway, re-derived by the model and therefore never quite
+// identical — while the whole point is that the dossier states uniformly what was
+// NOT checked. Generated in code and merged into gapsAndManualChecks so the list
+// is complete and the same every time. BKR is named explicitly: a reader of an
+// "achtergrondcheck" could otherwise assume credit history was included.
+const STANDING_CHECKS_PERSON = [
+  "BKR-toetsing (kredietregistratie) — niet toegankelijk via open bronnen; opvragen via de eigen BKR-aansluiting of met toestemming van de aanvrager.",
+  "Centraal Insolventieregister — handmatig raadplegen op volledige naam en geboortedatum (insolventies.rechtspraak.nl); de zoekfunctie is niet automatisch te bevragen.",
+  "Centraal Curatele- en Bewindregister — handmatig controleren of betrokkene onder curatele of bewind staat; dit raakt de rechtsgeldigheid van de ondertekening.",
+  "AFM- en DNB-registers — handmatig raadplegen (vergunning-, waarschuwings- en boeteregister).",
+  "Identiteitsverificatie — geldig legitimatiebewijs controleren; de scan verifieert geen identiteit.",
+  "Kadaster — eigendom, hypotheken en beslagen op het onderpand opvragen.",
+]
+
+const STANDING_CHECKS_ENTITY = [
+  "KvK-uittreksel — actuele en historische bestuurders, deponeringshistorie en insolventie-aantekeningen opvragen.",
+  "UBO-opgave — het UBO-register is sinds november 2022 niet openbaar; opvragen bij de onderneming of via KvK.",
+  "Centraal Insolventieregister — handmatig raadplegen op statutaire naam en KvK-nummer.",
+  "AFM- en DNB-registers — handmatig raadplegen op de onderneming en haar bestuurders.",
+  "Kadaster — eigendom, hypotheken en beslagen op het onderpand opvragen.",
+]
+
+// Merge the standing checks into the model's own gaps, without duplicating a gap
+// the model already described in its own words.
+function withStandingChecks(result: Record<string, unknown> | null, type: string): Record<string, unknown> | null {
+  if (!result) return result
+  const standing = type === "natural_person" ? STANDING_CHECKS_PERSON : STANDING_CHECKS_ENTITY
+  const existing = Array.isArray(result.gapsAndManualChecks)
+    ? (result.gapsAndManualChecks as unknown[]).filter((g): g is string => typeof g === "string")
+    : []
+  const keyOf = (g: string) => g.toLowerCase().replace(/[^a-z]/g, "").slice(0, 28)
+  const seen = new Set(existing.map(keyOf))
+  const added = standing.filter((g) => !seen.has(keyOf(g)))
+  return { ...result, gapsAndManualChecks: [...existing, ...added] }
+}
+
   const results: SubjectResult[] = subjects.map((s, i) => {
     const r = settled[i]
     if (r.status === "rejected") console.error(`[background-check] ${checkId} subject "${s.fullName}" failed:`, mapScanError(r.reason))
     return {
       subjectName: s.fullName,
       subjectType: s.type,
-      result: r.status === "fulfilled" ? r.value : null,
+      result: r.status === "fulfilled" ? withStandingChecks(r.value as Record<string, unknown>, s.type) : null,
       error: r.status === "rejected" ? mapScanError(r.reason) : null,
     }
   })

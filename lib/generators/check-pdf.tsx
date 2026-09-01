@@ -58,7 +58,7 @@ export interface CheckPdfData {
 /* ── Labels ── */
 
 const STATUS_LABELS: Record<string, string> = {
-  CLEAR: "Schoon",
+  CLEAR: "Schoon (open bronnen)",
   ADVERSE_FOUND: "Bevindingen",
   AMBIGUOUS: "Onduidelijk",
   INSUFFICIENT_DATA: "Onvoldoende data",
@@ -77,6 +77,11 @@ const MATCH_CONFIDENCE_LABELS: Record<string, string> = {
   MEDIUM: "middel",
   LOW: "laag",
   AMBIGUOUS: "onduidelijk",
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  sanctie_pep: "sancties / PEP",
+  adverse_media: "negatieve pers",
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -186,6 +191,27 @@ function SubjectReport({ name, type, result, error }: {
         </>
       ) : null}
 
+      <Text style={[s.para, { color: C.grey, fontSize: SZ.tiny }]}>
+        Deze uitkomst is gebaseerd op openbare bronnen (pers en openbaar doorzoekbare
+        registers). Registers die alleen via een formulier of aansluiting te raadplegen
+        zijn — BKR, insolventieregister, curatele/bewind, AFM en DNB — zijn hierin niet
+        meegenomen; zie &quot;Nog handmatig te controleren&quot;.
+      </Text>
+
+      {gaps.length > 0 ? (
+        <>
+          <Text style={[s.sectionHead, { fontSize: SZ.small, marginTop: 8, marginBottom: 4 }]}>
+            Nog handmatig te controleren ({gaps.length})
+          </Text>
+          {gaps.map((g, i) => (
+            <View key={i} style={s.bullet} wrap={false}>
+              <Text style={s.bulletDot}>☐</Text>
+              <Text style={s.bulletText}>{g}</Text>
+            </View>
+          ))}
+        </>
+      ) : null}
+
       {result.cleanProfile ? (
         <>
           <Text style={[s.sectionHead, { fontSize: SZ.small, marginTop: 8, marginBottom: 4 }]}>Schoon profiel</Text>
@@ -201,7 +227,7 @@ function SubjectReport({ name, type, result, error }: {
               <View style={s.findingHead}>
                 <Text style={s.findingSeverity}>{SEVERITY_LABELS[f.severity] || f.severity}</Text>
                 <Text style={s.findingMeta}>
-                  {f.category ? `  ·  ${f.category}` : ""}
+                  {f.category ? `  ·  ${CATEGORY_LABELS[f.category] || f.category}` : ""}
                   {f.matchConfidence ? `  ·  betrouwbaarheid match: ${MATCH_CONFIDENCE_LABELS[f.matchConfidence] || f.matchConfidence}` : ""}
                   {f.subjectMatched ? `  ·  ${f.subjectMatched}` : ""}
                 </Text>
@@ -212,18 +238,6 @@ function SubjectReport({ name, type, result, error }: {
                   .filter(Boolean)
                   .join("  ·  ")}
               </Text>
-            </View>
-          ))}
-        </>
-      ) : null}
-
-      {gaps.length > 0 ? (
-        <>
-          <Text style={[s.sectionHead, { fontSize: SZ.small, marginTop: 10, marginBottom: 4 }]}>Handmatige checks nodig</Text>
-          {gaps.map((g, i) => (
-            <View key={i} style={s.bullet} wrap={false}>
-              <Text style={s.bulletDot}>—</Text>
-              <Text style={s.bulletText}>{g}</Text>
             </View>
           ))}
         </>

@@ -38,8 +38,19 @@ export const MATCH_CONFIDENCE_LABELS: Record<string, string> = {
   AMBIGUOUS: "onduidelijk",
 }
 
+export const CATEGORY_LABELS: Record<string, string> = {
+  strafrechtelijk: "strafrechtelijk",
+  faillissement: "faillissement",
+  civiel: "civiel",
+  toezichthouder: "toezichthouder",
+  sanctie_pep: "sancties / PEP",
+  adverse_media: "negatieve pers",
+  netwerk: "netwerk",
+  sector: "sector",
+}
+
 export const SCAN_RESULT_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  CLEAR:              { label: "Schoon",           color: "#065F46", bg: "#ECFDF5" },
+  CLEAR:              { label: "Schoon (open bronnen)", color: "#065F46", bg: "#ECFDF5" },
   ADVERSE_FOUND:      { label: "Bevindingen",      color: "#991B1B", bg: "#FEF2F2" },
   AMBIGUOUS:          { label: "Onduidelijk",       color: "#92400E", bg: "#FFFBEB" },
   INSUFFICIENT_DATA:  { label: "Onvoldoende data",  color: "#6B7280", bg: "#F3F4F6" },
@@ -80,7 +91,30 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
         </span>
       </div>
 
+      <p className="text-[12px] font-sans text-gray-500 mb-4 leading-relaxed">
+        Deze uitkomst is gebaseerd op <strong>openbare bronnen</strong> (pers en openbaar
+        doorzoekbare registers). Registers die alleen via een formulier of aansluiting
+        te raadplegen zijn — BKR, insolventieregister, curatele/bewind, AFM en DNB —
+        zijn hierin <strong>niet</strong> meegenomen. Zie &ldquo;Nog handmatig te controleren&rdquo;.
+      </p>
+
       <p className="text-sm font-sans text-gray-700 mb-6">{result.overallAssessment}</p>
+
+      {result.gapsAndManualChecks?.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <h3 className="text-sm font-semibold font-sans text-amber-900 mb-2">
+            Nog handmatig te controleren ({result.gapsAndManualChecks.length})
+          </h3>
+          <ul className="space-y-1.5 text-[13px] font-sans text-amber-900">
+            {result.gapsAndManualChecks.map((g, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="mt-[3px] w-3 h-3 border border-amber-500 rounded-[3px] flex-shrink-0" />
+                <span>{g}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {result.cleanProfile && (
         <div className="bg-emerald-50 rounded-xl p-4 mb-6">
@@ -103,7 +137,7 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
                     f.severity === "LOW" ? "bg-blue-400" : "bg-gray-400"
                   }`} />
                   <span className="text-xs font-medium font-sans text-gray-800">{SEVERITY_LABELS[f.severity] || f.severity}</span>
-                  <span className="text-xs font-sans text-gray-400">- {f.category}</span>
+                  <span className="text-xs font-sans text-gray-400">- {CATEGORY_LABELS[f.category] || f.category}</span>
                   <span className="text-xs font-sans text-gray-400 ml-auto">Betrouwbaarheid match: {MATCH_CONFIDENCE_LABELS[f.matchConfidence] || f.matchConfidence}</span>
                 </div>
                 <p className="text-sm font-sans text-gray-700 mb-1">{f.facts}</p>
@@ -120,20 +154,6 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {result.gapsAndManualChecks?.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-serif text-lg text-[#1E3A5F] mb-3">Handmatige checks nodig</h3>
-          <ul className="space-y-1 text-sm font-sans text-gray-700">
-            {result.gapsAndManualChecks.map((g, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="text-gray-400 mt-0.5">•</span>
-                <span>{g}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       )}
 
