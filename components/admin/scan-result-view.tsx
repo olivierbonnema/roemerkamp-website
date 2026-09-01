@@ -21,6 +21,23 @@ export interface SubjectResult {
   error: string | null
 }
 
+// The scan returns fixed enum values (stable machine values); everything the
+// user reads is labelled in Dutch here.
+export const SEVERITY_LABELS: Record<string, string> = {
+  CRITICAL: "Kritiek",
+  HIGH: "Hoog",
+  MEDIUM: "Middel",
+  LOW: "Laag",
+  INFO: "Informatief",
+}
+
+export const MATCH_CONFIDENCE_LABELS: Record<string, string> = {
+  HIGH: "hoog",
+  MEDIUM: "middel",
+  LOW: "laag",
+  AMBIGUOUS: "onduidelijk",
+}
+
 export const SCAN_RESULT_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   CLEAR:              { label: "Schoon",           color: "#065F46", bg: "#ECFDF5" },
   ADVERSE_FOUND:      { label: "Bevindingen",      color: "#991B1B", bg: "#FEF2F2" },
@@ -39,7 +56,7 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
           result.scanStatus === "ADVERSE_FOUND" ? "bg-red-100 text-red-800" :
           "bg-amber-100 text-amber-800"
         }`}>
-          {result.killSignal && "⛔ KILL SIGNAL - "}{SCAN_RESULT_LABELS[result.scanStatus]?.label || result.scanStatus}
+          {result.killSignal && "⛔ Stopsignaal - "}{SCAN_RESULT_LABELS[result.scanStatus]?.label || result.scanStatus}
         </span>
       </div>
 
@@ -65,9 +82,9 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
                     f.severity === "MEDIUM" ? "bg-yellow-500" :
                     f.severity === "LOW" ? "bg-blue-400" : "bg-gray-400"
                   }`} />
-                  <span className="text-xs font-medium font-sans text-gray-800 uppercase">{f.severity}</span>
+                  <span className="text-xs font-medium font-sans text-gray-800">{SEVERITY_LABELS[f.severity] || f.severity}</span>
                   <span className="text-xs font-sans text-gray-400">- {f.category}</span>
-                  <span className="text-xs font-sans text-gray-400 ml-auto">Match: {f.matchConfidence}</span>
+                  <span className="text-xs font-sans text-gray-400 ml-auto">Betrouwbaarheid match: {MATCH_CONFIDENCE_LABELS[f.matchConfidence] || f.matchConfidence}</span>
                 </div>
                 <p className="text-sm font-sans text-gray-700 mb-1">{f.facts}</p>
                 <div className="flex items-center gap-3 text-xs font-sans text-gray-400">
@@ -78,7 +95,7 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
                       Bron
                     </a>
                   )}
-                  {f.paywalled && <span className="text-amber-600">Paywalled</span>}
+                  {f.paywalled && <span className="text-amber-600">achter betaalmuur</span>}
                 </div>
               </div>
             ))}
@@ -103,7 +120,7 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
       {result.searchAuditTrail?.length > 0 && (
         <details className="text-sm font-sans">
           <summary className="cursor-pointer text-gray-500 hover:text-gray-700 mb-2">
-            Zoekprotocol ({result.searchAuditTrail.length} queries)
+            Zoekprotocol ({result.searchAuditTrail.length} {result.searchAuditTrail.length === 1 ? "zoekopdracht" : "zoekopdrachten"})
           </summary>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">

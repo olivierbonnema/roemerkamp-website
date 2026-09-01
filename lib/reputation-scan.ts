@@ -148,6 +148,20 @@ LOW match strength = AMBIGUOUS, never CONFIRMED ADVERSE.
 | LOW      | Isolated negative review; immaterial dispute; old/closed matter |
 | INFO     | Neutral context, no risk implication |
 
+# Output Language
+
+Write EVERY piece of free text in the JSON below in DUTCH — the report is read
+by Dutch advisors and is exported to a PDF for the client dossier. This covers:
+overallAssessment, cleanProfile, every "summary", every "facts", subjectMatched,
+sourceOutlet (where it is a description rather than a brand name), the "tier"
+label in searchAuditTrail, and every entry in gapsAndManualChecks.
+
+Do NOT translate the enum values: scanStatus, severity, category, matchConfidence
+and the booleans must be returned EXACTLY as specified — the interface maps them
+to Dutch labels itself. Search queries in searchAuditTrail keep the wording that
+was actually searched. Proper names, registry names, case numbers and URLs stay
+as they are.
+
 # Output Format
 
 Return a JSON object with this structure:
@@ -185,7 +199,8 @@ Return a JSON object with this structure:
   ]
 }
 
-Return ONLY valid JSON. No markdown, no explanation outside the JSON.`
+Return ONLY valid JSON. No markdown, no explanation outside the JSON.
+Remember: all free text in Dutch, all enum values exactly as specified above.`
 
 function buildSubjectBlock(subject: ScanSubject): string {
   const lines = [`SUBJECT TYPE: ${subject.type}`, ""]

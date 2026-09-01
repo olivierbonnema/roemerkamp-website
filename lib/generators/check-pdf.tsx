@@ -72,6 +72,13 @@ const SEVERITY_LABELS: Record<string, string> = {
   INFO: "Informatief",
 }
 
+const MATCH_CONFIDENCE_LABELS: Record<string, string> = {
+  HIGH: "hoog",
+  MEDIUM: "middel",
+  LOW: "laag",
+  AMBIGUOUS: "onduidelijk",
+}
+
 const TYPE_LABELS: Record<string, string> = {
   natural_person: "Persoon",
   legal_entity: "Bedrijf",
@@ -169,7 +176,7 @@ function SubjectReport({ name, type, result, error }: {
       <Text style={s.sectionHead}>{name}{type ? ` — ${TYPE_LABELS[type] || type}` : ""}</Text>
       <View style={s.sectionRule} />
 
-      <Meta label="Uitkomst" value={result.killSignal ? `${status} — kill signal` : status} />
+      <Meta label="Uitkomst" value={result.killSignal ? `${status} — stopsignaal` : status} />
       <Meta label="Aantal bevindingen" value={String(result.adverseHits ?? 0)} />
 
       {result.overallAssessment ? (
@@ -195,13 +202,13 @@ function SubjectReport({ name, type, result, error }: {
                 <Text style={s.findingSeverity}>{SEVERITY_LABELS[f.severity] || f.severity}</Text>
                 <Text style={s.findingMeta}>
                   {f.category ? `  ·  ${f.category}` : ""}
-                  {f.matchConfidence ? `  ·  match: ${f.matchConfidence}` : ""}
+                  {f.matchConfidence ? `  ·  betrouwbaarheid match: ${MATCH_CONFIDENCE_LABELS[f.matchConfidence] || f.matchConfidence}` : ""}
                   {f.subjectMatched ? `  ·  ${f.subjectMatched}` : ""}
                 </Text>
               </View>
               <Text style={s.para}>{f.facts}</Text>
               <Text style={s.sourceLine}>
-                {[f.sourceOutlet, f.sourceDate, f.paywalled ? "paywalled" : "", f.sourceUrl]
+                {[f.sourceOutlet, f.sourceDate, f.paywalled ? "achter betaalmuur" : "", f.sourceUrl]
                   .filter(Boolean)
                   .join("  ·  ")}
               </Text>
