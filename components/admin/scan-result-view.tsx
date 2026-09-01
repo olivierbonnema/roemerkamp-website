@@ -45,6 +45,26 @@ export const SCAN_RESULT_LABELS: Record<string, { label: string; color: string; 
   INSUFFICIENT_DATA:  { label: "Onvoldoende data",  color: "#6B7280", bg: "#F3F4F6" },
 }
 
+// Combine a multi-subject check into ONE summary for a badge/preview: a kill
+// signal from ANY subject counts, the worst status wins, and adverse hits are
+// summed. The summary text comes from a kill-signal subject when there is one,
+// so the ⛔ reason is what gets shown. Falls back to a legacy single result.
+const SCAN_STATUS_ORDER = ["CLEAR", "INSUFFICIENT_DATA", "AMBIGUOUS", "ADVERSE_FOUND"]
+
+export function overallScan(results?: SubjectResult[], fallback?: ScanResult): ScanResult | undefined {
+  const list = (results || []).map((r) => r.result).filter(Boolean) as ScanResult[]
+  if (!list.length) return fallback
+  const killers = list.filter((r) => r.killSignal)
+  const pool = killers.length ? killers : list
+  const base = pool.reduce((w, r) =>
+    SCAN_STATUS_ORDER.indexOf(r.scanStatus) > SCAN_STATUS_ORDER.indexOf(w.scanStatus) ? r : w, pool[0])
+  return {
+    ...base,
+    killSignal: list.some((r) => r.killSignal),
+    adverseHits: list.reduce((sum, r) => sum + (r.adverseHits || 0), 0),
+  }
+}
+
 export function ScanResultView({ result, subjectName }: { result: ScanResult; subjectName: string }) {
   return (
     <div className="border border-gray-200 rounded-2xl p-6 bg-white">

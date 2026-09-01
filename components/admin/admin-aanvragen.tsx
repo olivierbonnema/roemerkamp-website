@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
-import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult, type SubjectResult } from "./scan-result-view"
+import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
 import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote } from "lucide-react"
 
 interface Aanvraag {
@@ -103,24 +103,6 @@ function formatCurrency(raw: string) {
 }
 
 // Combine per-subject scan results into one "worst-case" summary for the card
-// badge/summary (killSignal from ANY subject; worst scanStatus). Falls back to
-// the legacy single result.
-const SCAN_STATUS_ORDER = ["CLEAR", "INSUFFICIENT_DATA", "AMBIGUOUS", "ADVERSE_FOUND"]
-function overallScan(a: { reputationScanResults?: SubjectResult[]; reputationScanResult?: ScanResult }): ScanResult | undefined {
-  const list = (a.reputationScanResults || []).map((r) => r.result).filter(Boolean) as ScanResult[]
-  if (!list.length) return a.reputationScanResult
-  // Base the summary text/findings on a kill-signal subject when one exists, so the
-  // ⛔ reason is what's shown; otherwise on the worst status.
-  const killers = list.filter((r) => r.killSignal)
-  const pool = killers.length ? killers : list
-  const base = pool.reduce((w, r) =>
-    SCAN_STATUS_ORDER.indexOf(r.scanStatus) > SCAN_STATUS_ORDER.indexOf(w.scanStatus) ? r : w, pool[0])
-  return {
-    ...base,
-    killSignal: list.some((r) => r.killSignal),
-    adverseHits: list.reduce((s, r) => s + (r.adverseHits || 0), 0),
-  }
-}
 
 // Editable subject in the "Personen bewerken" modal (mirrors the server's
 // ScanSubject fields that an admin may correct before (re)running a check).
@@ -671,7 +653,7 @@ export function AdminAanvragen() {
         const status = STATUS_LABELS[a.status] ?? { label: a.status, color: "#374151", bg: "#F3F4F6" }
         const aiStatus = a.analysisStatus ? AI_STATUS_LABELS[a.analysisStatus] : null
         const recommendation = a.analysisRecommendation ? RECOMMENDATION_LABELS[a.analysisRecommendation] : null
-        const scan = overallScan(a)
+        const scan = overallScan(a.reputationScanResults, a.reputationScanResult)
 
         return (
           <div key={a.id} className="border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#311E86]/30 transition-colors">

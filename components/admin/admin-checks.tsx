@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { auth } from "@/lib/firebase"
-import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult, type SubjectResult } from "./scan-result-view"
+import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
 import { Plus, Trash2, Download } from "lucide-react"
 
 interface CheckSubject {
@@ -286,9 +286,19 @@ export function AdminChecks() {
   // Detail view (only reachable when a result exists)
   if (detailId) {
     const check = checks.find(c => c.id === detailId)
-    if (check?.result) {
-      const subj = check.subject
-      const displayName = subj.type === "natural_person" ? subj.fullName : (subj.company || subj.fullName)
+    const subj = check?.subject
+    const displayName = subj ? (subj.type === "natural_person" ? subj.fullName : (subj.company || subj.fullName)) : ""
+    // A check can cover several subjects (e.g. an applicant and a co-applicant).
+    // Prefer the per-subject results; fall back to the single result on older
+    // checks. Without this only the FIRST subject was ever shown.
+    const subjectResults: SubjectResult[] = !check
+      ? []
+      : check.results && check.results.length > 0
+      ? check.results
+      : check.result
+      ? [{ subjectName: displayName, subjectType: subj?.type || "", result: check.result, error: null }]
+      : []
+    if (check && subj && subjectResults.length > 0) {
       return (
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-4">
@@ -320,7 +330,20 @@ export function AdminChecks() {
             </div>
           </div>
 
-          <ScanResultView result={check.result} subjectName={displayName} />
+          {subjectResults.length > 1 && (
+            <p className="text-sm font-sans text-gray-500">
+              Deze check omvat {subjectResults.length} personen/bedrijven — hieronder één resultaat per subject.
+            </p>
+          )}
+
+          {subjectResults.map((it, i) => it.result ? (
+            <ScanResultView key={i} result={it.result} subjectName={it.subjectName || displayName} />
+          ) : (
+            <div key={i} className="border border-red-200 bg-red-50 rounded-2xl p-6">
+              <h2 className="font-serif text-lg text-red-800 mb-1">Achtergrondcheck – {it.subjectName || displayName}</h2>
+              <p className="text-sm font-sans text-red-700">Deze check is mislukt: {it.error || "onbekende fout"}</p>
+            </div>
+          ))}
         </div>
       )
     }
@@ -345,7 +368,10 @@ export function AdminChecks() {
 
       {checks.map(c => {
         const subj = c.subject
-        const resultLabel = c.result?.scanStatus ? SCAN_RESULT_LABELS[c.result.scanStatus] : null
+        // Summarise across every subject: a kill signal on the co-applicant must
+        // show up in the list too, not just the primary subject's status.
+        const scan = overallScan(c.results, c.result)
+        const resultLabel = scan?.scanStatus ? SCAN_RESULT_LABELS[scan.scanStatus] : null
         return (
           <div key={c.id} className="border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#311E86]/30 transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
@@ -357,6 +383,11 @@ export function AdminChecks() {
                   {` · ${formatDate(c.createdAt)}`}
                   {c.createdBy?.email ? ` · ${c.createdBy.email}` : ""}
                 </p>
+                {(c.results?.length || 0) > 1 && (
+                  <p className="text-xs text-gray-500 font-sans mt-0.5">
+                    Ook in deze check: {c.results!.slice(1).map(r => r.subjectName).filter(Boolean).join(", ")}
+                  </p>
+                )}
                 {c.linkedAanvraagId && (
                   <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/8 text-[#311E86]">
                     Gekoppeld aan aanvraag
@@ -372,29 +403,29 @@ export function AdminChecks() {
                 )}
                 {resultLabel && (
                   <span className="px-3 py-1 rounded-full text-xs font-medium font-sans" style={{ color: resultLabel.color, backgroundColor: resultLabel.bg }}>
-                    🛡️ {resultLabel.label}{c.result?.killSignal && " ⛔"}
+                    🛡️ {resultLabel.label}{scan?.killSignal && " ⛔"}
                   </span>
                 )}
               </div>
             </div>
 
-            {c.result && (
-              <div className={`rounded-xl px-4 py-3 mb-4 ${c.result.killSignal ? "bg-red-50 border border-red-200" : c.result.scanStatus === "CLEAR" ? "bg-emerald-50" : "bg-amber-50"}`}>
+            {scan && (
+              <div className={`rounded-xl px-4 py-3 mb-4 ${scan.killSignal ? "bg-red-50 border border-red-200" : scan.scanStatus === "CLEAR" ? "bg-emerald-50" : "bg-amber-50"}`}>
                 <div className="text-xs font-sans text-gray-600">
                   <strong className="text-gray-800">Achtergrondcheck:</strong>{" "}
-                  {c.result.overallAssessment?.slice(0, 150)}
-                  {(c.result.overallAssessment?.length || 0) > 150 && "..."}
+                  {scan.overallAssessment?.slice(0, 150)}
+                  {(scan.overallAssessment?.length || 0) > 150 && "..."}
                 </div>
               </div>
             )}
             {c.status === "error" && c.error && <p className="text-xs font-sans text-red-600 mb-3">{c.error}</p>}
 
             <div className="flex items-center gap-3 pt-3 border-t border-gray-100 flex-wrap">
-              {c.result && (
+              {scan && (
                 <button
                   onClick={() => setDetailId(c.id)}
                   className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
-                    c.result.killSignal ? "bg-red-600 text-white hover:bg-red-700" : "border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white"
+                    scan.killSignal ? "bg-red-600 text-white hover:bg-red-700" : "border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white"
                   }`}
                 >
                   Bekijken
