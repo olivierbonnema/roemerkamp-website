@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useRef } from "react"
 import { auth } from "@/lib/firebase"
-import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult } from "./scan-result-view"
-import { Plus, Trash2 } from "lucide-react"
+import { ScanResultView, SCAN_RESULT_LABELS, type ScanResult, type SubjectResult } from "./scan-result-view"
+import { Plus, Trash2, Download } from "lucide-react"
 
 interface CheckSubject {
   type: "natural_person" | "legal_entity" | "both"
@@ -24,6 +24,9 @@ interface Check {
   subject: CheckSubject
   status: string // scanning | completed | error
   result?: ScanResult
+  // A check can cover several subjects (e.g. a company plus its DGA); older
+  // checks only have the single `result` above.
+  results?: SubjectResult[]
   error?: string
   linkedAanvraagId?: string
   createdBy?: { uid: string; email: string }
@@ -74,7 +77,61 @@ export function AdminChecks() {
   const [deleting, setDeleting] = useState(false)
   const [aanvragen, setAanvragen] = useState<AanvraagOption[]>([])
 
-  useEffect(() => { loadChecks(); loadAanvragen() }, [])
+  const [settings, setSettings] = useState<Record<string, string>>({})
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
+  useEffect(() => { loadChecks(); loadAanvragen(); loadSettings() }, [])
+
+  async function loadSettings() {
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/settings", { headers: { Authorization: `Bearer ${token}` } })
+      if (res.ok) setSettings((await res.json()).settings || {})
+    } catch {
+      // The PDF falls back to a text letterhead when the logo is unavailable.
+    }
+  }
+
+  // Render the check as a PDF in the browser (same approach as the termsheet
+  // preview) and hand it to the user as a download.
+  async function downloadCheckPdf(check: Check) {
+    setDownloadingId(check.id)
+    try {
+      const [{ pdf }, { CheckPDF }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/generators/check-pdf"),
+      ])
+      const subj = check.subject
+      const displayName = subj.type === "natural_person" ? subj.fullName : (subj.company || subj.fullName)
+      const linked = check.linkedAanvraagId
+        ? aanvragen.find(a => a.id === check.linkedAanvraagId)?.naam || check.linkedAanvraagId
+        : undefined
+      const blob = await pdf(
+        <CheckPDF
+          data={{
+            subject: subj,
+            result: check.result,
+            results: check.results,
+            completedAt: check.completedAt,
+            createdAt: check.createdAt,
+            createdBy: check.createdBy,
+            linkedAanvraagLabel: linked,
+          }}
+          settings={settings}
+        />
+      ).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `Achtergrondcheck - ${displayName}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      alert("PDF maken mislukt. Probeer het opnieuw.")
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   const hasRunning = checks.some(c => c.status === "scanning")
   const prevChecksRef = useRef<Check[]>([])
@@ -234,7 +291,17 @@ export function AdminChecks() {
       const displayName = subj.type === "natural_person" ? subj.fullName : (subj.company || subj.fullName)
       return (
         <div className="space-y-6">
-          <button onClick={() => setDetailId(null)} className="text-sm font-sans text-[#311E86] hover:underline">← Terug naar checks</button>
+          <div className="flex items-center justify-between gap-4">
+            <button onClick={() => setDetailId(null)} className="text-sm font-sans text-[#311E86] hover:underline">← Terug naar checks</button>
+            <button
+              onClick={() => downloadCheckPdf(check)}
+              disabled={downloadingId === check.id}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium font-sans rounded-full border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-60 transition-colors"
+            >
+              <Download size={14} />
+              {downloadingId === check.id ? "PDF maken…" : "Download PDF"}
+            </button>
+          </div>
 
           <div className="border border-gray-200 rounded-2xl p-6 bg-white">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm font-sans">
