@@ -415,6 +415,9 @@ export function FinancingForm() {
   const [medeAchternaam, setMedeAchternaam] = useState(s("medeAchternaam", "") || splitFullName(s("medeNaam", "")).achternaam)
   const medeNaam = `${medeVoornaam} ${medeAchternaam}`.trim()
   const [medeEmail, setMedeEmail] = useState(s("medeEmail", ""))
+  // Date of birth of the co-applicant: without it the background check can only
+  // match on name, which for a common Dutch surname never yields a firm result.
+  const [medeGeboortedatum, setMedeGeboortedatum] = useState(s("medeGeboortedatum", ""))
 
   // Objects. Normalize on load: drafts saved before the PDOK change stored the
   // house number inside `adres` and have no `huisnummer` key — which blocked
@@ -499,7 +502,7 @@ export function FinancingForm() {
     saveDraft(draftId, {
       step, aanvragerType, voornaam, achternaam, naam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       adresHuisnummer, adresPostcode, adresPlaats,
-      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeNaam, medeEmail,
+      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeNaam, medeEmail, medeGeboortedatum,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders,
       // File objects cannot be stored in localStorage; keep the NAMES so a
@@ -513,7 +516,7 @@ export function FinancingForm() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId, step, aanvragerType, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres,
       adresHuisnummer, adresPostcode, adresPlaats,
-      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail,
+      geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail, medeGeboortedatum,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, files])
 
@@ -618,7 +621,7 @@ export function FinancingForm() {
       const formData = new FormData()
       const fields: Record<string, string> = {
         aanvragerType, naam, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres: aanvragerFullAdres(),
-        geboortedatum, burgerlijkStaat, medeNaam, medeVoornaam, medeAchternaam, medeEmail,
+        geboortedatum, burgerlijkStaat, medeNaam, medeVoornaam, medeAchternaam, medeEmail, medeGeboortedatum,
         leningDoel: resolveDoel(), leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
         wanneerNodig, aflossingstype, uitstrategie: resolveExit(),
       }
@@ -822,9 +825,14 @@ export function FinancingForm() {
                   <Input value={medeAchternaam} onChange={setMedeAchternaam} placeholder="Achternaam partner" />
                 </Field>
               </TwoCol>
-              <Field label="E-mailadres">
-                <Input value={medeEmail} onChange={setMedeEmail} placeholder="E-mailadres partner" type="email" />
-              </Field>
+              <TwoCol>
+                <Field label="E-mailadres">
+                  <Input value={medeEmail} onChange={setMedeEmail} placeholder="E-mailadres partner" type="email" />
+                </Field>
+                <Field label="Geboortedatum">
+                  <Input value={medeGeboortedatum} onChange={setMedeGeboortedatum} placeholder="" type="date" />
+                </Field>
+              </TwoCol>
             </div>
           )}
         </div>
@@ -993,6 +1001,7 @@ export function FinancingForm() {
               <>
                 <ReviewRow label="Medeaanvrager" value={medeNaam} />
                 {medeEmail && <ReviewRow label="E-mail medeaanvrager" value={medeEmail} />}
+                {medeGeboortedatum && <ReviewRow label="Geboortedatum medeaanvrager" value={medeGeboortedatum} />}
               </>
             )}
           </ReviewSection>

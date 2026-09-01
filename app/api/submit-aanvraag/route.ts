@@ -156,6 +156,7 @@ export async function POST(req: NextRequest) {
   const medeVoornaam      = get("medeVoornaam")
   const medeAchternaam    = get("medeAchternaam")
   const medeEmail         = get("medeEmail")
+  const medeGeboortedatum = get("medeGeboortedatum")
   const leningDoel        = get("leningDoel")
   const leningBedrag      = get("leningBedrag")
   const looptijd          = get("looptijd")
@@ -294,6 +295,7 @@ export async function POST(req: NextRequest) {
     burgerlijkStaat ? `Burgerlijke staat: ${burgerlijkStaat}` : "",
     medeNaam        ? `Medeaanvrager: ${medeNaam}` : "",
     medeEmail       ? `E-mail medeaanvrager: ${medeEmail}` : "",
+    medeGeboortedatum ? `Geboortedatum medeaanvrager: ${medeGeboortedatum}` : "",
     "",
     ...objects.map((obj, i) => [
       objects.length > 1 ? `--- OBJECT ${i + 1} ---` : "--- OBJECT ---",
@@ -374,6 +376,7 @@ export async function POST(req: NextRequest) {
       medeVoornaam,
       medeAchternaam,
       medeEmail,
+      medeGeboortedatum,
       objectType,
       objectAdres,
       objectPostcode,

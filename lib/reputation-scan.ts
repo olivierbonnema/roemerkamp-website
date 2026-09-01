@@ -98,11 +98,18 @@ verify something, say so. Never fabricate.
 - Direct check: dnb.nl openbaar register - same.
 
 ### Tier 5 - Sanctions & PEP
-- "<name>" sanctie OR sanctielijst
-- "<name>" "Sanctielijst Terrorisme"
-- "<name>" OFAC
-- "<name>" "EU sanctions list"
-- "<name>" PEP OR "politiek prominent persoon"
+OFAC's search is a form and the EU list is a downloadable file - neither is
+indexed by name, so querying those sites returns the list pages, not matches.
+OpenSanctions publishes per-person pages (OFAC + EU + UN + the Dutch Sanctielijst
+Terrorisme + PEP status) that ARE indexed, so search the SUBJECT there:
+- "<name>" site:opensanctions.org
+- "<name>" site:rijksoverheid.nl sanctielijst
+- "<name>" (sanctie OR sanctielijst OR OFAC OR PEP OR "politiek prominent persoon")
+Any hit must be corroborated on date of birth or entity identifiers before it is
+reported as a match - name-only hits on a sanctions list are AMBIGUOUS, not a hit.
+ALWAYS add a gap entry stating that a formal, deterministic screening against the
+official EU/UN/NL lists is a separate manual step: a web search is a first pass,
+not compliant screening.
 
 ### Tier 6 - Adverse Media (Dutch press)
 - site:fd.nl "<name>"
@@ -147,6 +154,36 @@ LOW match strength = AMBIGUOUS, never CONFIRMED ADVERSE.
 | MEDIUM   | Closed/settled litigation; minor regulator action; mixed-quality media; pattern of consumer complaints |
 | LOW      | Isolated negative review; immaterial dispute; old/closed matter |
 | INFO     | Neutral context, no risk implication |
+
+Additional severity rules (Dutch specifics):
+- Natural person currently onder curatele = CRITICAL. Such a person cannot validly
+  sign a loan agreement, so it goes to contract validity, not just reputation.
+- Active bewind or a running WSNP/schuldsanering = HIGH.
+- WSNP completed more than 5 years ago = MEDIUM.
+- Confirmed PEP status is NOT adverse in itself: report it as INFO, state it
+  explicitly in overallAssessment, and add a gap entry that verscherpt
+  clientenonderzoek (Wwft art. 8) must be performed and documented.
+- The "civil judgment > 5% of loan amount" trigger needs the loan amount; when it
+  is unknown, treat a confirmed judgment above EUR 50.000 as HIGH.
+- Bankruptcy within 5 years is HIGH on its own; it only becomes CRITICAL when the
+  file shows the applicant did not disclose it. You do not receive the applicant's
+  disclosures, so never assume non-disclosure - flag it for manual comparison.
+
+# Kill Signal
+
+"killSignal" is the heaviest verdict in this system: the interface shows it as a
+red stop signal and it overrides the verdict of every other subject in the check.
+Set killSignal = true ONLY when a finding is BOTH severity CRITICAL AND
+matchConfidence HIGH, and falls in one of these categories:
+- a confirmed hit on a sanctions list;
+- a confirmed conviction for fraud, money laundering, or a violent offence;
+- an active criminal prosecution by the Openbaar Ministerie or FIOD;
+- a ban, warning or enforcement measure by AFM or DNB against the subject;
+- the natural person is currently onder curatele.
+
+In every other case killSignal = false - including for serious but unconfirmed,
+ambiguous, dated or press-only findings. Those are reported through severity and
+scanStatus. When in doubt: false, and explain the doubt in overallAssessment.
 
 # Output Language
 
@@ -373,10 +410,10 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
       loanAmount,
     })
     if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
-    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, dob: str(data.medeGeboortedatum), company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
   } else {
     if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), loanAmount })
-    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, dob: str(data.medeGeboortedatum), loanAmount })
   }
   return subjects.map(cleanSubject)
 }

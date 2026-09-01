@@ -37,6 +37,7 @@ interface Aanvraag {
   medeNaam?: string
   medeVoornaam?: string
   medeAchternaam?: string
+  medeGeboortedatum?: string
   medeEmail?: string
   eigenInbreng?: string
   bestaandeSchulden?: string
@@ -145,10 +146,10 @@ function deriveEditableSubjects(a: Aanvraag): EditableSubject[] {
   if (isCompany) {
     if (a.bedrijfsnaam) out.push({ type: "legal_entity", fullName: a.bedrijfsnaam, company: a.bedrijfsnaam, kvkNummer: a.kvkNummer, address: a.adres, loanAmount })
     if (a.naam) out.push(person(a.voornaam, a.achternaam, a.naam, { dob: a.geboortedatum, company: a.bedrijfsnaam, role: "vertegenwoordiger / DGA" }))
-    if (a.medeNaam) out.push(person(a.medeVoornaam, a.medeAchternaam, a.medeNaam, { company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
+    if (a.medeNaam) out.push(person(a.medeVoornaam, a.medeAchternaam, a.medeNaam, { dob: a.medeGeboortedatum, company: a.bedrijfsnaam, role: "medevertegenwoordiger" }))
   } else {
     if (a.naam) out.push(person(a.voornaam, a.achternaam, a.naam, { dob: a.geboortedatum }))
-    if (a.medeNaam) out.push(person(a.medeVoornaam, a.medeAchternaam, a.medeNaam, {}))
+    if (a.medeNaam) out.push(person(a.medeVoornaam, a.medeAchternaam, a.medeNaam, { dob: a.medeGeboortedatum }))
   }
   return out
 }
