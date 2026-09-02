@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
+import QuoteDialog from "./quote-dialog"
 import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote } from "lucide-react"
 
 interface Aanvraag {
@@ -180,6 +181,7 @@ export function AdminAanvragen() {
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null)
   const [extracting, setExtracting] = useState<string | null>(null)
   const [extraTextModal, setExtraTextModal] = useState<string | null>(null)
+  const [quoteModal, setQuoteModal] = useState<string | null>(null)
   const [extraText, setExtraText] = useState("")
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [scanDetailId, setScanDetailId] = useState<string | null>(null)
@@ -896,6 +898,14 @@ export function AdminAanvragen() {
                 {extracting === a.id ? "Bezig..." : "Maak termsheet"}
               </button>
 
+              {/* Quote e-mail (short indication sent before the termsheet) */}
+              <button
+                onClick={() => setQuoteModal(a.id)}
+                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors"
+              >
+                Quote-mail
+              </button>
+
               {/* Send message to applicant */}
               <button
                 onClick={() => setMessageModal(a.id)}
@@ -1246,6 +1256,12 @@ export function AdminAanvragen() {
             </div>
           </div>
         )
+      })()}
+
+      {/* Quote e-mail dialog */}
+      {quoteModal && (() => {
+        const qa = aanvragen.find(a => a.id === quoteModal)
+        return qa ? <QuoteDialog aanvraag={qa} onClose={() => setQuoteModal(null)} /> : null
       })()}
 
       {/* Extra text modal */}
