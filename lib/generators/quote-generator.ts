@@ -28,9 +28,10 @@ export interface QuoteData {
   recipientFirstName: string
   includeGreeting: boolean
   geldnemers: QuoteParty[]
-  // Free text; when `hypotheekgeverSame` is true it is derived from geldnemers.
-  hypotheekgeverSame: boolean
-  hypotheekgeverText: string
+  // The Hypotheekgever section is only written when the owner of the object is
+  // NOT the geldnemer (Olivier, 2026-09-02); then `hypotheekgevers` lists the owners.
+  hypotheekgeverAfwijkend: boolean
+  hypotheekgevers: QuoteParty[]
   loanAmount: number
   rentedepot: number
   bouwdepot: number
@@ -56,7 +57,8 @@ export interface QuoteData {
   // Auto-built from objects/depots unless `zekerhedenManual`.
   zekerhedenText: string
   zekerhedenManual: boolean
-  benodigdeStukken: string
+  // One document per entry; rendered as bullets. Empty -> "Nader te bepalen."
+  benodigdeStukken: string[]
 }
 
 export const QUOTE_TEXT = {
@@ -64,6 +66,18 @@ export const QUOTE_TEXT = {
     "Dank voor de aanvraag van de financiering. Wij zien zeker mogelijkheden voor deze casus.\n\nHieronder een indicatie van de mogelijkheden:",
   administratiekosten: "0,07% per maand, wordt maandelijks achteraf betaald tezamen met de rente.",
   benodigdeStukken: "Nader te bepalen.",
+  // Quick-add suggestions for the Benodigde stukken list.
+  stukkenSuggesties: [
+    "Geldig legitimatiebewijs",
+    "Bewijs van eigendom",
+    "Actueel taxatierapport",
+    "Aangifte inkomstenbelasting",
+    "Jaarcijfers (laatste 2 jaar)",
+    "Huurovereenkomst(en)",
+    "Uittreksel KvK",
+    "Recente bankafschriften",
+    "Overzicht bestaande financieringen",
+  ],
   disclaimer:
     "Dit is geen definitieve aanbieding maar een indicatie van de mogelijkheden. Na akkoord op bovengenoemd voorstel zal de verdere uitwerking in gang worden gezet. Na ondertekening van de termsheet en het aanleveren van de gewenste gegevens, en na akkoord daarop, wordt de termsheet bindend.",
   closing: "Heb je vragen en/of opmerkingen, dan weet je me te vinden.\n\nFijne dag gewenst!",
@@ -89,13 +103,18 @@ function capFirst(s: string): string {
 export function renderParties(parties: QuoteParty[]): string {
   const names = parties.filter((p) => p.name.trim())
   if (!names.length) return "-"
-  const lines = names.map((p) =>
-    p.type === "bv" ? `de besloten vennootschap ${p.name.trim()}` : `${p.salut} ${p.name.trim()} in privé`
-  )
+  // A name that already carries the legal form ("Galiën Beheer B.V.") is written
+  // as-is; otherwise it is introduced as "de besloten vennootschap X".
+  const lines = names.map((p) => {
+    const n = p.name.trim()
+    if (p.type !== "bv") return `${p.salut} ${n} in privé`
+    return /\bB\.?V\.?$/i.test(n) ? n : `de besloten vennootschap ${n}`
+  })
   return lines
     .map((l, i) => {
       const txt = i === 0 ? capFirst(l) : l
-      return i < lines.length - 1 ? `${txt} en,` : `${txt}.`
+      if (i < lines.length - 1) return `${txt} en,`
+      return txt.endsWith(".") ? txt : `${txt}.`
     })
     .join("\n")
 }
@@ -217,7 +236,7 @@ function bereidstellingText(d: QuoteData): string {
 export function buildQuoteEmail(d: QuoteData): string {
   const sections: [string, string][] = [
     ["Geldnemer", renderParties(d.geldnemers)],
-    ["Hypotheekgever", d.hypotheekgeverSame ? renderParties(d.geldnemers) : d.hypotheekgeverText.trim() || "-"],
+    ...(d.hypotheekgeverAfwijkend ? [["Hypotheekgever", renderParties(d.hypotheekgevers)] as [string, string]] : []),
     ["Lening", leningText(d)],
     ["Looptijd", d.looptijdMaanden > 0 ? `${d.looptijdMaanden} maanden` : "-"],
     ["Rente", `${fmtPct(d.rentePct)} per jaar exclusief administratiekosten, maandelijks achteraf te voldoen.`],
@@ -229,7 +248,8 @@ export function buildQuoteEmail(d: QuoteData): string {
   ]
   if (d.bereidstelling) sections.push(["Bereidstellingsprovisie", bereidstellingText(d)])
   sections.push(["Zekerheden", effectiveZekerheden(d) || "-"])
-  sections.push(["Benodigde stukken", d.benodigdeStukken.trim() || QUOTE_TEXT.benodigdeStukken])
+  const stukken = (d.benodigdeStukken || []).map((x) => x.trim()).filter(Boolean)
+  sections.push(["Benodigde stukken", stukken.length ? stukken.map((x) => `• ${x}`).join("\n") : QUOTE_TEXT.benodigdeStukken])
   sections.push(["Disclaimer", QUOTE_TEXT.disclaimer])
 
   const body = sections.map(([title, txt]) => `${title}:\n${txt}`).join("\n\n")
@@ -285,8 +305,8 @@ export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
     recipientFirstName: a.voornaam || (a.naam || "").split(/\s+/)[0] || "",
     includeGreeting: true,
     geldnemers,
-    hypotheekgeverSame: true,
-    hypotheekgeverText: "",
+    hypotheekgeverAfwijkend: false,
+    hypotheekgevers: [],
     loanAmount,
     rentedepot: 0,
     bouwdepot: 0,
@@ -307,6 +327,6 @@ export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
     objects,
     zekerhedenText: "",
     zekerhedenManual: false,
-    benodigdeStukken: QUOTE_TEXT.benodigdeStukken,
+    benodigdeStukken: [],
   }
 }
