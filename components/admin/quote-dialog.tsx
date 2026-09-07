@@ -5,7 +5,7 @@
 // and copies the text into their mail client. Wording: lib/generators/quote-generator.ts.
 
 import { useEffect, useMemo, useState } from "react"
-import { X, Copy, Check, RotateCcw, Plus, Trash2 } from "lucide-react"
+import { X, Copy, Check, RotateCcw, Plus, Trash2, Pencil, AlertTriangle } from "lucide-react"
 import { HYPOTHEEK_RANKS, RANK_LABELS } from "@/lib/generators/zekerheden"
 import {
   type QuoteData,
@@ -18,6 +18,7 @@ import {
   computeAdminkosten,
   effectiveMaandbedrag,
   quoteDefaultsFromAanvraag,
+  quoteTextToHtml,
   fmtMoney,
 } from "@/lib/generators/quote-generator"
 
@@ -151,6 +152,62 @@ function PartyRows({ parties, onChange, addLabel }: { parties: QuoteParty[]; onC
   )
 }
 
+/* ---------- clipboard ---------- */
+
+// Rich copy: one clipboard entry carrying both HTML and plain text.
+async function copyRich(html: string, text: string): Promise<boolean> {
+  try {
+    if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) throw new Error("no rich clipboard")
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([text], { type: "text/plain" }),
+      }),
+    ])
+    return true
+  } catch {
+    // Selection-based fallback: still preserves the bold headings.
+    try {
+      const holder = document.createElement("div")
+      holder.innerHTML = html
+      holder.setAttribute("contenteditable", "true")
+      holder.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0"
+      document.body.appendChild(holder)
+      const range = document.createRange()
+      range.selectNodeContents(holder)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+      const ok = document.execCommand("copy")
+      sel?.removeAllRanges()
+      document.body.removeChild(holder)
+      return ok
+    } catch {
+      return false
+    }
+  }
+}
+
+async function copyPlain(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    try {
+      const ta = document.createElement("textarea")
+      ta.value = text
+      ta.style.cssText = "position:fixed;left:-9999px;top:0"
+      document.body.appendChild(ta)
+      ta.select()
+      const ok = document.execCommand("copy")
+      document.body.removeChild(ta)
+      return ok
+    } catch {
+      return false
+    }
+  }
+}
+
 /* ---------- dialog ---------- */
 
 export default function QuoteDialog({ aanvraag, onClose }: Props) {
@@ -158,6 +215,7 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
   const up = (patch: Partial<QuoteData>) => setD((prev) => ({ ...prev, ...patch }))
 
   const [showLtv, setShowLtv] = useState(() => d.objectWaarde > 0)
+  const [editing, setEditing] = useState(false)
   const [stukInput, setStukInput] = useState("")
 
   // Auto-zekerheden until hand-edited (same pattern as the termsheet form).
@@ -171,20 +229,16 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
   const [textManual, setTextManual] = useState(false)
   useEffect(() => { if (!textManual) setText(generated) }, [generated, textManual])
 
+  // Copy as rich text so Outlook keeps the bold headings, with a plain-text
+  // alternative in the same clipboard entry for editors that want it.
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      const ta = document.createElement("textarea")
-      ta.value = text
-      document.body.appendChild(ta)
-      ta.select()
-      document.execCommand("copy")
-      document.body.removeChild(ta)
-    }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    const html = quoteTextToHtml(text)
+    const ok = (await copyRich(html, text)) || (await copyPlain(text))
+    setCopyFailed(!ok)
+    setCopied(ok)
+    setTimeout(() => { setCopied(false); setCopyFailed(false) }, ok ? 2000 : 4000)
   }
 
   const updObject = (i: number, patch: Partial<QuoteData["objects"][number]>) =>
@@ -377,24 +431,40 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
               <span className="text-xs font-medium text-gray-500 font-sans">
                 E-mailtekst{textManual && <span className="text-amber-600 font-normal"> · handmatig bewerkt, volgt de velden niet meer</span>}
               </span>
-              {textManual && (
-                <button type="button" onClick={() => { setTextManual(false); setText(generated) }} className={LINK}><RotateCcw size={12} /> Opnieuw genereren uit velden</button>
-              )}
+              <div className="flex items-center gap-4">
+                {textManual && (
+                  <button type="button" onClick={() => { setTextManual(false); setText(generated) }} className={LINK}><RotateCcw size={12} /> Opnieuw genereren uit velden</button>
+                )}
+                <button type="button" onClick={() => setEditing((v) => !v)} className={LINK}>
+                  {editing ? <><Check size={12} /> Klaar met bewerken</> : <><Pencil size={12} /> Tekst bewerken</>}
+                </button>
+              </div>
             </div>
-            <textarea
-              value={text}
-              onChange={(e) => { setText(e.target.value); setTextManual(true) }}
-              spellCheck={false}
-              className="flex-1 min-h-0 w-full border border-gray-200 rounded-lg px-5 py-4 text-[13px] leading-relaxed font-sans text-gray-800 focus:outline-none focus:border-[#1E3A5F] resize-none whitespace-pre-wrap"
-            />
+            {editing ? (
+              <textarea
+                value={text}
+                autoFocus
+                onChange={(e) => { setText(e.target.value); setTextManual(true) }}
+                spellCheck={false}
+                className="flex-1 min-h-0 w-full border border-gray-200 rounded-lg px-5 py-4 text-[13px] leading-relaxed font-sans text-gray-800 focus:outline-none focus:border-[#1E3A5F] resize-none whitespace-pre-wrap"
+              />
+            ) : (
+              <div
+                className="flex-1 min-h-0 w-full overflow-y-auto border border-gray-200 rounded-lg px-5 py-4 text-[13px] leading-relaxed font-sans text-gray-800 bg-white [&_strong]:font-semibold [&_strong]:text-[#1E3A5F]"
+                dangerouslySetInnerHTML={{ __html: quoteTextToHtml(text) }}
+              />
+            )}
+            <p className="text-[11px] text-gray-400 font-sans mt-2">
+              De kopjes worden vetgedrukt meegekopieerd; plakken in Outlook behoudt de opmaak.
+            </p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
           <button onClick={onClose} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Sluiten</button>
-          <button onClick={copy} className="px-5 py-2.5 text-sm font-medium font-sans bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4d7a] transition-colors inline-flex items-center gap-2">
-            {copied ? <><Check size={14} /> Gekopieerd</> : <><Copy size={14} /> Kopieer e-mailtekst</>}
+          <button onClick={copy} className={`px-5 py-2.5 text-sm font-medium font-sans text-white rounded-lg transition-colors inline-flex items-center gap-2 ${copyFailed ? "bg-red-600 hover:bg-red-700" : "bg-[#1E3A5F] hover:bg-[#2a4d7a]"}`}>
+            {copied ? <><Check size={14} /> Gekopieerd</> : copyFailed ? <><AlertTriangle size={14} /> Kopiëren mislukt</> : <><Copy size={14} /> Kopieer e-mailtekst</>}
           </button>
         </div>
       </div>

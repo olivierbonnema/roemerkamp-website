@@ -233,6 +233,46 @@ function bereidstellingText(d: QuoteData): string {
   )
 }
 
+// The section labels, in the order buildQuoteEmail writes them. Used to bold the
+// headings when the mail is copied as rich text (Outlook keeps the <strong>).
+export const QUOTE_SECTION_LABELS = [
+  "Geldnemer",
+  "Hypotheekgever",
+  "Lening",
+  "Looptijd",
+  "Rente",
+  "Administratiekosten",
+  "Aflossing",
+  "Maandbedrag",
+  "Behandelingskosten",
+  "Annuleringskosten",
+  "Bereidstellingsprovisie",
+  "Zekerheden",
+  "Benodigde stukken",
+  "Disclaimer",
+]
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+}
+
+// Plain-text quote mail -> HTML with bold section headings. Runs over the text as
+// it stands in the editor, so a hand-edited mail keeps its bold headings too.
+// One <div> per line (Outlook-friendly); blank lines become empty divs.
+export function quoteTextToHtml(text: string): string {
+  const isHeading = (line: string) =>
+    QUOTE_SECTION_LABELS.some((l) => line.trim() === `${l}:`)
+  const body = (text || "")
+    .split("\n")
+    .map((line) => {
+      if (!line.trim()) return "<div><br></div>"
+      const safe = escapeHtml(line)
+      return isHeading(line) ? `<div><strong>${safe}</strong></div>` : `<div>${safe}</div>`
+    })
+    .join("")
+  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000000">${body}</div>`
+}
+
 export function buildQuoteEmail(d: QuoteData): string {
   const sections: [string, string][] = [
     ["Geldnemer", renderParties(d.geldnemers)],
