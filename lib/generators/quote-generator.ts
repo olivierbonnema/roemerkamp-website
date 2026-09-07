@@ -270,7 +270,9 @@ export function quoteTextToHtml(text: string): string {
       return isHeading(line) ? `<div><strong>${safe}</strong></div>` : `<div>${safe}</div>`
     })
     .join("")
-  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000000">${body}</div>`
+  // Aptos 11pt = the Office/Outlook default; Calibri stays as fallback for older
+  // installs that do not ship Aptos yet, so the mail never lands in a serif face.
+  return `<div style="font-family:Aptos,Calibri,Arial,sans-serif;font-size:11pt;color:#000000">${body}</div>`
 }
 
 export function buildQuoteEmail(d: QuoteData): string {
