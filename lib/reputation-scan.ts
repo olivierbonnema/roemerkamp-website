@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { adminDb } from "@/lib/firebase-admin"
+import { screenSanctions, screeningPromptBlock } from "@/lib/sanctions-screen"
 
 const anthropic = new Anthropic()
 
@@ -311,9 +312,17 @@ function extractJson(text: string): Record<string, unknown> | null {
 export async function performReputationScan(subject: ScanSubject): Promise<Record<string, unknown>> {
   const subjectBlock = buildSubjectBlock(subject)
 
+  // Screen against the consolidated sanctions/PEP data set FIRST and hand the
+  // outcome to the model as fact. A web search cannot screen anyone (OFAC is a
+  // form, the EU list a download), so this is the part that makes Tier 5 real.
+  // Returns null when no key is configured — the scan then runs as before.
+  const screening = await screenSanctions(subject)
+
   const messages: Anthropic.MessageParam[] = [{
     role: "user",
-    content: `Run the full reputation and background scan on this subject:\n\n${subjectBlock}`,
+    content:
+      `Run the full reputation and background scan on this subject:\n\n${subjectBlock}\n` +
+      screeningPromptBlock(screening),
   }]
 
   let finalText = ""
@@ -352,7 +361,20 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
   const scanResult = extractJson(finalText)
   if (!scanResult) throw new Error("Model did not return valid JSON")
 
-  return scanResult
+  // Record WHETHER a deterministic screening backed this scan, so the report can
+  // state it and the reader is not left guessing which Tier 5 was performed.
+  return {
+    ...scanResult,
+    sanctionsScreening: screening
+      ? {
+          performed: true,
+          checkedAt: screening.checkedAt,
+          candidates: screening.candidates.length,
+          hasSanctionTopic: screening.hasSanctionTopic,
+          hasPepTopic: screening.hasPepTopic,
+        }
+      : { performed: false },
+  }
 }
 
 /** Map raw scan/SDK errors to a friendly Dutch message for the admin UI. */
