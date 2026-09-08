@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { adminDb } from "@/lib/firebase-admin"
 import { screenSanctions, screeningPromptBlock } from "@/lib/sanctions-screen"
+import { checkCuratele, ccbrPromptBlock, splitDutchName } from "@/lib/ccbr"
 
 const anthropic = new Anthropic()
 
@@ -316,13 +317,24 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
   // outcome to the model as fact. A web search cannot screen anyone (OFAC is a
   // form, the EU list a download), so this is the part that makes Tier 5 real.
   // Returns null when no key is configured — the scan then runs as before.
-  const screening = await screenSanctions(subject)
+  // Query the Centraal Curatele- en Bewindregister in parallel. Unlike the
+  // sanctions screening this is only meaningful for a natural person with a date
+  // of birth — the register matches on surname + date of birth and nothing else.
+  const [screening, curatele] = await Promise.all([
+    screenSanctions(subject),
+    subject.type === "natural_person" && subject.dob
+      ? checkCuratele({ ...splitDutchName(subject.fullName), geboortedatum: subject.dob })
+      : Promise.resolve(null),
+  ])
 
   const messages: Anthropic.MessageParam[] = [{
     role: "user",
     content:
       `Run the full reputation and background scan on this subject:\n\n${subjectBlock}\n` +
-      screeningPromptBlock(screening),
+      screeningPromptBlock(screening) +
+      // Only a natural person can be onder curatele; for a company the block
+      // would only invite the model to invent a non-applicable gap.
+      (subject.type === "natural_person" ? ccbrPromptBlock(curatele) : ""),
   }]
 
   let finalText = ""
@@ -365,6 +377,15 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
   // state it and the reader is not left guessing which Tier 5 was performed.
   return {
     ...scanResult,
+    curateleCheck: curatele
+      ? {
+          performed: true,
+          checkedAt: curatele.checkedAt,
+          treffers: curatele.treffers.length,
+          actieveRegistratie: curatele.actieveRegistratie,
+          details: curatele.treffers,
+        }
+      : { performed: false },
     sanctionsScreening: screening
       ? {
           performed: true,
@@ -506,7 +527,12 @@ const STANDING_CHECKS_ENTITY = [
 // the model already described in its own words.
 function withStandingChecks(result: Record<string, unknown> | null, type: string): Record<string, unknown> | null {
   if (!result) return result
-  const standing = type === "natural_person" ? STANDING_CHECKS_PERSON : STANDING_CHECKS_ENTITY
+  let standing = type === "natural_person" ? STANDING_CHECKS_PERSON : STANDING_CHECKS_ENTITY
+  // The CCBR was actually queried for this subject, so telling the reader to go
+  // check it by hand would be wrong — the answer is already in the report.
+  if ((result.curateleCheck as { performed?: boolean } | undefined)?.performed) {
+    standing = standing.filter((g) => !g.startsWith("Centraal Curatele"))
+  }
   const existing = Array.isArray(result.gapsAndManualChecks)
     ? (result.gapsAndManualChecks as unknown[]).filter((g): g is string => typeof g === "string")
     : []

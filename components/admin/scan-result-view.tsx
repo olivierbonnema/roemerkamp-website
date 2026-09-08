@@ -11,6 +11,61 @@ export interface ScanResult {
   cleanProfile: string
   searchAuditTrail: { query: string; tier: string; hitsReviewed: number; usefulHits: number }[]
   gapsAndManualChecks: string[]
+  sanctionsScreening?: { performed?: boolean; checkedAt?: string; candidates?: number; hasSanctionTopic?: boolean; hasPepTopic?: boolean }
+  curateleCheck?: { performed?: boolean; checkedAt?: string; treffers?: number; actieveRegistratie?: boolean }
+}
+
+// Which registers were queried automatically, as opposed to found through a web
+// search. Without this the reader cannot tell an authoritative register answer
+// from something the model happened to read on a website.
+function RegisterStatus({ result }: { result: ScanResult }) {
+  const rows: { naam: string; uitkomst: string; geraakt: boolean }[] = []
+
+  const s = result.sanctionsScreening
+  if (s?.performed) {
+    rows.push({
+      naam: "Sanctie- en PEP-lijsten (OpenSanctions)",
+      uitkomst: s.hasSanctionTopic
+        ? "treffer op een sanctielijst"
+        : s.hasPepTopic
+          ? "geen sanctietreffer, wel een politiek prominent persoon"
+          : s.candidates
+            ? `${s.candidates} mogelijke naamgeno${s.candidates === 1 ? "ot" : "ten"}, geen sanctietreffer`
+            : "geen treffer",
+      geraakt: !!s.hasSanctionTopic || !!s.hasPepTopic,
+    })
+  }
+
+  const c = result.curateleCheck
+  if (c?.performed) {
+    rows.push({
+      naam: "Centraal Curatele- en Bewindregister",
+      uitkomst: c.actieveRegistratie
+        ? "lopende registratie gevonden"
+        : c.treffers
+          ? `${c.treffers} treffer(s), geen lopende registratie op naam en geboortedatum`
+          : "geen registratie",
+      geraakt: !!c.actieveRegistratie,
+    })
+  }
+
+  if (!rows.length) return null
+
+  return (
+    <div className="border border-neutral-200 rounded-xl p-4 mb-6">
+      <h3 className="text-sm font-semibold font-sans text-neutral-900 mb-2">
+        Automatisch geraadpleegde registers
+      </h3>
+      <ul className="space-y-1.5 text-[13px] font-sans text-neutral-700">
+        {rows.map((r, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className={`mt-[6px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${r.geraakt ? "bg-red-500" : "bg-emerald-500"}`} />
+            <span><span className="font-medium text-neutral-900">{r.naam}</span> — {r.uitkomst}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 // One subject's result inside a multi-subject background check.
@@ -115,6 +170,8 @@ export function ScanResultView({ result, subjectName }: { result: ScanResult; su
           </ul>
         </div>
       )}
+
+      <RegisterStatus result={result} />
 
       {result.cleanProfile && (
         <div className="bg-emerald-50 rounded-xl p-4 mb-6">

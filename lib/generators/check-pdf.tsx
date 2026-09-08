@@ -25,6 +25,8 @@ export interface CheckPdfScanResult {
   cleanProfile?: string
   searchAuditTrail?: { query: string; tier: string; hitsReviewed: number; usefulHits: number }[]
   gapsAndManualChecks?: string[]
+  sanctionsScreening?: { performed?: boolean; candidates?: number; hasSanctionTopic?: boolean; hasPepTopic?: boolean }
+  curateleCheck?: { performed?: boolean; treffers?: number; actieveRegistratie?: boolean }
 }
 
 export interface CheckPdfSubjectResult {
@@ -176,6 +178,38 @@ function SubjectReport({ name, type, result, error }: {
   const gaps = result.gapsAndManualChecks || []
   const trail = result.searchAuditTrail || []
 
+  // Which registers were queried directly, rather than read off a web page.
+  const registers: string[] = []
+  const scr = result.sanctionsScreening
+  if (scr?.performed) {
+    registers.push(
+      `Sanctie- en PEP-lijsten (OpenSanctions): ${
+        scr.hasSanctionTopic
+          ? "treffer op een sanctielijst"
+          : scr.hasPepTopic
+            ? "geen sanctietreffer, wel een politiek prominent persoon"
+            : scr.candidates
+              ? `${scr.candidates} mogelijke naamgenoten, geen sanctietreffer`
+              : "geen treffer"
+      }.`
+    )
+  }
+  const cur = result.curateleCheck
+  if (cur?.performed) {
+    registers.push(
+      `Centraal Curatele- en Bewindregister: ${
+        cur.actieveRegistratie
+          ? "lopende registratie gevonden"
+          : cur.treffers
+            ? `${cur.treffers} treffer(s), geen lopende registratie op naam en geboortedatum`
+            : "geen registratie"
+      }.`
+    )
+  }
+  // The scope notice must not claim a register was skipped when it was queried.
+  const nietMeegenomen = ["BKR", "insolventieregister", "curatele/bewind", "AFM en DNB"]
+    .filter((r) => !(r === "curatele/bewind" && cur?.performed))
+
   return (
     <View>
       <Text style={s.sectionHead}>{name}{type ? ` — ${TYPE_LABELS[type] || type}` : ""}</Text>
@@ -192,11 +226,26 @@ function SubjectReport({ name, type, result, error }: {
       ) : null}
 
       <Text style={[s.para, { color: C.grey, fontSize: SZ.tiny }]}>
-        Deze uitkomst is gebaseerd op openbare bronnen (pers en openbaar doorzoekbare
-        registers). Registers die alleen via een formulier of aansluiting te raadplegen
-        zijn — BKR, insolventieregister, curatele/bewind, AFM en DNB — zijn hierin niet
-        meegenomen; zie &quot;Nog handmatig te controleren&quot;.
+        {`Deze uitkomst is gebaseerd op openbare bronnen (pers en openbaar doorzoekbare registers)${
+          registers.length ? ", aangevuld met de hieronder genoemde rechtstreeks bevraagde registers" : ""
+        }. Registers die alleen via een formulier of aansluiting te raadplegen zijn — ${nietMeegenomen.join(
+          ", "
+        )} — zijn hierin niet meegenomen; zie "Nog handmatig te controleren".`}
       </Text>
+
+      {registers.length > 0 ? (
+        <>
+          <Text style={[s.sectionHead, { fontSize: SZ.small, marginTop: 8, marginBottom: 4 }]}>
+            Automatisch geraadpleegde registers
+          </Text>
+          {registers.map((r, i) => (
+            <View key={i} style={s.bullet} wrap={false}>
+              <Text style={s.bulletDot}>·</Text>
+              <Text style={s.bulletText}>{r}</Text>
+            </View>
+          ))}
+        </>
+      ) : null}
 
       {gaps.length > 0 ? (
         <>
