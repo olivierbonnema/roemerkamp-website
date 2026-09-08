@@ -109,6 +109,10 @@ async function getAssertion(): Promise<string | null> {
   const user = process.env.RECHTSPRAAK_CCBR_USER
   const pass = process.env.RECHTSPRAAK_CCBR_PASSWORD
   if (!user || !pass) return null
+  // Their TLS chain is self-signed, so without the CA certificate every call is
+  // a guaranteed handshake failure. Skip quietly rather than burn a failed
+  // connection (and an error log line) on every single scan.
+  if (!process.env.RECHTSPRAAK_CCBR_CA_CERT) return null
 
   if (tokenCache && tokenCache.expires > Date.now()) return tokenCache.assertion
 
