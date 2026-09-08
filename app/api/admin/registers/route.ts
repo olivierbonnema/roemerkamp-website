@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { adminAuth } from "@/lib/firebase-admin"
 import { checkCurateleDetailed, splitDutchName } from "@/lib/ccbr"
 import { screenSanctionsDetailed } from "@/lib/sanctions-screen"
+import { checkInsolventieDetailed } from "@/lib/cir"
 
 export const maxDuration = 60
 
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req)
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  let body: { fullName?: string; dob?: string; type?: string; company?: string }
+  let body: { fullName?: string; dob?: string; type?: string; company?: string; postcode?: string; huisnummer?: string }
   try {
     body = await req.json()
   } catch {
@@ -49,18 +50,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Naam is verplicht." }, { status: 400 })
   }
 
-  const [sanctions, curatele] = await Promise.all([
+  const [sanctions, curatele, insolventie] = await Promise.all([
     screenSanctionsDetailed({ fullName, dob: body.dob, type, company }),
     // Only a natural person can be onder curatele, and the register matches on
     // surname plus date of birth — nothing else identifies the subject.
     type === "natural_person"
       ? checkCurateleDetailed({ ...splitDutchName(fullName), geboortedatum: body.dob })
       : Promise.resolve({ result: null, error: "Alleen van toepassing op een natuurlijk persoon." }),
+    type === "natural_person"
+      ? checkInsolventieDetailed({
+          ...splitDutchName(fullName),
+          geboortedatum: body.dob,
+          postcode: body.postcode,
+          huisnummer: body.huisnummer,
+        })
+      : Promise.resolve({ result: null, error: "Zoeken op rechtspersoon is nog niet ingebouwd." }),
   ])
 
   return NextResponse.json({
     queriedAt: new Date().toISOString(),
     sanctions: { result: sanctions.result, error: sanctions.error },
     curatele: { result: curatele.result, error: curatele.error },
+    insolventie: { result: insolventie.result, error: insolventie.error },
   })
 }

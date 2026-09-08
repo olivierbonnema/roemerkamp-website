@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import { adminDb } from "@/lib/firebase-admin"
 import { screenSanctions, screeningPromptBlock } from "@/lib/sanctions-screen"
 import { checkCuratele, ccbrPromptBlock, splitDutchName } from "@/lib/ccbr"
+import { checkInsolventie, cirPromptBlock } from "@/lib/cir"
 
 const anthropic = new Anthropic()
 
@@ -320,10 +321,13 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
   // Query the Centraal Curatele- en Bewindregister in parallel. Unlike the
   // sanctions screening this is only meaningful for a natural person with a date
   // of birth — the register matches on surname + date of birth and nothing else.
-  const [screening, curatele] = await Promise.all([
+  const [screening, curatele, insolventie] = await Promise.all([
     screenSanctions(subject),
     subject.type === "natural_person" && subject.dob
       ? checkCuratele({ ...splitDutchName(subject.fullName), geboortedatum: subject.dob })
+      : Promise.resolve(null),
+    subject.type === "natural_person" && subject.dob
+      ? checkInsolventie({ ...splitDutchName(subject.fullName), geboortedatum: subject.dob })
       : Promise.resolve(null),
   ])
 
@@ -334,7 +338,7 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
       screeningPromptBlock(screening) +
       // Only a natural person can be onder curatele; for a company the block
       // would only invite the model to invent a non-applicable gap.
-      (subject.type === "natural_person" ? ccbrPromptBlock(curatele) : ""),
+      (subject.type === "natural_person" ? ccbrPromptBlock(curatele) + cirPromptBlock(insolventie) : ""),
   }]
 
   let finalText = ""
@@ -377,6 +381,15 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
   // state it and the reader is not left guessing which Tier 5 was performed.
   return {
     ...scanResult,
+    insolventieCheck: insolventie
+      ? {
+          performed: true,
+          checkedAt: insolventie.checkedAt,
+          publicaties: insolventie.publicaties.length,
+          actieveInsolventie: insolventie.actieveInsolventie,
+          details: insolventie.publicaties,
+        }
+      : { performed: false },
     curateleCheck: curatele
       ? {
           performed: true,
@@ -532,6 +545,9 @@ function withStandingChecks(result: Record<string, unknown> | null, type: string
   // check it by hand would be wrong — the answer is already in the report.
   if ((result.curateleCheck as { performed?: boolean } | undefined)?.performed) {
     standing = standing.filter((g) => !g.startsWith("Centraal Curatele"))
+  }
+  if ((result.insolventieCheck as { performed?: boolean } | undefined)?.performed) {
+    standing = standing.filter((g) => !g.startsWith("Centraal Insolventieregister"))
   }
   const existing = Array.isArray(result.gapsAndManualChecks)
     ? (result.gapsAndManualChecks as unknown[]).filter((g): g is string => typeof g === "string")

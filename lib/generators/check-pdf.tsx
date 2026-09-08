@@ -27,6 +27,7 @@ export interface CheckPdfScanResult {
   gapsAndManualChecks?: string[]
   sanctionsScreening?: { performed?: boolean; candidates?: number; hasSanctionTopic?: boolean; hasPepTopic?: boolean }
   curateleCheck?: { performed?: boolean; treffers?: number; actieveRegistratie?: boolean }
+  insolventieCheck?: { performed?: boolean; publicaties?: number; actieveInsolventie?: boolean }
 }
 
 export interface CheckPdfSubjectResult {
@@ -206,9 +207,22 @@ function SubjectReport({ name, type, result, error }: {
       }.`
     )
   }
+  const ins = result.insolventieCheck
+  if (ins?.performed) {
+    registers.push(
+      `Centraal Insolventieregister: ${
+        ins.actieveInsolventie
+          ? "lopende insolventie gevonden"
+          : ins.publicaties
+            ? `${ins.publicaties} registratie(s), geen lopende insolventie`
+            : "geen registratie"
+      }.`
+    )
+  }
   // The scope notice must not claim a register was skipped when it was queried.
   const nietMeegenomen = ["BKR", "insolventieregister", "curatele/bewind", "AFM en DNB"]
     .filter((r) => !(r === "curatele/bewind" && cur?.performed))
+    .filter((r) => !(r === "insolventieregister" && ins?.performed))
 
   return (
     <View>

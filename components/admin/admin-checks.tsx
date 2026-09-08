@@ -17,6 +17,10 @@ interface CheckSubject {
   sector?: string
   loanAmount?: string
   coApplicant?: string
+  // Alternatieve zoeksleutel voor het insolventieregister wanneer de
+  // geboortedatum ontbreekt.
+  postcode?: string
+  huisnummer?: string
 }
 
 interface Check {
@@ -73,6 +77,10 @@ interface RegisterLookup {
     result: { treffers?: { naam: string; soortRegister: string; volledigeMatch: boolean; actief?: boolean; datumEinde?: string; grond?: string }[]; actieveRegistratie?: boolean } | null
     error: string | null
   }
+  insolventie: {
+    result: { publicaties?: { naam: string; soort: string; status: string; rechtbank: string; zaaknummer: string; actief: boolean | null; curatorOfBewindvoerder: string }[]; actieveInsolventie?: boolean } | null
+    error: string | null
+  }
 }
 
 // Toont per register wat het antwoordde — inclusief de reden bij een mislukking,
@@ -117,6 +125,29 @@ function RegisterLookupPanel({ data }: { data: RegisterLookup }) {
           `${x.naam} — ${x.soortRegister}${x.volledigeMatch ? ", volledige match" : ", geen volledige match"}` +
           `${x.actief === undefined ? "" : x.actief ? ", lopend" : `, beëindigd op ${x.datumEinde}`}` +
           `${x.grond ? ` · grond: ${x.grond}` : ""}`
+      ),
+    })
+  }
+
+  const i = data.insolventie
+  if (i?.error) {
+    rows.push({ naam: "Centraal Insolventieregister", status: "fail", tekst: i.error })
+  } else if (i?.result) {
+    const pubs = i.result.publicaties || []
+    rows.push({
+      naam: "Centraal Insolventieregister",
+      status: i.result.actieveInsolventie ? "hit" : "clear",
+      tekst: pubs.length
+        ? i.result.actieveInsolventie
+          ? "Lopende insolventie gevonden."
+          : `${pubs.length} registratie(s), geen lopende insolventie.`
+        : "Geen registratie.",
+      detail: pubs.map(
+        (p) =>
+          `${p.naam} — ${p.soort}${p.status ? `, ${p.status}` : ""}` +
+          `${p.actief === null ? ", status onbekend" : p.actief ? ", lopend" : ", beëindigd"}` +
+          `${p.rechtbank ? ` · ${p.rechtbank}` : ""}${p.zaaknummer ? ` · ${p.zaaknummer}` : ""}` +
+          `${p.curatorOfBewindvoerder ? ` · ${p.curatorOfBewindvoerder}` : ""}`
       ),
     })
   }
@@ -348,7 +379,10 @@ export function AdminChecks() {
       const res = await fetch("/api/admin/registers", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: form.fullName, dob: form.dob, type: form.type, company: form.company }),
+        body: JSON.stringify({
+          fullName: form.fullName, dob: form.dob, type: form.type, company: form.company,
+          postcode: form.postcode, huisnummer: form.huisnummer,
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -643,6 +677,14 @@ export function AdminChecks() {
                 </Field>
                 <Field label="Adres">
                   <input value={form.address || ""} onChange={(e) => setField("address", e.target.value)} placeholder="Straat, nr, postcode, plaats" className={inputCls} />
+                </Field>
+                {/* Het insolventieregister zoekt op achternaam + geboortedatum, of op
+                    postcode + huisnummer wanneer de geboortedatum ontbreekt. */}
+                <Field label="Postcode">
+                  <input value={form.postcode || ""} onChange={(e) => setField("postcode", e.target.value)} placeholder="1011 AB" className={inputCls} />
+                </Field>
+                <Field label="Huisnummer">
+                  <input value={form.huisnummer || ""} onChange={(e) => setField("huisnummer", e.target.value)} placeholder="12" className={inputCls} />
                 </Field>
               </div>
             ) : (

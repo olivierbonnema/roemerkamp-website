@@ -13,6 +13,7 @@ export interface ScanResult {
   gapsAndManualChecks: string[]
   sanctionsScreening?: { performed?: boolean; checkedAt?: string; candidates?: number; hasSanctionTopic?: boolean; hasPepTopic?: boolean }
   curateleCheck?: { performed?: boolean; checkedAt?: string; treffers?: number; actieveRegistratie?: boolean }
+  insolventieCheck?: { performed?: boolean; checkedAt?: string; publicaties?: number; actieveInsolventie?: boolean }
 }
 
 // Which registers were queried automatically, as opposed to found through a web
@@ -46,6 +47,19 @@ function RegisterStatus({ result }: { result: ScanResult }) {
           ? `${c.treffers} treffer(s), geen lopende registratie op naam en geboortedatum`
           : "geen registratie",
       geraakt: !!c.actieveRegistratie,
+    })
+  }
+
+  const i = result.insolventieCheck
+  if (i?.performed) {
+    rows.push({
+      naam: "Centraal Insolventieregister",
+      uitkomst: i.actieveInsolventie
+        ? "lopende insolventie gevonden"
+        : i.publicaties
+          ? `${i.publicaties} registratie(s), geen lopende insolventie`
+          : "geen registratie",
+      geraakt: !!i.actieveInsolventie,
     })
   }
 
