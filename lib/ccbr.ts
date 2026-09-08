@@ -61,6 +61,19 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;").replace(/'/g, "&apos;")
 }
 
+/**
+ * De leesbare reden uit een SOAP-fault. Zonder dit tonen de logs alleen het begin
+ * van de envelope, en dat is bij WCF nooit het interessante deel.
+ */
+function faultReason(xml: string): string {
+  const reason = tag(tag(xml, "Reason"), "Text") || tag(xml, "faultstring")
+  const code = tag(tag(xml, "Subcode"), "Value") || tag(tag(xml, "Code"), "Value")
+  const detail = tag(xml, "Detail").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+  return [reason, code && `code: ${code}`, detail && `detail: ${detail.slice(0, 200)}`]
+    .filter(Boolean)
+    .join(" | ")
+}
+
 /** Haalt de inhoud van het eerste element met deze lokale naam op. */
 function tag(xml: string, local: string): string {
   const m = xml.match(new RegExp(`<(?:[\\w.-]+:)?${local}\\b[^>]*>([\\s\\S]*?)</(?:[\\w.-]+:)?${local}>`))
@@ -151,7 +164,7 @@ async function getAssertion(): Promise<string | null> {
 
   const res = await post(STS_URL, envelope, "application/soap+xml; charset=utf-8")
   if (res.status !== 200) {
-    throw new Error(`CCBR token-aanvraag mislukt (${res.status}): ${res.body.slice(0, 300)}`)
+    throw new Error(`CCBR token-aanvraag mislukt (${res.status}): ${faultReason(res.body) || res.body.slice(0, 300)}`)
   }
   // De assertie ONGEWIJZIGD uitknippen: ze is ondertekend door de ADFS.
   const m = res.body.match(/<(?:[\w.-]+:)?Assertion\b[\s\S]*?<\/(?:[\w.-]+:)?Assertion>/)
@@ -165,21 +178,27 @@ async function getAssertion(): Promise<string | null> {
 /* ── Stap 2 & 3: het register bevragen ── */
 
 async function callService(assertion: string, action: string, bodyInner: string): Promise<string> {
+  // The binding policy declares <sp:IncludeTimestamp/> with Layout/Strict, so
+  // every call needs a WS-Security timestamp and it must come BEFORE the token.
+  // Without it WCF rejects the message outright.
+  const now = new Date()
   const envelope = `<?xml version="1.0" encoding="UTF-8"?>
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
   <s:Header>
     <a:Action s:mustUnderstand="1">${action}</a:Action>
     <a:MessageID>urn:uuid:${randomUUID()}</a:MessageID>
     <a:ReplyTo><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>
     <a:To s:mustUnderstand="1">${SERVICE_URL}</a:To>
-    <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">${assertion}</o:Security>
+    <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><u:Timestamp u:Id="_0"><u:Created>${now.toISOString()}</u:Created><u:Expires>${new Date(now.getTime() + 5 * 60000).toISOString()}</u:Expires></u:Timestamp>${assertion}</o:Security>
   </s:Header>
   <s:Body>${bodyInner}</s:Body>
 </s:Envelope>`
 
   const res = await post(SERVICE_URL, envelope, `application/soap+xml; charset=utf-8; action="${action}"`)
   if (res.status !== 200) {
-    throw new Error(`CCBR-aanroep ${action.split("/").pop()} mislukt (${res.status}): ${res.body.slice(0, 300)}`)
+    throw new Error(
+      `CCBR-aanroep ${action.split("/").pop()} mislukt (${res.status}): ${faultReason(res.body) || res.body.slice(0, 300)}`
+    )
   }
   return res.body
 }
