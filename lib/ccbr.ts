@@ -220,29 +220,40 @@ function parseTreffers(xml: string): CcbrTreffer[] {
   })
 }
 
+export interface CcbrOutcome {
+  result: CcbrResult | null
+  /** Waarom er geen resultaat is. Null bij een geslaagde bevraging. */
+  error: string | null
+}
+
 /**
- * Controleer één persoon in het CCBR. Geeft null terug wanneer de koppeling niet
- * is geconfigureerd of onbereikbaar is — nooit een exception, want een storing
- * bij het register mag de achtergrondcheck niet platleggen.
+ * Als checkCuratele, maar geeft de reden terug in plaats van hem alleen te
+ * loggen. Bedoeld voor het diagnosescherm: wie handmatig een register bevraagt
+ * moet kunnen zien wát er misging, zonder in de serverlogs te hoeven duiken.
  */
-export async function checkCuratele(subject: {
+export async function checkCurateleDetailed(subject: {
   achternaam: string
   voorvoegsel?: string
   geboortedatum?: string
-}): Promise<CcbrResult | null> {
+}): Promise<CcbrOutcome> {
   const achternaam = (subject.achternaam || "").trim()
   // Het register vereist minimaal achternaam + geboortedatum.
   const geboortedatum = normalizeDate(subject.geboortedatum || "")
-  if (!achternaam || !geboortedatum) {
-    if (subject.geboortedatum?.trim() && !geboortedatum) {
-      console.error(`[ccbr] geboortedatum niet te lezen, bevraging overgeslagen: "${subject.geboortedatum}"`)
-    }
-    return null
+  if (!achternaam) return { result: null, error: "Geen achternaam opgegeven." }
+  if (!geboortedatum) {
+    const raw = (subject.geboortedatum || "").trim()
+    const msg = raw
+      ? `Geboortedatum "${raw}" is niet te lezen; gebruik DD-MM-JJJJ.`
+      : "Geen geboortedatum opgegeven; het register zoekt op achternaam én geboortedatum."
+    console.error(`[ccbr] ${msg}`)
+    return { result: null, error: msg }
   }
 
   try {
     const assertion = await getAssertion()
-    if (!assertion) return null
+    if (!assertion) {
+      return { result: null, error: "Geen inloggegevens voor de Rechtspraak ingesteld (RECHTSPRAAK_CCBR_USER / _PASSWORD)." }
+    }
 
     const voorvoegsel = (subject.voorvoegsel || "").trim()
     const zoekBody =
@@ -276,16 +287,32 @@ export async function checkCuratele(subject: {
     }
 
     return {
-      checked: true,
-      query: { achternaam, voorvoegsel, geboortedatum },
-      treffers,
-      actieveRegistratie: treffers.some((t) => t.volledigeMatch && t.actief !== false),
-      checkedAt: new Date().toISOString(),
+      result: {
+        checked: true,
+        query: { achternaam, voorvoegsel, geboortedatum },
+        treffers,
+        actieveRegistratie: treffers.some((t) => t.volledigeMatch && t.actief !== false),
+        checkedAt: new Date().toISOString(),
+      },
+      error: null,
     }
   } catch (err) {
     console.error("[ccbr] bevraging mislukt:", err)
-    return null
+    return { result: null, error: err instanceof Error ? err.message : String(err) }
   }
+}
+
+/**
+ * Controleer één persoon in het CCBR. Geeft null terug wanneer de koppeling niet
+ * is geconfigureerd of onbereikbaar is — nooit een exception, want een storing
+ * bij het register mag de achtergrondcheck niet platleggen.
+ */
+export async function checkCuratele(subject: {
+  achternaam: string
+  voorvoegsel?: string
+  geboortedatum?: string
+}): Promise<CcbrResult | null> {
+  return (await checkCurateleDetailed(subject)).result
 }
 
 /** Het resultaat als feit voor de scan-prompt. */

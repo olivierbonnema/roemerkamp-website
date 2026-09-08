@@ -63,6 +63,97 @@ async function getToken() {
 
 const EMPTY_FORM: CheckSubject = { type: "natural_person", fullName: "" }
 
+interface RegisterLookup {
+  queriedAt: string
+  sanctions: {
+    result: { hasSanctionTopic?: boolean; hasPepTopic?: boolean; candidates?: { name: string; score: number; topics: string[]; url: string }[] } | null
+    error: string | null
+  }
+  curatele: {
+    result: { treffers?: { naam: string; soortRegister: string; volledigeMatch: boolean; actief?: boolean; datumEinde?: string; grond?: string }[]; actieveRegistratie?: boolean } | null
+    error: string | null
+  }
+}
+
+// Toont per register wat het antwoordde — inclusief de reden bij een mislukking,
+// zodat een storing zichtbaar is in het scherm en niet alleen in de serverlogs.
+function RegisterLookupPanel({ data }: { data: RegisterLookup }) {
+  const rows: { naam: string; status: "hit" | "clear" | "fail"; tekst: string; detail?: string[] }[] = []
+
+  const s = data.sanctions
+  if (s.error) {
+    rows.push({ naam: "Sanctie- en PEP-lijsten (OpenSanctions)", status: "fail", tekst: s.error })
+  } else if (s.result) {
+    const kandidaten = s.result.candidates || []
+    rows.push({
+      naam: "Sanctie- en PEP-lijsten (OpenSanctions)",
+      status: s.result.hasSanctionTopic || s.result.hasPepTopic ? "hit" : "clear",
+      tekst: s.result.hasSanctionTopic
+        ? "Treffer op een sanctielijst."
+        : s.result.hasPepTopic
+          ? "Geen sanctietreffer, wel een politiek prominent persoon."
+          : kandidaten.length
+            ? `${kandidaten.length} mogelijke naamgeno${kandidaten.length === 1 ? "ot" : "ten"}, geen sanctietreffer.`
+            : "Geen treffer.",
+      detail: kandidaten.map((c) => `${c.name} — score ${Math.round(c.score * 100)}%${c.topics.length ? ` · ${c.topics.join(", ")}` : ""}`),
+    })
+  }
+
+  const c = data.curatele
+  if (c.error) {
+    rows.push({ naam: "Centraal Curatele- en Bewindregister", status: "fail", tekst: c.error })
+  } else if (c.result) {
+    const t = c.result.treffers || []
+    rows.push({
+      naam: "Centraal Curatele- en Bewindregister",
+      status: c.result.actieveRegistratie ? "hit" : "clear",
+      tekst: c.result.actieveRegistratie
+        ? "Lopende registratie gevonden."
+        : t.length
+          ? `${t.length} treffer(s), geen lopende registratie op naam en geboortedatum.`
+          : "Geen registratie.",
+      detail: t.map(
+        (x) =>
+          `${x.naam} — ${x.soortRegister}${x.volledigeMatch ? ", volledige match" : ", geen volledige match"}` +
+          `${x.actief === undefined ? "" : x.actief ? ", lopend" : `, beëindigd op ${x.datumEinde}`}` +
+          `${x.grond ? ` · grond: ${x.grond}` : ""}`
+      ),
+    })
+  }
+
+  const dot = { hit: "bg-red-500", clear: "bg-emerald-500", fail: "bg-amber-500" }
+
+  return (
+    <div className="mt-5 border border-gray-200 rounded-xl p-4 bg-gray-50/60">
+      <div className="flex items-baseline justify-between mb-2.5">
+        <h4 className="text-sm font-semibold font-sans text-gray-900">Uitkomst registerbevraging</h4>
+        <span className="text-[11px] font-sans text-gray-400">
+          {new Date(data.queriedAt).toLocaleString("nl-NL", { dateStyle: "short", timeStyle: "short" })}
+        </span>
+      </div>
+      <ul className="space-y-2.5">
+        {rows.map((r, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-[13px] font-sans">
+            <span className={`mt-[6px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${dot[r.status]}`} />
+            <div className="min-w-0">
+              <span className="font-medium text-gray-900">{r.naam}</span>
+              <span className="text-gray-600"> — {r.tekst}</span>
+              {r.detail && r.detail.length > 0 && (
+                <ul className="mt-1 space-y-0.5 text-[12px] text-gray-500">
+                  {r.detail.map((d, j) => <li key={j} className="break-words">· {d}</li>)}
+                </ul>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-[11px] font-sans text-gray-400">
+        Alleen de registers zijn bevraagd. Er is geen AI-scan gedraaid en deze opzoeking is niet opgeslagen.
+      </p>
+    </div>
+  )
+}
+
 export function AdminChecks() {
   const [checks, setChecks] = useState<Check[]>([])
   const [loading, setLoading] = useState(true)
@@ -76,6 +167,10 @@ export function AdminChecks() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [aanvragen, setAanvragen] = useState<AanvraagOption[]>([])
+
+  // Registerbevraging los van de volledige check: geen AI, dus geen credits.
+  const [registerBusy, setRegisterBusy] = useState(false)
+  const [registerResult, setRegisterResult] = useState<RegisterLookup | null>(null)
 
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
@@ -222,6 +317,35 @@ export function AdminChecks() {
       company: a.bedrijfsnaam || "",
       kvkNummer: a.kvkNummer || "",
     })
+  }
+
+  // Bevraagt alleen de twee machineleesbare registers. Draait geen AI-scan en
+  // slaat niets op: dit is een opzoeking, geen check met een audittrail.
+  async function lookupRegisters() {
+    if (!form.fullName.trim() && !(form.company || "").trim()) {
+      setScanErrorModal({ title: "Naam ontbreekt", message: "Vul een naam in om de registers te kunnen bevragen." })
+      return
+    }
+    setRegisterBusy(true)
+    setRegisterResult(null)
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/registers", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName: form.fullName, dob: form.dob, type: form.type, company: form.company }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setScanErrorModal({ title: "Bevraging mislukt", message: data.error || `Serverfout (${res.status}).` })
+        return
+      }
+      setRegisterResult(data)
+    } catch (err) {
+      setScanErrorModal({ title: "Bevraging mislukt", message: err instanceof Error ? err.message : "Onbekende fout." })
+    } finally {
+      setRegisterBusy(false)
+    }
   }
 
   async function submitCheck() {
@@ -523,9 +647,19 @@ export function AdminChecks() {
               </div>
             )}
 
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowForm(false)} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Annuleren</button>
-              <button onClick={submitCheck} disabled={submitting} className="px-5 py-2.5 text-sm font-medium font-sans bg-[#F75D20] text-white rounded-lg hover:bg-[#e04d15] transition-colors disabled:opacity-50">
+            {registerResult && <RegisterLookupPanel data={registerResult} />}
+
+            <div className="flex flex-wrap justify-end gap-2 mt-6">
+              <button onClick={() => { setShowForm(false); setRegisterResult(null) }} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Annuleren</button>
+              <button
+                onClick={lookupRegisters}
+                disabled={registerBusy || submitting}
+                title="Bevraagt alleen de sanctielijsten en het curatele-register. Geen AI-scan, dus geen kosten."
+                className="px-4 py-2.5 text-sm font-medium font-sans border border-[#311E86] text-[#311E86] rounded-lg hover:bg-[#311E86]/5 transition-colors disabled:opacity-50"
+              >
+                {registerBusy ? "Bezig met bevragen..." : "Alleen registers raadplegen"}
+              </button>
+              <button onClick={submitCheck} disabled={submitting || registerBusy} className="px-5 py-2.5 text-sm font-medium font-sans bg-[#F75D20] text-white rounded-lg hover:bg-[#e04d15] transition-colors disabled:opacity-50">
                 {submitting ? "Bezig met starten..." : "Start achtergrondcheck"}
               </button>
             </div>

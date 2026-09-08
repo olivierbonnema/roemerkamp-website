@@ -56,18 +56,28 @@ function splitName(full: string): { firstName: string; lastName: string } {
  * is unreachable — never throws, because a screening outage must not take down
  * the whole background check.
  */
-export async function screenSanctions(subject: {
+export interface SanctionsOutcome {
+  result: SanctionsScreenResult | null
+  /** Waarom er geen resultaat is. Null bij een geslaagde screening. */
+  error: string | null
+}
+
+/**
+ * Als screenSanctions, maar geeft de reden terug in plaats van hem alleen te
+ * loggen — zodat het diagnosescherm kan tonen wát er misging.
+ */
+export async function screenSanctionsDetailed(subject: {
   fullName: string
   dob?: string
   type: string
   company?: string
-}): Promise<SanctionsScreenResult | null> {
+}): Promise<SanctionsOutcome> {
   const apiKey = process.env.OPENSANCTIONS_API_KEY
-  if (!apiKey) return null
+  if (!apiKey) return { result: null, error: "Geen OpenSanctions API-sleutel ingesteld (OPENSANCTIONS_API_KEY)." }
 
   const isCompany = subject.type === "legal_entity" && !!subject.company
   const name = (isCompany ? subject.company : subject.fullName)?.trim()
-  if (!name) return null
+  if (!name) return { result: null, error: "Geen naam opgegeven." }
 
   const properties: Record<string, string[]> = isCompany
     ? { name: [name] }
@@ -92,7 +102,7 @@ export async function screenSanctions(subject: {
     })
     if (!res.ok) {
       console.error(`[sanctions-screen] API returned ${res.status} for "${name}"`)
-      return null
+      return { result: null, error: `OpenSanctions gaf HTTP ${res.status} terug.` }
     }
     const data = await res.json()
     const raw: Record<string, unknown>[] = data?.responses?.q?.results || []
@@ -117,18 +127,35 @@ export async function screenSanctions(subject: {
 
     const topics = candidates.flatMap((c) => c.topics)
     return {
-      checked: true,
-      query: { name, dob: subject.dob, schema: isCompany ? "Company" : "Person" },
-      hasMatch: candidates.some((c) => c.match),
-      hasSanctionTopic: topics.some((t) => t === "sanction" || t.startsWith("sanction.") || t === "debarment"),
-      hasPepTopic: topics.some((t) => t === "role.pep" || t.startsWith("role.pep")),
-      candidates,
-      checkedAt: new Date().toISOString(),
+      result: {
+        checked: true,
+        query: { name, dob: subject.dob, schema: isCompany ? "Company" : "Person" },
+        hasMatch: candidates.some((c) => c.match),
+        hasSanctionTopic: topics.some((t) => t === "sanction" || t.startsWith("sanction.") || t === "debarment"),
+        hasPepTopic: topics.some((t) => t === "role.pep" || t.startsWith("role.pep")),
+        candidates,
+        checkedAt: new Date().toISOString(),
+      },
+      error: null,
     }
   } catch (err) {
     console.error(`[sanctions-screen] screening failed for "${name}":`, err)
-    return null
+    return { result: null, error: err instanceof Error ? err.message : String(err) }
   }
+}
+
+/**
+ * Screen one subject. Returns null when screening is not configured or the API
+ * is unreachable — never throws, because a screening outage must not take down
+ * the whole background check.
+ */
+export async function screenSanctions(subject: {
+  fullName: string
+  dob?: string
+  type: string
+  company?: string
+}): Promise<SanctionsScreenResult | null> {
+  return (await screenSanctionsDetailed(subject)).result
 }
 
 /** Render the screening outcome as facts for the scan prompt. */
