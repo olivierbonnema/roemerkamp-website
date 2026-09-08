@@ -21,7 +21,9 @@
 // handmatige stap in het rapport.
 
 import { request as httpsRequest } from "node:https"
+import { rootCertificates } from "node:tls"
 import { randomUUID } from "node:crypto"
+import { PKIOVERHEID_PRIVATE_ROOT_G1 } from "@/lib/certs/pkioverheid"
 
 const STS_URL = process.env.RECHTSPRAAK_STS_URL || "https://sts.rechtspraak.nl/adfs/services/trust/13/usernamemixed"
 const SERVICE_URL = process.env.RECHTSPRAAK_CCBR_URL || "https://ccbrservice.rechtspraak.nl/CcbrDataservice.svc"
@@ -74,7 +76,12 @@ function blocks(xml: string, local: string): string[] {
 /* ── HTTPS met eigen CA (hun keten wordt niet publiek vertrouwd) ── */
 
 function post(url: string, body: string, contentType: string): Promise<{ status: number; body: string }> {
-  const ca = process.env.RECHTSPRAAK_CCBR_CA_CERT
+  // Node's `ca` option REPLACES the default trust store rather than extending
+  // it, so the system roots must be included explicitly: the ADFS at
+  // sts.rechtspraak.nl uses an ordinary publicly trusted certificate, while
+  // ccbrservice.rechtspraak.nl needs the PKIoverheid private root.
+  const extra = process.env.RECHTSPRAAK_CCBR_CA_CERT || PKIOVERHEID_PRIVATE_ROOT_G1
+  const ca = [...rootCertificates, extra]
   return new Promise((resolve, reject) => {
     const u = new URL(url)
     const req = httpsRequest(
@@ -84,9 +91,9 @@ function post(url: string, body: string, contentType: string): Promise<{ status:
         path: u.pathname + u.search,
         method: "POST",
         headers: { "Content-Type": contentType, "Content-Length": Buffer.byteLength(body) },
-        // Zonder hun CA-certificaat faalt de TLS-verificatie. Dat is de bedoeling:
-        // verificatie uitschakelen is voor dit pad geen acceptabele uitweg.
-        ...(ca ? { ca } : {}),
+        // Verificatie blijft altijd aan; uitschakelen is voor dit pad geen
+        // acceptabele uitweg.
+        ca,
         timeout: 25000,
       },
       (res) => {
@@ -109,10 +116,6 @@ async function getAssertion(): Promise<string | null> {
   const user = process.env.RECHTSPRAAK_CCBR_USER
   const pass = process.env.RECHTSPRAAK_CCBR_PASSWORD
   if (!user || !pass) return null
-  // Their TLS chain is self-signed, so without the CA certificate every call is
-  // a guaranteed handshake failure. Skip quietly rather than burn a failed
-  // connection (and an error log line) on every single scan.
-  if (!process.env.RECHTSPRAAK_CCBR_CA_CERT) return null
 
   if (tokenCache && tokenCache.expires > Date.now()) return tokenCache.assertion
 
