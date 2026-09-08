@@ -231,9 +231,14 @@ export async function checkCuratele(subject: {
   geboortedatum?: string
 }): Promise<CcbrResult | null> {
   const achternaam = (subject.achternaam || "").trim()
-  const geboortedatum = (subject.geboortedatum || "").trim()
   // Het register vereist minimaal achternaam + geboortedatum.
-  if (!achternaam || !geboortedatum) return null
+  const geboortedatum = normalizeDate(subject.geboortedatum || "")
+  if (!achternaam || !geboortedatum) {
+    if (subject.geboortedatum?.trim() && !geboortedatum) {
+      console.error(`[ccbr] geboortedatum niet te lezen, bevraging overgeslagen: "${subject.geboortedatum}"`)
+    }
+    return null
+  }
 
   try {
     const assertion = await getAssertion()
@@ -332,6 +337,32 @@ const TUSSENVOEGSELS = new Set([
   "in", "uit", "voor", "over", "onder", "'t", "'s", "d'", "du", "des", "del",
   "la", "le", "el", "vd", "vander", "verd",
 ])
+
+/**
+ * The portal collects dates of birth in more than one shape: the application
+ * form uses a native date input (2005-07-24), while the admin forms are free
+ * text and are labelled DD-MM-JJJJ in one place and JJJJ-MM-DD in another. The
+ * register wants an xsd:dateTime, so anything else has to be converted — and
+ * anything unrecognisable must be refused rather than sent as-is, which would
+ * either be rejected or, worse, silently match nobody.
+ */
+export function normalizeDate(raw: string): string | null {
+  const t = (raw || "").trim()
+  let y: number, m: number, d: number
+
+  const iso = t.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/)
+  const nl = t.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/)
+  if (iso) [, y, m, d] = iso.map(Number) as [unknown, number, number, number]
+  else if (nl) { const [, dd, mm, yyyy] = nl.map(Number) as [unknown, number, number, number]; y = yyyy; m = mm; d = dd }
+  else return null
+
+  // Reject impossible dates: `new Date` would roll 31-02 over into March.
+  const probe = new Date(Date.UTC(y, m - 1, d))
+  if (probe.getUTCFullYear() !== y || probe.getUTCMonth() !== m - 1 || probe.getUTCDate() !== d) return null
+  if (y < 1900 || probe.getTime() > Date.now()) return null
+
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`
+}
 
 /**
  * Splits "Bas van der Meer" in voorvoegsel "van der" en achternaam "Meer".

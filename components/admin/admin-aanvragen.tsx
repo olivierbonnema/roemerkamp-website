@@ -473,7 +473,7 @@ export function AdminAanvragen() {
                   <input value={s.voornaam || ""} onChange={(e) => updateSubject(i, { voornaam: e.target.value })} placeholder="Voornaam (voluit)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                   <input value={s.achternaam || ""} onChange={(e) => updateSubject(i, { achternaam: e.target.value })} placeholder="Achternaam" className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
                 </div>
-                <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (JJJJ-MM-DD)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
+                <input value={s.dob || ""} onChange={(e) => updateSubject(i, { dob: e.target.value })} placeholder="Geboortedatum (DD-MM-JJJJ)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#1E3A5F]" />
               </>
             ) : (
               <>
