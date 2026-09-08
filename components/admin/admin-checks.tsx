@@ -168,6 +168,10 @@ export function AdminChecks() {
   const [deleting, setDeleting] = useState(false)
   const [aanvragen, setAanvragen] = useState<AanvraagOption[]>([])
 
+  // TIJDELIJK: diagnose voor het inrichten van de CIR-koppeling. Weghalen zodra
+  // de vorm van die dienst bekend is.
+  const [cirProbe, setCirProbe] = useState<string | null>(null)
+
   // Registerbevraging los van de volledige check: geen AI, dus geen credits.
   const [registerBusy, setRegisterBusy] = useState(false)
   const [registerResult, setRegisterResult] = useState<RegisterLookup | null>(null)
@@ -317,6 +321,17 @@ export function AdminChecks() {
       company: a.bedrijfsnaam || "",
       kvkNummer: a.kvkNummer || "",
     })
+  }
+
+  async function probeCir() {
+    setCirProbe("Bezig...")
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/cir-probe", { headers: { Authorization: `Bearer ${token}` } })
+      setCirProbe(JSON.stringify(await res.json(), null, 2))
+    } catch (err) {
+      setCirProbe(err instanceof Error ? err.message : "Onbekende fout.")
+    }
   }
 
   // Bevraagt alleen de twee machineleesbare registers. Draait geen AI-scan en
@@ -484,6 +499,16 @@ export function AdminChecks() {
         >
           <Plus size={14} /> Nieuwe check
         </button>
+      </div>
+
+      {/* TIJDELIJK: diagnose voor de CIR-koppeling. Weghalen zodra die is ingericht. */}
+      <div className="border border-dashed border-gray-200 rounded-lg p-3">
+        <button onClick={probeCir} className="text-xs font-sans text-gray-500 hover:text-gray-800 underline">
+          CIR-diagnose uitvoeren (tijdelijk)
+        </button>
+        {cirProbe && (
+          <pre className="mt-2 text-[11px] leading-relaxed bg-gray-50 rounded p-2 overflow-x-auto max-h-72 whitespace-pre-wrap break-words">{cirProbe}</pre>
+        )}
       </div>
 
       {checks.length === 0 && (
