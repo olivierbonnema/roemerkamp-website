@@ -76,6 +76,7 @@ async function call(operation: string, bodyInner: string): Promise<{ ok: true; x
   const user = process.env.RECHTSPRAAK_CIR_USER
   const pass = process.env.RECHTSPRAAK_CIR_PASSWORD
   if (!user || !pass) {
+    console.error("[cir] geen inloggegevens ingesteld (RECHTSPRAAK_CIR_USER / _PASSWORD)")
     return { ok: false, error: "Geen inloggegevens voor het insolventieregister ingesteld (RECHTSPRAAK_CIR_USER / _PASSWORD)." }
   }
 
@@ -115,8 +116,15 @@ async function call(operation: string, bodyInner: string): Promise<{ ok: true; x
     })
     const xml = await res.text()
     if (!res.ok || /faultstring|<(\w+:)?Fault\b/.test(xml)) {
-      return { ok: false, error: `Insolventieregister gaf HTTP ${res.status}${faultReason(xml) ? `: ${faultReason(xml)}` : ""}.` }
+      const reden = faultReason(xml)
+      // Loggen, niet alleen teruggeven: zonder dit is een geweigerde bevraging
+      // achteraf niet van een geslaagde te onderscheiden.
+      console.error(`[cir] ${operation} geweigerd (HTTP ${res.status}): ${reden || xml.slice(0, 200)}`)
+      return { ok: false, error: `Insolventieregister gaf HTTP ${res.status}${reden ? `: ${reden}` : ""}.` }
     }
+    // Bewust zonder uitkomst: dát er bevraagd is mag in de logs, wíé insolvent is
+    // niet — dat is een gegeven over een persoon en hoort in het rapport.
+    console.log(`[cir] ${operation} geslaagd`)
     return { ok: true, xml }
   } catch (err) {
     console.error("[cir] bevraging mislukt:", err)
@@ -217,7 +225,9 @@ export async function checkInsolventieDetailed(subject: {
   const geboortedatum = subject.geboortedatum ? normalizeDate(subject.geboortedatum) : null
 
   if (subject.geboortedatum?.trim() && !geboortedatum) {
-    return { result: null, error: `Geboortedatum "${subject.geboortedatum}" is niet te lezen; gebruik DD-MM-JJJJ.` }
+    const msg = `Geboortedatum "${subject.geboortedatum}" is niet te lezen; gebruik DD-MM-JJJJ.`
+    console.error(`[cir] ${msg}`)
+    return { result: null, error: msg }
   }
 
   // Het register accepteert alleen deze drie combinaties (zie hun zoekscherm).
@@ -226,12 +236,11 @@ export async function checkInsolventieDetailed(subject: {
   else if (achternaam && postcode && huisnummer) Object.assign(query, { voorvoegsel, achternaam, postcode, huisnummer })
   else if (geboortedatum && postcode && huisnummer) Object.assign(query, { geboortedatum, postcode, huisnummer })
   else {
-    return {
-      result: null,
-      error:
-        "Onvoldoende gegevens. Het register accepteert alleen: achternaam + geboortedatum, " +
-        "achternaam + postcode + huisnummer, of geboortedatum + postcode + huisnummer.",
-    }
+    const msg =
+      "Onvoldoende gegevens. Het register accepteert alleen: achternaam + geboortedatum, " +
+      "achternaam + postcode + huisnummer, of geboortedatum + postcode + huisnummer."
+    console.error(`[cir] ${msg}`)
+    return { result: null, error: msg }
   }
 
   // Volgorde volgens de xs:sequence van searchNaturalPerson.
