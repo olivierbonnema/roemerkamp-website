@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { adminDb } from "@/lib/firebase-admin"
 import { screenSanctions, screeningPromptBlock } from "@/lib/sanctions-screen"
-import { checkCuratele, ccbrPromptBlock, splitDutchName } from "@/lib/ccbr"
+import { checkCuratele, ccbrPromptBlock, splitDutchName, splitSurnameField } from "@/lib/ccbr"
 import { checkInsolventie, cirPromptBlock } from "@/lib/cir"
 
 const anthropic = new Anthropic()
@@ -18,6 +18,13 @@ export interface ScanSubject {
   sector?: string
   loanAmount?: string
   coApplicant?: string
+  /**
+   * De achternaam zoals de aanvrager hem zelf heeft ingevuld, los van de
+   * voornaam. De registers matchen op de EXACTE achternaam, dus die willen we
+   * niet terugraden uit de samengevoegde naam — een misser daar levert stil
+   * "geen registratie" op bij iemand die er wél in staat.
+   */
+  surname?: string
 }
 
 export interface SubjectResult {
@@ -314,6 +321,13 @@ function extractJson(text: string): Record<string, unknown> | null {
 export async function performReputationScan(subject: ScanSubject): Promise<Record<string, unknown>> {
   const subjectBlock = buildSubjectBlock(subject)
 
+  // Het ingevulde achternaam-veld heeft voorrang: daar hoeven we niet te raden
+  // waar de voornamen ophouden, alleen het tussenvoegsel eraf te halen. Alleen
+  // als dat veld ontbreekt (losse check met één naamveld) raden we alsnog.
+  const naamVoorRegisters = subject.surname
+    ? splitSurnameField(subject.surname)
+    : splitDutchName(subject.fullName)
+
   // Screen against the consolidated sanctions/PEP data set FIRST and hand the
   // outcome to the model as fact. A web search cannot screen anyone (OFAC is a
   // form, the EU list a download), so this is the part that makes Tier 5 real.
@@ -324,10 +338,10 @@ export async function performReputationScan(subject: ScanSubject): Promise<Recor
   const [screening, curatele, insolventie] = await Promise.all([
     screenSanctions(subject),
     subject.type === "natural_person" && subject.dob
-      ? checkCuratele({ ...splitDutchName(subject.fullName), geboortedatum: subject.dob })
+      ? checkCuratele({ ...naamVoorRegisters, geboortedatum: subject.dob })
       : Promise.resolve(null),
     subject.type === "natural_person" && subject.dob
-      ? checkInsolventie({ ...splitDutchName(subject.fullName), geboortedatum: subject.dob })
+      ? checkInsolventie({ ...naamVoorRegisters, geboortedatum: subject.dob })
       : Promise.resolve(null),
   ])
 
@@ -445,6 +459,10 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
   const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined)
   const naam = str(data.naam)
   const medeNaam = str(data.medeNaam)
+  // Het portaal bewaart voor- en achternaam apart; gebruik die in plaats van de
+  // samengevoegde naam waar dat kan.
+  const achternaam = str(data.achternaam)
+  const medeAchternaam = str(data.medeAchternaam)
   const bedrijfsnaam = str(data.bedrijfsnaam)
   const adres = str(data.adres)
   const loanAmount = str(data.leningBedrag)
@@ -461,11 +479,11 @@ export function deriveSubjects(data: Record<string, unknown>): ScanSubject[] {
       sector: "vastgoed",
       loanAmount,
     })
-    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
-    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, dob: str(data.medeGeboortedatum), company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, surname: achternaam, dob: str(data.geboortedatum), company: bedrijfsnaam, role: "vertegenwoordiger / DGA", loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, surname: medeAchternaam, dob: str(data.medeGeboortedatum), company: bedrijfsnaam, role: "medevertegenwoordiger", loanAmount })
   } else {
-    if (naam) subjects.push({ type: "natural_person", fullName: naam, dob: str(data.geboortedatum), loanAmount })
-    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, dob: str(data.medeGeboortedatum), loanAmount })
+    if (naam) subjects.push({ type: "natural_person", fullName: naam, surname: achternaam, dob: str(data.geboortedatum), loanAmount })
+    if (medeNaam) subjects.push({ type: "natural_person", fullName: medeNaam, surname: medeAchternaam, dob: str(data.medeGeboortedatum), loanAmount })
   }
   return subjects.map(cleanSubject)
 }

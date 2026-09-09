@@ -411,3 +411,18 @@ export function splitDutchName(fullName: string): { voorvoegsel: string; achtern
   while (start > 0 && TUSSENVOEGSELS.has(parts[start - 1].toLowerCase())) start--
   return { voorvoegsel: parts.slice(start, i).join(" "), achternaam: parts.slice(i).join(" ") }
 }
+
+/**
+ * Splitst een INGEVULD achternaam-veld in voorvoegsel + achternaam.
+ *
+ * Anders dan splitDutchName raadt dit niet waar de voornamen ophouden: we weten
+ * al dat dit de achternaam is. Alleen leidende tussenvoegsels gaan eraf, de rest
+ * blijft heel — zodat een dubbele achternaam ("Jansen Steenbergen") niet tot het
+ * laatste woord wordt teruggebracht en de bevraging op de verkeerde naam loopt.
+ */
+export function splitSurnameField(achternaam: string): { voorvoegsel: string; achternaam: string } {
+  const parts = (achternaam || "").trim().split(/\s+/).filter(Boolean)
+  let i = 0
+  while (i < parts.length - 1 && TUSSENVOEGSELS.has(parts[i].toLowerCase())) i++
+  return { voorvoegsel: parts.slice(0, i).join(" "), achternaam: parts.slice(i).join(" ") }
+}
