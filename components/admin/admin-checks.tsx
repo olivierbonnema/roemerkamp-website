@@ -78,7 +78,7 @@ interface RegisterLookup {
     error: string | null
   }
   insolventie: {
-    result: { publicaties?: { naam: string; soort: string; status: string; rechtbank: string; zaaknummer: string; actief: boolean | null; curatorOfBewindvoerder: string }[]; actieveInsolventie?: boolean } | null
+    result: { publicaties?: { naam: string; soort: string; status: string; rechtbank: string; publicatienummer: string; actief: boolean | null; curatorOfBewindvoerder: string }[]; actieveInsolventie?: boolean } | null
     error: string | null
   }
 }
@@ -146,7 +146,7 @@ function RegisterLookupPanel({ data }: { data: RegisterLookup }) {
         (p) =>
           `${p.naam} — ${p.soort}${p.status ? `, ${p.status}` : ""}` +
           `${p.actief === null ? ", status onbekend" : p.actief ? ", lopend" : ", beëindigd"}` +
-          `${p.rechtbank ? ` · ${p.rechtbank}` : ""}${p.zaaknummer ? ` · ${p.zaaknummer}` : ""}` +
+          `${p.rechtbank ? ` · ${p.rechtbank}` : ""}${p.publicatienummer ? ` · ${p.publicatienummer}` : ""}` +
           `${p.curatorOfBewindvoerder ? ` · ${p.curatorOfBewindvoerder}` : ""}`
       ),
     })
@@ -198,10 +198,6 @@ export function AdminChecks() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [aanvragen, setAanvragen] = useState<AanvraagOption[]>([])
-
-  // TIJDELIJK: diagnose voor het inrichten van de CIR-koppeling. Weghalen zodra
-  // de vorm van die dienst bekend is.
-  const [cirProbe, setCirProbe] = useState<string | null>(null)
 
   // Registerbevraging los van de volledige check: geen AI, dus geen credits.
   const [registerBusy, setRegisterBusy] = useState(false)
@@ -352,17 +348,6 @@ export function AdminChecks() {
       company: a.bedrijfsnaam || "",
       kvkNummer: a.kvkNummer || "",
     })
-  }
-
-  async function probeCir() {
-    setCirProbe("Bezig...")
-    try {
-      const token = await getToken()
-      const res = await fetch("/api/admin/cir-probe", { headers: { Authorization: `Bearer ${token}` } })
-      setCirProbe(JSON.stringify(await res.json(), null, 2))
-    } catch (err) {
-      setCirProbe(err instanceof Error ? err.message : "Onbekende fout.")
-    }
   }
 
   // Bevraagt alleen de twee machineleesbare registers. Draait geen AI-scan en
@@ -535,15 +520,6 @@ export function AdminChecks() {
         </button>
       </div>
 
-      {/* TIJDELIJK: diagnose voor de CIR-koppeling. Weghalen zodra die is ingericht. */}
-      <div className="border border-dashed border-gray-200 rounded-lg p-3">
-        <button onClick={probeCir} className="text-xs font-sans text-gray-500 hover:text-gray-800 underline">
-          CIR-diagnose uitvoeren (tijdelijk)
-        </button>
-        {cirProbe && (
-          <pre className="mt-2 text-[11px] leading-relaxed bg-gray-50 rounded p-2 overflow-x-auto max-h-72 whitespace-pre-wrap break-words">{cirProbe}</pre>
-        )}
-      </div>
 
       {checks.length === 0 && (
         <p className="text-gray-400 font-sans text-sm py-8">Nog geen checks uitgevoerd. Klik op &ldquo;Nieuwe check&rdquo; om een achtergrondcheck te starten.</p>
