@@ -33,10 +33,9 @@ mijn eerste nabootsing. Pas het bericht aan, niet het schema.
 
     CERT_DIR=<map met key.pem/cert.pem> CCBR_MODULE=$PWD/lib/ccbr.ts npx tsx test/ccbr/ccbr.test.ts
 
-Maak het testcertificaat eenmalig aan:
-
-    openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem \
-      -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost"
+Het testcertificaat maakt de suite zelf aan wanneer het ontbreekt of bijna
+verloopt (het staat in `.gitignore`, dus op een verse kloon is het er niet).
+`openssl` moet wel beschikbaar zijn.
 
 De suite zet een lokale HTTPS-server op met dat certificaat en doorloopt de hele
 keten: TLS met een eigen CA, de tokenaanvraag, het ongewijzigd doorgeven van het

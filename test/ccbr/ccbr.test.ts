@@ -2,12 +2,40 @@
 // Bootst na: TLS met een eigen (niet-publiek vertrouwde) CA, de ADFS die een
 // ondertekende SAML-assertie teruggeeft, en de twee SOAP-operaties.
 import { createServer } from "node:https"
-import { readFileSync } from "node:fs"
+import { readFileSync, existsSync } from "node:fs"
+import { execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { dirname } from "node:path"
 
 // Standaard naast deze test; CERT_DIR overschrijft dat.
 const DIR = process.env.CERT_DIR || dirname(fileURLToPath(new URL(import.meta.url)))
+// Het testcertificaat wordt zo nodig aangemaakt: het staat in .gitignore (het is
+// sleutelmateriaal), dus op een verse kloon is het er niet — en een certificaat
+// met een vaste einddatum laat de suite ooit alsnog stuklopen op de klok in
+// plaats van op de code. Dat is precies één keer gebeurd (10-09-2026).
+function ensureCert() {
+  const certPath = `${DIR}/cert.pem`
+  const keyPath = `${DIR}/key.pem`
+  const geldig = (() => {
+    if (!existsSync(certPath) || !existsSync(keyPath)) return false
+    try {
+      const eind = execFileSync("openssl", ["x509", "-in", certPath, "-noout", "-enddate"], { encoding: "utf8" })
+      return new Date(eind.split("=")[1].trim()) > new Date(Date.now() + 24 * 3600_000)
+    } catch {
+      return false
+    }
+  })()
+  if (geldig) return
+  execFileSync("openssl", [
+    "req", "-x509", "-newkey", "rsa:2048", "-nodes",
+    "-keyout", keyPath, "-out", certPath,
+    "-days", "3650", "-subj", "/CN=localhost",
+    "-addext", "subjectAltName=DNS:localhost",
+  ], { stdio: "ignore" })
+  console.log("(testcertificaat opnieuw aangemaakt)")
+}
+ensureCert()
+
 const key = readFileSync(`${DIR}/key.pem`)
 const cert = readFileSync(`${DIR}/cert.pem`)
 
