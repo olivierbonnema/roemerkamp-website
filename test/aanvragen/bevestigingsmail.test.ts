@@ -1,5 +1,6 @@
-// Bewaakt één harde regel: dient een admin een aanvraag in, dan gaat er NOOIT
-// een mail naar de klant. Die persoon heeft niets aangevraagd — wij typten het in.
+// Bewaakt één harde regel: de bevestiging gaat naar degene die indient. Voert
+// een adviseur een aanvraag in namens een klant, dan krijgt die adviseur de mail
+// en de klant NOOIT — die heeft immers niets aangevraagd.
 import { confirmationRecipient } from "../../lib/submission-recipients"
 
 let fails = 0
@@ -12,9 +13,11 @@ const PARTNER = "adviseur@financieringsgilde.nl"
 const ADMIN = "olivier@langefa.nl"
 
 // De regel die niet mag breken.
-ok("admin: geen bevestiging", confirmationRecipient("admin", KLANT, ADMIN) === null)
-ok("admin: ook niet zonder eigen adres", confirmationRecipient("admin", KLANT, null) === null)
-ok("admin: ook niet als de klant hetzelfde adres heeft", confirmationRecipient("admin", ADMIN, ADMIN) === null)
+ok("admin: bevestiging naar de indienende adviseur", confirmationRecipient("admin", KLANT, ADMIN) === ADMIN)
+ok("admin: zonder eigen adres liever geen mail dan naar de klant",
+   confirmationRecipient("admin", KLANT, null) === null)
+ok("admin: leeg indieneradres valt niet terug op de klant",
+   confirmationRecipient("admin", KLANT, "") === null)
 
 // Bestaand gedrag mag niet veranderen.
 ok("klant krijgt zelf de bevestiging", confirmationRecipient("client", KLANT, null) === KLANT)
@@ -25,11 +28,11 @@ ok("partner zonder adres: terugval op de klant", confirmationRecipient("partner"
 // Randgeval: geen klantadres bekend.
 ok("geen adres bekend: geen mail", confirmationRecipient("client", "", null) === null)
 
-// En het omgekeerde van de regel: bij geen enkele rol mag de KLANT mail krijgen
-// terwijl een admin indient.
-for (const submitter of [ADMIN, null, PARTNER, ""]) {
+// Het omgekeerde van de regel: bij een interne intake mag de uitkomst nooit het
+// adres van de klant zijn, met welk indieneradres dan ook.
+for (const submitter of [ADMIN, null, PARTNER, "", "  "]) {
   const uit = confirmationRecipient("admin", KLANT, submitter)
-  ok(`admin met indiener "${submitter ?? "null"}" bereikt de klant niet`, uit !== KLANT && uit === null, String(uit))
+  ok(`admin met indiener "${submitter ?? "null"}" bereikt de klant niet`, uit !== KLANT, String(uit))
 }
 
 console.log(fails === 0 ? "\nAlle tests geslaagd." : `\n${fails} test(s) gefaald.`)

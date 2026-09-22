@@ -569,23 +569,29 @@ export async function POST(req: NextRequest) {
   // Wie de bevestiging krijgt — en of die überhaupt uitgaat — staat in
   // confirmationRecipient. Bij een interne intake is dat niemand.
   const confirmationTo = confirmationRecipient(submittedByRole, email, userEmail)
-  const greetingName = isPartnerSubmission ? "relatie" : (naam || "relatie")
-  const intakeLine = isPartnerSubmission
-    ? `Wij hebben de financieringsaanvraag die u namens uw klant${naam ? ` (${naam})` : ""} heeft ingediend in goede orde ontvangen. Ons team beoordeelt de aanvraag en neemt zo spoedig mogelijk contact met u op.`
-    : "Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op."
+  // Partner en admin dienen allebei namens een klant in, dus krijgen allebei de
+  // "namens uw klant"-tekst. De klant zelf is nooit de ontvanger in die gevallen,
+  // dus mag zijn naam ook niet als aanhef verschijnen.
+  const isOnBehalfSubmission = isPartnerSubmission || isAdminSubmission
+  const greetingName = isAdminSubmission ? "collega" : isPartnerSubmission ? "relatie" : (naam || "relatie")
+  const intakeLine = isAdminSubmission
+    ? `De financieringsaanvraag die u${naam ? ` namens ${naam}` : ""} heeft ingevoerd is opgeslagen en staat klaar in het portaal.`
+    : isOnBehalfSubmission
+      ? `Wij hebben de financieringsaanvraag die u namens uw klant${naam ? ` (${naam})` : ""} heeft ingediend in goede orde ontvangen. Ons team beoordeelt de aanvraag en neemt zo spoedig mogelijk contact met u op.`
+      : "Wij hebben uw financieringsaanvraag in goede orde ontvangen. Ons team beoordeelt uw aanvraag en neemt zo spoedig mogelijk contact met u op."
 
   const confirmationHtml = `
     <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
       <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
-        ${emailHeader("Bedankt voor uw aanvraag")}
+        ${emailHeader(isAdminSubmission ? "Aanvraag ingevoerd" : "Bedankt voor uw aanvraag")}
         <div style="padding:36px 40px;">
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">Beste ${greetingName},</p>
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">
             ${intakeLine}
           </p>
-          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 32px;">
+          ${isAdminSubmission ? "" : `<p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 32px;">
             U kunt rekenen op een eerste reactie binnen twee werkdagen.
-          </p>
+          </p>`}
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0;">
             Met vriendelijke groet,<br>
             <strong style="color:#1E3A5F;">Lange &amp; Partners</strong>
@@ -649,7 +655,9 @@ export async function POST(req: NextRequest) {
             sendEmail({
               from: `Lange & Partners <${FROM_EMAIL}>`,
               to: confirmationTo,
-              subject: "Bedankt voor uw financieringsaanvraag",
+              subject: isAdminSubmission
+          ? `Aanvraag ingevoerd: ${naam || email}`
+          : "Bedankt voor uw financieringsaanvraag",
               html: confirmationHtml,
             }),
           ]),
