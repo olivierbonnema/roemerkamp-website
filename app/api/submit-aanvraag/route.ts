@@ -373,8 +373,12 @@ export async function POST(req: NextRequest) {
   let docRef: FirebaseFirestore.DocumentReference | null = null
   try {
     docRef = await adminDb.collection("aanvragen").add({
-      userId: userId ?? null,
-      userEmail: userEmail ?? email,
+      userId,
+      // Het accountadres van de indiener, nooit het ingevulde klantadres: dit
+      // veld bepaalt later ook waar berichten over deze aanvraag heen gaan
+      // (zie aanvragen/[id]/berichten). Terugvallen op de klant zou betekenen
+      // dat hij post krijgt over een aanvraag die hij niet heeft ingediend.
+      userEmail: userEmail ?? null,
       submittedByRole,
       partnerOrgId,
       status: "ingediend",
@@ -438,7 +442,7 @@ export async function POST(req: NextRequest) {
     await logActivity({
       action: "aanvraag_submitted",
       userId,
-      userEmail: userEmail || email,
+      userEmail: userEmail ?? "",
       targetId: docRef.id,
       targetType: "aanvraag",
       details: { naam: naam || "", bedrag: leningBedrag || "", role: submittedByRole },
