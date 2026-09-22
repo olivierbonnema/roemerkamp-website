@@ -23,16 +23,19 @@ ok("admin: leeg indieneradres valt niet terug op de klant",
 ok("klant krijgt zelf de bevestiging", confirmationRecipient("client", KLANT, null) === KLANT)
 ok("klant: ook als hij ingelogd was", confirmationRecipient("client", KLANT, KLANT) === KLANT)
 ok("partner krijgt hem, niet de klant", confirmationRecipient("partner", KLANT, PARTNER) === PARTNER)
-ok("partner zonder adres: terugval op de klant", confirmationRecipient("partner", KLANT, null) === KLANT)
+ok("partner zonder adres: géén mail, en zeker niet naar de klant",
+   confirmationRecipient("partner", KLANT, null) === null)
 
 // Randgeval: geen klantadres bekend.
 ok("geen adres bekend: geen mail", confirmationRecipient("client", "", null) === null)
 
 // Het omgekeerde van de regel: bij een interne intake mag de uitkomst nooit het
 // adres van de klant zijn, met welk indieneradres dan ook.
-for (const submitter of [ADMIN, null, PARTNER, "", "  "]) {
-  const uit = confirmationRecipient("admin", KLANT, submitter)
-  ok(`admin met indiener "${submitter ?? "null"}" bereikt de klant niet`, uit !== KLANT, String(uit))
+for (const rol of ["admin", "partner"] as const) {
+  for (const submitter of [ADMIN, null, PARTNER, "", "  "]) {
+    const uit = confirmationRecipient(rol, KLANT, submitter)
+    ok(`${rol} met indiener "${submitter ?? "null"}" bereikt de klant niet`, uit !== KLANT, String(uit))
+  }
 }
 
 console.log(fails === 0 ? "\nAlle tests geslaagd." : `\n${fails} test(s) gefaald.`)

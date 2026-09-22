@@ -123,26 +123,39 @@ export async function POST(req: NextRequest) {
   const get = (key: string) => (formData.get(key) as string) || ""
 
   // Verify auth token if provided and get userId
-  let userId: string | null = null
-  let userEmail: string | null = null
-  let submittedByRole: "client" | "partner" | "admin" = "client"
-  let partnerOrgId: string | null = null
+  // Het aanvraagformulier zit achter een login met 2FA, en alleen intermediairs
+  // en wijzelf hebben een account: klanten dienen niet zelf in. Een aanvraag
+  // zonder geldige sessie is daarom geen geldige aanvraag maar een verlopen
+  // token, en die moet stuklopen in plaats van stilletjes door te gaan.
+  //
+  // Doorgaan was schadelijk op twee manieren: de indiener werd niet vastgelegd
+  // (dus zag noch hij noch zijn kantoor de aanvraag terug), en de bevestiging
+  // ging naar het ingetypte KLANTadres — precies de mail die nooit mag uitgaan.
   const idToken = get("idToken")
-  if (idToken) {
-    try {
-      const decoded = await adminAuth.verifyIdToken(idToken)
-      userId = decoded.uid
-      userEmail = decoded.email ?? null
-      // Resolve via claim, falling back to the users doc, so a partner with a
-      // stale token still stamps their firm's org on the new aanvraag — otherwise
-      // colleagues wouldn't see it (see resolvePartnerOrg).
-      partnerOrgId = await resolvePartnerOrg(decoded)
-      if (partnerOrgId) submittedByRole = "partner"
-      // Admin wint van partner: wie namens ons indient is geen indienende partij.
-      if (isAdminEmail(userEmail)) submittedByRole = "admin"
-    } catch {
-      // Token invalid - still allow submission but won't be linked to a user
-    }
+  let decoded
+  try {
+    if (!idToken) throw new Error("geen sessie meegestuurd")
+    decoded = await adminAuth.verifyIdToken(idToken)
+  } catch (err) {
+    console.error("[submit-aanvraag] geweigerd, geen geldige sessie:", err)
+    return NextResponse.json(
+      { error: "Uw sessie is verlopen. Log opnieuw in en verstuur de aanvraag nogmaals; uw ingevulde gegevens blijven bewaard." },
+      { status: 401 }
+    )
+  }
+
+  const userId: string = decoded.uid
+  const userEmail: string | null = decoded.email ?? null
+  // Resolve via claim, falling back to the users doc, so a partner with a
+  // stale token still stamps their firm's org on the new aanvraag — otherwise
+  // colleagues wouldn't see it (see resolvePartnerOrg).
+  const partnerOrgId: string | null = await resolvePartnerOrg(decoded)
+  // Iedereen met een account die niet van ons is, is een intermediair.
+  const submittedByRole: "partner" | "admin" = isAdminEmail(userEmail) ? "admin" : "partner"
+  if (submittedByRole === "partner" && !partnerOrgId) {
+    // Geen organisatie betekent dat collega's de aanvraag niet zien; wel
+    // indienen, maar zichtbaar maken dat er iets ontbreekt in het account.
+    console.warn(`[submit-aanvraag] indiener ${userEmail} heeft geen partnerOrgId`)
   }
 
   const naam              = get("naam")
