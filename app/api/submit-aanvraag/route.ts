@@ -3,6 +3,8 @@ import { SITE_URL } from "@/lib/site"
 import { sendEmail } from "@/lib/brevo"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
+import { isAdminEmail } from "@/lib/admin"
+import { confirmationRecipient } from "@/lib/submission-recipients"
 import { DIRECT_UPLOAD_MAX_FILE_SIZE } from "@/lib/onedrive-direct"
 import { logActivity } from "@/lib/activity-log"
 
@@ -123,7 +125,7 @@ export async function POST(req: NextRequest) {
   // Verify auth token if provided and get userId
   let userId: string | null = null
   let userEmail: string | null = null
-  let submittedByRole: "client" | "partner" = "client"
+  let submittedByRole: "client" | "partner" | "admin" = "client"
   let partnerOrgId: string | null = null
   const idToken = get("idToken")
   if (idToken) {
@@ -136,6 +138,8 @@ export async function POST(req: NextRequest) {
       // colleagues wouldn't see it (see resolvePartnerOrg).
       partnerOrgId = await resolvePartnerOrg(decoded)
       if (partnerOrgId) submittedByRole = "partner"
+      // Admin wint van partner: wie namens ons indient is geen indienende partij.
+      if (isAdminEmail(userEmail)) submittedByRole = "admin"
     } catch {
       // Token invalid - still allow submission but won't be linked to a user
     }
@@ -559,9 +563,12 @@ export async function POST(req: NextRequest) {
     } catch {}
   }
   const isPartnerSubmission = submittedByRole === "partner"
+  const isAdminSubmission = submittedByRole === "admin"
   // Per Olivier (2026-06-04): when a partner submits, the confirmation goes to the
   // partner, not the borrower. Direct-client submissions are unchanged.
-  const confirmationTo = isPartnerSubmission && userEmail ? userEmail : email
+  // Wie de bevestiging krijgt — en of die überhaupt uitgaat — staat in
+  // confirmationRecipient. Bij een interne intake is dat niemand.
+  const confirmationTo = confirmationRecipient(submittedByRole, email, userEmail)
   const greetingName = isPartnerSubmission ? "relatie" : (naam || "relatie")
   const intakeLine = isPartnerSubmission
     ? `Wij hebben de financieringsaanvraag die u namens uw klant${naam ? ` (${naam})` : ""} heeft ingediend in goede orde ontvangen. Ons team beoordeelt de aanvraag en neemt zo spoedig mogelijk contact met u op.`
@@ -635,16 +642,23 @@ export async function POST(req: NextRequest) {
 
   try {
     await Promise.all([
-      sendEmail({
-        from: `Lange & Partners <${FROM_EMAIL}>`,
-        to: confirmationTo,
-        subject: "Bedankt voor uw financieringsaanvraag",
-        html: confirmationHtml,
-      }),
+      // Geen bevestiging bij een interne intake — zie hierboven.
+      ...(confirmationTo === null
+        ? []
+        : [
+            sendEmail({
+              from: `Lange & Partners <${FROM_EMAIL}>`,
+              to: confirmationTo,
+              subject: "Bedankt voor uw financieringsaanvraag",
+              html: confirmationHtml,
+            }),
+          ]),
       sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: COMPANY_EMAIL,
-        subject: `Nieuwe financieringsaanvraag: ${naam || email}`,
+        subject: isAdminSubmission
+          ? `Aanvraag intern ingevoerd: ${naam || email}`
+          : `Nieuwe financieringsaanvraag: ${naam || email}`,
         html: notificationHtml,
       }),
     ])

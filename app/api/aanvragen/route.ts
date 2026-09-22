@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
-
-function isAdminEmail(email: string) {
-  const domain = (process.env.ADMIN_DOMAIN || "").toLowerCase()
-  const emails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-    .toLowerCase().split(",").map(e => e.trim()).filter(Boolean)
-  const e = email.toLowerCase()
-  return (!!domain && e.endsWith(`@${domain}`)) || emails.includes(e)
-}
+import { isAdminEmail } from "@/lib/admin"
 
 // Fields a partner or client is allowed to see: only what the applicant
 // themselves submitted, plus the status we assign. Everything an admin adds
