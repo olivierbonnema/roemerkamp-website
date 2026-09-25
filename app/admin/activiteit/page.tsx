@@ -18,6 +18,7 @@ interface ActivityEntry {
 const ACTION_LABELS: Record<string, string> = {
   document_created: "Document aangemaakt",
   document_updated: "Document bijgewerkt",
+  document_duplicated: "Document gedupliceerd",
   document_deleted: "Document verwijderd",
   document_downloaded: "Document gedownload",
   status_changed: "Status gewijzigd",

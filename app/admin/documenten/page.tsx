@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
-import { FileText, Plus, Trash2, CheckCircle, Clock, XCircle } from "lucide-react"
+import { FileText, Plus, Trash2, CheckCircle, Clock, XCircle, Copy } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface Document {
   id: string
@@ -15,6 +16,7 @@ interface Document {
   updatedAt: string
   createdBy: string
   data?: Record<string, unknown>
+  duplicatedFrom?: string
 }
 
 type FilterType = "all" | "termsheet" | "pitch"
@@ -36,6 +38,8 @@ export default function DocumentenPage() {
   const [docs, setDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterType>("all")
+  const [duplicating, setDuplicating] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (!user) return
@@ -72,6 +76,31 @@ export default function DocumentenPage() {
       }
     } catch {
       // silent
+    }
+  }
+
+  // De kopie wordt op de server gemaakt vanuit het opgeslagen document, en direct
+  // geopend: wie dupliceert, wil de kopie bewerken, en zo werkt niemand per
+  // ongeluk verder in het origineel.
+  const handleDuplicate = async (id: string) => {
+    if (!user || duplicating) return
+    setDuplicating(id)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch(`/api/admin/documents/${id}/duplicate`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.id) {
+        alert(data.error || "Dupliceren mislukt.")
+        return
+      }
+      router.push(`/admin/documenten/${data.id}`)
+    } catch {
+      alert("Dupliceren mislukt.")
+    } finally {
+      setDuplicating(null)
     }
   }
 
@@ -177,7 +206,7 @@ export default function DocumentenPage() {
                 <th className="text-left px-5 py-3.5 font-medium text-gray-500 font-sans text-xs uppercase tracking-wide">Type</th>
                 <th className="text-left px-5 py-3.5 font-medium text-gray-500 font-sans text-xs uppercase tracking-wide">Status</th>
                 <th className="text-left px-5 py-3.5 font-medium text-gray-500 font-sans text-xs uppercase tracking-wide">Laatste wijziging</th>
-                <th className="w-10"></th>
+                <th className="w-20"></th>
               </tr>
             </thead>
             <tbody>
@@ -193,6 +222,11 @@ export default function DocumentenPage() {
                       <span className="font-medium text-gray-900 group-hover:text-[#1E3A5F] transition-colors">
                         {displayName(doc)}
                       </span>
+                      {doc.duplicatedFrom && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-gray-100 text-gray-500">
+                          kopie
+                        </span>
+                      )}
                     </Link>
                   </td>
                   <td className="px-5 py-3.5">
@@ -225,12 +259,27 @@ export default function DocumentenPage() {
                   </td>
                   <td className="px-5 py-3.5 text-gray-400 font-sans text-[13px]">{fmtDate(doc.updatedAt || doc.createdAt)}</td>
                   <td className="px-3 py-3.5">
-                    <button
-                      onClick={(e) => { e.preventDefault(); handleDelete(doc.id, displayName(doc)) }}
-                      className="p-1.5 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={(e) => { e.preventDefault(); handleDuplicate(doc.id) }}
+                        disabled={duplicating !== null}
+                        title="Dupliceren"
+                        aria-label={`${displayName(doc)} dupliceren`}
+                        className={`p-1.5 rounded-md text-gray-300 hover:text-[#1E3A5F] hover:bg-blue-50 transition-colors disabled:cursor-wait ${
+                          duplicating === doc.id ? "opacity-100 animate-pulse" : "opacity-0 group-hover:opacity-100"
+                        }`}
+                      >
+                        <Copy size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => { e.preventDefault(); handleDelete(doc.id, displayName(doc)) }}
+                        title="Verwijderen"
+                        aria-label={`${displayName(doc)} verwijderen`}
+                        className="p-1.5 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
