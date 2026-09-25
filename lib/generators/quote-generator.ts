@@ -6,6 +6,7 @@
 // Used by: components/admin/quote-dialog.tsx  ("Quote-mail" button on an aanvraag)
 
 import { fmtEuro, fmtEuro2dec } from "./docx-helpers"
+import { computeLtv } from "@/lib/generators/ltv"
 import { buildZekerhedenText, type ZekerheidObject } from "./zekerheden"
 
 export type QuotePartyType = "prive" | "bv"
@@ -172,8 +173,13 @@ function leningText(d: QuoteData): string {
   if (d.bouwdepot > 0) depots.push(`een bouwdepot van ${fmtEuro(d.bouwdepot)}`)
   if (depots.length) s += `, met daarin ${depots.join(" en ")}`
   if (d.objectWaarde > 0 && d.loanAmount > 0) {
-    const ltv = Math.round((d.loanAmount / d.objectWaarde) * 100)
-    s += `, uitgaande van een waarde van ${fmtEuro(d.objectWaarde)} en een LTV van circa ${ltv}%${d.objectAdres ? ` op ${d.objectAdres}` : ""}`
+    // Alle schuld op het onderpand telt, ook leningen met een hogere rang dan de
+    // onze — zie lib/generators/ltv.ts. Zelfde berekening als in de pitch.
+    const ltv = computeLtv(d.loanAmount, d.objectWaarde, d.objects || [])
+    const inclusief = ltv.voorgaand > 0
+      ? `, inclusief de voorgaande hypothecaire financiering van ${fmtEuro(ltv.voorgaand)},`
+      : ""
+    s += `, uitgaande van een waarde van ${fmtEuro(d.objectWaarde)} en een LTV${inclusief} van circa ${Math.round(ltv.pct!)}%${d.objectAdres ? ` op ${d.objectAdres}` : ""}`
   }
   s += "."
   if (d.rentedepot > 0) s += "\nOver het rentedepot wordt geen rente vergoed."

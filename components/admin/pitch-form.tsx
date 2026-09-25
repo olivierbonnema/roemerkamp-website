@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo, useCallback } from "react"
+import { computeLtv, fmtPct } from "@/lib/generators/ltv"
 import { fmtEuro } from "@/lib/generators/docx-helpers"
 import { PITCH_DEFAULTS as PD, buildErpText } from "@/lib/generators/form-defaults"
 import type { PitchData } from "@/lib/generators/pitch-generator"
@@ -476,8 +477,16 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             </div>
           </div>
           {(() => {
-            const pct = waardeBedrag > 0 && hoofdsom > 0 ? ((hoofdsom / waardeBedrag) * 100).toFixed(1).replace(".", ",") : null
-            return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">{pct ? `LTV: ${fmtEuro(hoofdsom)} / ${fmtEuro(waardeBedrag)} = circa ${pct}%` : "LTV: vul hoofdsom (Uitgangspunten) + waarde in"}</div>
+            // Zelfde berekening als in de gegenereerde pitch: alle schuld op het
+            // onderpand, dus ook leningen met een hogere rang dan de onze.
+            const ltv = computeLtv(hoofdsom, waardeBedrag, collateralObjects)
+            if (ltv.pct === null) {
+              return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">LTV: vul hoofdsom (Uitgangspunten) + waarde in</div>
+            }
+            const teller = ltv.voorgaand > 0
+              ? `(${fmtEuro(ltv.voorgaand)} voorgaand + ${fmtEuro(ltv.eigen)} onze lening)`
+              : fmtEuro(ltv.eigen)
+            return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">LTV: {teller} / {fmtEuro(ltv.waarde)} = circa {fmtPct(ltv.pct)}%</div>
           })()}
         </div>
       </PitchSection>

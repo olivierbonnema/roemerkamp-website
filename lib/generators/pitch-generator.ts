@@ -1,4 +1,5 @@
 import * as docx from "docx"
+import { computeLtv, fmtPct } from "@/lib/generators/ltv"
 import {
   MM,
   PAGE_W,
@@ -173,19 +174,26 @@ function tabLine(label: string, valueRuns: docx.ParagraphChild[]) {
 }
 
 // Loan-to-Value sentence from the chosen waarde-type + value (3 standard variants).
+// The LTV counts ALL debt on the collateral, including loans that rank ahead of
+// ours — see lib/generators/ltv.ts.
 function buildLtvText(data: PitchData): string {
   if (data.ltvText && data.ltvText.trim()) return data.ltvText
   const waarde = Number(data.waardeBedrag) || 0
   if (!waarde) return ""
-  const hoofdsom = Number(data.hoofdsom) || 0
-  const pct = hoofdsom > 0 ? ((hoofdsom / waarde) * 100).toFixed(1).replace(".", ",") : "0"
+  const ltv = computeLtv(Number(data.hoofdsom) || 0, waarde, data.collateralObjects || [])
+  const pct = ltv.pct !== null ? fmtPct(ltv.pct) : "0"
   const wt = data.waardeType || "woz"
   const lead =
     wt === "taxatie" ? "De waarde van het onderpand op basis van het taxatierapport"
     : wt === "geschat" ? "De geschatte waarde van het onderpand"
     : "De WOZ-waarde van het onderpand"
   const basis = wt === "taxatie" ? "taxatiewaarde" : wt === "geschat" ? "geschatte waarde" : "WOZ-waarde"
-  return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis} bedraagt circa ${pct}% en biedt daarmee ruim voldoende zekerheid voor de financiering.`
+  // Staat er al schuld vóór ons, dan moet de lezer zien dat die is meegeteld —
+  // anders leest een tweede-rangspositie als een eerste.
+  const inclusief = ltv.voorgaand > 0
+    ? `, inclusief de voorgaande hypothecaire financiering van ${fmtEuro(ltv.voorgaand)},`
+    : ""
+  return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis}${inclusief} bedraagt circa ${pct}% en biedt daarmee ruim voldoende zekerheid voor de financiering.`
 }
 
 // A numbered list item: a normal indented list INSIDE the text area (positive
