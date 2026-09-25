@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
-import { resolvePartnerOrg } from "@/lib/partners"
+import { resolveViewer, visibleOrgIds, type Viewer } from "@/lib/aanvraag-access"
 import { isAdminEmail } from "@/lib/admin"
 
 // Fields a partner or client is allowed to see: only what the applicant
@@ -36,40 +36,57 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  let uid: string
-  let email: string
-  let partnerOrg: string | null = null
+  let viewer: Viewer
   try {
     const decoded = await adminAuth.verifyIdToken(auth.slice(7))
-    uid = decoded.uid
-    email = decoded.email ?? ""
-    // Resolve via claim, falling back to the users doc so a stale token still
-    // gets the whole firm's deals (see resolvePartnerOrg).
-    partnerOrg = await resolvePartnerOrg(decoded)
+    viewer = await resolveViewer(decoded)
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    // Admin → all; partner → their whole firm's deals; client → only their own.
-    const admin = isAdminEmail(email)
-    let snap
+    // Admin → alles. Anderen → hun eigen aanvragen plus alles van de kantoren
+    // die ze mogen zien: het eigen kantoor, en bij een hoofdaccount ook de
+    // kantoren waarover het meekijkt. Zie lib/aanvraag-access.ts.
+    const admin = viewer.isAdmin
+    let docs: FirebaseFirestore.QueryDocumentSnapshot[]
     if (admin) {
-      snap = await adminDb.collection("aanvragen").get()
-    } else if (partnerOrg) {
-      snap = await adminDb.collection("aanvragen").where("partnerOrgId", "==", partnerOrg).get()
+      docs = (await adminDb.collection("aanvragen").get()).docs
     } else {
-      snap = await adminDb.collection("aanvragen").where("userId", "==", uid).get()
+      const orgIds = visibleOrgIds(viewer)
+      const [eigen, kantoren] = await Promise.all([
+        adminDb.collection("aanvragen").where("userId", "==", viewer.uid).get(),
+        // Firestore staat maximaal 30 waarden toe in een `in`-query; daarboven
+        // in blokken. Ruim voldoende, maar het mag niet stil afkappen.
+        Promise.all(
+          Array.from({ length: Math.ceil(orgIds.length / 30) }, (_, i) =>
+            adminDb.collection("aanvragen").where("partnerOrgId", "in", orgIds.slice(i * 30, i * 30 + 30)).get()
+          )
+        ),
+      ])
+      const byId = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>()
+      for (const d of [...eigen.docs, ...kantoren.flatMap((q) => q.docs)]) byId.set(d.id, d)
+      docs = [...byId.values()]
     }
 
-    const aanvragen = snap.docs
+    // Wie meerdere kantoren ziet, moet per aanvraag kunnen zien van welk kantoor
+    // hij komt — daar draait het voor een hoofdaccount juist om.
+    const orgNames = new Map<string, string>()
+    if (!admin) {
+      const ids = [...new Set(docs.map((d) => d.data().partnerOrgId).filter((x): x is string => typeof x === "string" && !!x))]
+      const snaps = await Promise.all(ids.map((id) => adminDb.collection("partnerOrganizations").doc(id).get()))
+      snaps.forEach((o) => { if (o.exists) orgNames.set(o.id, String(o.data()?.name ?? "")) })
+    }
+
+    const aanvragen = docs
       .map((doc) => {
         const data = doc.data()
         const createdAt = data.createdAt?.toDate?.()?.toISOString() ?? null
         // Non-admins (partners + clients) only ever receive applicant-submitted
         // fields — never the admin-only data (see pickApplicantView).
         if (!admin) {
-          return { id: doc.id, ...pickApplicantView(data), createdAt }
+          const kantoor = typeof data.partnerOrgId === "string" ? orgNames.get(data.partnerOrgId) : undefined
+          return { id: doc.id, ...pickApplicantView(data), ...(kantoor ? { kantoor } : {}), createdAt }
         }
         return {
           id: doc.id,

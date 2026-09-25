@@ -5,6 +5,7 @@ export type ActivityAction =
   | "document_created"
   | "document_updated"
   | "document_duplicated"
+  | "partner_supervision_updated"
   | "document_deleted"
   | "document_downloaded"
   | "status_changed"

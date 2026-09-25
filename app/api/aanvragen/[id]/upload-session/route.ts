@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
-import { resolvePartnerOrg } from "@/lib/partners"
+import { resolveViewer, canAccessAanvraag } from "@/lib/aanvraag-access"
 import {
   getMsToken, createOneDriveFolder, createUploadSession, sanitizeDriveName,
   countFolderDocuments, DIRECT_UPLOAD_MAX_FILE_SIZE, UPLOAD_ALLOWED_EXTENSIONS,
@@ -19,14 +19,7 @@ const MAX_DOCS_PER_AANVRAAG = 150
 // Vercel's ±4.5MB request-body cap entirely: our server never sees the bytes,
 // it only authorizes the session (auth + ownership + type/size validation).
 
-const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
-const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-  .toLowerCase().split(",").map(e => e.trim()).filter(Boolean)
 
-function isAdminEmail(email: string) {
-  const e = email.toLowerCase()
-  return (!!ADMIN_DOMAIN && e.endsWith(`@${ADMIN_DOMAIN}`)) || ADMIN_EMAILS.includes(e)
-}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authHeader = req.headers.get("authorization")
@@ -46,10 +39,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!aanvraag.exists) return NextResponse.json({ error: "Not found" }, { status: 404 })
   const data = aanvraag.data()!
 
-  // Owner, a colleague from the same partner firm, or an admin.
-  const partnerOrg = await resolvePartnerOrg(decoded)
-  const ownsAsPartner = !!partnerOrg && !!data.partnerOrgId && data.partnerOrgId === partnerOrg
-  if (data.userId !== decoded.uid && !ownsAsPartner && !isAdminEmail(decoded.email || "")) {
+  // Zie lib/aanvraag-access.ts: eigen aanvraag, eigen kantoor, meekijkend
+  // hoofdaccount, of admin.
+  if (!canAccessAanvraag(await resolveViewer(decoded), data)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

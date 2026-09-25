@@ -20,6 +20,10 @@ interface Aanvraag {
   looptijd: string
   driveFolderUrl?: string // admin-only; not sent to partners/clients by the API
   aantalBestanden: number
+  /** Naam van het kantoor dat hem indiende (door de API gezet voor niet-admins). */
+  kantoor?: string
+  /** Account van de indienende adviseur. */
+  userEmail?: string
 }
 
 interface Draft {
@@ -166,7 +170,7 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
   )
 }
 
-function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean; onDelete: () => void }) {
+function AanvraagCard({ a, isAdmin, onDelete, showHerkomst }: { a: Aanvraag; isAdmin: boolean; onDelete: () => void; showHerkomst?: boolean }) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -195,6 +199,15 @@ function AanvraagCard({ a, isAdmin, onDelete }: { a: Aanvraag; isAdmin: boolean;
         <div>
           <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "-"}</p>
           <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
+          {/* Bij een hoofdaccount dat meerdere kantoren overziet: van welk kantoor,
+              en welke adviseur. Bij één kantoor zou dit op elke regel hetzelfde zijn. */}
+          {showHerkomst && (a.kantoor || a.userEmail) && (
+            <p className="text-xs text-gray-500 font-sans mt-1">
+              {a.kantoor && <span className="font-medium text-[#311E86]">{a.kantoor}</span>}
+              {a.kantoor && a.userEmail && <span className="text-gray-300"> · </span>}
+              {a.userEmail && <span>ingediend door {a.userEmail}</span>}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <StatusBadge status={a.status} />
@@ -328,6 +341,10 @@ export function RequestsList() {
     })()
   }, [user])
 
+  // Meer dan één kantoor in beeld = een hoofdaccount. Dan tonen we per aanvraag
+  // het kantoor en de indiener; bij één kantoor zou dat op elke regel gelijk zijn.
+  const meerdereKantoren = new Set(aanvragen.map((a) => a.kantoor).filter(Boolean)).size > 1
+
   const discardDraft = (id: string) => {
     try {
       const all = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}")
@@ -425,6 +442,7 @@ export function RequestsList() {
             key={a.id}
             a={a}
             isAdmin={isAdmin}
+            showHerkomst={meerdereKantoren}
             onDelete={() => setAanvragen(prev => prev.filter(x => x.id !== a.id))}
           />
         ))}

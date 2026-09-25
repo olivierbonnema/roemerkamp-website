@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { SITE_URL } from "@/lib/site"
-import { resolvePartnerOrg } from "@/lib/partners"
+import { isAdminEmail } from "@/lib/admin"
+import { resolveViewer, canAccessAanvraag } from "@/lib/aanvraag-access"
 import { sendEmail } from "@/lib/brevo"
 import { logActivity } from "@/lib/activity-log"
 
-const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
-const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-  .toLowerCase().split(",").map(e => e.trim()).filter(Boolean)
 
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
 
-function isAdminEmail(email: string) {
-  const e = email.toLowerCase()
-  return (!!ADMIN_DOMAIN && e.endsWith(`@${ADMIN_DOMAIN}`)) || ADMIN_EMAILS.includes(e)
-}
 
 async function verifyAuth(req: NextRequest) {
   const auth = req.headers.get("authorization")
@@ -36,10 +30,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!aanvraag.exists) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const data = aanvraag.data()!
-  const isAdmin = isAdminEmail(decoded.email || "")
-  const partnerOrg = await resolvePartnerOrg(decoded)
-  const ownsAsPartner = !!partnerOrg && !!data.partnerOrgId && data.partnerOrgId === partnerOrg
-  if (!isAdmin && data.userId !== decoded.uid && !ownsAsPartner) {
+  const viewer = await resolveViewer(decoded)
+  const isAdmin = viewer.isAdmin
+  if (!canAccessAanvraag(viewer, data)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

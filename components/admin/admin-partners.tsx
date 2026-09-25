@@ -18,6 +18,8 @@ interface PartnerUser {
   displayName?: string
   role?: string
   partnerOrgId?: string
+  /** Hoofdaccount: kantoren waarover dit account meekijkt, naast het eigen kantoor. */
+  supervisesOrgIds?: string[]
 }
 
 interface ActivityEntry {
@@ -36,6 +38,7 @@ interface EmailEntry {
 }
 
 const ACTION_LABELS: Record<string, string> = {
+  partner_supervision_updated: "Meekijkrechten gewijzigd",
   login: "Ingelogd",
   aanvraag_submitted: "Aanvraag ingediend",
   document_uploaded: "Documenten geüpload",
@@ -101,6 +104,10 @@ export function AdminPartners() {
   const [detailActivity, setDetailActivity] = useState<ActivityEntry[]>([])
   const [detailEmails, setDetailEmails] = useState<EmailEntry[]>([])
   const [detailLoading, setDetailLoading] = useState(false)
+  // Hoofdaccount: over welke kantoren kijkt deze partner mee?
+  const [superviseSel, setSuperviseSel] = useState<Set<string>>(new Set())
+  const [savingSupervise, setSavingSupervise] = useState(false)
+  const [superviseMsg, setSuperviseMsg] = useState("")
 
   useEffect(() => { loadAll() }, [])
 
@@ -227,6 +234,8 @@ export function AdminPartners() {
 
   async function openDetail(p: PartnerUser) {
     setDetail(p)
+    setSuperviseSel(new Set(p.supervisesOrgIds || []))
+    setSuperviseMsg("")
     setDetailLoading(true)
     setDetailActivity([])
     setDetailEmails([])
@@ -243,6 +252,33 @@ export function AdminPartners() {
       /* ignore - the modal shows empty states */
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+  async function saveSupervision() {
+    if (!detail) return
+    setSavingSupervise(true)
+    setSuperviseMsg("")
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/supervision", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: detail.uid, orgIds: [...superviseSel] }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setSuperviseMsg(data.error || "Opslaan mislukt.")
+        return
+      }
+      const saved: string[] = data.supervisesOrgIds || []
+      setPartners((prev) => prev.map((x) => (x.uid === detail.uid ? { ...x, supervisesOrgIds: saved } : x)))
+      setDetail((d) => (d ? { ...d, supervisesOrgIds: saved } : d))
+      setSuperviseMsg(saved.length ? `Opgeslagen — meekijken bij ${saved.length} kanto${saved.length === 1 ? "or" : "ren"}.` : "Opgeslagen — geen hoofdaccount meer.")
+    } catch {
+      setSuperviseMsg("Opslaan mislukt.")
+    } finally {
+      setSavingSupervise(false)
     }
   }
 
@@ -375,11 +411,16 @@ export function AdminPartners() {
                       <div>
                         {p.displayName && <p className="text-sm font-medium text-gray-900 font-sans">{p.displayName}</p>}
                         <p className="text-sm text-gray-600 font-sans">{p.email}</p>
+                        {(p.supervisesOrgIds?.length ?? 0) > 0 && (
+                          <p className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/10 text-[#311E86]">
+                            Hoofdaccount · meekijken bij {p.supervisesOrgIds!.length} kanto{p.supervisesOrgIds!.length === 1 ? "or" : "ren"}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-4">
                         <button onClick={() => openDetail(p)}
                           className="text-xs text-[#311E86] hover:underline font-sans transition-colors">
-                          Activiteit
+                          Beheren
                         </button>
                         <button onClick={() => deletePartner(p.uid)} disabled={deletingUid === p.uid}
                           className="text-xs text-red-500 hover:text-red-700 font-sans transition-colors disabled:opacity-50">
@@ -408,6 +449,51 @@ export function AdminPartners() {
               <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" /></div>
             ) : (
               <div className="space-y-6">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-[#311E86] font-sans mb-1">Hoofdaccount</h4>
+                  <p className="text-[12px] text-gray-500 font-sans mb-3">
+                    Vink de kantoren aan waarvan dit account alle aanvragen mag zien en bewerken, naast die van het eigen kantoor.
+                    Nieuwe adviseurs van een aangevinkt kantoor vallen er automatisch onder.
+                  </p>
+                  {orgs.length === 0 ? (
+                    <p className="text-[13px] text-gray-400 font-sans">Nog geen kantoren.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {orgs.map((o) => {
+                        const eigen = o.id === detail.partnerOrgId
+                        return (
+                          <label key={o.id} className={`flex items-center gap-2 text-[13px] font-sans ${eigen ? "text-gray-400" : "text-gray-800 cursor-pointer"}`}>
+                            <input
+                              type="checkbox"
+                              disabled={eigen || savingSupervise}
+                              checked={eigen || superviseSel.has(o.id)}
+                              onChange={(e) => {
+                                setSuperviseMsg("")
+                                setSuperviseSel((prev) => {
+                                  const next = new Set(prev)
+                                  if (e.target.checked) next.add(o.id); else next.delete(o.id)
+                                  return next
+                                })
+                              }}
+                            />
+                            {o.name}{eigen && <span className="text-[11px]">(eigen kantoor — altijd zichtbaar)</span>}
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 mt-3">
+                    <button
+                      onClick={saveSupervision}
+                      disabled={savingSupervise}
+                      className="px-3 py-1.5 text-xs font-medium font-sans bg-[#311E86] text-white rounded-md hover:bg-[#26175e] transition-colors disabled:opacity-50"
+                    >
+                      {savingSupervise ? "Opslaan..." : "Opslaan"}
+                    </button>
+                    {superviseMsg && <span className="text-[12px] text-gray-600 font-sans">{superviseMsg}</span>}
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="text-sm font-semibold text-[#311E86] font-sans mb-2">Activiteit</h4>
                   {detailActivity.length === 0 ? (
