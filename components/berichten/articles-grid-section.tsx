@@ -15,6 +15,33 @@ interface DynamicPost {
 
 const hardcodedArticles = [
   {
+    id: "n1",
+    title: "Van aanvraag tot passering: zo verloopt een financiering",
+    excerpt:
+      "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben en waar de tijd in gaat zitten.",
+    image: "/images/kantoor-hal.jpg",
+    imageStyle: { objectPosition: "center 55%" },
+    slug: "zo-verloopt-een-financiering",
+  },
+  {
+    id: "n2",
+    title: "Tweede hypotheek: waarom de LTV anders is dan u denkt",
+    excerpt:
+      "Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór u in het Kadaster staat. Dezelfde lening blijkt 25% of 65%, afhankelijk van hoe u telt.",
+    image: "/images/nbl-herenhuis.jpg",
+    imageStyle: { objectPosition: "center 60%" },
+    slug: "tweede-hypotheek-en-ltv",
+  },
+  {
+    id: "n3",
+    title: "Overbruggingsfinanciering: het draait om de exit",
+    excerpt:
+      "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
+    image: "/images/nbl-villa.jpg",
+    imageStyle: { objectPosition: "center 40%" },
+    slug: "overbruggingsfinanciering-de-exit",
+  },
+  {
     id: "h1",
     title: "Hypotheek afgewezen door de bank? Dit zijn uw opties",
     excerpt:
@@ -103,6 +130,7 @@ export function ArticlesGridSection() {
                   src={article.image}
                   alt={article.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   style={article.imageStyle}
                 />

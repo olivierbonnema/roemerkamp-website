@@ -5,30 +5,30 @@ import { SectionHeading } from "@/components/section-heading"
 const articles = [
   {
     id: 1,
-    title: "Waarom wij denken in generaties, niet in kwartalen",
+    title: "Van aanvraag tot passering: zo verloopt een financiering",
     excerpt:
-      "Bij Lange & Partners geloven wij dat echt vermogensbeheer verder gaat dan rendement op de korte termijn. Wij vertellen u graag meer over onze lange termijn filosofie en hoe wij het vermogen van onze cliënten beschermen en laten groeien, met het oog op de toekomst.",
-    image: "/images/bericht-1-boom.jpg",
-    imageStyle: {},
-    slug: "waarom-wij-denken-in-generaties-niet-in-kwartalen",
+      "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben en waar de tijd in gaat zitten.",
+    image: "/images/kantoor-hal.jpg",
+    imageStyle: { objectPosition: "center 55%" },
+    slug: "zo-verloopt-een-financiering",
   },
   {
     id: 2,
-    title: "Non-bancaire leningen: een alternatief met perspectief",
+    title: "Tweede hypotheek: waarom de LTV anders is dan u denkt",
     excerpt:
-      "Wanneer traditionele banken geen financiering verstrekken, bieden non-bancaire leningen uitkomst. Via ons partnerbedrijf Lange Financieel Advies maken wij deze oplossingen toegankelijk voor cliënten die op zoek zijn naar stabiele maandelijkse inkomsten.",
-    image: "/images/bericht-2-brug.jpg",
-    imageStyle: { objectPosition: 'center 55%' },
-    slug: "non-bancaire-leningen-een-alternatief-met-perspectief",
+      "Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór u in het Kadaster staat. Dezelfde lening blijkt 25% of 65%, afhankelijk van hoe u telt.",
+    image: "/images/nbl-herenhuis.jpg",
+    imageStyle: { objectPosition: "center 60%" },
+    slug: "tweede-hypotheek-en-ltv",
   },
   {
     id: 3,
-    title: "Persoonlijk vermogensbeheer vanuit het hart van Haarlem",
+    title: "Overbruggingsfinanciering: het draait om de exit",
     excerpt:
-      "Vanuit ons kantoor aan de Wilhelminastraat in Haarlem bedienen wij een select aantal cliënten. Geen call center, geen wisselende contactpersonen, maar een vast team dat uw situatie, ambities en familie écht kent.",
-    image: "/images/bericht-3-haarlem.jpg",
-    imageStyle: { objectPosition: 'center 45%' },
-    slug: "persoonlijk-vermogensbeheer-vanuit-het-hart-van-haarlem",
+      "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
+    image: "/images/nbl-villa.jpg",
+    imageStyle: { objectPosition: "center 40%" },
+    slug: "overbruggingsfinanciering-de-exit",
   },
 ]
 
@@ -46,6 +46,7 @@ export function BerichtenHomeSection() {
                   src={article.image}
                   alt={article.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   style={article.imageStyle}
                 />
