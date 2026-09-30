@@ -8,8 +8,8 @@ const articles = [
     title: "Van aanvraag tot passering: zo verloopt een financiering",
     excerpt:
       "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben en waar de tijd in gaat zitten.",
-    image: "/images/kantoor-hal.jpg",
-    imageStyle: { objectPosition: "center 55%" },
+    image: "/images/bericht-3-haarlem.jpg",
+    imageStyle: { objectPosition: "center 45%" },
     slug: "zo-verloopt-een-financiering",
   },
   {
@@ -17,8 +17,8 @@ const articles = [
     title: "Tweede hypotheek: waarom de LTV anders is dan u denkt",
     excerpt:
       "Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór u in het Kadaster staat. Dezelfde lening blijkt 25% of 65%, afhankelijk van hoe u telt.",
-    image: "/images/nbl-herenhuis.jpg",
-    imageStyle: { objectPosition: "center 60%" },
+    image: "/images/bericht-1-boom.jpg",
+    imageStyle: { objectPosition: "center 55%" },
     slug: "tweede-hypotheek-en-ltv",
   },
   {
@@ -26,8 +26,8 @@ const articles = [
     title: "Overbruggingsfinanciering: het draait om de exit",
     excerpt:
       "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
-    image: "/images/nbl-villa.jpg",
-    imageStyle: { objectPosition: "center 40%" },
+    image: "/images/bericht-2-brug.jpg",
+    imageStyle: { objectPosition: "center 55%" },
     slug: "overbruggingsfinanciering-de-exit",
   },
 ]

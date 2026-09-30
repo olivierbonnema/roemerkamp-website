@@ -19,8 +19,8 @@ const hardcodedArticles = [
     title: "Van aanvraag tot passering: zo verloopt een financiering",
     excerpt:
       "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben en waar de tijd in gaat zitten.",
-    image: "/images/kantoor-hal.jpg",
-    imageStyle: { objectPosition: "center 55%" },
+    image: "/images/bericht-3-haarlem.jpg",
+    imageStyle: { objectPosition: "center 45%" },
     slug: "zo-verloopt-een-financiering",
   },
   {
@@ -28,8 +28,8 @@ const hardcodedArticles = [
     title: "Tweede hypotheek: waarom de LTV anders is dan u denkt",
     excerpt:
       "Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór u in het Kadaster staat. Dezelfde lening blijkt 25% of 65%, afhankelijk van hoe u telt.",
-    image: "/images/nbl-herenhuis.jpg",
-    imageStyle: { objectPosition: "center 60%" },
+    image: "/images/bericht-1-boom.jpg",
+    imageStyle: { objectPosition: "center 55%" },
     slug: "tweede-hypotheek-en-ltv",
   },
   {
@@ -37,36 +37,9 @@ const hardcodedArticles = [
     title: "Overbruggingsfinanciering: het draait om de exit",
     excerpt:
       "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
-    image: "/images/nbl-villa.jpg",
-    imageStyle: { objectPosition: "center 40%" },
-    slug: "overbruggingsfinanciering-de-exit",
-  },
-  {
-    id: "h1",
-    title: "Hypotheek afgewezen door de bank? Dit zijn uw opties",
-    excerpt:
-      "Een afwijzing is vervelend, maar het is geen eindstation. Ontdek waarom banken afwijzen en welke alternatieven er zijn wanneer u beschikt over vastgoed met overwaarde.",
-    image: "/images/bericht-1-boom.jpg",
-    imageStyle: {},
-    slug: "hypotheek-afgewezen-wat-nu",
-  },
-  {
-    id: "h2",
-    title: "Wat is non-bancaire financiering?",
-    excerpt:
-      "Steeds meer ondernemers komen in aanraking met non-bancaire financiering. Maar wat houdt het precies in? Lees hoe het werkt, welke vormen er zijn en hoe de zekerheden zijn geregeld.",
     image: "/images/bericht-2-brug.jpg",
     imageStyle: { objectPosition: "center 55%" },
-    slug: "wat-is-non-bancaire-financiering",
-  },
-  {
-    id: "h3",
-    title: "Wat kost een non-bancaire hypotheek?",
-    excerpt:
-      "De kosten van een non-bancaire hypotheek zijn anders opgebouwd dan bij een bank. Een transparant overzicht van rentetarieven, afsluitkosten en voorwaarden.",
-    image: "/images/bericht-3-haarlem.jpg",
-    imageStyle: { objectPosition: "center 45%" },
-    slug: "kosten-non-bancaire-hypotheek",
+    slug: "overbruggingsfinanciering-de-exit",
   },
 ]
 

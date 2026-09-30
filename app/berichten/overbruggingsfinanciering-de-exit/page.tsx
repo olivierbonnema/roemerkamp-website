@@ -66,7 +66,7 @@ export default function OverbruggingDeExitPage() {
           datumTekst="30 september 2026"
         />
 
-        <TekstMetFoto kop="Twee manieren waarop een overbrugging eindigt" foto="/images/nbl-villa.jpg" alt="Vrijstaande villa met rieten kap" fotoPositie="center 40%">
+        <TekstMetFoto kop="Twee manieren waarop een overbrugging eindigt" foto="/images/bericht-2-brug.jpg" alt="Brug over een Amsterdamse gracht" fotoPositie="center 58%">
           <P>
             Een overbrugging is een lening met een houdbaarheidsdatum. Er is een moment in de toekomst waarop er geld
             binnenkomt waarmee hij wordt afgelost, en de hele beoordeling draait om de vraag hoe zeker dat moment is.

@@ -67,7 +67,7 @@ export default function ZoVerlooptEenFinancieringPage() {
           datumTekst="30 september 2026"
         />
 
-        <TekstMetFoto kop="Wij zijn geen bank, en dat bepaalt het proces" foto="/images/kantoor-hal.jpg" alt="De hal van het kantoor van Lange & Partners in Haarlem" fotoPositie="center 55%" fotoLinks>
+        <TekstMetFoto kop="Wij zijn geen bank, en dat bepaalt het proces" foto="/images/bericht-3-haarlem.jpg" alt="De Grote Markt in Haarlem" fotoPositie="center 40%" fotoLinks>
           <P>
             Een bank leent spaargeld uit en beslist zelf. Wij werken anders. Elke financiering die via Lange &amp;
             Partners loopt, wordt betaald door een of meer private investeerders die wij aan de aanvraag koppelen. Het

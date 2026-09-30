@@ -66,7 +66,7 @@ export default function TweedeHypotheekEnLtvPage() {
           datumTekst="30 september 2026"
         />
 
-        <TekstMetFoto kop="Wat 'tweede' eigenlijk betekent" foto="/images/nbl-herenhuis.jpg" alt="Herenhuizen aan een Amsterdamse straat" fotoPositie="center 60%">
+        <TekstMetFoto kop="Wat 'tweede' eigenlijk betekent" foto="/images/bericht-1-boom.jpg" alt="Solitaire boom in een weiland" fotoPositie="center 55%">
           <P>
             Hypotheken worden ingeschreven bij het Kadaster, in de volgorde waarin ze zijn gevestigd. Wie het eerst
             inschrijft, staat eerste in rang. Die volgorde is geen formaliteit: bij een gedwongen verkoop wordt de
