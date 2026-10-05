@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Download, CheckCircle, RotateCcw, ExternalLink, Plus } from "lucide-react"
+import { Download, CheckCircle, RotateCcw, ExternalLink, Plus, FilePlus } from "lucide-react"
 import BlankInvoiceDialog from "@/components/admin/blank-invoice-dialog"
+import InvoiceDialog from "@/components/admin/invoice-dialog"
 import { auth } from "@/lib/firebase"
 import { INVOICE_STATUS_LABELS, INVOICE_TYPE_LABELS, type InvoiceRecord, type InvoiceStatus, type InvoiceType } from "@/lib/invoices"
 import { deliverInvoice } from "@/lib/invoices-client"
@@ -32,6 +33,7 @@ export function AdminFacturen() {
   const [statusFilter, setStatusFilter] = useState<"alle" | InvoiceStatus>("alle")
   const [zoek, setZoek] = useState("")
   const [blanco, setBlanco] = useState(false)
+  const [vervolgVoor, setVervolgVoor] = useState<string | null>(null) // termsheetId waarvoor de behandelingskosten worden gefactureerd
 
   useEffect(() => {
     (async () => {
@@ -60,6 +62,13 @@ export function AdminFacturen() {
   }, [rows, typeFilter, statusFilter, zoek])
 
   const byId = useMemo(() => new Map(rows.map((r) => [r.id, r])), [rows])
+
+  // Termsheets waarvoor de behandelingskosten al (niet-gecrediteerd) zijn gefactureerd.
+  const behandelingGedaan = useMemo(
+    () => new Set(rows.filter((r) => r.type === "behandeling" && r.status !== "gecrediteerd" && r.termsheetId).map((r) => r.termsheetId as string)),
+    [rows]
+  )
+  const kanBehandeling = (r: InvoiceRecord) => r.type === "opstart" && r.status !== "gecrediteerd" && !!r.termsheetId && !behandelingGedaan.has(r.termsheetId)
 
   async function download(r: InvoiceRecord) {
     setBusyId(r.id); setMelding("")
@@ -129,6 +138,16 @@ export function AdminFacturen() {
       </div>
 
       <BlankInvoiceDialog open={blanco} onClose={() => setBlanco(false)} settings={settings} onCreated={(r) => setRows((prev) => [r, ...prev])} />
+      {vervolgVoor && (
+        <InvoiceDialog
+          open
+          onClose={() => setVervolgVoor(null)}
+          termsheetId={vervolgVoor}
+          initialSoort="behandeling"
+          settings={settings}
+          onCreated={(r) => setRows((prev) => [r, ...prev])}
+        />
+      )}
 
       {melding && <p className="text-sm text-gray-700 font-sans bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">{melding}</p>}
 
@@ -179,6 +198,9 @@ export function AdminFacturen() {
                     <td className="px-3 py-3.5">
                       <div className="flex items-center gap-0.5 justify-end">
                         <button onClick={() => download(r)} disabled={busyId !== null} title="Download Word-bestand" className="p-1.5 rounded-md text-gray-400 hover:text-[#1E3A5F] hover:bg-blue-50 disabled:opacity-40"><Download size={14} /></button>
+                        {kanBehandeling(r) && (
+                          <button onClick={() => setVervolgVoor(r.termsheetId)} disabled={busyId !== null} title="Resterende behandelingskosten factureren" className="p-1.5 rounded-md text-gray-400 hover:text-[#1E3A5F] hover:bg-blue-50 disabled:opacity-40"><FilePlus size={14} /></button>
+                        )}
                         {r.type !== "credit" && r.status === "opgesteld" && (
                           <button onClick={() => betaald(r)} disabled={busyId !== null} title="Markeren als betaald" className="p-1.5 rounded-md text-gray-400 hover:text-green-700 hover:bg-green-50 disabled:opacity-40"><CheckCircle size={14} /></button>
                         )}

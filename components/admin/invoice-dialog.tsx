@@ -18,21 +18,31 @@ type Soort = "opstart" | "behandeling"
 // hier gekozen: het register kent het toe op het moment van opstellen, zodat
 // het nooit dubbel kan zijn. Het bedrag staat vooringevuld uit de termsheet en
 // mag worden aangepast.
+//
+// Twee plekken gebruiken deze dialoog: de termsheetpagina (geeft de live
+// gegevens mee via `getData`) en de tab Facturen (geeft alleen het id; de
+// termsheet wordt dan opgehaald, bijvoorbeeld om na de opstartkosten de
+// resterende behandelingskosten te factureren).
 export default function InvoiceDialog({
   open,
   onClose,
   termsheetId,
   getData,
   settings,
+  initialSoort = "opstart",
+  onCreated,
 }: {
   open: boolean
   onClose: () => void
   termsheetId: string
-  getData: () => TermsheetData | undefined
+  getData?: () => TermsheetData | undefined
   settings: Record<string, string>
+  initialSoort?: Soort
+  onCreated?: (r: InvoiceRecord) => void
 }) {
   const [snap, setSnap] = useState<TermsheetForInvoice | null>(null)
-  const [soort, setSoort] = useState<Soort>("opstart")
+  const [laden, setLaden] = useState(false)
+  const [soort, setSoort] = useState<Soort>(initialSoort)
   const [date, setDate] = useState(todayIso())
   const [bedrag, setBedrag] = useState<number>(0)
   const [busy, setBusy] = useState(false)
@@ -42,12 +52,34 @@ export default function InvoiceDialog({
   // behind the overlay, so it cannot change while open).
   useEffect(() => {
     if (!open) return
-    const d = (getData() || null) as TermsheetForInvoice | null
-    setSnap(d)
-    setSoort("opstart")
-    setBedrag(d ? defaultAmount("opstart", d) : 0)
+    setSoort(initialSoort)
     setDate(todayIso())
     setKlaar(null)
+    if (getData) {
+      const d = (getData() || null) as TermsheetForInvoice | null
+      setSnap(d)
+      setBedrag(d ? defaultAmount(initialSoort, d) : 0)
+      return
+    }
+    // Geen live gegevens: termsheet ophalen uit de opslag.
+    let actief = true
+    setSnap(null); setLaden(true)
+    ;(async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken()
+        const res = await fetch(`/api/admin/documents/${termsheetId}`, { headers: { Authorization: `Bearer ${token}` } })
+        const data = await res.json().catch(() => ({}))
+        const d = res.ok && data.document?.type === "termsheet" ? ((data.document.data || null) as TermsheetForInvoice | null) : null
+        if (!actief) return
+        setSnap(d)
+        setBedrag(d ? defaultAmount(initialSoort, d) : 0)
+      } catch {
+        if (actief) setSnap(null)
+      } finally {
+        if (actief) setLaden(false)
+      }
+    })()
+    return () => { actief = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
@@ -78,6 +110,7 @@ export default function InvoiceDialog({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.invoice) { alert(data.error || "Factuur opstellen mislukt."); return }
+      onCreated?.(data.invoice)
       const archief = await deliverInvoice(data.invoice, settings, token || "")
       setKlaar({ record: data.invoice, archief: archief.message })
     } catch (err) {
@@ -96,7 +129,7 @@ export default function InvoiceDialog({
           <h2 className="font-serif text-xl text-[#1E3A5F]">Factuur opstellen</h2>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
         </div>
-        <p className="text-sm text-gray-400 font-sans mb-5">{naam ? `Voor ${naam}` : "Vul eerst een geldnemer in op de termsheet"}</p>
+        <p className="text-sm text-gray-400 font-sans mb-5">{laden ? "Termsheet ophalen…" : naam ? `Voor ${naam}` : "Vul eerst een geldnemer in op de termsheet"}</p>
 
         {klaar ? (
           <div className="space-y-4">
@@ -153,7 +186,7 @@ export default function InvoiceDialog({
               <button onClick={onClose} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Annuleren</button>
               <button
                 onClick={opstellen}
-                disabled={busy || !naam}
+                disabled={busy || laden || !naam}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#1E3A5F] text-white rounded-lg text-sm font-medium hover:bg-[#2a4d7a] disabled:opacity-50 transition-colors"
               >
                 <FileText size={14} />
