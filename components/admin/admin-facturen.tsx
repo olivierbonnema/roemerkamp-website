@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Download, CheckCircle, RotateCcw, ExternalLink } from "lucide-react"
+import { Download, CheckCircle, RotateCcw, ExternalLink, Plus } from "lucide-react"
+import BlankInvoiceDialog from "@/components/admin/blank-invoice-dialog"
 import { auth } from "@/lib/firebase"
 import { INVOICE_STATUS_LABELS, INVOICE_TYPE_LABELS, type InvoiceRecord, type InvoiceStatus, type InvoiceType } from "@/lib/invoices"
 import { deliverInvoice } from "@/lib/invoices-client"
@@ -30,6 +31,7 @@ export function AdminFacturen() {
   const [typeFilter, setTypeFilter] = useState<"alle" | InvoiceType>("alle")
   const [statusFilter, setStatusFilter] = useState<"alle" | InvoiceStatus>("alle")
   const [zoek, setZoek] = useState("")
+  const [blanco, setBlanco] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -121,13 +123,18 @@ export function AdminFacturen() {
         <p className="text-sm text-gray-500 font-sans ml-auto">
           {open.length} openstaand · {fmtEuro(openstaand)}
         </p>
+        <button onClick={() => setBlanco(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg text-sm font-medium hover:bg-[#2a4d7a] transition-colors">
+          <Plus size={14} />Blanco factuur
+        </button>
       </div>
+
+      <BlankInvoiceDialog open={blanco} onClose={() => setBlanco(false)} settings={settings} onCreated={(r) => setRows((prev) => [r, ...prev])} />
 
       {melding && <p className="text-sm text-gray-700 font-sans bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">{melding}</p>}
 
       {rows.length === 0 ? (
         <p className="text-gray-400 font-sans text-sm py-8">
-          Nog geen facturen. Een factuur stelt u op vanuit een termsheet (Documenten → termsheet → Factuur).
+          Nog geen facturen. Een factuur stelt u op vanuit een termsheet (Documenten → termsheet → Factuur) of blanco via de knop hierboven.
         </p>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">

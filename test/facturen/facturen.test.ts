@@ -117,10 +117,26 @@ async function main() {
   ok("creditnota niet als betaald te zetten", (await patch(c.credit.id, { status: "betaald" })).status === 400)
   ok("creditnota-bestandsnaam", invoiceFileName(c.credit).startsWith("Creditnota 2026-393 van der Meer"))
 
+  // --- blanco factuur ---
+  const b1 = await (await post({ type: "vrij", date: "2026-10-05", client: { name: "Voorbeeld Holding B.V.", attention: "t.a.v. mevrouw A. de Vries", address: "Plein 2", postalCode: "3011 AA", city: "Rotterdam" }, lines: [{ description: "Advieskosten", amount: 1500 }, { description: "Taxatie doorbelast", amount: 650 }] })).json()
+  ok("blanco factuur krijgt volgend nummer", b1.invoice?.number === "2026-394 de Vries", b1.invoice?.number || JSON.stringify(b1))
+  ok("blanco: bedrag is som van de regels", b1.invoice?.amount === 2150 && b1.invoice?.lines?.length === 2)
+  ok("blanco: geen termsheet of aanvraag", b1.invoice?.termsheetId === null && b1.invoice?.aanvraagId === null)
+  ok("blanco: klantblok overgenomen", b1.invoice?.client?.city === "Rotterdam" && b1.invoice?.client?.attention === "t.a.v. mevrouw A. de Vries")
+  ok("blanco: bestandsnaam", invoiceFileName(b1.invoice) === "Factuur 2026-394 de Vries - Voorbeeld Holding B.V..docx", invoiceFileName(b1.invoice))
+  const b2 = await (await post({ type: "vrij", date: "2026-10-05", client: { name: "Kees Bakker" }, lines: [{ description: "Advies", amount: 100 }] })).json()
+  ok("blanco persoon: achternaam uit de klantnaam", b2.invoice?.number === "2026-395 Bakker", b2.invoice?.number)
+  ok("blanco zonder naam geweigerd", (await post({ type: "vrij", client: { name: " " }, lines: [{ description: "x", amount: 1 }] })).status === 400)
+  ok("blanco zonder regels geweigerd", (await post({ type: "vrij", client: { name: "Test" }, lines: [] })).status === 400)
+  ok("blanco met lege omschrijving geweigerd", (await post({ type: "vrij", client: { name: "Test" }, lines: [{ description: "", amount: 10 }] })).status === 400)
+  ok("blanco met totaal nul of negatief geweigerd", (await post({ type: "vrij", client: { name: "Test" }, lines: [{ description: "a", amount: 10 }, { description: "b", amount: -10 }] })).status === 400)
+  const bc = await (await credit(b1.invoice.id)).json()
+  ok("blanco factuur is te crediteren", bc.credit?.amount === -2150 && bc.credit?.number === "2026-396 de Vries", bc.credit?.number)
+
   // --- lijst ---
   const l = await (await lijst(new Request("http://x", { headers: H }) as never)).json()
-  ok("lijst bevat alle zes", l.invoices?.length === 6, String(l.invoices?.length))
-  ok("activiteitenlog gevuld", [...col("activity_log").values()].filter((a) => String(a.action).startsWith("invoice_")).length === 7)
+  ok("lijst bevat alle negen", l.invoices?.length === 9, String(l.invoices?.length))
+  ok("activiteitenlog gevuld", [...col("activity_log").values()].filter((a) => String(a.action).startsWith("invoice_")).length === 10)
 
   console.log(fails === 0 ? "\nAlle tests geslaagd." : `\n${fails} test(s) gefaald.`)
   process.exit(fails === 0 ? 0 : 1)

@@ -4,7 +4,8 @@
 
 import { getLastName } from "@/lib/generators/names"
 
-export type InvoiceType = "opstart" | "behandeling" | "credit"
+// "vrij": blanco opgesteld — klant en regels met de hand ingevuld, zonder termsheet.
+export type InvoiceType = "opstart" | "behandeling" | "vrij" | "credit"
 export type InvoiceStatus = "opgesteld" | "betaald" | "gecrediteerd"
 
 export interface InvoiceLine {
@@ -49,6 +50,7 @@ export interface InvoiceRecord {
 export const INVOICE_TYPE_LABELS: Record<InvoiceType, string> = {
   opstart: "Opstartkosten",
   behandeling: "Resterende behandelingskosten",
+  vrij: "Vrije factuur",
   credit: "Creditnota",
 }
 
@@ -117,7 +119,7 @@ export function surnameFromTermsheet(t: TermsheetForInvoice): string {
  *   opstartkosten in rekening is gebracht. Nooit onder nul: als de opstart
  *   hoger was dan de afsluitkosten, is er niets meer te factureren.
  */
-export function defaultAmount(type: Exclude<InvoiceType, "credit">, t: TermsheetForInvoice): number {
+export function defaultAmount(type: "opstart" | "behandeling", t: TermsheetForInvoice): number {
   const opstart = Number(t.entreekosten?.opstart) || 0
   const afsluit = Number(t.entreekosten?.afsluit) || 0
   if (type === "opstart") return opstart
@@ -132,7 +134,36 @@ export function linesFor(type: InvoiceType, amount: number, creditOfNumber?: str
 
 /** Bestandsnaam voor het Word-bestand, in het dossier én bij downloaden. */
 export function invoiceFileName(r: Pick<InvoiceRecord, "type" | "number" | "clientName">): string {
-  const soort = r.type === "credit" ? "Creditnota" : r.type === "behandeling" ? "Factuur behandelingskosten" : "Factuur opstartkosten"
+  const soort =
+    r.type === "credit" ? "Creditnota"
+    : r.type === "behandeling" ? "Factuur behandelingskosten"
+    : r.type === "vrij" ? "Factuur"
+    : "Factuur opstartkosten"
   const veilig = (s: string) => s.replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim()
   return `${soort} ${veilig(r.number)}${r.clientName ? " - " + veilig(r.clientName) : ""}.docx`
+}
+
+/**
+ * Achternaam voor het nummer van een blanco factuur. Bij een "t.a.v." (B.V.)
+ * de achternaam van die persoon, net als bij een termsheet; anders die van de
+ * klantnaam zelf.
+ */
+export function surnameFromClient(c: Pick<InvoiceClient, "name" | "attention">): string {
+  const att = (c.attention || "").replace(/^\s*t\.a\.v\.?\s*/i, "").replace(/^(de heer|mevrouw|dhr\.?|mevr\.?|mw\.?)\s+/i, "").trim()
+  return getLastName(att || c.name || "")
+}
+
+/** Controleert een blanco ingevulde factuur; geeft de fout terug of null als het klopt. */
+export function validateFreeInvoice(input: { client?: Partial<InvoiceClient>; lines?: Partial<InvoiceLine>[] }): string | null {
+  const name = (input.client?.name || "").trim()
+  if (!name) return "Vul de naam van de klant in."
+  const lines = input.lines || []
+  if (!lines.length) return "Voeg ten minste één factuurregel toe."
+  for (const l of lines) {
+    if (!(l.description || "").trim()) return "Elke regel heeft een omschrijving nodig."
+    if (typeof l.amount !== "number" || !Number.isFinite(l.amount) || l.amount === 0) return "Elke regel heeft een bedrag nodig (niet nul)."
+  }
+  const totaal = lines.reduce((s, l) => s + (l.amount as number), 0)
+  if (!(totaal > 0)) return "Het totaalbedrag moet groter zijn dan nul."
+  return null
 }

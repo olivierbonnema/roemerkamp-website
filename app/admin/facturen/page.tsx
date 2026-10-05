@@ -8,7 +8,7 @@ export default function FacturenPage() {
       <div className="mb-6">
         <h1 className="font-serif text-2xl text-[#1E3A5F]">Facturen</h1>
         <p className="text-sm text-gray-400 font-sans mt-1">
-          Alle opgestelde facturen en creditnota's. Opstellen gebeurt vanuit een termsheet.
+          Alle opgestelde facturen en creditnota's. Opstellen gebeurt vanuit een termsheet, of blanco.
         </p>
       </div>
       <AdminFacturen />
