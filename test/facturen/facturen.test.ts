@@ -19,7 +19,9 @@ async function main() {
     id,
     get: async () => ({ exists: col(n).has(id), data: () => col(n).get(id) }),
     set: async (v: Doc, o?: { merge?: boolean }) => { col(n).set(id, o?.merge ? { ...(col(n).get(id) || {}), ...v } : v) },
+    delete: async () => { col(n).delete(id) },
   })
+  type Ref = ReturnType<typeof docRef>
   ;(fb.adminDb as unknown as { collection: unknown }).collection = (n: string) => ({
     doc: (id?: string) => docRef(n, id || `auto${++autoId}`),
     orderBy: () => ({ get: async () => ({ docs: [...col(n).values()].map((d) => ({ data: () => d })) }) }),
@@ -28,8 +30,9 @@ async function main() {
   ;(fb.adminDb as unknown as { runTransaction: unknown }).runTransaction = async (fn: (tx: unknown) => Promise<unknown>) => {
     const writes: (() => void)[] = []
     const tx = {
-      get: async (ref: { get: () => Promise<unknown> }) => ref.get(),
-      set: (ref: { set: (v: Doc, o?: { merge?: boolean }) => Promise<void> }, v: Doc, o?: { merge?: boolean }) => { writes.push(() => { ref.set(v, o) }) },
+      get: async (ref: Ref) => ({ ...(await ref.get()), ref }),
+      set: (ref: Ref, v: Doc, o?: { merge?: boolean }) => { writes.push(() => { ref.set(v, o) }) },
+      delete: (ref: Ref) => { writes.push(() => { ref.delete() }) },
     }
     const out = await fn(tx)
     writes.forEach((w) => w())
@@ -41,13 +44,14 @@ async function main() {
   }
 
   const { POST: maak, GET: lijst } = await import("../../app/api/admin/invoices/route")
-  const { PATCH: status } = await import("../../app/api/admin/invoices/[id]/route")
+  const { PATCH: status, DELETE: verwijder } = await import("../../app/api/admin/invoices/[id]/route")
   const { POST: crediteer } = await import("../../app/api/admin/invoices/[id]/credit/route")
   const { defaultAmount, formatInvoiceNumber, invoiceFileName } = await import("../../lib/invoices")
 
   const H = { Authorization: "Bearer admin", "Content-Type": "application/json" }
   const post = (body: unknown) => maak(new Request("http://x/api/admin/invoices", { method: "POST", headers: H, body: JSON.stringify(body) }) as never)
   const patch = (id: string, body: unknown) => status(new Request("http://x", { method: "PATCH", headers: H, body: JSON.stringify(body) }) as never, { params: Promise.resolve({ id }) })
+  const del = (id: string) => verwijder(new Request("http://x", { method: "DELETE", headers: H }) as never, { params: Promise.resolve({ id }) })
   const credit = (id: string) => crediteer(new Request("http://x", { method: "POST", headers: H }) as never, { params: Promise.resolve({ id }) })
 
   let fails = 0
@@ -133,10 +137,24 @@ async function main() {
   const bc = await (await credit(b1.invoice.id)).json()
   ok("blanco factuur is te crediteren", bc.credit?.amount === -2150 && bc.credit?.number === "2026-396 de Vries", bc.credit?.number)
 
+  // --- verwijderen ---
+  ok("betaalde factuur niet te verwijderen", (await del(r1.invoice.id)).status === 400)
+  ok("gecrediteerde factuur niet te verwijderen", (await del(r2.invoice.id)).status === 400)
+  const dc = await (await del(c.credit.id)).json()
+  ok("creditnota verwijderen herstelt het origineel", dc.deleted === true && dc.restored?.id === r2.invoice.id && col("invoices").get(r2.invoice.id)?.status === "opgesteld")
+  ok("creditnota echt weg", !col("invoices").has(c.credit.id))
+  ok("creditnota was niet het laatste nummer: gat blijft", dc.numberReleased === false)
+  const dl = await (await del(bc.credit.id)).json()
+  ok("laatste nummer verwijderen geeft het nummer vrij", dl.numberReleased === true, JSON.stringify(dl))
+  const na = await (await post({ type: "vrij", date: "2026-10-05", client: { name: "Kees Bakker" }, lines: [{ description: "Advies", amount: 100 }] })).json()
+  ok("vrijgegeven nummer wordt hergebruikt", na.invoice?.number === "2026-396 Bakker", na.invoice?.number)
+  ok("onbekende factuur verwijderen: 404", (await del("bestaat-niet")).status === 404)
+  ok("verwijderen zonder inlog", (await verwijder(new Request("http://x", { method: "DELETE" }) as never, { params: Promise.resolve({ id: r1.invoice.id }) })).status === 401)
+
   // --- lijst ---
   const l = await (await lijst(new Request("http://x", { headers: H }) as never)).json()
-  ok("lijst bevat alle negen", l.invoices?.length === 9, String(l.invoices?.length))
-  ok("activiteitenlog gevuld", [...col("activity_log").values()].filter((a) => String(a.action).startsWith("invoice_")).length === 10)
+  ok("lijst bevat alle acht na verwijderen", l.invoices?.length === 8, String(l.invoices?.length))
+  ok("activiteitenlog gevuld", [...col("activity_log").values()].filter((a) => String(a.action).startsWith("invoice_")).length === 13)
 
   console.log(fails === 0 ? "\nAlle tests geslaagd." : `\n${fails} test(s) gefaald.`)
   process.exit(fails === 0 ? 0 : 1)

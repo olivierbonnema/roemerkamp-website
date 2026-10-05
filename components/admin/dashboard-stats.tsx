@@ -56,6 +56,7 @@ const ACTION_LABELS: Record<string, string> = {
   invoice_created: "Factuur opgesteld",
   invoice_paid: "Factuur betaald",
   invoice_credited: "Factuur gecrediteerd",
+  invoice_deleted: "Factuur verwijderd",
   document_deleted: "Document verwijderd",
   document_downloaded: "Document gedownload",
   status_changed: "Status gewijzigd",

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Download, CheckCircle, RotateCcw, ExternalLink, Plus, FilePlus } from "lucide-react"
+import { Download, CheckCircle, RotateCcw, ExternalLink, Plus, FilePlus, Trash2 } from "lucide-react"
 import BlankInvoiceDialog from "@/components/admin/blank-invoice-dialog"
 import InvoiceDialog from "@/components/admin/invoice-dialog"
 import { auth } from "@/lib/firebase"
@@ -110,6 +110,26 @@ export function AdminFacturen() {
     } finally { setBusyId(null) }
   }
 
+  async function verwijderen(r: InvoiceRecord) {
+    const uitleg = r.type === "credit"
+      ? `Creditnota ${r.number} verwijderen? De oorspronkelijke factuur komt dan weer op "opgesteld".`
+      : `Factuur ${r.number} (${fmtEuro(r.amount)}) verwijderen? Dit kan niet ongedaan worden gemaakt.`
+    if (!confirm(uitleg)) return
+    setBusyId(r.id); setMelding("")
+    try {
+      const res = await fetch(`/api/admin/invoices/${r.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${await getToken()}` } })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setMelding(data.error || "Verwijderen mislukt."); return }
+      setRows((prev) => prev.filter((x) => x.id !== r.id).map((x) => (data.restored && x.id === data.restored.id ? data.restored : x)))
+      const delen = [`${r.number} verwijderd.`]
+      delen.push(data.numberReleased ? "Het nummer wordt opnieuw gebruikt bij de volgende factuur." : "Het nummer blijft een gat in de reeks (er zijn al latere nummers uitgegeven).")
+      if (r.driveWebUrl) delen.push(data.fileRemoved ? "Het bestand is uit het dossier verwijderd." : "Het bestand in het OneDrive-dossier kon niet worden verwijderd; haal het daar zelf weg.")
+      setMelding(delen.join(" "))
+    } catch (err) {
+      setMelding("Verwijderen mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
+    } finally { setBusyId(null) }
+  }
+
   if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" /></div>
   if (error) return <p className="text-sm text-red-600 font-sans">{error}</p>
 
@@ -166,7 +186,7 @@ export function AdminFacturen() {
                 <th className="px-5 py-3">Datum</th>
                 <th className="px-5 py-3 text-right">Bedrag</th>
                 <th className="px-5 py-3">Status</th>
-                <th className="px-3 py-3 w-36"></th>
+                <th className="px-3 py-3 w-44"></th>
               </tr>
             </thead>
             <tbody>
@@ -206,6 +226,9 @@ export function AdminFacturen() {
                         )}
                         {r.type !== "credit" && r.status !== "gecrediteerd" && (
                           <button onClick={() => crediteren(r)} disabled={busyId !== null} title="Creditnota maken" className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-40"><RotateCcw size={14} /></button>
+                        )}
+                        {r.status === "opgesteld" && (
+                          <button onClick={() => verwijderen(r)} disabled={busyId !== null} title="Verwijderen" className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-40"><Trash2 size={14} /></button>
                         )}
                       </div>
                     </td>

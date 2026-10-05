@@ -42,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       Buffer.from(await file.arrayBuffer()),
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
-    await adminDb.collection("invoices").doc(id).set({ driveWebUrl: item.webUrl }, { merge: true })
+    await adminDb.collection("invoices").doc(id).set({ driveWebUrl: item.webUrl, driveItemId: item.id }, { merge: true })
     return NextResponse.json({ archived: true, webUrl: item.webUrl })
   } catch (err) {
     console.error("[invoices] archiveren mislukt:", err)

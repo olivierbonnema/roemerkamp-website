@@ -41,6 +41,8 @@ export interface InvoiceRecord {
   creditOf: string | null
   creditedBy: string | null
   driveWebUrl: string | null
+  /** Het OneDrive-item, zodat het bestand bij verwijderen mee kan. Ouder record: ontbreekt. */
+  driveItemId?: string | null
   createdBy: string
   createdAt: string
   paidAt: string | null

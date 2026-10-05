@@ -9,6 +9,7 @@ export type ActivityAction =
   | "invoice_created"
   | "invoice_paid"
   | "invoice_credited"
+  | "invoice_deleted"
   | "document_deleted"
   | "document_downloaded"
   | "status_changed"

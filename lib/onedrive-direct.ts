@@ -181,3 +181,11 @@ export async function uploadBufferToOneDriveItem(token: string, folderId: string
   const data = await res.json()
   return { id: String(data.id), webUrl: String(data.webUrl || "") }
 }
+
+/** Verwijdert een item (naar de prullenbak van OneDrive; daar nog 93 dagen terug te halen). */
+export async function deleteOneDriveItem(token: string, itemId: string): Promise<void> {
+  const res = await fetch(`https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${itemId}`, {
+    method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok && res.status !== 404) throw new Error(`OneDrive delete failed: ${res.status}`)
+}

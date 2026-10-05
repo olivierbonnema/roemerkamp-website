@@ -1,10 +1,11 @@
-// Eén factuur: ophalen en markeren als betaald.
+// Eén factuur: ophalen, markeren als betaald, verwijderen.
 
 import { NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { verifyAdmin } from "@/lib/admin-auth"
 import { logActivity } from "@/lib/activity-log"
-import { getInvoice } from "@/lib/invoices-server"
+import { getInvoice, deleteInvoice } from "@/lib/invoices-server"
+import { getMsToken, deleteOneDriveItem } from "@/lib/onedrive-direct"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req)
@@ -50,5 +51,44 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } catch (err) {
     console.error("[invoices] status mislukt:", err)
     return NextResponse.json({ error: "Status bijwerken mislukt." }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await verifyAdmin(req)
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { id } = await params
+  try {
+    const uit = await deleteInvoice(id)
+    if (!uit.ok) return NextResponse.json({ error: uit.error }, { status: uit.status })
+
+    // Het Word-bestand in het dossier mee verwijderen (best effort: het register
+    // is leidend, een achtergebleven bestand is geen reden om te falen).
+    let fileRemoved = false
+    if (uit.record.driveItemId) {
+      try {
+        await deleteOneDriveItem(await getMsToken(), uit.record.driveItemId)
+        fileRemoved = true
+      } catch (err) {
+        console.error("[invoices] bestand verwijderen uit OneDrive mislukt:", err)
+      }
+    }
+
+    await logActivity({
+      action: "invoice_deleted",
+      userId: admin.uid,
+      userEmail: admin.email || "",
+      targetId: id,
+      targetType: "invoice",
+      details: {
+        number: uit.record.number, klant: uit.record.clientName, bedrag: String(uit.record.amount),
+        nummer: uit.numberReleased ? "vrijgegeven (wordt hergebruikt)" : "blijft een gat in de reeks",
+        ...(uit.restored ? { origineelHersteld: uit.restored.number } : {}),
+      },
+    })
+    return NextResponse.json({ deleted: true, numberReleased: uit.numberReleased, restored: uit.restored, fileRemoved })
+  } catch (err) {
+    console.error("[invoices] verwijderen mislukt:", err)
+    return NextResponse.json({ error: "Verwijderen mislukt." }, { status: 500 })
   }
 }
