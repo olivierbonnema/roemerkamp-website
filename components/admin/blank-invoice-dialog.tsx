@@ -82,7 +82,7 @@ export default function BlankInvoiceDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="font-serif text-xl text-[#1E3A5F]">Blanco factuur</h2>
+          <h2 className="font-serif text-xl text-[#1E3A5F]">Factuur opstellen</h2>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
         </div>
         <p className="text-sm text-gray-400 font-sans mb-5">Zonder termsheet. Klant en regels vult u zelf in.</p>

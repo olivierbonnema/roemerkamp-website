@@ -124,7 +124,7 @@ export function AdminFacturen() {
           {open.length} openstaand · {fmtEuro(openstaand)}
         </p>
         <button onClick={() => setBlanco(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg text-sm font-medium hover:bg-[#2a4d7a] transition-colors">
-          <Plus size={14} />Blanco factuur
+          <Plus size={14} />Factuur
         </button>
       </div>
 
