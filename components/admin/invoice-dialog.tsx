@@ -1,144 +1,167 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { X, Download } from "lucide-react"
-import { generateFactuur } from "@/lib/generators/invoice-generator"
-import { getLastName } from "@/lib/generators/names"
+import { X, FileText } from "lucide-react"
+import { auth } from "@/lib/firebase"
+import { defaultAmount, surnameFromTermsheet, INVOICE_TYPE_LABELS, type InvoiceRecord, type TermsheetForInvoice } from "@/lib/invoices"
+import { deliverInvoice } from "@/lib/invoices-client"
 import type { TermsheetData } from "@/lib/generators/termsheet-generator"
 
 function todayIso(): string {
   const d = new Date()
-  const mm = String(d.getMonth() + 1).padStart(2, "0")
-  const dd = String(d.getDate()).padStart(2, "0")
-  return `${d.getFullYear()}-${mm}-${dd}`
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 
+type Soort = "opstart" | "behandeling"
+
+// Stelt een factuur op vanuit een opgeslagen termsheet. Het nummer wordt NIET
+// hier gekozen: het register kent het toe op het moment van opstellen, zodat
+// het nooit dubbel kan zijn. Het bedrag staat vooringevuld uit de termsheet en
+// mag worden aangepast.
 export default function InvoiceDialog({
   open,
   onClose,
+  termsheetId,
   getData,
   settings,
 }: {
   open: boolean
   onClose: () => void
+  termsheetId: string
   getData: () => TermsheetData | undefined
   settings: Record<string, string>
 }) {
-  const [snap, setSnap] = useState<TermsheetData | null>(null)
-  const [seq, setSeq] = useState("")
+  const [snap, setSnap] = useState<TermsheetForInvoice | null>(null)
+  const [soort, setSoort] = useState<Soort>("opstart")
   const [date, setDate] = useState(todayIso())
   const [bedrag, setBedrag] = useState<number>(0)
-  const [generating, setGenerating] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [klaar, setKlaar] = useState<{ record: InvoiceRecord; archief: string } | null>(null)
 
-  // Snapshot the live termsheet data when the dialog opens (the form is hidden
+  // Snapshot the live termsheet when the dialog opens (the form is hidden
   // behind the overlay, so it cannot change while open).
   useEffect(() => {
     if (!open) return
-    const d = getData() || null
+    const d = (getData() || null) as TermsheetForInvoice | null
     setSnap(d)
-    setBedrag((d?.entreekosten?.opstart as number) || 0)
-    setSeq("")
+    setSoort("opstart")
+    setBedrag(d ? defaultAmount("opstart", d) : 0)
     setDate(todayIso())
-    // getData is recreated each render; we only want to snapshot on open.
+    setKlaar(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // Switching type re-fills the amount from the termsheet; a manual edit is
+  // only ever meant for the type that was showing.
+  useEffect(() => {
+    if (snap) setBedrag(defaultAmount(soort, snap))
+  }, [soort, snap])
+
   if (!open) return null
 
-  const b = (snap?.borrowers || [])[0] as TermsheetData["borrowers"][number] | undefined
-  const surnameSource = b ? (b.type === "bv" ? b.vertegenwoordiger || b.name : b.name) : ""
-  const surname = getLastName(surnameSource || "")
-  let year = new Date().getFullYear()
-  try { const y = new Date(date).getFullYear(); if (!Number.isNaN(y)) year = y } catch { /* keep default */ }
-  const fullNumber = seq.trim() ? `${year}-${seq.trim()}${surname ? " " + surname : ""}` : ""
+  const naam = (snap?.borrowers || [])[0]?.name || ""
+  const achternaam = snap ? surnameFromTermsheet(snap) : ""
+  const jaar = date.slice(0, 4)
+  const opstart = Number(snap?.entreekosten?.opstart) || 0
+  const afsluit = Number(snap?.entreekosten?.afsluit) || 0
 
-  const handleDownload = async () => {
+  const opstellen = async () => {
     if (!snap) { alert("Geen termsheet-gegevens gevonden."); return }
-    if (!seq.trim()) { alert("Vul een factuurnummer in."); return }
-    setGenerating(true)
+    if (!(bedrag > 0)) { alert("Vul een bedrag groter dan nul in."); return }
+    setBusy(true)
     try {
-      const blob = await generateFactuur(
-        snap,
-        { logoDataUrl: settings.logoDataUrl, companyName: settings.companyName, advisorName: settings.advisorName },
-        { invoiceNumber: fullNumber, invoiceDate: date, opstartBedrag: bedrag }
-      )
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `Factuur opstartkosten - ${b?.name || "klant"}.docx`
-      a.click()
-      URL.revokeObjectURL(url)
-      onClose()
+      const token = await auth.currentUser?.getIdToken()
+      const res = await fetch("/api/admin/invoices", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ type: soort, termsheetId, amount: bedrag, date }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.invoice) { alert(data.error || "Factuur opstellen mislukt."); return }
+      const archief = await deliverInvoice(data.invoice, settings, token || "")
+      setKlaar({ record: data.invoice, archief: archief.message })
     } catch (err) {
-      alert("Factuur genereren mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
+      alert("Factuur opstellen mislukt: " + (err instanceof Error ? err.message : "onbekende fout"))
     } finally {
-      setGenerating(false)
+      setBusy(false)
     }
   }
+
+  const veld = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]/20"
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="font-serif text-xl text-[#1E3A5F]">Factuur opstartkosten</h2>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-            <X size={18} />
-          </button>
+          <h2 className="font-serif text-xl text-[#1E3A5F]">Factuur opstellen</h2>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
         </div>
-        <p className="text-sm text-gray-400 font-sans mb-5">
-          {b?.name ? `Voor ${b.name}` : "Genereer een factuur voor de opstartkosten"}
-        </p>
+        <p className="text-sm text-gray-400 font-sans mb-5">{naam ? `Voor ${naam}` : "Vul eerst een geldnemer in op de termsheet"}</p>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Factuurnummer (volgnummer)</label>
-            <input
-              value={seq}
-              onChange={(e) => setSeq(e.target.value)}
-              placeholder="bijv. 344"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]/20"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Wordt op de factuur: <span className="font-medium text-gray-600">{fullNumber || "—"}</span>
-            </p>
+        {klaar ? (
+          <div className="space-y-4">
+            <div className="border border-gray-200 rounded-lg p-4">
+              <p className="text-sm font-medium text-gray-900">{INVOICE_TYPE_LABELS[klaar.record.type]} <span className="text-gray-500">— {klaar.record.number}</span></p>
+              <p className="text-sm text-gray-600 mt-1">Het Word-bestand is gedownload en de factuur staat in het register onder Facturen.</p>
+              <p className="text-xs text-gray-500 mt-2">{klaar.archief}</p>
+            </div>
+            <div className="flex justify-end">
+              <button onClick={onClose} className="px-4 py-2.5 bg-[#1E3A5F] text-white rounded-lg text-sm font-medium hover:bg-[#2a4d7a] transition-colors">Sluiten</button>
+            </div>
           </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Wat wordt gefactureerd?</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["opstart", "behandeling"] as Soort[]).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSoort(s)}
+                      className={`px-3 py-2.5 text-sm font-medium rounded-lg border text-left transition-colors ${soort === s ? "border-[#1E3A5F] bg-[#1E3A5F]/5 text-[#1E3A5F]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                    >
+                      {INVOICE_TYPE_LABELS[s]}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  {soort === "opstart"
+                    ? "De opstartkosten uit de termsheet."
+                    : `Behandelingskosten (afsluitkosten) ${afsluit ? `€ ${afsluit.toLocaleString("nl-NL")}` : "—"} minus de opstartkosten ${opstart ? `€ ${opstart.toLocaleString("nl-NL")}` : "—"}.`}
+                </p>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Factuurdatum</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]/20"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bedrag (€)</label>
+                <input type="number" value={bedrag || ""} onChange={(e) => setBedrag(parseFloat(e.target.value) || 0)} placeholder="0" className={veld} />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Opstartfee (€)</label>
-            <input
-              type="number"
-              value={bedrag || ""}
-              onChange={(e) => setBedrag(parseFloat(e.target.value) || 0)}
-              placeholder="0"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]/20"
-            />
-            <p className="text-xs text-gray-400 mt-1">Standaard overgenomen uit de opstartkosten van de termsheet.</p>
-          </div>
-        </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Factuurdatum</label>
+                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={veld} />
+              </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <button onClick={onClose} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-            Annuleren
-          </button>
-          <button
-            onClick={handleDownload}
-            disabled={generating}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#1E3A5F] text-white rounded-lg text-sm font-medium hover:bg-[#2a4d7a] disabled:opacity-50 transition-colors"
-          >
-            <Download size={14} />
-            {generating ? "Genereren..." : "Download factuur"}
-          </button>
-        </div>
+              <div className="bg-gray-50 rounded-lg px-3 py-2.5 text-xs text-gray-600">
+                Factuurnummer: <span className="font-medium text-gray-800">{jaar}-… {achternaam}</span>
+                <span className="block text-gray-400 mt-0.5">Het volgnummer wordt automatisch toegekend bij het opstellen, zodat het nooit dubbel is.</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={onClose} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Annuleren</button>
+              <button
+                onClick={opstellen}
+                disabled={busy || !naam}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#1E3A5F] text-white rounded-lg text-sm font-medium hover:bg-[#2a4d7a] disabled:opacity-50 transition-colors"
+              >
+                <FileText size={14} />
+                {busy ? "Opstellen..." : "Factuur opstellen"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,128 @@
+// Factuurregister: nummering, bedragen, crediteren en de statusregels, tegen
+// een nagebootste Firestore met een echte transactie-semantiek (read-then-
+// write op dezelfde teller).
+import { readFileSync } from "node:fs"
+
+process.env.ADMIN_DOMAIN = "langefa.nl"
+process.env.FIREBASE_ADMIN_PROJECT_ID ||= "test-project"
+process.env.FIREBASE_ADMIN_CLIENT_EMAIL ||= "test@test-project.iam.gserviceaccount.com"
+process.env.FIREBASE_ADMIN_PRIVATE_KEY ||= readFileSync(process.env.FIREBASE_TEST_KEY!, "utf8")
+
+type Doc = Record<string, unknown>
+
+async function main() {
+  const fb = await import("../../lib/firebase-admin")
+  const db: Record<string, Map<string, Doc>> = {}
+  const col = (n: string) => (db[n] ||= new Map())
+  let autoId = 0
+  const docRef = (n: string, id: string) => ({
+    id,
+    get: async () => ({ exists: col(n).has(id), data: () => col(n).get(id) }),
+    set: async (v: Doc, o?: { merge?: boolean }) => { col(n).set(id, o?.merge ? { ...(col(n).get(id) || {}), ...v } : v) },
+  })
+  ;(fb.adminDb as unknown as { collection: unknown }).collection = (n: string) => ({
+    doc: (id?: string) => docRef(n, id || `auto${++autoId}`),
+    orderBy: () => ({ get: async () => ({ docs: [...col(n).values()].map((d) => ({ data: () => d })) }) }),
+    add: async (v: Doc) => { col(n).set(`a${++autoId}`, v); return { id: "x" } },
+  })
+  ;(fb.adminDb as unknown as { runTransaction: unknown }).runTransaction = async (fn: (tx: unknown) => Promise<unknown>) => {
+    const writes: (() => void)[] = []
+    const tx = {
+      get: async (ref: { get: () => Promise<unknown> }) => ref.get(),
+      set: (ref: { set: (v: Doc, o?: { merge?: boolean }) => Promise<void> }, v: Doc, o?: { merge?: boolean }) => { writes.push(() => { ref.set(v, o) }) },
+    }
+    const out = await fn(tx)
+    writes.forEach((w) => w())
+    return out
+  }
+  ;(fb.adminAuth as unknown as { verifyIdToken: unknown }).verifyIdToken = async (t: string) => {
+    if (t === "admin") return { uid: "u1", email: "olivier@langefa.nl" }
+    throw new Error("ongeldig")
+  }
+
+  const { POST: maak, GET: lijst } = await import("../../app/api/admin/invoices/route")
+  const { PATCH: status } = await import("../../app/api/admin/invoices/[id]/route")
+  const { POST: crediteer } = await import("../../app/api/admin/invoices/[id]/credit/route")
+  const { defaultAmount, formatInvoiceNumber, invoiceFileName } = await import("../../lib/invoices")
+
+  const H = { Authorization: "Bearer admin", "Content-Type": "application/json" }
+  const post = (body: unknown) => maak(new Request("http://x/api/admin/invoices", { method: "POST", headers: H, body: JSON.stringify(body) }) as never)
+  const patch = (id: string, body: unknown) => status(new Request("http://x", { method: "PATCH", headers: H, body: JSON.stringify(body) }) as never, { params: Promise.resolve({ id }) })
+  const credit = (id: string) => crediteer(new Request("http://x", { method: "POST", headers: H }) as never, { params: Promise.resolve({ id }) })
+
+  let fails = 0
+  const ok = (label: string, cond: boolean, extra = "") => { console.log(`${cond ? "PASS" : "FAIL"}  ${label}${extra ? " — " + extra : ""}`); if (!cond) fails++ }
+
+  // Een termsheet zoals het portaal die opslaat.
+  col("documents").set("ts1", { type: "termsheet", aanvraagId: "aanvraag-1", data: {
+    borrowers: [{ type: "person", name: "Jan van der Meer", address: "Voorbeeldkade 12", postalCode: "1011 AB", city: "Amsterdam" }],
+    entreekosten: { afsluit: 7500, opstart: 2500, annulering: 0 },
+  } })
+  col("documents").set("ts2", { type: "termsheet", data: {
+    borrowers: [{ type: "bv", name: "Voorbeeld B.V.", vertegenwoordiger: "Piet Jansen", vertegenwoordigerSalut: "de heer", address: "Laan 1", postalCode: "2011 VN", city: "Haarlem" }],
+    entreekosten: { afsluit: 2000, opstart: 2500 },
+  } })
+
+  // --- bedragen ---
+  const ts1 = col("documents").get("ts1")!.data as never
+  ok("opstart = opstartkosten", defaultAmount("opstart", ts1) === 2500)
+  ok("behandeling = afsluit − opstart", defaultAmount("behandeling", ts1) === 5000)
+  ok("behandeling nooit negatief", defaultAmount("behandeling", col("documents").get("ts2")!.data as never) === 0)
+  ok("nummerformat", formatInvoiceNumber(2026, 389, "Meer") === "2026-389 Meer")
+
+  // --- nummering start bij 389 en loopt op (achternaam mét tussenvoegsel, zoals voorheen met de hand) ---
+  const r1 = await (await post({ type: "opstart", termsheetId: "ts1", date: "2026-10-05" })).json()
+  ok("eerste automatische factuur is 2026-389", r1.invoice?.number === "2026-389 van der Meer", r1.invoice?.number || JSON.stringify(r1))
+  ok("bedrag uit de termsheet", r1.invoice?.amount === 2500)
+  ok("klantblok als snapshot", r1.invoice?.client?.name === "Jan van der Meer" && r1.invoice?.client?.city === "Amsterdam")
+  ok("aanvraag gekoppeld", r1.invoice?.aanvraagId === "aanvraag-1")
+  ok("bestandsnaam", invoiceFileName(r1.invoice) === "Factuur opstartkosten 2026-389 van der Meer - Jan van der Meer.docx", invoiceFileName(r1.invoice))
+
+  const r2 = await (await post({ type: "behandeling", termsheetId: "ts1", date: "2026-10-05" })).json()
+  ok("tweede factuur is 2026-390", r2.invoice?.number === "2026-390 van der Meer", r2.invoice?.number)
+  ok("resterende behandelingskosten 5.000", r2.invoice?.amount === 5000 && r2.invoice?.lines?.[0]?.description === "Resterende behandelingskosten")
+
+  const r3 = await (await post({ type: "opstart", termsheetId: "ts2", date: "2026-10-05", amount: 1800 })).json()
+  ok("B.V.: achternaam van de vertegenwoordiger", r3.invoice?.number === "2026-391 Jansen", r3.invoice?.number)
+  ok("B.V.: t.a.v. in het klantblok", r3.invoice?.client?.attention === "t.a.v. de heer Piet Jansen")
+  ok("aangepast bedrag wordt overgenomen", r3.invoice?.amount === 1800)
+
+  // --- nieuw jaar begint bij 1 ---
+  const r4 = await (await post({ type: "opstart", termsheetId: "ts1", date: "2027-01-10" })).json()
+  ok("nieuw jaar: 2027-1", r4.invoice?.number === "2027-1 van der Meer", r4.invoice?.number)
+  const r5 = await (await post({ type: "opstart", termsheetId: "ts1", date: "2026-12-31" })).json()
+  ok("2026 loopt intussen gewoon door: 2026-392", r5.invoice?.number === "2026-392 van der Meer", r5.invoice?.number)
+
+  // --- weigeringen ---
+  ok("bedrag nul geweigerd", (await post({ type: "opstart", termsheetId: "ts1", amount: 0 })).status === 400)
+  ok("onbekend type geweigerd", (await post({ type: "credit", termsheetId: "ts1" })).status === 400)
+  ok("onbekende termsheet", (await post({ type: "opstart", termsheetId: "nee" })).status === 404)
+  ok("zonder inlog", (await maak(new Request("http://x", { method: "POST", body: "{}" }) as never)).status === 401)
+
+  // --- betaald ---
+  const p = await (await patch(r1.invoice.id, { status: "betaald" })).json()
+  ok("markeren als betaald", p.invoice?.status === "betaald" && !!p.invoice?.paidAt)
+  ok("alleen 'betaald' toegestaan", (await patch(r2.invoice.id, { status: "gecrediteerd" })).status === 400)
+
+  // --- crediteren ---
+  const c = await (await credit(r2.invoice.id)).json()
+  ok("creditnota krijgt volgend nummer uit dezelfde reeks", c.credit?.number === "2026-393 van der Meer", c.credit?.number || JSON.stringify(c))
+  ok("creditnota is negatief en volledig", c.credit?.amount === -5000)
+  ok("creditnota verwijst naar origineel", c.credit?.creditOf === r2.invoice.id && c.credit?.lines?.[0]?.description === "Creditering factuur 2026-390 van der Meer")
+  ok("origineel op gecrediteerd met terugverwijzing", c.original?.status === "gecrediteerd" && c.original?.creditedBy === c.credit?.id)
+  ok("origineel ook in de opslag bijgewerkt", col("invoices").get(r2.invoice.id)?.status === "gecrediteerd")
+  ok("tweede keer crediteren geweigerd", (await credit(r2.invoice.id)).status === 400)
+  ok("creditnota zelf crediteren geweigerd", (await credit(c.credit.id)).status === 400)
+  ok("gecrediteerde factuur niet als betaald te zetten", (await patch(r2.invoice.id, { status: "betaald" })).status === 400)
+  ok("creditnota niet als betaald te zetten", (await patch(c.credit.id, { status: "betaald" })).status === 400)
+  ok("creditnota-bestandsnaam", invoiceFileName(c.credit).startsWith("Creditnota 2026-393 van der Meer"))
+
+  // --- lijst ---
+  const l = await (await lijst(new Request("http://x", { headers: H }) as never)).json()
+  ok("lijst bevat alle zes", l.invoices?.length === 6, String(l.invoices?.length))
+  ok("activiteitenlog gevuld", [...col("activity_log").values()].filter((a) => String(a.action).startsWith("invoice_")).length === 7)
+
+  console.log(fails === 0 ? "\nAlle tests geslaagd." : `\n${fails} test(s) gefaald.`)
+  process.exit(fails === 0 ? 0 : 1)
+}
+main()

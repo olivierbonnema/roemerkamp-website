@@ -328,6 +328,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         <InvoiceDialog
           open={showFactuur}
           onClose={() => setShowFactuur(false)}
+          termsheetId={id}
           getData={() => getFormData() as TermsheetData | undefined}
           settings={settings}
         />

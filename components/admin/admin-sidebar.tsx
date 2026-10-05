@@ -17,6 +17,7 @@ import {
   Newspaper,
   Columns3,
   ShieldCheck,
+  Receipt,
 } from "lucide-react"
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/admin/checks", label: "Checks", icon: ShieldCheck },
   // { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 }, // hidden
   { href: "/admin/documenten", label: "Documenten", icon: FileText },
+  { href: "/admin/facturen", label: "Facturen", icon: Receipt },
   { href: "/admin/gebruikers", label: "Gebruikers", icon: Users },
   { href: "/admin/partners", label: "Partners", icon: Handshake },
   { href: "/admin/activiteit", label: "Activiteit", icon: Activity },

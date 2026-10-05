@@ -6,6 +6,9 @@ export type ActivityAction =
   | "document_updated"
   | "document_duplicated"
   | "partner_supervision_updated"
+  | "invoice_created"
+  | "invoice_paid"
+  | "invoice_credited"
   | "document_deleted"
   | "document_downloaded"
   | "status_changed"
@@ -35,7 +38,7 @@ export interface LogEntry {
   userId: string
   userEmail: string
   targetId?: string
-  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check"
+  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check" | "invoice"
   details?: Record<string, string | boolean>
 }
 

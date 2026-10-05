@@ -165,3 +165,19 @@ export async function downloadFile(token: string, itemId: string): Promise<Buffe
   if (!res.ok) throw new Error(`OneDrive download failed: ${res.status}`)
   return Buffer.from(await res.arrayBuffer())
 }
+
+// Same upload, but returns the created driveItem so the caller can store a link
+// to it. conflictBehavior rename: a re-generated invoice never overwrites the
+// one already in the dossier.
+export async function uploadBufferToOneDriveItem(token: string, folderId: string, fileName: string, content: Buffer, mimeType: string): Promise<{ id: string; webUrl: string }> {
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${folderId}:/${encodeURIComponent(fileName)}:/content?@microsoft.graph.conflictBehavior=rename`,
+    { method: "PUT", headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType }, body: content }
+  )
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`OneDrive upload failed (${res.status}) for "${fileName}": ${body.slice(0, 300)}`)
+  }
+  const data = await res.json()
+  return { id: String(data.id), webUrl: String(data.webUrl || "") }
+}

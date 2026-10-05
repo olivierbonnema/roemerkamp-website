@@ -1,14 +1,15 @@
 "use client"
 
-// Invoice (factuur) generator for the "opstartkosten" (start-up fee). Derived
-// from a saved termsheet: the client block + the opstartfee amount come from the
-// termsheet; the invoice number and date are supplied by the admin (no counter).
-// One A4 page. Restrained, well-composed letter layout — letterhead + hairline,
-// address beside a tidy invoice-detail block, a clean ruled table, then the
+// Invoice (factuur) and credit note generator. Renders from a stored
+// InvoiceRecord — never from the live termsheet — so an invoice downloaded
+// again next year is byte-for-byte what was sent, whatever happened to the
+// termsheet since. One A4 page. Restrained letter layout: letterhead +
+// hairline, address beside the invoice details, a clean ruled table, the
 // payment request and signature. No colour blocks, so it reads hand-made.
 
 import * as docx from "docx"
-import type { TermsheetData, TermsheetSettings } from "./termsheet-generator"
+import type { TermsheetSettings } from "./termsheet-generator"
+import type { InvoiceRecord } from "@/lib/invoices"
 import {
   MM, PAGE_W, PAGE_H, MARGIN_SIDE,
   C_BRAND, C_GREY, C_BLACK,
@@ -34,20 +35,10 @@ const DXA = docx.WidthType.DXA
 const rule = (color: string, size: number) => ({ style: docx.BorderStyle.SINGLE, size, color })
 const noLine = { style: docx.BorderStyle.NONE }
 
-function salutWord(s?: string): string {
-  return (s || "").toLowerCase().includes("mevr") ? "mevrouw" : "de heer"
-}
-
-export async function generateFactuur(
-  data: TermsheetData,
-  settings: TermsheetSettings,
-  opts: { invoiceNumber: string; invoiceDate?: string; opstartBedrag?: number }
-): Promise<Blob> {
+export async function generateInvoiceDoc(r: InvoiceRecord, settings: TermsheetSettings): Promise<Blob> {
   const s = settings || {}
-  const b = (data.borrowers || [])[0] || ({} as TermsheetData["borrowers"][number])
-  const isBv = b.type === "bv"
-  const bedrag = opts.opstartBedrag != null ? opts.opstartBedrag : (data.entreekosten?.opstart || 0)
-  const dateStr = fmtNlDate(opts.invoiceDate || data.date || "")
+  const isCredit = r.type === "credit"
+  const dateStr = fmtNlDate(r.date || "")
   const logoDataUrl = s.logoDataUrl || ""
 
   let logoRun: docx.ImageRun | undefined
@@ -71,7 +62,6 @@ export async function generateFactuur(
     children.push(par([tx("LANGE & PARTNERS", { bold: true, color: C_BRAND, size: 30 })], { align: ALIGN.RIGHT, before: 0, after: 0 }))
     children.push(par([tx("Financieel Advies", { color: C_GREY, size: 20 })], { align: ALIGN.RIGHT, before: 0, after: 40 }))
   }
-  // Hairline under the letterhead
   children.push(new docx.Paragraph({
     children: [tx("", { size: 2 })],
     spacing: { before: 0, after: MM(9) },
@@ -79,18 +69,18 @@ export async function generateFactuur(
   }))
 
   // ── Address (left) + invoice details (right) ──
+  const c = r.client
   const addrCell: docx.Paragraph[] = []
-  addrCell.push(par([tx(b.name || "", { bold: true, size: SZ_SMALL })], { before: 0, after: 12 }))
-  if (isBv && b.vertegenwoordiger) {
-    addrCell.push(par([tx(`t.a.v. ${salutWord(b.vertegenwoordigerSalut)} ${b.vertegenwoordiger}`, { size: SZ_SMALL })], { before: 0, after: 12 }))
+  addrCell.push(par([tx(c.name || "", { bold: true, size: SZ_SMALL })], { before: 0, after: 12 }))
+  if (c.attention) addrCell.push(par([tx(c.attention, { size: SZ_SMALL })], { before: 0, after: 12 }))
+  if (c.address) addrCell.push(par([tx(c.address, { size: SZ_SMALL })], { before: 0, after: 12 }))
+  if (c.postalCode || c.city) {
+    addrCell.push(par([tx(`${c.postalCode || ""}  ${(c.city || "").toUpperCase()}`.trim(), { size: SZ_SMALL })], { before: 0, after: 12 }))
   }
-  if (b.address) addrCell.push(par([tx(b.address, { size: SZ_SMALL })], { before: 0, after: 12 }))
-  if (b.postalCode || b.city) {
-    addrCell.push(par([tx(`${b.postalCode || ""}  ${(b.city || "").toUpperCase()}`.trim(), { size: SZ_SMALL })], { before: 0, after: 12 }))
-  }
+
   const metaCell: docx.Paragraph[] = [
-    par([tx("Factuurnummer   ", { size: SZ_SMALL, color: C_GREY }), tx(opts.invoiceNumber, { size: SZ_SMALL, bold: true })], { align: ALIGN.RIGHT, before: 0, after: 12 }),
-    par([tx("Factuurdatum   ", { size: SZ_SMALL, color: C_GREY }), tx(dateStr, { size: SZ_SMALL, bold: true })], { align: ALIGN.RIGHT, before: 0, after: 0 }),
+    par([tx(isCredit ? "Creditnota   " : "Factuurnummer   ", { size: SZ_SMALL, color: C_GREY }), tx(r.number, { size: SZ_SMALL, bold: true })], { align: ALIGN.RIGHT, before: 0, after: 12 }),
+    par([tx(isCredit ? "Datum   " : "Factuurdatum   ", { size: SZ_SMALL, color: C_GREY }), tx(dateStr, { size: SZ_SMALL, bold: true })], { align: ALIGN.RIGHT, before: 0, after: 0 }),
   ]
   const COL_L = Math.round(CONTENT * 0.56)
   const COL_R = CONTENT - COL_L
@@ -123,6 +113,8 @@ export async function generateFactuur(
       ],
     })
   }
+  // A credit note shows its amounts as negatives: that is what makes it a credit note.
+  const money = (n: number) => (n < 0 ? `-${fmtEuro(Math.abs(n))}` : fmtEuro(n))
   children.push(new docx.Table({
     width: { size: CONTENT, type: DXA },
     columnWidths: [COL_DESC, COL_AMT],
@@ -130,18 +122,19 @@ export async function generateFactuur(
     borders: noTableBorder(),
     rows: [
       row(cpar("Omschrijving", { bold: true }), cpar("Bedrag", { bold: true, right: true }), { bottom: true }),
-      row(cpar("Opstartfee"), cpar(fmtEuro(bedrag), { right: true })),
+      ...r.lines.map((l) => row(cpar(l.description), cpar(money(l.amount), { right: true }))),
       row(cpar("BTW: Vrijgesteld van BTW"), cpar("€", { right: true })),
-      row(cpar("Totaal", { bold: true }), cpar(fmtEuro(bedrag), { bold: true, right: true }), { top: true }),
+      row(cpar("Totaal", { bold: true }), cpar(money(r.amount), { bold: true, right: true }), { top: true }),
     ],
   }))
 
   children.push(empty(MM(12)))
 
-  // ── Payment request ──
-  children.push(par([tx(
-    `Wij verzoeken u vriendelijk genoemd bedrag per omgaande over te maken naar ons rekeningnummer ${IBAN} t.n.v. Lange & partners te Haarlem onder vermelding van het factuurnummer.`,
-    { size: SZ_SMALL })], { before: 0, after: 0 }))
+  // ── Payment request / credit explanation ──
+  const slot = isCredit
+    ? `Deze creditnota heeft betrekking op factuur ${r.lines[0]?.description.replace(/^Creditering factuur\s*/, "") || ""}. Het gecrediteerde bedrag wordt met het openstaande saldo verrekend dan wel aan u terugbetaald.`
+    : `Wij verzoeken u vriendelijk genoemd bedrag per omgaande over te maken naar ons rekeningnummer ${IBAN} t.n.v. Lange & partners te Haarlem onder vermelding van het factuurnummer.`
+  children.push(par([tx(slot, { size: SZ_SMALL })], { before: 0, after: 0 }))
 
   children.push(empty(MM(10)))
 
@@ -162,7 +155,7 @@ export async function generateFactuur(
 
   const doc = new docx.Document({
     creator: "Lange & Partners Document Generator",
-    title: `Factuur opstartkosten - ${b.name || "Klant"}`,
+    title: `${isCredit ? "Creditnota" : "Factuur"} ${r.number}`,
     sections: [
       {
         properties: {
