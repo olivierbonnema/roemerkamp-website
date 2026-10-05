@@ -30,7 +30,10 @@ async function main() {
   ;(fb.adminDb as unknown as { runTransaction: unknown }).runTransaction = async (fn: (tx: unknown) => Promise<unknown>) => {
     const writes: (() => void)[] = []
     const tx = {
-      get: async (ref: Ref) => ({ ...(await ref.get()), ref }),
+      get: async (ref: Ref) => {
+        if (writes.length) throw new Error("Firestore transactions require all reads to be executed before all writes.")
+        return { ...(await ref.get()), ref }
+      },
       set: (ref: Ref, v: Doc, o?: { merge?: boolean }) => { writes.push(() => { ref.set(v, o) }) },
       delete: (ref: Ref) => { writes.push(() => { ref.delete() }) },
     }

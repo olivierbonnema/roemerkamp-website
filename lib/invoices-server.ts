@@ -70,17 +70,19 @@ export async function deleteInvoice(id: string): Promise<DeleteOutcome> {
     if (record.status === "betaald") return { ok: false, status: 400, error: "Een betaalde factuur kan niet worden verwijderd. Maak een creditnota." }
     if (record.status === "gecrediteerd") return { ok: false, status: 400, error: "Deze factuur is gecrediteerd. Verwijder eerst de creditnota; daarna kan de factuur weg." }
 
+    // Firestore: in een transactie komen ALLE reads vóór de eerste write.
+    const origSnap = record.type === "credit" && record.creditOf
+      ? await tx.get(adminDb.collection("invoices").doc(record.creditOf))
+      : null
+    const counterSnap = await tx.get(COUNTER_REF())
+
     let restored: InvoiceRecord | null = null
-    if (record.type === "credit" && record.creditOf) {
-      const origSnap = await tx.get(adminDb.collection("invoices").doc(record.creditOf))
-      if (origSnap.exists) {
-        const orig = origSnap.data() as InvoiceRecord
-        restored = { ...orig, status: "opgesteld", creditedBy: null, creditedAt: null }
-        tx.set(origSnap.ref, { status: "opgesteld", creditedBy: null, creditedAt: null }, { merge: true })
-      }
+    if (origSnap?.exists) {
+      const orig = origSnap.data() as InvoiceRecord
+      restored = { ...orig, status: "opgesteld", creditedBy: null, creditedAt: null }
+      tx.set(origSnap.ref, { status: "opgesteld", creditedBy: null, creditedAt: null }, { merge: true })
     }
 
-    const counterSnap = await tx.get(COUNTER_REF())
     const counters = (counterSnap.exists ? counterSnap.data() : {}) as Record<string, number>
     const key = String(record.year)
     const numberReleased = counters[key] === record.seq
