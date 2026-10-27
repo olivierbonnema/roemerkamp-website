@@ -268,8 +268,8 @@ export default function VastgoedfinancieringZonderBankPage() {
             />
             <Note>
               Fictief voorbeeld. De rente hangt af van de loan-to-value, het type vastgoed, de rang van de hypotheek en het
-              risicoprofiel. De opstartvergoeding is 1% van het leenbedrag met een minimum van €3.000. Maandelijkse
-              administratiekosten, taxatie en notaris komen hier nog bij.
+              risicoprofiel. De opstartvergoeding is 1% van het leenbedrag met een minimum van €3.000. Taxatie en notaris
+              komen hier nog bij.
             </Note>
           </ArticleSection>
 
@@ -285,7 +285,6 @@ export default function VastgoedfinancieringZonderBankPage() {
               rows={[
                 ['Rente', 'Vanaf 7% per jaar', 'Maandelijks, of vooraf via een rentedepot'],
                 ['Behandelingskosten', 'Opstartvergoeding van 1% van het leenbedrag, minimaal €3.000', 'Eenmalig, verrekend bij het passeren'],
-                ['Administratiekosten', 'Vast bedrag per maand, vermeld in de termsheet', 'Maandelijks, gedurende de looptijd'],
                 ['Taxatie', 'Tarief van de onafhankelijke taxateur', 'Vóór de termsheet, door u opgedragen'],
                 ['Notaris', 'Tarief van de notaris voor de hypotheekakte', 'Bij het passeren'],
               ]}

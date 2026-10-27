@@ -28,7 +28,7 @@ const faq = [
   },
   {
     vraag: 'Zijn er verborgen kosten bij een non-bancaire hypotheek?',
-    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf: rente, behandelingskosten, maandelijkse administratiekosten, taxatiekosten en notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
+    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf: rente, behandelingskosten, taxatiekosten en notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
   },
   {
     vraag: 'Kan ik de rente fiscaal aftrekken?',
@@ -127,7 +127,7 @@ export default function KostenNonBancaireHypotheekPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Eenmalige kosten bij afsluiting</h2>
               <p className="text-gray-700 leading-relaxed">
-                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering en een vast bedrag aan administratiekosten per maand gedurende de looptijd. De eenmalige kosten zijn vergelijkbaar met de kosten bij een bancaire hypotheek:
+                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering. Deze zijn vergelijkbaar met de kosten bij een bancaire hypotheek:
               </p>
               <div className="space-y-3">
                 {[
