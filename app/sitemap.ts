@@ -1,149 +1,88 @@
 import type { MetadataRoute } from 'next'
-import { execFileSync } from 'child_process'
-import path from 'path'
+import { PRODUCT_PAGES, INVESTOR_PAGES, COMPANY_PAGES, STATIC_POSTS, STATIC_POST_SLUGS } from '@/lib/site-nav'
+
+// Rebuilt 2026-10-27 (SEO batch 1). The page list comes from lib/site-nav.ts, so a
+// page added there is in the sitemap automatically. Before this the list was typed
+// by hand and missed four pages; lastmod fell back to "now" on Vercel because the
+// build has no git history, which made every lastmod identical.
+//
+// lastModified uses the `updated` date from lib/site-nav.ts (the last substantive
+// content change). Update that date when you change a page's content.
+//
+// CMS blog posts (Firestore, collection `blogposts`, status gepubliceerd) are added
+// at request time; the sitemap is regenerated at most once per hour.
+
+export const revalidate = 3600
 
 const BASE = 'https://www.nonbancaireleningen.nl'
-const root = process.cwd()
 
-function gitDate(file: string): Date {
+interface CmsPost {
+  slug: string
+  updatedAt?: { toDate?: () => Date } | null
+  publishedAt?: { toDate?: () => Date } | null
+}
+
+async function cmsPosts(): Promise<MetadataRoute.Sitemap> {
   try {
-    const out = execFileSync('git', ['log', '-1', '--format=%cI', '--', file], {
-      encoding: 'utf8',
-      cwd: root,
-    }).trim()
-    if (out) return new Date(out)
+    // Dynamic import so a missing Firebase credential (local build, preview without
+    // env) degrades to "no CMS posts" instead of failing the whole sitemap.
+    const { adminDb } = await import('@/lib/firebase-admin')
+    const snap = await adminDb
+      .collection('blogposts')
+      .where('status', '==', 'gepubliceerd')
+      .get()
+    return snap.docs
+      .map((doc) => doc.data() as CmsPost)
+      .filter((p) => p.slug && !STATIC_POST_SLUGS.has(p.slug))
+      .map((p) => ({
+        url: `${BASE}/berichten/${p.slug}`,
+        lastModified: p.updatedAt?.toDate?.() ?? p.publishedAt?.toDate?.() ?? undefined,
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+      }))
   } catch {
-    // git not available (e.g. shallow clone without history), fall through
+    return []
   }
-  return new Date()
 }
 
-function p(route: string): string {
-  if (route === '') return path.join(root, 'app/page.tsx')
-  return path.join(root, `app/${route}/page.tsx`)
-}
-
-export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: BASE,
-      lastModified: gitDate(p('')),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${BASE}/voor-leningnemers`,
-      lastModified: gitDate(p('voor-leningnemers')),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${BASE}/voor-investeerders`,
-      lastModified: gitDate(p('voor-investeerders')),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${BASE}/financieringsaanvraag`,
-      lastModified: gitDate(p('financieringsaanvraag')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/contact`,
-      lastModified: gitDate(p('contact')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/over-ons`,
-      lastModified: gitDate(p('over-ons')),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/berichten`,
-      lastModified: gitDate(p('berichten')),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE}/non-bancaire-hypotheek`,
-      lastModified: gitDate(p('non-bancaire-hypotheek')),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${BASE}/tweede-hypotheek-ondernemer`,
-      lastModified: gitDate(p('tweede-hypotheek-ondernemer')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/onderhandse-hypotheek`,
-      lastModified: gitDate(p('onderhandse-hypotheek')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/hypotheek-zonder-jaarcijfers`,
-      lastModified: gitDate(p('hypotheek-zonder-jaarcijfers')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/dga-hypotheek`,
-      lastModified: gitDate(p('dga-hypotheek')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/overbruggingsfinanciering-verbouwing`,
-      lastModified: gitDate(p('overbruggingsfinanciering-verbouwing')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/zzp-hypotheek`,
-      lastModified: gitDate(p('zzp-hypotheek')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/vastgoedfinanciering-zonder-bank`,
-      lastModified: gitDate(p('vastgoedfinanciering-zonder-bank')),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/berichten/hypotheek-afgewezen-wat-nu`,
-      lastModified: gitDate(p('berichten/hypotheek-afgewezen-wat-nu')),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE}/berichten/wat-is-non-bancaire-financiering`,
-      lastModified: gitDate(p('berichten/wat-is-non-bancaire-financiering')),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE}/berichten/kosten-non-bancaire-hypotheek`,
-      lastModified: gitDate(p('berichten/kosten-non-bancaire-hypotheek')),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE}/nadere-informatie`,
-      lastModified: gitDate(p('nadere-informatie')),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${BASE}/privacy`,
-      lastModified: gitDate(p('privacy')),
-      changeFrequency: 'yearly',
-      priority: 0.2,
-    },
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const home: MetadataRoute.Sitemap = [
+    { url: BASE, lastModified: new Date('2026-10-27'), changeFrequency: 'weekly', priority: 1 },
   ]
+
+  type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
+  const companyFreq = (href: string): Freq =>
+    href === '/berichten' ? 'weekly' : href === '/privacy' || href === '/nadere-informatie' ? 'yearly' : 'monthly'
+  const companyPriority = (href: string): number =>
+    href === '/voor-leningnemers' ? 0.9 : href === '/privacy' ? 0.2 : href === '/nadere-informatie' ? 0.3 : href === '/berichten' ? 0.6 : 0.7
+
+  const company: MetadataRoute.Sitemap = COMPANY_PAGES.map((p) => ({
+    url: `${BASE}${p.href}`,
+    lastModified: new Date(p.updated),
+    changeFrequency: companyFreq(p.href),
+    priority: companyPriority(p.href),
+  }))
+
+  const products: MetadataRoute.Sitemap = PRODUCT_PAGES.map((p) => ({
+    url: `${BASE}${p.href}`,
+    lastModified: new Date(p.updated),
+    changeFrequency: 'monthly',
+    priority: p.href === '/non-bancaire-hypotheek' ? 0.9 : 0.8,
+  }))
+
+  const investors: MetadataRoute.Sitemap = INVESTOR_PAGES.map((p) => ({
+    url: `${BASE}${p.href}`,
+    lastModified: new Date(p.updated),
+    changeFrequency: 'monthly',
+    priority: p.href === '/voor-investeerders' ? 0.9 : 0.8,
+  }))
+
+  const posts: MetadataRoute.Sitemap = STATIC_POSTS.map((p) => ({
+    url: `${BASE}/berichten/${p.slug}`,
+    lastModified: new Date(p.date),
+    changeFrequency: 'monthly',
+    priority: 0.6,
+  }))
+
+  return [...home, ...company, ...products, ...investors, ...posts, ...(await cmsPosts())]
 }
