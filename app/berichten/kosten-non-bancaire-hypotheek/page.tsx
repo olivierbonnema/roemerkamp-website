@@ -131,7 +131,7 @@ export default function KostenNonBancaireHypotheekPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  'Afsluitprovisie: een percentage van het leenbedrag, doorgaans 1% tot 2%',
+                  'Afsluitvergoeding: 1% van het leenbedrag, met een minimum van €3.000',
                   'Taxatiekosten: een onafhankelijk taxatierapport is altijd vereist',
                   'Notariskosten voor het passeren van de hypotheekakte',
                   'Kadasterkosten voor de inschrijving van het hypotheekrecht',

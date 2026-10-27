@@ -1,20 +1,12 @@
 import type { Metadata } from 'next'
-import { PT_Serif, Roboto } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/contexts/auth-context'
 import './globals.css'
 
-const ptSerif = PT_Serif({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-pt-serif",
-});
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-  variable: "--font-droid-sans",
-});
+// Lettertypen: de site gebruikt bewust de standaardstapels van de browser
+// (ui-serif/Georgia voor koppen via `font-serif`, de systeemletter voor tekst).
+// PT Serif en Roboto werden hier eerder geladen maar nergens toegepast
+// (de CSS-variabelen werden niet gebruikt); het laden is verwijderd op 27-10-2026.
 
 const BASE_URL = 'https://www.nonbancaireleningen.nl'
 
@@ -87,7 +79,7 @@ export default function RootLayout({
 
   return (
     <html lang="nl">
-      <body className={`${ptSerif.variable} ${roboto.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

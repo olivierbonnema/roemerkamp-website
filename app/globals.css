@@ -142,3 +142,46 @@
     max-width: 1498px;
   }
 }
+
+/* Leestypografie voor informatieve pagina's (productpagina's). Alleen binnen
+   .artikel, zodat portaal en admin ongewijzigd blijven. */
+@layer components {
+  .artikel p {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #2a2f3a;
+    margin-bottom: 1.1rem;
+  }
+  .artikel p.lead {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #1e3a5f;
+  }
+  .artikel p.note {
+    font-size: 0.875rem;
+    color: #5b6472;
+    margin-bottom: 0;
+  }
+  .artikel h3 {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    font-weight: 600;
+    color: #1e3a5f;
+  }
+  .artikel ul.opsomming {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 1.1rem;
+  }
+  .artikel ul.opsomming li {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #2a2f3a;
+    margin-bottom: 0.35rem;
+  }
+  @media (min-width: 768px) {
+    .artikel p.lead {
+      font-size: 1.1875rem;
+    }
+  }
+}
