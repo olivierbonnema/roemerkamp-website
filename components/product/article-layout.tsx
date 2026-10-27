@@ -13,7 +13,7 @@ interface ArticleLayoutProps {
 export function ArticleLayout({ children, aside }: ArticleLayoutProps) {
   return (
     <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-16">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-16 items-start">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-x-14 items-start">
         <article className="artikel max-w-[720px] min-w-0">{children}</article>
         {/* De kopregel is sticky (circa 104 px hoog op desktop); de zijkolom blijft daaronder
             hangen. Past de zijkolom niet in het scherm, dan scrolt hij intern in plaats van
