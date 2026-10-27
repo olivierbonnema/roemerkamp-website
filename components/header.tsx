@@ -237,6 +237,12 @@ export function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
+            <a
+              href="tel:+31235173100"
+              className="hidden lg:inline text-sm font-medium text-[#1e3a5f] hover:text-[#311e86] transition-colors mr-2"
+            >
+              023 517 31 00
+            </a>
             {!loading && user ? (
               /* Logged in - Account dropdown */
               <div className="relative group">

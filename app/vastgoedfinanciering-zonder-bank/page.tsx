@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/section-heading'
-import { ContactForm } from '@/components/contact-form'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
+import { PageHero } from '@/components/product/page-hero'
+import { ArticleLayout, ArticleSection, Lead, Note } from '@/components/product/article-layout'
+import { KeyFacts, ContactPanel, OnThisPage } from '@/components/product/aside-panels'
+import { DataTable, DefinitionList, Steps, FaqList, RelatedList, Strong } from '@/components/product/content-blocks'
+import { ContactSection } from '@/components/product/contact-section'
 
 export const metadata: Metadata = {
   title: 'Vastgoedfinanciering zonder bank | Snel en op maat',
@@ -23,42 +24,116 @@ export const metadata: Metadata = {
   },
 }
 
-const vastgoedtypen = [
+const kerngegevens = [
+  { label: 'Bedrag', value: '€200.000 tot €5.000.000' },
+  { label: 'Looptijd', value: '6 tot 60 maanden' },
+  { label: 'Loan-to-value', value: 'Tot 70%, maximaal 75%' },
+  { label: 'Rente', value: 'Vanaf 7% per jaar' },
+  { label: 'Doorlooptijd', value: '1 tot 3 weken na volledige aanvraag' },
+  { label: 'Zekerheid', value: 'Hypotheekrecht, 1e of 2e rang' },
+  { label: 'Aflossing', value: 'Bij verkoop of herfinanciering' },
+  { label: 'Onderpand', value: 'Vastgoed in Nederland' },
+]
+
+const inhoud = [
+  { id: 'wat', label: 'Wat is vastgoedfinanciering zonder bank?' },
+  { id: 'situaties', label: 'Voor welke situaties' },
+  { id: 'vastgoed', label: 'Welk vastgoed komt in aanmerking?' },
+  { id: 'voorwaarden', label: 'Voorwaarden in het kort' },
+  { id: 'vergelijking', label: 'Bank of non-bancair' },
+  { id: 'rekenvoorbeeld', label: 'Rekenvoorbeeld' },
+  { id: 'kosten', label: 'Wat kost het?' },
+  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
+  { id: 'niet', label: 'Wat wij niet doen' },
+  { id: 'faq', label: 'Veelgestelde vragen' },
+]
+
+const situaties = [
   {
-    titel: 'Woonpanden',
-    tekst: 'Privéwoningen met overwaarde, ook als uw inkomen niet aan de bancaire normen voldoet.',
+    term: 'De bank wijst af op inkomen of jaarcijfers',
+    text: "U bent ondernemer, DGA of ZZP'er en uw inkomen is wisselend, recent gestart of fiscaal geoptimaliseerd. Het pand is goed, de aanvraag past alleen niet in de bancaire normen. Wij beoordelen op het onderpand.",
   },
   {
-    titel: 'Beleggingspanden',
-    tekst: 'Verhuurde woningen en appartementen. Banken financieren deze steeds terughoudender; wij beoordelen het pand op zijn eigen merites.',
+    term: 'Een beleggingspand dat banken niet meer financieren',
+    text: 'Verhuurde woningen en appartementen worden door banken steeds terughoudender gefinancierd. Wij kijken naar de marktwaarde en de huurinkomsten van het pand zelf.',
   },
   {
-    titel: 'Bedrijfspanden',
-    tekst: 'Kantoren, winkels en bedrijfsruimten. Financiering op basis van de marktwaarde en huurinkomsten van het pand.',
+    term: 'Snelheid: een veiling, een deadline, een kans',
+    text: 'Een bancaire aanvraag duurt vier tot acht weken. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren bij de notaris.',
   },
   {
-    titel: 'Vastgoed in ontwikkeling',
-    tekst: 'Panden die worden verbouwd, gesplitst of getransformeerd. Tijdelijke financiering totdat de definitieve waarde is gerealiseerd.',
+    term: 'Overwaarde benutten zonder de bestaande hypotheek aan te passen',
+    text: 'Een tweede hypotheek op uw woning of beleggingspand, naast de bestaande bankhypotheek, voor een investering in uw onderneming of in ander vastgoed.',
+  },
+  {
+    term: 'Vastgoed in ontwikkeling of transformatie',
+    text: 'Panden die worden verbouwd, gesplitst of getransformeerd. Tijdelijke financiering totdat de definitieve waarde is gerealiseerd en een bank het kan overnemen.',
+  },
+  {
+    term: 'Een aflopende lening herfinancieren',
+    text: 'Uw huidige financier verlengt niet of de rentevaste periode loopt af op een ongunstig moment. Wij overbruggen tot verkoop of tot een nieuwe langlopende hypotheek.',
+  },
+]
+
+const stappen = [
+  {
+    title: 'De aanvraag',
+    text: 'U dient de aanvraag in via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben: het object en een recente waardebepaling, het actuele saldo van bestaande hypotheken, het doel van de lening en hoe u hem denkt af te lossen. Met die gegevens bij de hand is de aanvraag in een kwartier ingevuld.',
+  },
+  {
+    title: 'De beoordeling',
+    text: 'Wij kijken naar het onderpand, naar de totale schuld die erop komt te rusten en naar de uitstrategie. Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten en het insolventieregister. Ziet het er goed uit, dan ontvangt u een indicatie: bedrag, rente, looptijd en zekerheden.',
+  },
+  {
+    title: 'De termsheet',
+    text: 'Alle afspraken op papier: hoofdsom, rente, looptijd, aflossingsvorm, een eventueel rentedepot of bouwdepot, de zekerheden, de kosten en de voorwaarden die vóór het passeren vervuld moeten zijn, zoals de taxatie of de toestemming van een eerste hypotheekhouder. Wat in de termsheet staat, krijgt ook de investeerder te zien.',
+  },
+  {
+    title: 'De investeerder',
+    text: "Wij leggen de aanvraag voor aan onze investeerders: de zekerheden, de loan-to-value, de exit en de risico's, benoemd zoals ze zijn. Een investeerder beslist op basis daarvan of hij de lening financiert.",
+  },
+  {
+    title: 'De notaris',
+    text: 'De hypotheekakte wordt verleden en ingeschreven bij het Kadaster. De investeerder stort het geld bij de onafhankelijke Stichting; de notaris keert uit.',
+  },
+  {
+    title: 'De looptijd en het einde',
+    text: 'U betaalt rente via de Stichting, maandelijks of vooraf uit het rentedepot. Aan het einde lost u af uit de verkoop of de nieuwe hypotheek. Loopt het uit, dan bespreken wij met de investeerder een verlenging.',
   },
 ]
 
 const faq = [
   {
-    vraag: 'Welk vastgoed kan ik financieren zonder bank?',
-    antwoord: 'Wij financieren op woonpanden, beleggingspanden, bedrijfspanden en vastgoed in ontwikkeling. Doorslaggevend is de marktwaarde en de kwaliteit van het onderpand. Het pand moet in Nederland gelegen zijn.',
+    vraag: 'Kan ik vastgoed financieren zonder eigen geld?',
+    antwoord: 'Ja, eigen inbreng is geen vereiste. Bepalend is de dekking: de totale schuld op het onderpand blijft binnen de loan-to-value van doorgaans 70% en maximaal 75%. Is de ruimte in het ene pand te klein, dan kan ander vastgoed als extra zekerheid dienen.',
   },
   {
-    vraag: 'Hoe verschilt vastgoedfinanciering zonder bank van een bancaire hypotheek?',
-    antwoord: 'Een bancaire hypotheek is een langlopende lening (10 tot 30 jaar) waarbij uw inkomen centraal staat in de beoordeling. Onze financiering is kortlopend (6 tot 60 maanden) en wordt primair beoordeeld op de waarde van het vastgoed. De doorlooptijd is doorgaans één tot drie weken in plaats van vier tot acht weken bij een bank.',
+    vraag: 'Hoe verschilt dit van een bancaire hypotheek?',
+    antwoord: 'Een bancaire hypotheek is een langlopende lening van 10 tot 30 jaar waarbij uw inkomen centraal staat. Onze financiering is kortlopend, 6 tot 60 maanden, en wordt primair beoordeeld op de waarde van het vastgoed. De doorlooptijd is doorgaans één tot drie weken in plaats van vier tot acht.',
   },
   {
     vraag: 'Is vastgoedfinanciering zonder bank veilig?',
-    antwoord: 'Ja. Het hypotheekrecht wordt ingeschreven bij het Kadaster, net als bij een bancaire hypotheek. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van alle partijen waarborgt.',
+    antwoord: 'Het hypotheekrecht wordt ingeschreven bij het Kadaster, net als bij een bancaire hypotheek. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van alle partijen waarborgt. Lange & Partners bemiddelt onder toezicht; de registraties staan op de pagina Nadere informatie.',
+  },
+  {
+    vraag: 'Moet ik een taxatierapport hebben voordat ik een aanvraag doe?',
+    antwoord: 'Voor een eerste indicatie niet; een recente WOZ-waarde of een goede onderbouwing volstaat om te rekenen. Voor de termsheet en het passeren is een rapport van een onafhankelijke taxateur wel vereist. Wie het al heeft, wint daarmee tijd.',
+  },
+  {
+    vraag: 'Wie is mijn aanspreekpunt, Lange & Partners of de investeerder?',
+    antwoord: 'Altijd Lange & Partners, van de aanvraag tot de laatste aflossing. De investeerder financiert, maar staat op afstand. Vragen over de lening stelt u aan ons.',
   },
   {
     vraag: 'Wat zijn de bedragen en looptijden?',
-    antwoord: 'Wij verstrekken leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag is afhankelijk van de marktwaarde van het onderpand en eventuele bestaande hypotheekschuld.',
+    antwoord: 'Leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag hangt af van de marktwaarde van het onderpand en de bestaande hypotheekschuld.',
   },
+]
+
+const verwant = [
+  { href: '/non-bancaire-hypotheek', title: 'Non-bancaire hypotheek', text: 'Het overzicht van alle financieringsvormen met vastgoed als zekerheid.' },
+  { href: '/tweede-hypotheek-ondernemer', title: 'Tweede hypotheek voor ondernemers', text: 'Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.' },
+  { href: '/overbruggingsfinanciering-verbouwing', title: 'Overbruggingsfinanciering en verbouwing', text: 'Tijdelijke financiering bij aankoop, verbouwing of transformatie, met een bouwdepot.' },
+  { href: '/herfinanciering-vastgoed', title: 'Herfinanciering vastgoed', text: 'Een aflopende lening overbruggen tot verkoop of een nieuwe langlopende hypotheek.' },
 ]
 
 export default function VastgoedfinancieringZonderBankPage() {
@@ -68,232 +143,197 @@ export default function VastgoedfinancieringZonderBankPage() {
       <FaqSchema items={faq} />
       <Header />
       <main>
+        <PageHero
+          title="Vastgoedfinanciering zonder bank"
+          intro="Financiering van €200.000 tot €5.000.000 op basis van de waarde van uw vastgoed, niet op basis van uw inkomen of jaarcijfers. Looptijd 6 tot 60 maanden, doorgaans binnen één tot drie weken geregeld."
+          breadcrumbs={[
+            { label: 'Voor leningnemers', href: '/voor-leningnemers' },
+            { label: 'Vastgoedfinanciering zonder bank', href: '/vastgoedfinanciering-zonder-bank' },
+          ]}
+          image={{ src: '/images/nbl-herenhuis.jpg', alt: 'Herenhuis in Nederland' }}
+          primary={{ href: '/financieringsaanvraag', label: 'Aanvraag indienen' }}
+          secondary={{ href: '#contact', label: 'Stel een vraag' }}
+        />
 
-        {/* ── Hero ── */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Vastgoedfinanciering zonder bank
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Snel en flexibel vastgoed financieren, zonder de beperkingen van een bancaire aanvraag. Lange &amp; Partners beoordeelt uw aanvraag op basis van het onderpand &mdash; niet op uw inkomenssituatie.
-              </p>
-              <div className="mt-8 flex gap-3 flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-white/30 text-white/90 px-6 py-3 text-sm font-medium rounded-full hover:bg-white/10 transition-colors"
-                >
-                  Stel een vraag
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        <ArticleLayout
+          aside={
+            <>
+              <KeyFacts items={kerngegevens} />
+              <ContactPanel />
+              <OnThisPage items={inhoud} />
+            </>
+          }
+        >
+          <Lead>
+            Wie vastgoed wil financieren en bij de bank vastloopt op inkomen, jaarcijfers of het type pand, kan terecht bij
+            Lange &amp; Partners. Wij bemiddelen leningen van particuliere investeerders, met uw vastgoed als zekerheid. Op
+            deze pagina leest u voor wie dat werkt, wat de voorwaarden zijn, wat het kost en hoe een aanvraag verloopt.
+          </Lead>
 
-        {/* ── Welk vastgoed ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Welk vastgoed financieren wij?</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              Wij financieren op uiteenlopende typen vastgoed in Nederland. Doorslaggevend is de marktwaarde en de kwaliteit van het onderpand.
+          <ArticleSection id="wat" title="Wat is vastgoedfinanciering zonder bank?">
+            <p>
+              Een non-bancaire vastgoedfinanciering is een lening met een hypotheekrecht op onroerend goed, verstrekt door een
+              particuliere investeerder in plaats van een bank. De beoordeling draait om twee vragen: wat is het onderpand
+              waard, en hoe wordt de lening aan het einde van de looptijd afgelost. Uw inkomen en jaarcijfers spelen een
+              kleinere rol dan bij een bank.
             </p>
-            <div className="grid md:grid-cols-2 gap-6">
-              {vastgoedtypen.map((type) => (
-                <div key={type.titel} className="p-6 bg-gray-50 border border-gray-200">
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{type.titel}</h3>
-                  <p className="text-gray-700 leading-relaxed">{type.tekst}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Waarom buiten de bank om ── */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Waarom vastgoed financieren buiten de bank om?</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              Banken hanteren steeds strengere criteria voor vastgoedfinanciering. In deze situaties biedt een non-bancaire financiering een concreet alternatief.
+            <p>
+              Lange &amp; Partners verstrekt de lening niet zelf. Wij beoordelen de aanvraag, stellen de voorwaarden op en
+              brengen de financiering onder bij een van onze investeerders. Het hypotheekrecht wordt door de notaris gevestigd
+              en bij het Kadaster ingeschreven, in eerste of tweede rang. Alle betalingen lopen via een onafhankelijke
+              Stichting; er gaat nooit geld rechtstreeks tussen u en de investeerder. Uw aanspreekpunt blijft gedurende de
+              hele looptijd Lange &amp; Partners.
             </p>
-            <div className="grid md:grid-cols-2 gap-3">
-              {[
-                'De bank wijst af op basis van uw inkomen of jaarcijfers',
-                'U heeft snel financiering nodig (binnen 1 tot 3 weken)',
-                'Het betreft een beleggingspand dat banken niet meer financieren',
-                'U wilt overwaarde benutten zonder uw bestaande hypotheek aan te passen',
-                'U koopt vastgoed op een veiling en heeft direct financiering nodig',
-                'U ontwikkelt vastgoed en zoekt tijdelijke financiering tot de verkoop',
-              ].map((v) => (
-                <div key={v} className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
-                  <span className="text-gray-700 leading-relaxed">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Hoe werkt het ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Hoe werkt vastgoedfinanciering via Lange &amp; Partners?</SectionHeading>
-            <div className="mt-10 max-w-2xl">
-              {[
-                {
-                  nr: '01',
-                  titel: 'Onderpand beoordelen',
-                  tekst: 'Wij beoordelen de marktwaarde van het vastgoed en bepalen op basis daarvan de maximale lening. De executiewaarde van het onderpand vormt de bovengrens, daarboven verstrekken wij geen financiering.',
-                },
-                {
-                  nr: '02',
-                  titel: 'Uw situatie in kaart',
-                  tekst: 'Naast het onderpand kijken wij naar uw vermogenspositie, eventuele huurinkomsten, bestaande verplichtingen en het perspectief op aflossing of herfinanciering.',
-                },
-                {
-                  nr: '03',
-                  titel: 'Voorstel en uitbetaling',
-                  tekst: 'U ontvangt een helder voorstel met leningbedrag, looptijd (6 tot 60 maanden) en alle voorwaarden. Na akkoord wordt het hypotheekrecht notarieel gevestigd en verloopt de uitbetaling via een onafhankelijke Stichting.',
-                },
-              ].map((s, i, arr) => (
-                <div key={s.nr} className="flex gap-6">
-                  <div className="flex flex-col items-center">
-                    <div className="w-px h-6 bg-transparent" />
-                    <div className="w-8 h-8 rounded-full border-2 border-[#311e86] flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-semibold text-[#311e86]">{s.nr}</span>
-                    </div>
-                    {i < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 my-2" />}
-                  </div>
-                  <div className="pb-10">
-                    <h3 className="font-semibold text-[#1e3a5f] mb-2">{s.titel}</h3>
-                    <p className="text-gray-600 leading-relaxed">{s.tekst}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Dark USP ── */}
-        <section className="bg-[#1e3a5f] py-16">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-[1fr_2fr] gap-12 items-start">
-              <div>
-                <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-                <h2 className="text-xl md:text-2xl font-serif font-semibold text-white">
-                  Waarom kiezen voor Lange &amp; Partners?
-                </h2>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-8">
-                {[
-                  { kop: 'Onderpand centraal', tekst: 'De waarde van uw vastgoed is doorslaggevend, niet uw inkomen of jaarcijfers.' },
-                  { kop: 'Snel', tekst: 'Van aanvraag tot uitbetaling doorgaans binnen één tot drie weken.' },
-                  { kop: 'Transparant en veilig', tekst: 'Kadastrale inschrijving en afhandeling via een onafhankelijke Stichting.' },
-                ].map((u) => (
-                  <div key={u.kop}>
-                    <span className="block font-semibold text-[#f75d20] mb-2">{u.kop}</span>
-                    <p className="text-white/80 leading-relaxed">{u.tekst}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Randstad ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Vastgoed financieren in de Randstad en heel Nederland</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en financiert vastgoed in de gehele Randstad en daarbuiten. Of uw pand in Amsterdam, Rotterdam, Den Haag, Utrecht of elders in Nederland gelegen is &mdash; onze specialisten beoordelen uw aanvraag op korte termijn.
+            <p>
+              De financiering is bedoeld als tijdelijke oplossing: een looptijd van 6 tot 60 maanden, met aflossing uit de
+              verkoop van het pand of uit een herfinanciering bij een bank zodra dat weer kan.
             </p>
-          </div>
-        </section>
+          </ArticleSection>
 
-        {/* ── FAQ ── */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Veelgestelde vragen</SectionHeading>
-            <div className="mt-8 max-w-2xl space-y-8">
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          <ArticleSection id="situaties" title="Voor welke situaties">
+            <DefinitionList items={situaties} />
+          </ArticleSection>
 
-        {/* ── Specifieke financieringsvormen ── */}
-        <section className="py-12 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Specifieke financieringsvormen</SectionHeading>
-            <div className="mt-6 grid md:grid-cols-3 gap-4">
-              {[
-                {
-                  href: '/non-bancaire-hypotheek',
-                  titel: 'Non-bancaire hypotheek',
-                  omschrijving: 'Alle informatie over non-bancaire financiering als alternatief voor een banklening.',
-                },
-                {
-                  href: '/tweede-hypotheek-ondernemer',
-                  titel: 'Tweede hypotheek voor ondernemer',
-                  omschrijving: 'Extra kapitaal ophalen met uw woning of beleggingspand als zekerheid.',
-                },
-                {
-                  href: '/overbruggingsfinanciering-verbouwing',
-                  titel: 'Overbruggingsfinanciering',
-                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing, snel geregeld met vastgoed als zekerheid.',
-                },
-              ].map((p) => (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
-                >
-                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
-                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen &rarr;</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+          <ArticleSection id="vastgoed" title="Welk vastgoed komt in aanmerking?">
+            <p>
+              Wij financieren op vastgoed in Nederland. Doorslaggevend zijn de marktwaarde en de verkoopbaarheid van het
+              onderpand. Een taxatierapport van een onafhankelijke taxateur is altijd vereist voordat de hypotheekakte
+              passeert.
+            </p>
+            <DataTable
+              head={['Type vastgoed', 'Voorbeelden', 'Waar wij op letten']}
+              rows={[
+                ['Woonpanden', 'Eigen woning met overwaarde, tweede woning', 'Overwaarde na aftrek van de bestaande hypotheek; bij een eigen woning geldt aanvullende regelgeving'],
+                ['Beleggingspanden', 'Verhuurde woningen en appartementen, woon-winkelpanden', 'Marktwaarde in verhuurde staat, huurinkomsten, kwaliteit van de huurders'],
+                ['Bedrijfspanden', 'Kantoren, winkels, bedrijfsruimten, horeca', 'Courantheid, locatie, huurcontract of eigen gebruik'],
+                ['Vastgoed in ontwikkeling', 'Verbouwing, splitsing, transformatie', 'Waarde nu en waarde na oplevering, vergunningen, bouwdepot'],
+              ]}
+            />
+            <Note>
+              Consumptief krediet, een lening zonder vastgoed als zekerheid of financiering op alleen inkomen verstrekken wij
+              niet.
+            </Note>
+          </ArticleSection>
 
-        {/* ── Meer weten / contact ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Meer weten?</SectionHeading>
-                <p className="text-gray-700 leading-relaxed mt-6">
-                  Laat u informeren door &eacute;&eacute;n van onze specialisten. We bekijken samen welke financieringsvorm het beste aansluit bij uw vastgoed en situatie.
-                </p>
-                <p className="text-gray-700 leading-relaxed mt-4 mb-8">
-                  Bel (023) 517 31 00 of vul uw gegevens in, zodat wij contact met u kunnen opnemen.
-                </p>
-                <ContactForm />
-              </div>
-              <div className="relative h-[600px] hidden md:block">
-                <Image
-                  src="/images/molens-zonsondergang.jpg"
-                  alt="Lange & Partners Haarlem"
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 20%' }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+          <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
+            <DataTable
+              rows={[
+                ['Leenbedrag', '€200.000 tot €5.000.000'],
+                ['Looptijd', '6 tot 60 maanden'],
+                ['Loan-to-value', 'Doorgaans tot 70% van de marktwaarde, maximaal 75%. De bestaande hypotheekschuld telt mee in de totale schuld op het pand.'],
+                ['Rente', 'Vanaf 7% per jaar. Het tarief hangt af van de loan-to-value, het type vastgoed, de rang van de hypotheek en het risicoprofiel.'],
+                ['Rentebetaling', 'Maandelijks, of vooraf via een rentedepot dat uit de lening wordt gevormd'],
+                ['Aflossing', 'Aan het einde van de looptijd, uit verkoop of herfinanciering. Vervroegd aflossen is in de meeste gevallen mogelijk; de voorwaarden staan vooraf in de leningsovereenkomst.'],
+                ['Zekerheid', 'Hypotheekrecht op het vastgoed, ingeschreven bij het Kadaster in eerste of tweede rang'],
+                ['Eigen inbreng', 'Geen vereiste. De dekking is bepalend: blijft de totale schuld binnen de loan-to-value, dan kan de financiering zonder eigen geld. Ander vastgoed kan als extra zekerheid dienen.'],
+                ['Betalingen', 'Via een onafhankelijke Stichting die de geldstromen beheert'],
+              ]}
+            />
+          </ArticleSection>
 
+          <ArticleSection id="vergelijking" title="Bank of non-bancair: de verschillen">
+            <p>
+              Een non-bancaire financiering is geen vervanging van een bankhypotheek, maar een ander instrument voor een
+              andere situatie. De tabel zet de belangrijkste verschillen naast elkaar.
+            </p>
+            <DataTable
+              head={['', 'Bancaire hypotheek', 'Via Lange & Partners']}
+              rows={[
+                ['Beoordeling', 'Inkomen, jaarcijfers en toetsingsnormen', 'Waarde van het onderpand en de uitstrategie'],
+                ['Looptijd', '10 tot 30 jaar', '6 tot 60 maanden'],
+                ['Doorlooptijd', '4 tot 8 weken', '1 tot 3 weken na een volledige aanvraag'],
+                ['Rente', 'Lager; gefinancierd met spaargeld en kapitaalmarkt', 'Vanaf 7%; gefinancierd met privaat kapitaal'],
+                ['Zekerheid', 'Hypotheekrecht via het Kadaster', 'Hypotheekrecht via het Kadaster, betalingen via een Stichting'],
+                ['Geschikt voor', 'Langdurige financiering bij een stabiel inkomen', 'Tijdelijke financiering, overbrugging, situaties buiten de banknormen'],
+              ]}
+            />
+          </ArticleSection>
+
+          <ArticleSection id="rekenvoorbeeld" title="Rekenvoorbeeld">
+            <p>
+              Een beleggingspand met een marktwaarde van €1.200.000 en een bestaande bankhypotheek van €350.000. De eigenaar
+              wil €450.000 vrijmaken voor de aankoop van een tweede pand en verwacht over twee jaar bij de bank te kunnen
+              herfinancieren.
+            </p>
+            <DataTable
+              alignLast="right"
+              rows={[
+                ['Marktwaarde volgens taxatie', '€1.200.000'],
+                ['Maximale totale schuld bij 70% loan-to-value', '€840.000'],
+                ['Bestaande hypotheek, eerste rang', '€350.000'],
+                ['Ruimte voor een tweede hypotheek', '€490.000'],
+                ['Gevraagde lening, tweede rang', <strong key="lening" className="font-medium text-[#1e3a5f]">€450.000</strong>],
+                ['Loan-to-value na financiering', '66,7%'],
+                ['Rente, in dit voorbeeld 8% per jaar', '€36.000 per jaar, €3.000 per maand'],
+                ['Afsluitvergoeding, 1% van het leenbedrag', '€4.500 eenmalig'],
+                ['Looptijd en exit', '24 maanden, herfinanciering bij de bank'],
+              ]}
+            />
+            <Note>
+              Fictief voorbeeld. De rente hangt af van de loan-to-value, het type vastgoed, de rang van de hypotheek en het
+              risicoprofiel. De afsluitvergoeding is 1% van het leenbedrag met een minimum van €3.000. Taxatie- en
+              notariskosten komen hier nog bij.
+            </Note>
+          </ArticleSection>
+
+          <ArticleSection id="kosten" title="Wat kost het?">
+            <p>
+              Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald
+              met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover: een beoordeling op het
+              onderpand, een doorlooptijd van weken in plaats van maanden en ruimte voor situaties die een bank niet bedient.
+              Alle kosten staan vooraf in de termsheet; er zijn geen tussentijdse vergoedingen of opslagen achteraf.
+            </p>
+            <DataTable
+              head={['Kostenpost', 'Hoogte', 'Wanneer']}
+              rows={[
+                ['Rente', 'Vanaf 7% per jaar', 'Maandelijks, of vooraf via een rentedepot'],
+                ['Afsluitvergoeding', '1% van het leenbedrag, minimaal €3.000', 'Eenmalig, verrekend bij het passeren'],
+                ['Taxatie', 'Tarief van de onafhankelijke taxateur', 'Vóór de termsheet, door u opgedragen'],
+                ['Notaris', 'Tarief van de notaris voor de hypotheekakte', 'Bij het passeren'],
+              ]}
+            />
+            <Note>
+              Rente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering; zakelijke
+              rentelasten zijn doorgaans aftrekbaar als bedrijfskosten. Bespreek dit met uw fiscalist.
+            </Note>
+          </ArticleSection>
+
+          <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
+            <p>
+              Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren. De stap die de doorlooptijd
+              bepaalt, is het vinden van een investeerder; een heldere aanvraag met een goede exit vindt er snel een.
+            </p>
+            <Steps items={stappen} />
+          </ArticleSection>
+
+          <ArticleSection id="niet" title="Wat wij niet doen">
+            <p>
+              <Strong>Geen lening zonder vastgoed.</Strong> Elke financiering heeft een hypotheekrecht op onroerend goed als
+              zekerheid. Consumptief krediet of een lening op basis van alleen inkomen verstrekken wij niet.
+            </p>
+            <p>
+              <Strong>Geen financiering zonder exit.</Strong> Als niet duidelijk is hoe de lening eindigt, kunnen wij hem
+              niet aan een investeerder uitleggen. Dan is er nog werk te doen voordat een aanvraag zin heeft.
+            </p>
+            <p>
+              <Strong>Geen verrassingen na de termsheet.</Strong> Wat u tekent, is wat er gebeurt. Voorwaarden die het
+              passeren kunnen tegenhouden, staan erin. Kosten ook.
+            </p>
+          </ArticleSection>
+
+          <ArticleSection id="faq" title="Veelgestelde vragen">
+            <FaqList items={faq} />
+          </ArticleSection>
+
+          <ArticleSection id="verwant" title="Verwante financieringen">
+            <RelatedList items={verwant} />
+          </ArticleSection>
+        </ArticleLayout>
+
+        <ContactSection
+          text="Twijfelt u of uw situatie past? Bel ons of laat uw gegevens achter. Wij bekijken samen welke financieringsvorm aansluit bij uw vastgoed en uw plannen, en wat daarvoor nodig is. Een eerste indicatie geven wij op basis van een recente waardebepaling en het saldo van uw huidige hypotheek."
+          image={{ src: '/images/voor-leningnemers-home.jpg', alt: 'Gesprek op het kantoor van Lange & Partners in Haarlem', position: 'center 35%' }}
+        />
       </main>
       <Footer />
     </>
