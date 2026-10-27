@@ -1,12 +1,19 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/section-heading'
-import { ContactForm } from '@/components/contact-form'
-import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
-import { FaqSchema } from '@/components/faq-schema'
+import { ProductPage } from '@/components/product/product-page'
+import { ArticleSection, Note } from '@/components/product/article-layout'
+import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
+import {
+  kerngegevens,
+  voorwaarden,
+  KOSTEN,
+  KOSTEN_INLEIDING,
+  KOSTEN_FISCAAL,
+  STAPPEN,
+  STAPPEN_INLEIDING,
+  FAQ_EIGEN_GELD,
+  FAQ_VERVROEGD,
+  verwant,
+} from '@/lib/product-content'
 
 export const metadata: Metadata = {
   title: { absolute: 'Tweede hypotheek voor ondernemer | Lange & Partners' },
@@ -23,280 +30,171 @@ export const metadata: Metadata = {
   },
 }
 
-const faq = [
+const inhoud = [
+  { id: 'wat', label: 'Wat is een tweede hypotheek?' },
+  { id: 'waarvoor', label: 'Waarvoor ondernemers hem gebruiken' },
+  { id: 'hoeveel', label: 'Hoeveel kunt u lenen?' },
+  { id: 'bank', label: 'Waarom de bank afwijst' },
+  { id: 'voorwaarden', label: 'Voorwaarden' },
+  { id: 'kosten', label: 'Kosten' },
+  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
+]
+
+const waarvoor = [
   {
-    vraag: 'Kan ik een tweede hypotheek krijgen als mijn inkomen schommelt?',
-    antwoord: 'Ja. Banken toetsen ondernemersinkomen op historische gemiddelden, wat bij wisselende inkomsten snel leidt tot een afwijzing. Lange & Partners beoordeelt de situatie breder: het gaat om de waarde van het onderpand, uw totale vermogenspositie en het perspectief op terugbetaling. Een schommelend inkomen is op zichzelf geen uitsluitingsgrond.',
+    term: 'Liquiditeit voor uw bedrijf of een investering',
+    text: 'Werkkapitaal, een overname of een investering in de onderneming, zonder dat u uw woning of pand hoeft te verkopen.',
   },
   {
-    vraag: 'Wat is het maximale bedrag voor een tweede hypotheek via Lange & Partners?',
-    antwoord: 'Wij verstrekken leningen van €200.000 tot €5.000.000. Het maximale bedrag is afhankelijk van de marktwaarde van het onderpand en de al bestaande hypotheekschuld. De hoogte van de lening mag de executiewaarde van het vastgoed niet overschrijden.',
+    term: 'Een verbouwing of uitbreiding',
+    text: 'Financiering van een verbouwing van uw woning, beleggingspand of bedrijfspand, als de bank de hypotheek niet wil verhogen.',
   },
   {
-    vraag: 'Hoe lang duurt de aanvraagprocedure?',
-    antwoord: 'Bij een volledige aanvraag en duidelijk onderpand streven wij naar een doorlooptijd van één tot drie weken. Dit is beduidend sneller dan een bancaire hypotheekaanvraag.',
+    term: 'Overbrugging bij de aankoop van nieuw vastgoed',
+    text: 'De overwaarde in uw huidige pand als zekerheid voor de aankoop van het volgende, totdat de verkoop of de definitieve financiering rond is.',
   },
   {
-    vraag: 'Kan een tweede hypotheek ook op een beleggingspand?',
-    antwoord: 'Ja. Wij financieren zowel op privéwoningen als op beleggingspanden, bedrijfspanden en gemengd gebruik. Doorslaggevend is de marktwaarde en de kwaliteit van het onderpand.',
+    term: 'Herfinanciering van een dure lening',
+    text: 'Een ongedekte zakelijke lening of een krediet met een hoge rente vervangen door een lening met vastgoed als zekerheid.',
+  },
+  {
+    term: 'Aankoop van een tweede pand of beleggingsobject',
+    text: 'De overwaarde in het ene pand inzetten als eigen inbreng of als extra zekerheid voor het volgende.',
   },
 ]
 
-export default function TweedeHypotheekOndernemer() {
+const bank = [
+  {
+    term: 'Het inkomen past niet in de norm',
+    text: 'De bank rekent met het gemiddelde ondernemersinkomen van drie jaar. Wisselende inkomsten of een investeringsjaar drukken dat gemiddelde.',
+  },
+  {
+    term: 'Minder dan drie jaar jaarcijfers',
+    text: 'Zonder drie afgesloten boekjaren kan de bank de inkomenstoets niet maken.',
+  },
+  {
+    term: 'Bestaande schulden en de eerste hypotheek',
+    text: 'Box 3-schulden, zakelijke verplichtingen en de bestaande hypotheek wegen mee in de bancaire toets en beperken de ruimte.',
+  },
+  {
+    term: 'Verlies of betalingsregelingen',
+    text: 'Een verliesjaar of een lopende betalingsregeling leidt bij de bank vrijwel altijd tot een afwijzing. Wij beoordelen dit per situatie, in samenhang met het onderpand en de exit.',
+  },
+]
+
+const faq = [
+  {
+    vraag: 'Kan ik een tweede hypotheek krijgen als mijn inkomen schommelt?',
+    antwoord: 'Ja. Banken toetsen ondernemersinkomen op historische gemiddelden, wat bij wisselende inkomsten snel tot een afwijzing leidt. Wij beoordelen breder: de waarde van het onderpand, uw totale vermogenspositie en het perspectief op terugbetaling. Een schommelend inkomen is op zichzelf geen uitsluitingsgrond.',
+  },
+  {
+    vraag: 'Wat is het maximale bedrag voor een tweede hypotheek?',
+    antwoord: 'Leningen van €200.000 tot €5.000.000. Het maximum volgt uit de loan-to-value: de bestaande hypotheek en de tweede hypotheek samen blijven doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
+  },
+  {
+    vraag: 'Moet mijn bank toestemming geven voor een tweede hypotheek?',
+    antwoord: 'Dat hangt af van de voorwaarden van uw eerste hypotheek. Veel hypotheekakten vereisen toestemming van de eerste hypotheekhouder voor een tweede inschrijving. Is dat bij u het geval, dan staat die toestemming als voorwaarde in de termsheet en moet zij vóór het passeren binnen zijn.',
+  },
+  {
+    vraag: 'Hoe snel kan een tweede hypotheek worden geregeld?',
+    antwoord: 'Bij een volledige aanvraag en een duidelijk onderpand rekenen wij op één tot drie weken tot het passeren. Is toestemming van de eerste hypotheekhouder nodig, dan bepaalt de reactietijd van die bank mede de doorlooptijd.',
+  },
+  {
+    vraag: 'Kan een tweede hypotheek ook op een beleggingspand?',
+    antwoord: 'Ja. Wij financieren op privéwoningen, beleggingspanden, bedrijfspanden en gemengd gebruik. Doorslaggevend is de marktwaarde en de kwaliteit van het onderpand.',
+  },
+  FAQ_EIGEN_GELD,
+  FAQ_VERVROEGD,
+]
+
+export default function TweedeHypotheekOndernemerPage() {
   return (
-    <>
-      <BreadcrumbSchema items={[{ name: 'Tweede hypotheek ondernemer', href: '/tweede-hypotheek-ondernemer' }]} />
-      <FaqSchema items={faq} />
-      <Header />
-      <main>
+    <ProductPage
+      href="/tweede-hypotheek-ondernemer"
+      breadcrumb="Tweede hypotheek voor ondernemers"
+      title="Tweede hypotheek voor ondernemers"
+      intro="Overwaarde in uw woning of beleggingspand benutten zonder de bestaande bankhypotheek aan te passen. Een lening in tweede rang, beoordeeld op het vastgoed en niet alleen op uw jaarcijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      image={{ src: '/images/bericht-3-haarlem.jpg', alt: 'De Grote Markt in Haarlem', position: 'center 45%' }}
+      kerngegevens={kerngegevens({ Zekerheid: 'Hypotheekrecht in 2e rang, achter de bestaande hypotheek' })}
+      inhoud={inhoud}
+      lead={
+        <>
+          Een tweede hypotheek maakt het mogelijk om de overwaarde in uw vastgoed te gebruiken zonder te verkopen en
+          zonder uw bestaande hypotheek open te breken. Voor ondernemers zijn de redenen divers; de bank werkt vaak niet
+          mee. Op deze pagina leest u hoe het werkt, hoeveel u kunt lenen en wat de voorwaarden zijn.
+        </>
+      }
+      faq={faq}
+      verwant={verwant('ltv', 'dga', 'overbrugging', 'hub')}
+    >
+      <ArticleSection id="wat" title="Wat is een tweede hypotheek?">
+        <p>
+          Een tweede hypotheek is een lening met een hypotheekrecht in tweede rang: het wordt bij het Kadaster
+          ingeschreven achter de hypotheek van uw bank, die blijft gewoon doorlopen. U gebruikt de overwaarde, het verschil
+          tussen de marktwaarde van het pand en de bestaande hypotheekschuld, als zekerheid voor de nieuwe lening.
+        </p>
+        <p>
+          Bij Lange &amp; Partners komt het geld van een particuliere investeerder. Wij beoordelen de aanvraag, leggen de
+          afspraken vast in een termsheet en brengen de financiering onder bij een van onze investeerders. De looptijd is
+          6 tot 60 maanden; aan het einde lost u af uit verkoop, uit een verhoging van de eerste hypotheek bij de bank of
+          uit eigen middelen.
+        </p>
+      </ArticleSection>
 
-        {/* ── Hero ── */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Tweede hypotheek voor ondernemers
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Heeft u overwaarde in uw woning of beleggingspand maar wil de bank niet meewerken? Lange &amp; Partners beoordeelt uw aanvraag op basis van het vastgoed, niet alleen op uw jaarcijfers.
-              </p>
-              <div className="mt-8 flex gap-3 flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-white/30 text-white/90 px-6 py-3 text-sm font-medium rounded-full hover:bg-white/10 transition-colors"
-                >
-                  Stel een vraag
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="waarvoor" title="Waarvoor ondernemers een tweede hypotheek gebruiken">
+        <DefinitionList items={waarvoor} />
+      </ArticleSection>
 
-        {/* ── Wanneer heeft u een tweede hypotheek nodig ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Wanneer heeft u een tweede hypotheek nodig?</SectionHeading>
-                <div className="mt-6 space-y-4">
-                  <p className="text-gray-700 leading-relaxed">
-                    Een tweede hypotheek maakt het mogelijk om de overwaarde in uw vastgoed te gebruiken zonder dat u hoeft te verkopen. Voor ondernemers zijn de redenen divers.
-                  </p>
-                </div>
-                <div className="mt-6 space-y-3">
-                  {[
-                    'Liquiditeit vrijmaken voor uw bedrijf of een investering',
-                    'Financiering van een verbouwing of uitbreiding',
-                    'Overbrugging bij de aankoop van nieuw vastgoed',
-                    'Herfinanciering van een bestaande (dure) lening',
-                    'Aankoop van een tweede pand of beleggingsobject',
-                  ].map((punt) => (
-                    <div key={punt} className="flex items-start gap-3">
-                      <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
-                      <p className="text-gray-700 leading-relaxed">{punt}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="relative h-[400px] hidden md:block overflow-hidden">
-                <Image
-                  src="/images/nbl-kantoor.jpg"
-                  alt="Tweede hypotheek voor ondernemer"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="hoeveel" title="Hoeveel kunt u lenen? De LTV telt alles mee">
+        <p>
+          Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór ons in het Kadaster staat. De
+          loan-to-value berekenen wij over de totale schuld op het pand: de bestaande hypotheek plus de tweede hypotheek,
+          gedeeld door de marktwaarde. Die totale schuld blijft doorgaans binnen 70%, maximaal 75%.
+        </p>
+        <DataTable
+          alignLast="right"
+          rows={[
+            ['Marktwaarde volgens taxatie', '€1.000.000'],
+            ['Maximale totale schuld bij 70% loan-to-value', '€700.000'],
+            ['Bestaande bankhypotheek, eerste rang', '€400.000'],
+            ['Ruimte voor een tweede hypotheek', '€300.000'],
+            ['Loan-to-value na financiering', '70%'],
+          ]}
+        />
+        <Note>
+          Fictief voorbeeld. Dezelfde lening van €300.000 is op zichzelf 30% van de waarde, maar inclusief de bestaande
+          hypotheek 70%. Dat laatste is de LTV die telt. Lees meer in het bericht over de tweede hypotheek en de LTV.
+        </Note>
+      </ArticleSection>
 
-        {/* ── Waarom wijst de bank af ── */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Waarom wijst de bank af?</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              Banken hanteren vaste normen die voor ondernemers vaak ongunstig uitpakken, ook al is de financiële situatie in werkelijkheid solide.
-            </p>
-            <div className="grid md:grid-cols-2 gap-3">
-              {[
-                'Inkomen uit onderneming voldoet niet aan bancaire normen (gemiddelde van 3 jaar)',
-                'Minder dan drie jaar jaarcijfers beschikbaar',
-                'Hoge box-3-schulden of al een bestaande hypotheek',
-                'Wisselende of seizoensgebonden omzet',
-                'Bedrijf maakt (tijdelijk) verlies of heeft een investeringsjaar achter de rug',
-                'Lopende betalingsregelingen die meewegen in de bancaire toets (wij beoordelen dit per situatie)',
-              ].map((v) => (
-                <div key={v} className="flex items-start gap-4 p-4 bg-white border-l-4 border-[#2596be] shadow-sm">
-                  <span className="text-gray-700 leading-relaxed">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="bank" title="Waarom de bank afwijst">
+        <p>
+          Banken hanteren vaste normen die voor ondernemers vaak ongunstig uitpakken, ook als de situatie in werkelijkheid
+          solide is.
+        </p>
+        <DefinitionList items={bank} />
+      </ArticleSection>
 
-        {/* ── Hoe werkt het via Lange & Partners ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Hoe werkt een tweede hypotheek via Lange &amp; Partners?</SectionHeading>
-            <div className="mt-10 max-w-2xl">
-              {[
-                {
-                  nr: '01',
-                  titel: 'Beoordeling op onderpand',
-                  tekst: 'Wij beoordelen de marktwaarde van het vastgoed en bepalen op basis daarvan de maximale lening. De executiewaarde van het onderpand vormt de bovengrens, daarboven verstrekken wij geen financiering.',
-                },
-                {
-                  nr: '02',
-                  titel: 'Uw terugbetalingsperspectief',
-                  tekst: 'We kijken niet alleen naar historisch inkomen maar ook naar toekomstige kasstromen, huurinkomsten, vermogen en de concrete aanleiding voor de lening. Een realistisch perspectief op aflossing of herfinanciering is doorslaggevend.',
-                },
-                {
-                  nr: '03',
-                  titel: 'Voorstel en uitbetaling',
-                  tekst: 'U ontvangt een voorstel met leningbedrag, looptijd (6 tot 60 maanden) en alle voorwaarden. Na akkoord verloopt de uitbetaling via een onafhankelijke Stichting.',
-                },
-              ].map((s, i, arr) => (
-                <div key={s.nr} className="flex gap-6">
-                  <div className="flex flex-col items-center">
-                    <div className="w-px h-6 bg-transparent" />
-                    <div className="w-8 h-8 rounded-full border-2 border-[#311e86] flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-semibold text-[#311e86]">{s.nr}</span>
-                    </div>
-                    {i < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 my-2" />}
-                  </div>
-                  <div className="pb-10">
-                    <h3 className="font-semibold text-[#1e3a5f] mb-2">{s.titel}</h3>
-                    <p className="text-gray-600 leading-relaxed">{s.tekst}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
+        <DataTable
+          rows={voorwaarden([
+            ['Zekerheid', 'Hypotheekrecht in tweede rang, ingeschreven bij het Kadaster achter de bestaande hypotheek'],
+            ['Eerste hypotheekhouder', 'Vereist de akte van uw eerste hypotheek toestemming voor een tweede inschrijving, dan is die toestemming een voorwaarde in de termsheet'],
+            ['Onderpand', 'Woning, beleggingspand, bedrijfspand of gemengd vastgoed in Nederland, met voldoende overwaarde'],
+          ])}
+        />
+      </ArticleSection>
 
-        {/* ── Dark USP ── */}
-        <section className="bg-[#1e3a5f] py-16">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-[1fr_2fr] gap-12 items-start">
-              <div>
-                <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-                <h2 className="text-xl md:text-2xl font-serif font-semibold text-white">
-                  Waarom ondernemers voor ons kiezen
-                </h2>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-8">
-                {[
-                  { kop: 'Geen starre normen', tekst: 'Wij beoordelen uw situatie als geheel, niet alleen de jaarcijfers van de afgelopen drie jaar.' },
-                  { kop: 'Snel', tekst: 'Van aanvraag tot uitbetaling doorgaans binnen één tot drie weken.' },
-                  { kop: 'Transparant', tekst: 'Heldere voorwaarden vooraf. U weet precies waar u aan toe bent.' },
-                ].map((u) => (
-                  <div key={u.kop}>
-                    <span className="block font-semibold text-[#f75d20] mb-2">{u.kop}</span>
-                    <p className="text-white/80 leading-relaxed">{u.tekst}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="kosten" title="Wat kost het?">
+        <p>{KOSTEN_INLEIDING}</p>
+        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
+        <Note>{KOSTEN_FISCAAL}</Note>
+      </ArticleSection>
 
-        {/* ── Randstad ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
-            </p>
-          </div>
-        </section>
-
-        {/* ── FAQ ── */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Veelgestelde vragen</SectionHeading>
-            <div className="mt-8 max-w-2xl space-y-8">
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Andere financieringsvormen ── */}
-        <section className="py-12 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Andere financieringsvormen</SectionHeading>
-            <div className="mt-6 grid md:grid-cols-3 gap-4">
-              {[
-                {
-                  href: '/hypotheek-zonder-jaarcijfers',
-                  titel: 'Hypotheek zonder jaarcijfers',
-                  omschrijving: 'Lees meer over een hypotheek zonder jaarcijfers voor ondernemers die nog geen drie jaar financiële overzichten kunnen overleggen.',
-                },
-                {
-                  href: '/dga-hypotheek',
-                  titel: 'DGA hypotheek',
-                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder, op basis van het onderpand, niet alleen het DGA-salaris.',
-                },
-                {
-                  href: '/overbruggingsfinanciering-verbouwing',
-                  titel: 'Overbruggingsfinanciering voor verbouwing en meer',
-                  omschrijving: 'Tijdelijke financiering bij aankoop of verbouwing, snel geregeld met vastgoed als zekerheid.',
-                },
-              ].map((p) => (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
-                >
-                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
-                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen →</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Meer weten / contact ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Meer weten?</SectionHeading>
-                <p className="text-gray-700 leading-relaxed mt-6">
-                  Laat u informeren door één van onze specialisten. We bekijken samen of een tweede hypotheek aansluit bij uw situatie.
-                </p>
-                <p className="text-gray-700 leading-relaxed mt-4 mb-8">
-                  Bel (023) 517 31 00 of vul uw gegevens in, zodat wij contact met u kunnen opnemen.
-                </p>
-                <ContactForm />
-              </div>
-              <div className="relative h-[600px] hidden md:block">
-                <Image
-                  src="/images/molens-zonsondergang.jpg"
-                  alt="Lange & Partners Haarlem"
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 20%' }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-      <Footer />
-    </>
+      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
+        <p>{STAPPEN_INLEIDING}</p>
+        <Steps items={STAPPEN} />
+      </ArticleSection>
+    </ProductPage>
   )
 }

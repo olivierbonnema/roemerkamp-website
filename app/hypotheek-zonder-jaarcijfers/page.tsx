@@ -1,12 +1,20 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/section-heading'
-import { ContactForm } from '@/components/contact-form'
-import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
-import { FaqSchema } from '@/components/faq-schema'
+import { ProductPage } from '@/components/product/product-page'
+import { ArticleSection, Note } from '@/components/product/article-layout'
+import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
+import {
+  kerngegevens,
+  voorwaarden,
+  KOSTEN,
+  KOSTEN_INLEIDING,
+  KOSTEN_FISCAAL,
+  STAPPEN,
+  STAPPEN_INLEIDING,
+  FAQ_EIGEN_GELD,
+  FAQ_TAXATIE,
+  FAQ_VERVROEGD,
+  verwant,
+} from '@/lib/product-content'
 
 export const metadata: Metadata = {
   title: { absolute: 'Hypotheek zonder jaarcijfers | Lange & Partners' },
@@ -23,277 +31,170 @@ export const metadata: Metadata = {
   },
 }
 
-const doelgroepen = [
+const inhoud = [
+  { id: 'waarom', label: 'Waarom de bank drie jaar cijfers wil' },
+  { id: 'voorwie', label: 'Voor wie' },
+  { id: 'beoordeling', label: 'Wat wij wel beoordelen' },
+  { id: 'jaren', label: 'Nul, één of twee jaar cijfers' },
+  { id: 'voorwaarden', label: 'Voorwaarden' },
+  { id: 'tijdelijk', label: 'Tijdelijk, tot de bank het overneemt' },
+  { id: 'kosten', label: 'Kosten' },
+  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
+]
+
+const voorwie = [
   {
-    titel: 'Startende ondernemers',
-    tekst: 'U bent korter dan drie jaar zelfstandig en kunt daardoor geen volledig historisch beeld overleggen. Uw bedrijf groeit, maar de bank wacht liever af.',
+    term: 'Korter dan drie jaar zelfstandig',
+    text: 'U kunt nog geen volledig historisch beeld overleggen. Uw bedrijf groeit, maar de bank wacht liever af tot het derde boekjaar is afgesloten.',
   },
   {
-    titel: 'DGA\'s in overgang',
-    tekst: 'U bent recent overgestapt van werknemer naar DGA, of heeft uw BV omgebouwd. Banken vereisen drie jaar DGA-jaarrekeningen, die heeft u nog niet.',
+    term: 'Recent overgestapt naar een BV of naar DGA',
+    text: 'U bent van werknemer DGA geworden, of heeft uw eenmanszaak omgezet in een BV. Banken vragen drie jaar jaarrekeningen van de BV, die heeft u nog niet.',
   },
   {
-    titel: 'Freelancers en ZZP\'ers',
-    tekst: 'Uw inkomen is aantoonbaar maar niet structureel op één werkgever. Banken wegen dit inkomen lager mee dan een vaste aanstelling.',
+    term: 'Inkomen uit wisselende opdrachtgevers',
+    text: 'Uw inkomen is aantoonbaar maar niet gebonden aan één werkgever. Banken wegen dit lager mee dan een vaste aanstelling.',
   },
   {
-    titel: 'Buitenlandse ondernemers',
-    tekst: 'U heeft uw bedrijf in het buitenland en de jaarcijfers zijn niet in het juiste format of niet vertaalbaar naar Nederlandse bancaire normen.',
+    term: 'Onderneming in het buitenland',
+    text: 'De jaarcijfers zijn er wel, maar niet in het format dat de bank kan verwerken, of niet te vertalen naar Nederlandse bancaire normen.',
+  },
+]
+
+const beoordeling = [
+  {
+    term: 'Het onderpand',
+    text: 'Marktwaarde, type vastgoed, locatie en verkoopbaarheid. Dit is onze primaire zekerheid en bepaalt de maximale lening: doorgaans tot 70% van de marktwaarde, maximaal 75%, inclusief een bestaande hypotheek.',
+  },
+  {
+    term: 'Het perspectief',
+    text: 'Toekomstige kasstromen, huurinkomsten, lopende contracten en opdrachten. Niet het gemiddelde van drie jaar terug, maar wat er nu en straks binnenkomt.',
+  },
+  {
+    term: 'De vermogenspositie',
+    text: 'Eigen vermogen, andere activa en de totale schuldenlast geven een completer beeld dan alleen inkomen.',
+  },
+  {
+    term: 'Het doel en de exit',
+    text: 'Waarvoor is de financiering en hoe eindigt de lening: herfinanciering bij een bank zodra de cijfers er zijn, verkoop, of aflossing uit eigen middelen. Zonder geloofwaardige exit nemen wij een aanvraag niet in behandeling.',
   },
 ]
 
 const faq = [
   {
     vraag: 'Waarom eist een bank drie jaar jaarcijfers?',
-    antwoord: 'Banken hanteren wettelijk verplichte inkomenstoetsen op basis van normen van De Nederlandsche Bank. Zij mogen het gemiddelde van de afgelopen drie jaar ondernemersinkomen gebruiken voor de berekening van de maximale hypotheek. Zonder drie jaar jaarcijfers kunnen zij deze berekening niet maken en wijzen zij de aanvraag doorgaans af.',
+    antwoord: 'Banken hanteren inkomenstoetsen op basis van normen van De Nederlandsche Bank. Voor ondernemers rekenen zij met het gemiddelde inkomen van de afgelopen drie jaar. Zonder drie jaar jaarcijfers kunnen zij die berekening niet maken en wijzen zij de aanvraag doorgaans af.',
   },
   {
     vraag: 'Hoe beoordeelt Lange & Partners een aanvraag zonder jaarcijfers?',
-    antwoord: 'Wij kijken naar het vastgoed als onderpand (marktwaarde, type, locatie), de aard en het perspectief van uw onderneming, uw totale vermogenspositie en uw aannemelijke terugbetalingscapaciteit. Een realistisch en onderbouwd beeld is voor ons voldoende om tot een oordeel te komen, ook zonder drie jaar historische cijfers.',
-  },
-  {
-    vraag: 'Is een hypotheek zonder jaarcijfers een permanente oplossing?',
-    antwoord: 'Niet per definitie. Onze leningen hebben een looptijd van 6 tot 60 maanden. In de meeste gevallen is het de bedoeling dat u na die periode kunt herfinancieren via een bancaire hypotheek, wanneer u wel aan de jaarcijfereis voldoet. Wij bespreken dit perspectief altijd bij de beoordeling van uw aanvraag.',
+    antwoord: 'Wij kijken naar het vastgoed als onderpand (marktwaarde, type, locatie), naar de aard en het perspectief van uw onderneming, naar uw totale vermogenspositie en naar de manier waarop de lening wordt afgelost. Een realistisch en onderbouwd beeld is voor ons voldoende, ook zonder drie jaar historische cijfers.',
   },
   {
     vraag: 'Kan ik ook een lening aanvragen als mijn bedrijf pas één jaar bestaat?',
-    antwoord: 'Ja, dat is mogelijk. Doorslaggevend is de kwaliteit van het onderpand en de aannemelijkheid van het terugbetalingsperspectief. Wij bespreken dit graag in een persoonlijk gesprek.',
+    antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de kwaliteit van het onderpand en een geloofwaardig terugbetalingsperspectief.',
   },
+  {
+    vraag: 'Is een hypotheek zonder jaarcijfers een permanente oplossing?',
+    antwoord: 'Nee. Onze leningen hebben een looptijd van 6 tot 60 maanden. In de meeste gevallen is het de bedoeling dat u daarna herfinanciert bij een bank, zodra u wel aan de jaarcijfereis voldoet. Dat perspectief bespreken wij bij de beoordeling.',
+  },
+  FAQ_EIGEN_GELD,
+  FAQ_TAXATIE,
+  FAQ_VERVROEGD,
 ]
 
 export default function HypotheekZonderJaarcijfersPage() {
   return (
-    <>
-      <BreadcrumbSchema items={[{ name: 'Hypotheek zonder jaarcijfers', href: '/hypotheek-zonder-jaarcijfers' }]} />
-      <FaqSchema items={faq} />
-      <Header />
-      <main>
+    <ProductPage
+      href="/hypotheek-zonder-jaarcijfers"
+      breadcrumb="Hypotheek zonder jaarcijfers"
+      title="Hypotheek zonder jaarcijfers"
+      intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer heeft die. Wij beoordelen de aanvraag op uw vastgoed en op hoe de lening eindigt, niet op uw financiële verleden. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      image={{ src: '/images/nbl-kantoor.jpg', alt: 'Kantoorgebouw, zwart-wit' }}
+      kerngegevens={kerngegevens()}
+      inhoud={inhoud}
+      lead={
+        <>
+          Een startende ondernemer met een gezond bedrijf en voldoende vermogen krijgt bij de bank vaak geen financiering,
+          simpelweg omdat de rekenregel van drie jaar jaarcijfers niet kan worden toegepast. Op deze pagina leest u waarom
+          dat zo is, wat wij in plaats daarvan beoordelen en wat de voorwaarden zijn.
+        </>
+      }
+      faq={faq}
+      verwant={verwant('dga', 'zzp', 'afgewezen', 'hub')}
+    >
+      <ArticleSection id="waarom" title="Waarom de bank drie jaar cijfers wil">
+        <p>
+          Banken zijn gebonden aan normen van De Nederlandsche Bank voor de inkomenstoetsing van hypotheken. Voor
+          ondernemers gebruiken zij het gemiddelde inkomen over de afgelopen drie jaar als basis voor de maximale
+          hypotheek. Zonder drie jaar jaarcijfers ontbreekt de grondslag voor die berekening.
+        </p>
+        <p>
+          Het gevolg: een ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire
+          financiering, omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide; uw situatie is dat
+          niet. Wij werken met een andere beoordeling, waarin het onderpand en de exit centraal staan.
+        </p>
+      </ArticleSection>
 
-        {/* -- Hero -- */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Hypotheek zonder jaarcijfers
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Banken vragen drie jaar jaarcijfers, maar niet iedere ondernemer heeft die. Lange &amp; Partners beoordeelt uw aanvraag op basis van uw vastgoed en uw perspectief, niet alleen op uw financiële verleden.
-              </p>
-              <div className="mt-8 flex gap-3 flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-white/30 text-white/90 px-6 py-3 text-sm font-medium rounded-full hover:bg-white/10 transition-colors"
-                >
-                  Stel een vraag
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="voorwie" title="Voor wie dit relevant is">
+        <DefinitionList items={voorwie} />
+      </ArticleSection>
 
-        {/* -- Waarom de bank nee zegt -- */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Waarom eist de bank drie jaar jaarcijfers?</SectionHeading>
-                <div className="mt-6 space-y-4">
-                  <p className="text-gray-700 leading-relaxed">
-                    Banken zijn gebonden aan normen van De Nederlandsche Bank voor de inkomenstoetsing van hypotheken. Voor ondernemers hanteren zij het gemiddelde inkomen over de afgelopen drie jaar als basis voor de berekening van de maximale hypotheek. Zonder drie jaar jaarcijfers ontbreekt de grondslag voor die berekening.
-                  </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    Het gevolg: een startende ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire financiering, simpelweg omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide; uw situatie is dat niet.
-                  </p>
-                </div>
-              </div>
-              <div className="relative h-[350px] hidden md:block overflow-hidden">
-                <Image
-                  src="/images/nbl-kantoor.jpg"
-                  alt="Hypotheek zonder jaarcijfers Lange & Partners"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="beoordeling" title="Wat wij wel beoordelen">
+        <p>Wij kijken verder dan historische jaarcijfers. Onze beoordeling rust op vier pijlers.</p>
+        <DefinitionList items={beoordeling} />
+      </ArticleSection>
 
-        {/* -- Voor wie -- */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Voor wie is dit relevant?</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              Wij zien de volgende groepen het meest vaak in deze situatie.
-            </p>
-            <div className="grid md:grid-cols-2 gap-6">
-              {doelgroepen.map((d) => (
-                <div key={d.titel} className="p-6 bg-white border-t-4 border-[#2596be]">
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{d.titel}</h3>
-                  <p className="text-gray-700 leading-relaxed text-sm">{d.tekst}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="jaren" title="Nul, één of twee jaar cijfers: wat kan wel?">
+        <p>
+          Het aantal afgesloten boekjaren verandert bij ons niets aan de beoordeling. Het bepaalt wel wat u kunt
+          aanleveren en hoe snel een bank de lening later kan overnemen.
+        </p>
+        <DataTable
+          head={['Situatie', 'Bij de bank', 'Via Lange & Partners']}
+          rows={[
+            ['Net gestart, nog geen afgesloten boekjaar', 'Geen inkomenstoets mogelijk, aanvraag wordt afgewezen', 'Beoordeling op onderpand, vermogen, lopende opdrachten en exit'],
+            ['Eén afgesloten boekjaar', 'Meestal afwijzing; soms een prognose met forse korting', 'Jaarcijfer en prognose tellen mee, het onderpand blijft leidend'],
+            ['Twee afgesloten boekjaren', 'Bij sommige banken mogelijk met prognose en lagere maximale hypotheek', 'Financiering voor de periode tot het derde boekjaar, met bankherfinanciering als exit'],
+          ]}
+        />
+        <Note>
+          Hoe de bank rekent verschilt per bank en per situatie; de kolom "Bij de bank" beschrijft het gangbare beeld,
+          geen toezegging van een bank.
+        </Note>
+      </ArticleSection>
 
-        {/* -- Hoe beoordeelt Lange & Partners -- */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Hoe beoordeelt Lange &amp; Partners uw aanvraag?</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              Wij kijken verder dan historische jaarcijfers. Onze beoordeling bestaat uit vier pijlers.
-            </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { nr: '1', titel: 'Het onderpand', tekst: 'Marktwaarde, type vastgoed, locatie en verhandelbaarheid. Dit is onze primaire zekerheid.' },
-                { nr: '2', titel: 'Terugbetalingsperspectief', tekst: 'Toekomstige kasstromen, huurinkomsten, lopende contracten of een realistisch herfinancieringsplan.' },
-                { nr: '3', titel: 'Uw vermogenspositie', tekst: 'Eigen vermogen, andere activa en de totale schuldenlast geven een completer beeld dan alleen inkomsten.' },
-                { nr: '4', titel: 'De aanleiding', tekst: 'Waarom heeft u deze financiering nodig? Een helder doel verhoogt de kwaliteit van de aanvraag.' },
-              ].map((p) => (
-                <div key={p.nr} className="p-5 border border-gray-200 bg-white">
-                  <span className="text-3xl font-serif text-[#f75d20] font-bold">{p.nr}</span>
-                  <h3 className="font-semibold text-[#1e3a5f] mt-2 mb-2">{p.titel}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{p.tekst}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
+        <DataTable
+          rows={voorwaarden([
+            ['Jaarcijfers', 'Geen minimum aantal boekjaren. Wat er is, levert u aan; wat er niet is, vervangen wij door een beoordeling van onderpand, vermogen en perspectief.'],
+            ['Eigen woning', 'Financiering op de eigen woning is mogelijk vanaf €200.000 en met voldoende overwaarde. Voor een eigen woning gelden aanvullende regels; wij beoordelen per aanvraag of en hoe wij kunnen helpen.'],
+          ])}
+        />
+      </ArticleSection>
 
-        {/* -- Call-out tijdelijke oplossing -- */}
-        <section className="py-8 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl p-6 bg-[#f0f7fb] border-l-4 border-[#2596be]">
-              <p className="text-gray-700 leading-relaxed">
-                <span className="font-semibold text-[#1e3a5f]">Goed om te weten:</span> een non-bancaire hypotheek is voor de meeste ondernemers een tijdelijke oplossing. Zodra u aan de bancaire jaarcijfereis voldoet, kunt u doorgaans herfinancieren naar een reguliere hypotheek met lagere rente en langere looptijd.
-              </p>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="tijdelijk" title="Tijdelijk, tot de bank het overneemt">
+        <p>
+          Een non-bancaire hypotheek is voor de meeste ondernemers een tijdelijke oplossing. Zodra u aan de bancaire
+          jaarcijfereis voldoet, kunt u doorgaans herfinancieren naar een reguliere hypotheek met een lagere rente en een
+          langere looptijd. Wij stemmen de looptijd daarop af: bij één afgesloten boekjaar bijvoorbeeld 24 maanden, zodat
+          het derde boekjaar binnen de looptijd valt.
+        </p>
+        <p>
+          Vervroegd aflossen bij een bankherfinanciering is in de meeste gevallen mogelijk; de voorwaarden daarvoor staan
+          vooraf in de leningsovereenkomst.
+        </p>
+      </ArticleSection>
 
-        {/* -- Dark USP -- */}
-        <section className="bg-[#1e3a5f] py-16">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-[1fr_2fr] gap-12 items-start">
-              <div>
-                <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-                <h2 className="text-xl md:text-2xl font-serif font-semibold text-white">
-                  Een lening als tijdelijke oplossing
-                </h2>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-8">
-                {[
-                  { kop: 'Looptijd 6-60 maanden', tekst: 'Onze leningen zijn bedoeld als tijdelijke financiering, tot bancaire herfinanciering mogelijk is.' },
-                  { kop: 'Maatwerk', tekst: 'Wij beoordelen elke aanvraag individueel. Geen standaardformule, wel een eerlijk oordeel.' },
-                  { kop: 'Ervaren team', tekst: 'Met meer dan 50 jaar bancaire achtergrond weten wij wat werkt en wat niet.' },
-                ].map((u) => (
-                  <div key={u.kop}>
-                    <span className="block font-semibold text-[#f75d20] mb-2">{u.kop}</span>
-                    <p className="text-white/80 leading-relaxed">{u.tekst}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="kosten" title="Wat kost het?">
+        <p>{KOSTEN_INLEIDING}</p>
+        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
+        <Note>{KOSTEN_FISCAAL}</Note>
+      </ArticleSection>
 
-        {/* -- Randstad -- */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
-            </p>
-          </div>
-        </section>
-
-        {/* -- FAQ -- */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Veelgestelde vragen</SectionHeading>
-            <div className="mt-8 max-w-2xl space-y-8">
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* -- Andere financieringsvormen -- */}
-        <section className="py-12 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Andere financieringsvormen</SectionHeading>
-            <div className="mt-6 grid md:grid-cols-3 gap-4">
-              {[
-                {
-                  href: '/dga-hypotheek',
-                  titel: 'DGA hypotheek',
-                  omschrijving: 'Maatwerkfinanciering voor de directeur-grootaandeelhouder, op basis van het onderpand, niet alleen het DGA-salaris.',
-                },
-                {
-                  href: '/tweede-hypotheek-ondernemer',
-                  titel: 'Tweede hypotheek voor ondernemer',
-                  omschrijving: 'Overwaarde benutten als ondernemer zonder bancaire goedkeuring? Een tweede hypotheek op basis van uw vastgoed biedt uitkomst.',
-                },
-                {
-                  href: '/non-bancaire-hypotheek',
-                  titel: 'Non-bancaire hypotheek',
-                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering: hoe het werkt en voor wie het geschikt is.',
-                },
-              ].map((p) => (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
-                >
-                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
-                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen →</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* -- Meer weten / contact -- */}
-        <section className="py-20 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Meer weten?</SectionHeading>
-                <p className="text-gray-700 leading-relaxed mt-6">
-                  Laat u informeren door één van onze specialisten. We bekijken samen of een non-bancaire lening aansluit bij uw situatie.
-                </p>
-                <p className="text-gray-700 leading-relaxed mt-4 mb-8">
-                  Bel (023) 517 31 00 of vul uw gegevens in, zodat wij contact met u kunnen opnemen.
-                </p>
-                <ContactForm />
-              </div>
-              <div className="relative h-[600px] hidden md:block">
-                <Image
-                  src="/images/molens-zonsondergang.jpg"
-                  alt="Lange & Partners Haarlem"
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 20%' }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-      <Footer />
-    </>
+      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
+        <p>{STAPPEN_INLEIDING}</p>
+        <Steps items={STAPPEN} />
+      </ArticleSection>
+    </ProductPage>
   )
 }

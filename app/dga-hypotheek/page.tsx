@@ -1,12 +1,20 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/section-heading'
-import { ContactForm } from '@/components/contact-form'
-import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
-import { FaqSchema } from '@/components/faq-schema'
+import { ProductPage } from '@/components/product/product-page'
+import { ArticleSection, Note } from '@/components/product/article-layout'
+import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
+import {
+  kerngegevens,
+  voorwaarden,
+  KOSTEN,
+  KOSTEN_INLEIDING,
+  KOSTEN_FISCAAL,
+  STAPPEN,
+  STAPPEN_INLEIDING,
+  FAQ_EIGEN_GELD,
+  FAQ_VERVROEGD,
+  FAQ_AANSPREEKPUNT,
+  verwant,
+} from '@/lib/product-content'
 
 export const metadata: Metadata = {
   title: 'DGA hypotheek | Maatwerkfinanciering voor directeur-grootaandeelhouders',
@@ -23,271 +31,159 @@ export const metadata: Metadata = {
   },
 }
 
+const inhoud = [
+  { id: 'waarom', label: 'Waarom de bank een DGA streng toetst' },
+  { id: 'situaties', label: 'Herkenbare situaties' },
+  { id: 'routes', label: 'Privé of via de BV' },
+  { id: 'beoordeling', label: 'Wat wij beoordelen' },
+  { id: 'voorwaarden', label: 'Voorwaarden' },
+  { id: 'kosten', label: 'Kosten' },
+  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
+]
+
+const situaties = [
+  {
+    term: 'Minder dan drie jaar DGA-jaarrekeningen',
+    text: 'De BV bestaat nog geen drie jaar, of u bent pas recent DGA geworden. De bank kan het driejaarsgemiddelde niet berekenen.',
+  },
+  {
+    term: 'Laag DGA-salaris, hoog bedrijfsvermogen',
+    text: 'U keert uzelf het gebruikelijk loon uit en laat de winst in de BV. De bank ziet een laag inkomen; u ziet een vermogend bedrijf.',
+  },
+  {
+    term: 'Wisselende winst door investeringsjaren of seizoenen',
+    text: 'Een investeringsjaar of een seizoenspatroon drukt het gemiddelde waarmee de bank rekent, ook als de onderneming structureel gezond is.',
+  },
+  {
+    term: 'Recent omgezet van eenmanszaak of VOF naar BV',
+    text: 'De onderneming draait al jaren, maar de BV-jaarrekeningen beginnen bij de omzetting. Voor de bank telt de historie van de rechtsvorm.',
+  },
+  {
+    term: 'Zakelijke leningen die privé meewegen',
+    text: 'Borgstellingen en zakelijke verplichtingen worden bij de bancaire toets op de privésituatie in mindering gebracht.',
+  },
+]
+
+const beoordeling = [
+  {
+    term: 'Het onderpand',
+    text: 'De marktwaarde van de woning of het pand is ons primaire beoordelingscriterium: type vastgoed, locatie, verkoopbaarheid en de bestaande hypotheekschuld. De totale schuld blijft doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
+  },
+  {
+    term: 'Uw werkelijke positie',
+    text: 'Wij kijken verder dan het DGA-salaris: het bedrijfsvermogen, overige bezittingen, de kasstromen van de onderneming en de dividendruimte geven een completer beeld.',
+  },
+  {
+    term: 'De exit',
+    text: 'Hoe wordt de lening aan het einde afgelost of geherfinancierd: via een bank zodra de jaarrekeningen er zijn, uit dividend of uit verkoop. Dat beoordelen wij op uw situatie, niet met een standaardformule.',
+  },
+]
+
 const faq = [
   {
     vraag: 'Waarom is een hypotheek aanvragen als DGA zo lastig bij een bank?',
-    antwoord: 'Banken toetsen DGA-inkomen op basis van uw salaris uit de BV én de winst van de onderneming, gemiddeld over drie jaar. DGA\'s die zichzelf een laag salaris uitkeren om belasting te besparen, komen daardoor op papier laag uit, ook al is het bedrijfsvermogen aanzienlijk. Bovendien vereisen banken de laatste drie jaarrekeningen van de BV. Ontbreekt die historiek, dan volgt een afwijzing.',
+    antwoord: 'Banken toetsen het DGA-inkomen op uw salaris uit de BV en de winst van de onderneming, gemiddeld over drie jaar, en verlangen drie jaar volledige jaarrekeningen van de BV. DGA\'s die zichzelf het gebruikelijk loon toekennen om fiscaal optimaal te ondernemen, zien dat terug als een laag inkomen in de hypotheektoets. Het vermogen in de BV telt daarbij nauwelijks mee.',
   },
   {
     vraag: 'Kan ik ook een hypotheek aanvragen als mijn BV pas kortgeleden is opgericht?',
-    antwoord: 'Ja. Wij beoordelen niet uitsluitend op historische jaarcijfers. Als er voldoende onderpand is en uw terugbetalingsperspectief realistisch is, kan een non-bancaire lening een oplossing zijn voor de periode totdat u wel aan de bancaire jaarcijfereis voldoet.',
+    antwoord: 'Ja. Wij beoordelen niet uitsluitend op historische jaarcijfers. Is er voldoende onderpand en is het terugbetalingsperspectief realistisch, dan is een non-bancaire lening een oplossing voor de periode totdat u wel aan de bancaire jaarcijfereis voldoet.',
   },
   {
-    vraag: 'Wat is het verschil tussen Variant A en Variant B bij een DGA-lening?',
-    antwoord: 'Variant A is een lening op uw privéwoning: u leent als particulier, met uw woning als onderpand. Dit is de meest gangbare route voor DGA\'s die privé een woning willen financieren of overwaarde willen benutten. Variant B betreft een lening aan de BV zelf, waarbij zakelijk vastgoed als onderpand dient. Dit is een wezenlijk ander traject met eigen fiscale en juridische overwegingen.',
+    vraag: 'Wat is het verschil tussen lenen in privé en lenen via de BV?',
+    antwoord: 'In privé leent u als particulier, met uw eigen woning of een privé beleggingspand als onderpand; dit is de meest gangbare route voor DGA\'s. Via de BV is de vennootschap de geldnemer en dient zakelijk vastgoed van de BV als onderpand. Dat is een ander traject met eigen fiscale, juridische en administratieve overwegingen, dat wij graag in een persoonlijk gesprek doornemen.',
   },
   {
-    vraag: 'Wat heeft u nodig voor een aanvraag?',
-    antwoord: 'In de meeste gevallen vragen wij om een beschrijving van het vastgoed en de gewenste financiering, een actueel taxatierapport of WOZ-beschikking, recente jaarrekeningen (indien beschikbaar) en een toelichting op uw inkomen en vermogenspositie. Wij bespreken graag in een kennismakingsgesprek wat voor uw situatie van toepassing is.',
+    vraag: 'Welke documenten heb ik nodig voor een aanvraag?',
+    antwoord: 'Een beschrijving van het vastgoed en de gewenste financiering, een actueel taxatierapport of een WOZ-beschikking, recente jaarrekeningen voor zover beschikbaar, het saldo van bestaande hypotheken en een toelichting op uw inkomen, uw vermogenspositie en de manier waarop u de lening aflost.',
   },
+  FAQ_EIGEN_GELD,
+  FAQ_VERVROEGD,
+  FAQ_AANSPREEKPUNT,
 ]
 
 export default function DgaHypotheekPage() {
   return (
-    <>
-      <BreadcrumbSchema items={[{ name: 'DGA hypotheek', href: '/dga-hypotheek' }]} />
-      <FaqSchema items={faq} />
-      <Header />
-      <main>
+    <ProductPage
+      href="/dga-hypotheek"
+      breadcrumb="DGA hypotheek"
+      title="DGA hypotheek"
+      intro="Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw positie solide. Wij beoordelen op het onderpand en op uw werkelijke situatie. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      image={{ src: '/images/nbl-villa.jpg', alt: 'Villa, zwart-wit' }}
+      kerngegevens={kerngegevens()}
+      inhoud={inhoud}
+      lead={
+        <>
+          Als DGA bent u tegelijk ondernemer en werknemer van uw eigen BV. Dat biedt fiscale voordelen, maar bij een
+          hypotheekaanvraag werkt het u tegen. Op deze pagina leest u waarom, welke twee routes er zijn (privé of via de
+          BV), wat wij beoordelen en wat de voorwaarden zijn.
+        </>
+      }
+      faq={faq}
+      verwant={verwant('jaarcijfers', 'tweede', 'vastgoed', 'hub')}
+    >
+      <ArticleSection id="waarom" title="Waarom de bank een DGA streng toetst">
+        <p>
+          Banken tellen uw salaris en de winst van de onderneming mee, gemiddeld over drie jaar, en verlangen drie jaar
+          volledige jaarrekeningen van de BV. DGA's die zichzelf het minimaal gebruikelijke loon toekennen om fiscaal
+          optimaal te ondernemen, zien dat terug in de hypotheektoets: de bank ziet een laag inkomen, u ziet een vermogend
+          bedrijf. Dat verschil leidt regelmatig tot een afwijzing, of tot een maximale hypotheek die ver onder uw
+          werkelijke draagkracht ligt.
+        </p>
+        <p>
+          Wij beoordelen een DGA-aanvraag anders. Niet het gemiddelde loon van drie jaar is leidend, maar de waarde van
+          het onderpand, uw totale positie inclusief de BV, en de manier waarop de lening eindigt.
+        </p>
+      </ArticleSection>
 
-        {/* -- Hero -- */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                DGA hypotheek
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw financiële positie solide. Lange &amp; Partners beoordeelt uw aanvraag op basis van het onderpand en uw werkelijke situatie.
-              </p>
-              <div className="mt-8 flex gap-3 flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-white/30 text-white/90 px-6 py-3 text-sm font-medium rounded-full hover:bg-white/10 transition-colors"
-                >
-                  Stel een vraag
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="situaties" title="Herkenbare situaties">
+        <DefinitionList items={situaties} />
+      </ArticleSection>
 
-        {/* -- De uitdaging voor DGA's -- */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>De uitdaging voor directeur-grootaandeelhouders</SectionHeading>
-                <div className="mt-6 space-y-4">
-                  <p className="text-gray-700 leading-relaxed">
-                    Als DGA bent u tegelijk ondernemer en werknemer van uw eigen BV. Dat biedt fiscale voordelen, maar bij een hypotheekaanvraag werkt het u tegen. Banken tellen uw salaris én de winst van de onderneming mee, gemiddeld over drie jaar, en verlangen drie jaar volledige jaarrekeningen van de BV.
-                  </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    DGA&rsquo;s die zichzelf het minimaal gebruikelijke loon toekennen (de DGA-norm) om fiscaal optimaal te ondernemen, zien dit als nadeel terugkomen in de hypotheektoets. De bank ziet een laag inkomen; u ziet een vermogend bedrijf. Dat verschil leidt regelmatig tot een afwijzing.
-                  </p>
-                </div>
-                <div className="mt-8 space-y-3">
-                  {[
-                    'Minder dan drie jaar DGA-jaarrekeningen beschikbaar',
-                    'Laag DGA-salaris gecombineerd met hoog bedrijfsvermogen',
-                    'Wisselende winst door investeringsjaren of seizoenspatronen',
-                    'Recent omgezet van eenmanszaak of VOF naar BV',
-                    'Lopende zakelijke leningen die privé meewegen',
-                  ].map((punt) => (
-                    <div key={punt} className="flex items-start gap-3">
-                      <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
-                      <p className="text-gray-700 leading-relaxed text-sm">{punt}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="relative h-[420px] hidden md:block overflow-hidden">
-                <Image
-                  src="/images/nbl-kantoor.jpg"
-                  alt="DGA hypotheek Lange & Partners"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="routes" title="Privé of via de BV: twee routes">
+        <p>
+          De meest gangbare route voor DGA's is lenen in privé, met de eigen woning of een privé beleggingspand als
+          onderpand. Daarnaast kan de BV zelf de geldnemer zijn, met zakelijk vastgoed als onderpand. De verschillen op
+          een rij.
+        </p>
+        <DataTable
+          head={['', 'In privé', 'Via de BV']}
+          rows={[
+            ['Geldnemer', 'U als particulier', 'De vennootschap'],
+            ['Onderpand', 'Eigen woning, tweede woning of privé beleggingspand', 'Zakelijk vastgoed op naam van de BV, eventueel aangevuld met privévastgoed'],
+            ['Doel', 'Aankoop, verbouwing, overwaarde benutten, overbrugging', 'Bedrijfspand, beleggingsvastgoed, werkkapitaal met vastgoed als zekerheid'],
+            ['Rente fiscaal', 'Voor de eigen woning onder voorwaarden aftrekbaar', 'Doorgaans aftrekbaar als bedrijfskosten'],
+            ['Bijzonderheden', 'Voor de eigen woning gelden aanvullende regels; wij beoordelen per aanvraag', 'Eigen fiscale, juridische en administratieve overwegingen; afstemming met uw accountant'],
+          ]}
+        />
+        <Note>
+          Welke route past, hangt af van het vastgoed, het doel en uw fiscale situatie. Bespreek dit met uw accountant
+          of fiscalist; wij denken graag mee over de structuur van de financiering.
+        </Note>
+      </ArticleSection>
 
-        {/* -- Variant A -- */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Variant A - Hypotheek op uw privéwoning</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              De meest gangbare route voor DGA&rsquo;s: u leent privé, met uw eigen woning of een privé beleggingspand als onderpand. U bent als particulier de geldnemer.
-            </p>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  titel: 'Overwaarde benutten',
-                  tekst: 'Heeft uw woning voldoende overwaarde? Dan kunt u die liquide maken zonder te verkopen. De overwaarde dient als zekerheid voor de lening.',
-                },
-                {
-                  titel: 'Aankoop van een woning',
-                  tekst: 'Koopt u een nieuwe woning maar voldoet uw DGA-inkomen niet aan de bancaire norm? Wij beoordelen de aanvraag op onderpandwaarde en uw totale financiële positie.',
-                },
-                {
-                  titel: 'Overbrugging of herfinanciering',
-                  tekst: 'Tijdelijke financiering tot u aan de bancaire jaarcijfereis voldoet, of tot de verkoop van uw huidige woning is afgerond.',
-                },
-              ].map((item) => (
-                <div key={item.titel} className="p-6 bg-white border-t-4 border-[#311e86]">
-                  <h3 className="font-semibold text-[#1e3a5f] mb-3">{item.titel}</h3>
-                  <p className="text-gray-700 leading-relaxed text-sm">{item.tekst}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="beoordeling" title="Wat wij beoordelen">
+        <DefinitionList items={beoordeling} />
+      </ArticleSection>
 
-        {/* -- Hoe beoordeelt Lange & Partners -- */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Hoe beoordeelt Lange &amp; Partners een DGA-aanvraag?</SectionHeading>
-            <div className="mt-10 max-w-2xl">
-              {[
-                {
-                  nr: '01',
-                  titel: 'Het onderpand staat centraal',
-                  tekst: 'De marktwaarde van uw woning of pand is ons primaire beoordelingscriterium. Wij kijken naar de executiewaarde, het type vastgoed en de verhandelbaarheid.',
-                },
-                {
-                  nr: '02',
-                  titel: 'Uw totale vermogenspositie',
-                  tekst: 'Wij kijken verder dan uw DGA-salaris. Uw bedrijfsvermogen, overige bezittingen en de kasstromen van uw onderneming geven een completer beeld.',
-                },
-                {
-                  nr: '03',
-                  titel: 'Perspectief op terugbetaling',
-                  tekst: 'Wij beoordelen of u de lening realistisch kunt terugbetalen of herfinancieren aan het einde van de looptijd, op basis van uw situatie, niet op basis van een standaardformule.',
-                },
-              ].map((s, i, arr) => (
-                <div key={s.nr} className="flex gap-6">
-                  <div className="flex flex-col items-center">
-                    <div className="w-px h-6 bg-transparent" />
-                    <div className="w-8 h-8 rounded-full border-2 border-[#311e86] flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-semibold text-[#311e86]">{s.nr}</span>
-                    </div>
-                    {i < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 my-2" />}
-                  </div>
-                  <div className="pb-10">
-                    <h3 className="font-semibold text-[#1e3a5f] mb-2">{s.titel}</h3>
-                    <p className="text-gray-600 leading-relaxed">{s.tekst}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
+        <DataTable
+          rows={voorwaarden([
+            ['Onderpand', 'Eigen woning, tweede woning, beleggingspand of zakelijk vastgoed in Nederland, met voldoende overwaarde'],
+            ['Jaarrekeningen', 'Geen minimum aantal. Wat er is, levert u aan; het onderpand en de exit zijn leidend.'],
+          ])}
+        />
+      </ArticleSection>
 
-        {/* -- Randstad -- */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
-            </p>
-          </div>
-        </section>
+      <ArticleSection id="kosten" title="Wat kost het?">
+        <p>{KOSTEN_INLEIDING}</p>
+        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
+        <Note>{KOSTEN_FISCAAL}</Note>
+      </ArticleSection>
 
-        {/* -- FAQ -- */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Veelgestelde vragen</SectionHeading>
-            <div className="mt-8 max-w-2xl space-y-8">
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* -- Variant B disclaimer -- */}
-        <section className="py-10 bg-white border-t border-gray-100">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl p-6 bg-gray-50 border-l-4 border-gray-300">
-              <p className="font-semibold text-[#1e3a5f] mb-2">Variant B - Lening aan uw BV</p>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Naast Variant A bestaat er ook een route waarbij uw BV de geldnemer is en zakelijk vastgoed als onderpand dient. Dit is een wezenlijk ander traject met eigen fiscale, juridische en administratieve overwegingen. Wij bespreken deze mogelijkheid graag in een persoonlijk gesprek wanneer dit voor uw situatie relevant is.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* -- Andere financieringsvormen -- */}
-        <section className="py-12 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Andere financieringsvormen</SectionHeading>
-            <div className="mt-6 grid md:grid-cols-2 gap-4">
-              {[
-                {
-                  href: '/hypotheek-zonder-jaarcijfers',
-                  titel: 'Hypotheek zonder jaarcijfers',
-                  omschrijving: 'Lees meer over een hypotheek zonder jaarcijfers voor ondernemers die nog geen drie jaar financiële overzichten kunnen overleggen.',
-                },
-                {
-                  href: '/tweede-hypotheek-ondernemer',
-                  titel: 'Tweede hypotheek voor ondernemer',
-                  omschrijving: 'Overwaarde benutten als ondernemer zonder bancaire goedkeuring? Een tweede hypotheek op basis van uw vastgoed biedt uitkomst.',
-                },
-              ].map((p) => (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
-                >
-                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
-                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen →</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* -- Meer weten / contact -- */}
-        <section className="py-20 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Meer weten?</SectionHeading>
-                <p className="text-gray-700 leading-relaxed mt-6">
-                  Laat u informeren door één van onze specialisten. We bekijken samen wat voor uw situatie als DGA de beste route is.
-                </p>
-                <p className="text-gray-700 leading-relaxed mt-4 mb-8">
-                  Bel (023) 517 31 00 of vul uw gegevens in, zodat wij contact met u kunnen opnemen.
-                </p>
-                <ContactForm />
-              </div>
-              <div className="relative h-[600px] hidden md:block">
-                <Image
-                  src="/images/molens-zonsondergang.jpg"
-                  alt="Lange & Partners Haarlem"
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 20%' }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-      <Footer />
-    </>
+      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
+        <p>{STAPPEN_INLEIDING}</p>
+        <Steps items={STAPPEN} />
+      </ArticleSection>
+    </ProductPage>
   )
 }

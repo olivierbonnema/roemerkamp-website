@@ -1,12 +1,19 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/section-heading'
-import { ContactForm } from '@/components/contact-form'
-import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
-import { FaqSchema } from '@/components/faq-schema'
+import { ProductPage } from '@/components/product/product-page'
+import { ArticleSection, Note } from '@/components/product/article-layout'
+import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
+import {
+  kerngegevens,
+  voorwaarden,
+  KOSTEN,
+  KOSTEN_INLEIDING,
+  KOSTEN_FISCAAL,
+  STAPPEN,
+  STAPPEN_INLEIDING,
+  FAQ_EIGEN_GELD,
+  FAQ_TAXATIE,
+  verwant,
+} from '@/lib/product-content'
 
 export const metadata: Metadata = {
   title: 'Overbruggingsfinanciering | Tijdelijke lening bij aankoop of verbouwing',
@@ -23,309 +30,185 @@ export const metadata: Metadata = {
   },
 }
 
+const inhoud = [
+  { id: 'wat', label: 'Wat is overbruggingsfinanciering?' },
+  { id: 'situaties', label: 'Typische situaties' },
+  { id: 'depots', label: 'Rentedepot en bouwdepot' },
+  { id: 'exit', label: 'De exit bepaalt alles' },
+  { id: 'rekenvoorbeeld', label: 'Rekenvoorbeeld verbouwing' },
+  { id: 'voorwaarden', label: 'Voorwaarden' },
+  { id: 'kosten', label: 'Kosten' },
+  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
+]
+
 const situaties = [
   {
-    titel: 'Aankoop vóór verkoop',
-    tekst: 'U heeft een nieuw pand gevonden maar uw huidige woning staat nog te koop. Een overbruggingslening overbrugt het verschil totdat de verkoopopbrengst beschikbaar is.',
+    term: 'Nieuw pand gekocht, huidige woning nog niet verkocht',
+    text: 'De overbrugging dicht het verschil totdat de verkoopopbrengst beschikbaar is. De overwaarde in de huidige woning dient als zekerheid.',
   },
   {
-    titel: 'Verbouwing of renovatie',
-    tekst: 'U wilt verbouwen maar de reguliere hypotheekverhoging duurt te lang of is niet mogelijk. Een tijdelijke lening financiert de verbouwing totdat definitieve financiering rond is.',
+    term: 'Verbouwing of uitbreiding',
+    text: 'De bank wil de hypotheek niet verhogen of doet er te lang over. Een tijdelijke lening met bouwdepot financiert de verbouwing totdat de definitieve financiering rond is.',
   },
   {
-    titel: 'Aankoop op veiling',
-    tekst: 'Vastgoed gekocht via een veiling vereist snelle betaling, vaak binnen enkele weken. Een bancaire hypotheek haalt die doorlooptijd zelden. Wij doorgaans wel.',
+    term: 'Aankoop op een veiling',
+    text: 'Een veilingaankoop moet vaak binnen enkele weken worden betaald. Een bancaire hypotheek haalt die termijn zelden; wij rekenen op één tot drie weken vanaf een volledige aanvraag.',
   },
   {
-    titel: 'Projectontwikkeling',
-    tekst: 'U ontwikkelt vastgoed en heeft tijdelijke financiering nodig tot de verkoop of permanente financiering is gerealiseerd.',
+    term: 'Vastgoed in ontwikkeling',
+    text: 'Tijdelijke financiering tot de verkoop of de permanente financiering na oplevering.',
   },
   {
-    titel: 'Herfinanciering onder tijdsdruk',
-    tekst: 'Uw lopende lening loopt af maar de nieuwe bancaire hypotheek is nog niet rond. Wij bieden een tijdelijke oplossing om de continuïteit te waarborgen.',
+    term: 'Splitsing of transformatie',
+    text: 'Een pand splitsen of de bestemming wijzigen, en pas na realisatie van de waardestijging definitief financieren.',
   },
   {
-    titel: 'Splitsing of bestemmingswijziging',
-    tekst: 'U split een pand of wijzigt de bestemming en heeft tijdelijke financiering nodig totdat de waardestijging is gerealiseerd en definitief gefinancierd kan worden.',
+    term: 'Aflopende lening, nieuwe hypotheek nog niet rond',
+    text: 'Een overbrugging om de continuïteit te waarborgen. Zie ook herfinanciering vastgoed.',
   },
 ]
 
 const faq = [
   {
     vraag: 'Wat is het verschil tussen een overbruggingslening en een reguliere hypotheek?',
-    antwoord: 'Een reguliere hypotheek is een langlopende lening (doorgaans 10–30 jaar) bedoeld als permanente financiering. Een overbruggingslening is tijdelijk, bij ons maximaal 60 maanden, en bedoeld om een gat te dichten tussen twee momenten: de aankoop en de verkoop, of het begin en het einde van een project. De lening wordt afgelost zodra het onderliggende vastgoed is verkocht of de definitieve financiering is geregeld.',
+    antwoord: 'Een reguliere hypotheek is een langlopende lening van doorgaans 10 tot 30 jaar, bedoeld als permanente financiering. Een overbruggingslening is tijdelijk, bij ons 6 tot 60 maanden, en bedoeld om het gat te dichten tussen twee momenten: aankoop en verkoop, of het begin en het einde van een project. De lening wordt afgelost zodra het vastgoed is verkocht of de definitieve financiering is geregeld.',
   },
   {
     vraag: 'Hoe snel kan een overbruggingslening worden verstrekt?',
-    antwoord: 'Bij een volledige aanvraag en duidelijk onderpand streven wij naar een doorlooptijd van één tot drie weken. In urgente gevallen proberen wij dit verder te versnellen. Neem contact op om uw specifieke situatie te bespreken.',
+    antwoord: 'Bij een volledige aanvraag en een duidelijk onderpand rekenen wij op één tot drie weken tot het passeren. In urgente gevallen, zoals een veiling, proberen wij dit te versnellen; de agenda van de notaris en een eventuele toestemming van een eerste hypotheekhouder bepalen mede de doorlooptijd.',
   },
   {
-    vraag: 'Kan ik een overbruggingslening aanvragen als ik mijn huidige woning nog niet heb verkocht?',
-    antwoord: 'Ja. Dit is juist een veelvoorkomende situatie. Wij beoordelen de waarde van zowel het huidige als het nieuwe onderpand. De overwaarde in uw huidige woning kan dienen als zekerheid voor de overbrugging.',
+    vraag: 'Kan ik een overbrugging aanvragen als mijn huidige woning nog niet is verkocht?',
+    antwoord: 'Ja, dat is juist een veelvoorkomende situatie. Wij beoordelen de waarde van het huidige en het nieuwe onderpand. De overwaarde in de huidige woning kan als zekerheid dienen voor de overbrugging.',
   },
   {
-    vraag: 'Wat gebeurt er als de overbruggingsperiode langer duurt dan verwacht?',
-    antwoord: 'Wij spreken bij het afsluiten van de lening een looptijd af van maximaal 60 maanden. Mocht de situatie onverhoopt langer duren, dan gaan wij hierover tijdig in gesprek. Wij hanteren geen starre afloopdata zonder eerst de situatie te beoordelen.',
+    vraag: 'Wat gebeurt er als de overbrugging langer duurt dan verwacht?',
+    antwoord: 'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wij hanteren geen starre einddatum zonder eerst de situatie te beoordelen; wel moet de exit geloofwaardig blijven.',
   },
+  {
+    vraag: 'Hoe werkt het bouwdepot?',
+    antwoord: 'Een deel van de lening wordt in depot gehouden en in delen uitbetaald op basis van de voortgang van de verbouwing, bijvoorbeeld tegen facturen van de aannemer. Daarvoor hebben wij vooraf een begroting en een planning nodig.',
+  },
+  FAQ_EIGEN_GELD,
+  FAQ_TAXATIE,
 ]
 
-export default function OverbruggingsfinancieringVerbouwingPage() {
+export default function OverbruggingsfinancieringPage() {
   return (
-    <>
-      <BreadcrumbSchema items={[{ name: 'Overbruggingsfinanciering', href: '/overbruggingsfinanciering-verbouwing' }]} />
-      <FaqSchema items={faq} />
-      <Header />
-      <main>
+    <ProductPage
+      href="/overbruggingsfinanciering-verbouwing"
+      breadcrumb="Overbruggingsfinanciering"
+      title="Overbruggingsfinanciering voor verbouwing en meer"
+      intro="Een tijdelijke lening met vastgoed als zekerheid: bij een verbouwing, een aankoop vóór de verkoop, een veiling of een project. Van €200.000 tot €5.000.000, 6 tot 60 maanden, met rentedepot en bouwdepot als dat past."
+      image={{ src: '/images/bericht-2-brug.jpg', alt: 'Brug over een gracht', position: 'center 55%' }}
+      kerngegevens={kerngegevens()}
+      inhoud={inhoud}
+      lead={
+        <>
+          Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Op deze pagina leest u voor welke
+          situaties overbruggingsfinanciering werkt, hoe het rentedepot en het bouwdepot werken, wat een geloofwaardige
+          exit is en wat de voorwaarden zijn.
+        </>
+      }
+      faq={faq}
+      verwant={verwant('exit', 'tweede', 'herfinanciering', 'vastgoed')}
+    >
+      <ArticleSection id="wat" title="Wat is overbruggingsfinanciering?">
+        <p>
+          Overbruggingsfinanciering is een tijdelijke lening die het gat dicht tussen twee momenten: de aankoop van nieuw
+          vastgoed en de verkoop van het huidige, of de start van een verbouwing en de definitieve financiering erna. De
+          lening heeft een hypotheekrecht op vastgoed als zekerheid, in eerste of tweede rang.
+        </p>
+        <p>
+          Banken bieden ook overbruggingskrediet, maar zijn daarin traag en kieskeurig. Wij werken met particuliere
+          investeerders en kunnen snel schakelen. Wij beoordelen de waarde van het onderpand en het realistische
+          perspectief op terugbetaling, niet het inkomen van de afgelopen drie jaar. De rente kan vooraf uit de lening
+          worden voldaan via een rentedepot, zodat u tijdens de overbrugging geen maandlasten heeft.
+        </p>
+      </ArticleSection>
 
-        {/* ── Hero ── */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Overbruggingsfinanciering voor verbouwing en meer
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Verbouwen vóór verkoop, een veiling-aankoop of een project dat doorloopt, Lange &amp; Partners regelt overbruggingsfinanciering snel en zonder de bureaucratie van een bancaire aanvraag.
-              </p>
-              <div className="mt-8 flex gap-3 flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-white/30 text-white/90 px-6 py-3 text-sm font-medium rounded-full hover:bg-white/10 transition-colors"
-                >
-                  Stel een vraag
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="situaties" title="Typische situaties">
+        <p>Het gemeenschappelijke kenmerk: een tijdelijk gat in de financiering en voldoende onderpand.</p>
+        <DefinitionList items={situaties} />
+      </ArticleSection>
 
-        {/* ── Kerngegevens strip ── */}
-        <section className="border-b border-gray-100 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid grid-cols-3 divide-x divide-gray-100">
-              {[
-                { value: '€200k – €5M', label: 'Leningsbedrag' },
-                { value: '6 – 60 mnd', label: 'Looptijd' },
-                { value: '1 – 3 weken', label: 'Doorlooptijd aanvraag' },
-              ].map((s) => (
-                <div key={s.label} className="py-7 flex flex-col items-center text-center gap-1">
-                  <span className="text-xl font-semibold text-[#311e86] font-serif">{s.value}</span>
-                  <span className="text-xs text-gray-500">{s.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="depots" title="Rentedepot en bouwdepot">
+        <p>
+          Twee instrumenten die bij een overbrugging vaak worden ingezet. Beide worden uit de lening gevormd en staan in
+          de termsheet.
+        </p>
+        <DataTable
+          head={['', 'Rentedepot', 'Bouwdepot']}
+          rows={[
+            ['Wat is het', 'De rente voor de looptijd wordt bij het passeren uit de lening apart gezet', 'Het deel van de lening dat voor de verbouwing is bestemd, wordt in depot gehouden'],
+            ['Waarvoor', 'Geen maandlasten tijdens een verbouwing of in de periode tot de verkoop', 'Uitbetaling in delen, op basis van de voortgang van het werk'],
+            ['Wat wij nodig hebben', 'De looptijd en het rentepercentage; het depot wordt meegenomen in de hoofdsom', 'Een begroting, een planning, de vergunningen en facturen van de aannemer voor elke uitbetaling'],
+            ['Effect op de LTV', 'Het depot telt mee in de totale schuld', 'Het depot telt mee in de totale schuld; wij kijken naar de waarde nu en na oplevering'],
+          ]}
+        />
+      </ArticleSection>
 
-        {/* ── Wat is overbruggingsfinanciering ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Wat is overbruggingsfinanciering?</SectionHeading>
-                <div className="mt-6 space-y-4">
-                  <p className="text-gray-700 leading-relaxed">
-                    Overbruggingsfinanciering is een tijdelijke lening die het gat dicht tussen twee momenten: de aankoop van nieuw vastgoed en de verkoop van het huidige, of de start van een project en de definitieve financiering ervan. De lening wordt gedekt door vastgoed als onderpand.
-                  </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    Banken bieden ook overbruggingskredieten aan, maar zijn daarin traag en kieskeurig. Lange &amp; Partners werkt met particuliere investeerders en kan snel schakelen. Wij beoordelen de waarde van het onderpand en het realistische perspectief op terugbetaling, niet het inkomen van de afgelopen drie jaar.
-                  </p>
-                </div>
-              </div>
-              <div className="relative h-[350px] hidden md:block overflow-hidden">
-                <Image
-                  src="/images/nbl-kantoor.jpg"
-                  alt="Overbruggingsfinanciering Lange & Partners"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="exit" title="De exit bepaalt alles">
+        <p>
+          Bij een overbrugging is de belangrijkste vraag niet hoeveel u leent, maar hoe de lening eindigt. De gangbare
+          exits: de verkoop van het huidige of het verbouwde pand, of een bankhypotheek zodra de verbouwing is opgeleverd
+          en de nieuwe waarde is getaxeerd. Een geloofwaardige exit is er een met een datum, een onderbouwing en ruimte
+          in de planning.
+        </p>
+        <p>
+          Loopt het uit, bijvoorbeeld omdat de verkoop langer duurt, dan bespreken wij met de investeerder een
+          verlenging. Dat gaat makkelijker als de exit nog steeds geloofwaardig is en de rente via het rentedepot is
+          gedekt. Een overbrugging zonder duidelijke exit nemen wij niet in behandeling.
+        </p>
+      </ArticleSection>
 
-        {/* ── Typische situaties ── */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Typische situaties</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 mb-8 max-w-xl">
-              Overbruggingsfinanciering wordt ingezet in uiteenlopende situaties. Gemeenschappelijk kenmerk: er is een tijdelijk gat in de financiering en voldoende onderpand.
-            </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {situaties.map((s) => (
-                <div key={s.titel} className="p-5 bg-white border border-gray-200 border-t-4 border-t-[#2596be]">
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{s.titel}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{s.tekst}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="rekenvoorbeeld" title="Rekenvoorbeeld verbouwing">
+        <p>
+          Een woning met een marktwaarde van €800.000 en een bestaande bankhypotheek van €300.000. De eigenaar wil voor
+          €200.000 verbouwen en verwacht dat de woning daarna €1.000.000 waard is, waarna de bank de hypotheek verhoogt.
+        </p>
+        <DataTable
+          alignLast="right"
+          rows={[
+            ['Marktwaarde nu, volgens taxatie', '€800.000'],
+            ['Maximale totale schuld bij 70% loan-to-value', '€560.000'],
+            ['Bestaande hypotheek, eerste rang', '€300.000'],
+            ['Ruimte voor de overbrugging', '€260.000'],
+            ['Lening, tweede rang', '€250.000'],
+            ['Waarvan bouwdepot', '€200.000'],
+            ['Waarvan rentedepot, 12 maanden à 8%', '€20.000'],
+            ['Waarvan vrij beschikbaar, voor opstartvergoeding en onvoorzien', '€30.000'],
+            ['Exit', 'Bankhypotheek na oplevering, op basis van de nieuwe waarde'],
+          ]}
+        />
+        <Note>
+          Fictief voorbeeld met een indicatieve rente van 8%. De opstartvergoeding is 1% van het leenbedrag met een
+          minimum van €3.000; taxatie en notaris komen hier nog bij. Wij rekenen de loan-to-value op de waarde nu; de
+          waarde na oplevering is de basis voor de exit.
+        </Note>
+      </ArticleSection>
 
-        {/* ── Hoe werkt de aanvraag ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Hoe verloopt de aanvraag?</SectionHeading>
-            <div className="mt-10 max-w-2xl">
-              {[
-                {
-                  nr: '01',
-                  titel: 'Neem contact op of dien een aanvraag in',
-                  tekst: 'Beschrijf uw situatie: welk vastgoed dient als onderpand, hoeveel heeft u nodig en wat is uw perspectief op terugbetaling? Wij beoordelen snel of een overbrugging haalbaar is.',
-                },
-                {
-                  nr: '02',
-                  titel: 'Beoordeling en voorstel',
-                  tekst: 'Wij beoordelen de marktwaarde van het onderpand en uw terugbetalingsperspectief. Bij een positieve beoordeling ontvangt u een voorstel met leningbedrag, looptijd en alle voorwaarden.',
-                },
-                {
-                  nr: '03',
-                  titel: 'Uitbetaling via onafhankelijke Stichting',
-                  tekst: 'Na akkoord verloopt de uitbetaling via een onafhankelijke Stichting. Alle geldstromen zijn transparant en gewaarborgd voor alle betrokken partijen.',
-                },
-              ].map((s, i, arr) => (
-                <div key={s.nr} className="flex gap-6">
-                  <div className="flex flex-col items-center">
-                    <div className="w-px h-6 bg-transparent" />
-                    <div className="w-8 h-8 rounded-full border-2 border-[#311e86] flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-semibold text-[#311e86]">{s.nr}</span>
-                    </div>
-                    {i < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 my-2" />}
-                  </div>
-                  <div className="pb-10">
-                    <h3 className="font-semibold text-[#1e3a5f] mb-2">{s.titel}</h3>
-                    <p className="text-gray-600 leading-relaxed">{s.tekst}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Link
-              href="/financieringsaanvraag"
-              className="inline-block mt-2 bg-[#311e86] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#261770] transition-colors"
-            >
-              Aanvraag indienen
-            </Link>
-          </div>
-        </section>
+      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
+        <DataTable
+          rows={voorwaarden([
+            ['Looptijd', '6 tot 60 maanden, afgestemd op de planning van de verkoop of de verbouwing, met ruimte voor uitloop'],
+            ['Rentedepot', 'Mogelijk: de rente voor de looptijd wordt uit de lening gevormd, zodat er geen maandlasten zijn'],
+            ['Bouwdepot', 'Mogelijk: uitbetaling in delen op basis van voortgang, tegen begroting, planning en facturen'],
+            ['Exit', 'Verkoop of bankherfinanciering na oplevering; de exit staat in de termsheet'],
+          ])}
+        />
+      </ArticleSection>
 
-        {/* ── Dark USP ── */}
-        <section className="bg-[#1e3a5f] py-16">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-[1fr_2fr] gap-12 items-start">
-              <div>
-                <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-                <h2 className="text-xl md:text-2xl font-serif font-semibold text-white">
-                  Waarom Lange &amp; Partners voor overbrugging?
-                </h2>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-8">
-                {[
-                  { kop: 'Snel', tekst: 'Doorlooptijd van één tot drie weken. Geschikt voor situaties met tijdsdruk.' },
-                  { kop: 'Op het onderpand', tekst: 'Wij beoordelen op vastgoedwaarde, geen inkomenstoets, geen jaarcijfers vereist.' },
-                  { kop: 'Duidelijk vooraf', tekst: 'U weet voordat u tekent wat de looptijd, het bedrag en alle voorwaarden zijn.' },
-                ].map((u) => (
-                  <div key={u.kop}>
-                    <span className="block font-semibold text-[#f75d20] mb-2">{u.kop}</span>
-                    <p className="text-white/80 leading-relaxed">{u.tekst}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+      <ArticleSection id="kosten" title="Wat kost het?">
+        <p>{KOSTEN_INLEIDING}</p>
+        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
+        <Note>{KOSTEN_FISCAAL}</Note>
+      </ArticleSection>
 
-        {/* ── Randstad ── */}
-        <section className="py-16 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Voor ondernemers en particulieren in de Randstad</SectionHeading>
-            <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-              Lange &amp; Partners is gevestigd in Haarlem en bedient cliënten in de gehele Randstad. Of u nu in Amsterdam, Rotterdam, Den Haag, Utrecht, Leiden of Haarlem gevestigd bent, onze specialisten zijn op korte termijn beschikbaar voor een kennismakingsgesprek.
-            </p>
-          </div>
-        </section>
-
-        {/* ── FAQ ── */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Veelgestelde vragen</SectionHeading>
-            <div className="mt-8 max-w-2xl space-y-8">
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Andere financieringsvormen ── */}
-        <section className="py-12 bg-gray-50">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <SectionHeading>Andere financieringsvormen</SectionHeading>
-            <div className="mt-6 grid md:grid-cols-2 gap-4">
-              {[
-                {
-                  href: '/tweede-hypotheek-ondernemer',
-                  titel: 'Tweede hypotheek voor ondernemer',
-                  omschrijving: 'Overwaarde benutten als ondernemer zonder bancaire goedkeuring? Een tweede hypotheek op basis van uw vastgoed biedt uitkomst.',
-                },
-                {
-                  href: '/non-bancaire-hypotheek',
-                  titel: 'Non-bancaire hypotheek',
-                  omschrijving: 'Lees meer over non-bancaire hypotheken als alternatief voor bancaire financiering, hoe het werkt en voor wie het geschikt is.',
-                },
-              ].map((p) => (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  className="block p-5 bg-white border border-gray-200 hover:border-[#311e86] transition-colors group"
-                >
-                  <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{p.omschrijving}</p>
-                  <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Meer lezen →</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Meer weten / contact ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <SectionHeading>Meer weten?</SectionHeading>
-                <p className="text-gray-700 leading-relaxed mt-6">
-                  Laat u informeren door één van onze specialisten. We bekijken samen of overbruggingsfinanciering aansluit bij uw situatie.
-                </p>
-                <p className="text-gray-700 leading-relaxed mt-4 mb-8">
-                  Bel (023) 517 31 00 of vul uw gegevens in, zodat wij contact met u kunnen opnemen.
-                </p>
-                <ContactForm />
-              </div>
-              <div className="relative h-[600px] hidden md:block">
-                <Image
-                  src="/images/molens-zonsondergang.jpg"
-                  alt="Lange & Partners Haarlem"
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 20%' }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-      <Footer />
-    </>
+      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
+        <p>{STAPPEN_INLEIDING}</p>
+        <Steps items={STAPPEN} />
+      </ArticleSection>
+    </ProductPage>
   )
 }
