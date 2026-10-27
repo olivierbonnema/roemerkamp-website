@@ -5,7 +5,7 @@ import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
 import { PageHero } from '@/components/product/page-hero'
 import { ArticleLayout, ArticleSection, Lead, Note } from '@/components/product/article-layout'
-import { KeyFacts, ContactPanel, OnThisPage } from '@/components/product/aside-panels'
+import { KeyFacts, OnThisPage } from '@/components/product/aside-panels'
 import { DataTable, DefinitionList, Steps, FaqList, RelatedList, Strong } from '@/components/product/content-blocks'
 import { ContactSection } from '@/components/product/contact-section'
 
@@ -29,20 +29,18 @@ const kerngegevens = [
   { label: 'Looptijd', value: '6 tot 60 maanden' },
   { label: 'Loan-to-value', value: 'Tot 70%, maximaal 75%' },
   { label: 'Rente', value: 'Vanaf 7% per jaar' },
-  { label: 'Doorlooptijd', value: '1 tot 3 weken na volledige aanvraag' },
-  { label: 'Zekerheid', value: 'Hypotheekrecht, 1e of 2e rang' },
-  { label: 'Aflossing', value: 'Bij verkoop of herfinanciering' },
-  { label: 'Onderpand', value: 'Vastgoed in Nederland' },
+  { label: 'Doorlooptijd', value: '1 tot 3 weken' },
+  { label: 'Zekerheid', value: 'Hypotheekrecht op vastgoed in Nederland, 1e of 2e rang' },
 ]
 
 const inhoud = [
-  { id: 'wat', label: 'Wat is vastgoedfinanciering zonder bank?' },
+  { id: 'wat', label: 'Wat is het?' },
   { id: 'situaties', label: 'Voor welke situaties' },
-  { id: 'vastgoed', label: 'Welk vastgoed komt in aanmerking?' },
-  { id: 'voorwaarden', label: 'Voorwaarden in het kort' },
+  { id: 'vastgoed', label: 'Welk vastgoed' },
+  { id: 'voorwaarden', label: 'Voorwaarden' },
   { id: 'vergelijking', label: 'Bank of non-bancair' },
   { id: 'rekenvoorbeeld', label: 'Rekenvoorbeeld' },
-  { id: 'kosten', label: 'Wat kost het?' },
+  { id: 'kosten', label: 'Kosten' },
   { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
   { id: 'niet', label: 'Wat wij niet doen' },
   { id: 'faq', label: 'Veelgestelde vragen' },
@@ -159,7 +157,6 @@ export default function VastgoedfinancieringZonderBankPage() {
           aside={
             <>
               <KeyFacts items={kerngegevens} />
-              <ContactPanel />
               <OnThisPage items={inhoud} />
             </>
           }
@@ -265,14 +262,14 @@ export default function VastgoedfinancieringZonderBankPage() {
                 ['Gevraagde lening, tweede rang', <strong key="lening" className="font-medium text-[#1e3a5f]">€450.000</strong>],
                 ['Loan-to-value na financiering', '66,7%'],
                 ['Rente, in dit voorbeeld 8% per jaar', '€36.000 per jaar, €3.000 per maand'],
-                ['Afsluitvergoeding, 1% van het leenbedrag', '€4.500 eenmalig'],
+                ['Opstartvergoeding, 1% van het leenbedrag', '€4.500 eenmalig'],
                 ['Looptijd en exit', '24 maanden, herfinanciering bij de bank'],
               ]}
             />
             <Note>
               Fictief voorbeeld. De rente hangt af van de loan-to-value, het type vastgoed, de rang van de hypotheek en het
-              risicoprofiel. De afsluitvergoeding is 1% van het leenbedrag met een minimum van €3.000. Taxatie- en
-              notariskosten komen hier nog bij.
+              risicoprofiel. De opstartvergoeding is 1% van het leenbedrag met een minimum van €3.000. Maandelijkse
+              administratiekosten, taxatie en notaris komen hier nog bij.
             </Note>
           </ArticleSection>
 
@@ -281,13 +278,14 @@ export default function VastgoedfinancieringZonderBankPage() {
               Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald
               met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover: een beoordeling op het
               onderpand, een doorlooptijd van weken in plaats van maanden en ruimte voor situaties die een bank niet bedient.
-              Alle kosten staan vooraf in de termsheet; er zijn geen tussentijdse vergoedingen of opslagen achteraf.
+              Alle kosten staan vooraf in de termsheet; er komen geen opslagen achteraf bij.
             </p>
             <DataTable
               head={['Kostenpost', 'Hoogte', 'Wanneer']}
               rows={[
                 ['Rente', 'Vanaf 7% per jaar', 'Maandelijks, of vooraf via een rentedepot'],
-                ['Afsluitvergoeding', '1% van het leenbedrag, minimaal €3.000', 'Eenmalig, verrekend bij het passeren'],
+                ['Behandelingskosten', 'Opstartvergoeding van 1% van het leenbedrag, minimaal €3.000', 'Eenmalig, verrekend bij het passeren'],
+                ['Administratiekosten', 'Vast bedrag per maand, vermeld in de termsheet', 'Maandelijks, gedurende de looptijd'],
                 ['Taxatie', 'Tarief van de onafhankelijke taxateur', 'Vóór de termsheet, door u opgedragen'],
                 ['Notaris', 'Tarief van de notaris voor de hypotheekakte', 'Bij het passeren'],
               ]}

@@ -28,7 +28,7 @@ const faq = [
   },
   {
     vraag: 'Zijn er verborgen kosten bij een non-bancaire hypotheek?',
-    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf: rente, afsluitprovisie, taxatiekosten en notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
+    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf: rente, behandelingskosten, maandelijkse administratiekosten, taxatiekosten en notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
   },
   {
     vraag: 'Kan ik de rente fiscaal aftrekken?',
@@ -127,15 +127,14 @@ export default function KostenNonBancaireHypotheekPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Eenmalige kosten bij afsluiting</h2>
               <p className="text-gray-700 leading-relaxed">
-                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering. Deze zijn vergelijkbaar met de kosten bij een bancaire hypotheek:
+                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering en een vast bedrag aan administratiekosten per maand gedurende de looptijd. De eenmalige kosten zijn vergelijkbaar met de kosten bij een bancaire hypotheek:
               </p>
               <div className="space-y-3">
                 {[
-                  'Afsluitvergoeding: 1% van het leenbedrag, met een minimum van €3.000',
+                  'Behandelingskosten: een opstartvergoeding van 1% van het leenbedrag, met een minimum van €3.000',
                   'Taxatiekosten: een onafhankelijk taxatierapport is altijd vereist',
                   'Notariskosten voor het passeren van de hypotheekakte',
                   'Kadasterkosten voor de inschrijving van het hypotheekrecht',
-                  'Advieskosten voor de begeleiding en beoordeling van uw aanvraag',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#2596be] shrink-0" />

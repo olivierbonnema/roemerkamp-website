@@ -7,6 +7,8 @@ interface ContactFormProps {
   showInterestSelect?: boolean
 }
 
+type Status = "idle" | "sending" | "sent" | "error"
+
 export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
   const [formData, setFormData] = useState({
     naam: "",
@@ -14,22 +16,70 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
     telefoon: "",
     interesse: "",
     bericht: "",
+    website: "", // honeypot, blijft leeg bij echte bezoekers
   })
+  const [status, setStatus] = useState<Status>("idle")
+  const [foutmelding, setFoutmelding] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log(formData)
+    if (status === "sending") return
+    setStatus("sending")
+    setFoutmelding("")
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          pagina: typeof window !== "undefined" ? window.location.pathname : "",
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setFoutmelding(data?.error || "Verzenden mislukt. Bel ons op 023 517 31 00.")
+        setStatus("error")
+        return
+      }
+      setStatus("sent")
+    } catch {
+      setFoutmelding("Verzenden mislukt. Bel ons op 023 517 31 00.")
+      setStatus("error")
+    }
+  }
+
+  if (status === "sent") {
+    return (
+      <div className="border-l-4 border-[#1e3a5f] bg-gray-50 px-5 py-4" role="status">
+        <p className="font-semibold text-[#1e3a5f] mb-1">Bedankt voor uw bericht.</p>
+        <p className="text-gray-700 leading-relaxed">
+          Wij nemen binnen &eacute;&eacute;n werkdag contact met u op. Liever direct iemand spreken? Bel 023 517 31 00.
+        </p>
+      </div>
+    )
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Honeypot tegen spam: onzichtbaar voor bezoekers */}
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="contact-website">Website</label>
+        <input
+          id="contact-website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={formData.website}
+          onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+        />
+      </div>
       <div>
         <label htmlFor="contact-naam" className="sr-only">Naam</label>
         <input
           id="contact-naam"
           type="text"
           placeholder="Naam"
+          required
           value={formData.naam}
           onChange={(e) => setFormData({ ...formData, naam: e.target.value })}
           className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-[#311e86]"
@@ -94,11 +144,15 @@ export function ContactForm({ showInterestSelect = true }: ContactFormProps) {
         </Link>
         .
       </p>
+      {status === "error" && (
+        <p className="text-sm text-red-700" role="alert">{foutmelding}</p>
+      )}
       <button
         type="submit"
-        className="bg-[#311e86] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#261770] transition-colors"
+        disabled={status === "sending"}
+        className="bg-[#311e86] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#261770] transition-colors disabled:opacity-60"
       >
-        Verstuur
+        {status === "sending" ? "Versturen..." : "Verstuur"}
       </button>
     </form>
   )

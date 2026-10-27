@@ -15,7 +15,13 @@ export function ArticleLayout({ children, aside }: ArticleLayoutProps) {
     <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-16">
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-16 items-start">
         <article className="artikel max-w-[720px] min-w-0">{children}</article>
-        <aside className="lg:sticky lg:top-6 space-y-5" aria-label="Kerngegevens en contact">
+        {/* De kopregel is sticky (circa 104 px hoog op desktop); de zijkolom blijft daaronder
+            hangen. Past de zijkolom niet in het scherm, dan scrolt hij intern in plaats van
+            afgesneden te worden. */}
+        <aside
+          className="lg:sticky lg:top-[120px] lg:max-h-[calc(100vh-136px)] lg:overflow-y-auto space-y-4"
+          aria-label="Kerngegevens en inhoudsopgave"
+        >
           {aside}
         </aside>
       </div>
