@@ -75,7 +75,7 @@ const faq = [
   },
   {
     vraag: 'Kan ik ook als startende ondernemer een financiering krijgen?',
-    antwoord: 'Ja. Wij stellen geen eis van drie boekjaren. Bezit u vastgoed of koopt u vastgoed met voldoende onderpandwaarde, kunt u de rente dragen en is duidelijk hoe de lening eindigt, dan kunnen wij ook een startende ondernemer financieren.',
+    antwoord: 'Ja. Wij stellen geen eis van drie boekjaren. Biedt uw vastgoed voldoende hypothecaire dekking, zijn de rente en de kosten te dragen (of mee te financieren in een rentedepot) en is duidelijk hoe de lening eindigt, dan kunnen wij ook een startende ondernemer financieren.',
   },
   {
     vraag: 'Welke bedragen en looptijden zijn mogelijk?',
@@ -121,14 +121,14 @@ export default function HypotheekOndernemerAfgewezenPage() {
       <ArticleSection id="welniet" title="Wanneer wij wel kunnen, en wanneer niet">
         <p>
           Wij zijn geen bank en geen vervanging van een bank. Een non-bancaire financiering is een tijdelijk instrument
-          voor situaties met voldoende vastgoed als zekerheid. De grenzen op een rij.
+          voor situaties met voldoende hypothecaire dekking. De grenzen op een rij.
         </p>
         <DataTable
           head={['Wel', 'Niet']}
           labelColumn={false}
           rows={[
             ['Vastgoed in Nederland met voldoende dekking: de totale schuld blijft binnen 70% tot 75% van de marktwaarde', 'Een lening zonder vastgoed als zekerheid'],
-            ['De rente en de kosten zijn te dragen uit inkomen, kasstroom, huur of een rentedepot', 'Een aanvraag waarbij de rente niet is op te brengen'],
+            ['De rente en de kosten zijn te dragen uit inkomen, kasstroom of huur, of de rente wordt meegefinancierd in een rentedepot', 'Vastgoed buiten Nederland als zekerheid; een object in het buitenland financieren kan wel, met Nederlands vastgoed als onderpand'],
             ['Een duidelijke exit: bankherfinanciering, verkoop of aflossing uit eigen middelen', 'Een aanvraag waarbij niet duidelijk is hoe de lening eindigt'],
             ['Financieringen van €200.000 tot €5.000.000, 6 tot 60 maanden, ook een herfinanciering van een bestaande lening', 'Kleinere bedragen, consumptief krediet of een langlopende hypotheek'],
           ]}
@@ -150,8 +150,8 @@ export default function HypotheekOndernemerAfgewezenPage() {
           de opstartvergoeding en stellen wij de termsheet op.
         </p>
         <Note>
-          Onze financiering is er voor iedereen die door de bank is afgewezen en vastgoed met voldoende onderpandwaarde
-          bezit of koopt: ondernemers, ZZP'ers, DGA's, beleggers en particulieren, ook met een holdingstructuur,
+          Onze financiering is er voor iedereen die door de bank is afgewezen en met Nederlands vastgoed voldoende
+          hypothecaire dekking kan bieden: ondernemers, ZZP'ers, DGA's, beleggers en particulieren, ook met een holdingstructuur,
           meerdere vennootschappen of een combinatie van loondienst en ondernemerschap.
         </Note>
       </ArticleSection>
