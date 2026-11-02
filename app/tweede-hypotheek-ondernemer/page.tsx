@@ -1,19 +1,7 @@
 import type { Metadata } from 'next'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
-import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_VERVROEGD,
-  verwant,
-} from '@/lib/product-content'
+import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
   title: { absolute: 'Tweede hypotheek voor ondernemer | Lange & Partners' },
@@ -29,16 +17,6 @@ export const metadata: Metadata = {
     description: 'Als ondernemer extra kapitaal nodig maar de bank wijst af? Lange & Partners verstrekt een tweede hypotheek op basis van uw vastgoed. Bedragen van €200.000 tot €5.000.000.',
   },
 }
-
-const inhoud = [
-  { id: 'wat', label: 'Wat is een tweede hypotheek?' },
-  { id: 'waarvoor', label: 'Waarvoor ondernemers hem gebruiken' },
-  { id: 'hoeveel', label: 'Hoeveel kunt u lenen?' },
-  { id: 'bank', label: 'Waarom de bank afwijst' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'kosten', label: 'Kosten' },
-  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
-]
 
 const waarvoor = [
   {
@@ -103,20 +81,16 @@ const faq = [
     vraag: 'Kan een tweede hypotheek ook op een beleggingspand?',
     antwoord: 'Ja. Wij financieren op privéwoningen, beleggingspanden, bedrijfspanden en gemengd gebruik. Doorslaggevend is de marktwaarde en de kwaliteit van het onderpand.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_VERVROEGD,
 ]
 
 export default function TweedeHypotheekOndernemerPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/tweede-hypotheek-ondernemer"
-      breadcrumb="Tweede hypotheek voor ondernemers"
+      breadcrumb="Tweede hypotheek"
       title="Tweede hypotheek voor ondernemers"
       intro="Overwaarde in uw woning of beleggingspand benutten zonder de bestaande bankhypotheek aan te passen. Een lening in tweede rang, beoordeeld op het vastgoed en niet alleen op uw jaarcijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/bericht-3-haarlem.jpg', alt: 'De Grote Markt in Haarlem', position: 'center 45%' }}
-      kerngegevens={kerngegevens({ Zekerheid: 'Hypotheekrecht in 2e rang, achter de bestaande hypotheek' })}
-      inhoud={inhoud}
       lead={
         <>
           Een tweede hypotheek maakt het mogelijk om de overwaarde in uw vastgoed te gebruiken zonder te verkopen en
@@ -125,7 +99,6 @@ export default function TweedeHypotheekOndernemerPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('ltv', 'dga', 'overbrugging', 'hub')}
     >
       <ArticleSection id="wat" title="Wat is een tweede hypotheek?">
         <p>
@@ -175,26 +148,8 @@ export default function TweedeHypotheekOndernemerPage() {
         <DefinitionList items={bank} />
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
-        <DataTable
-          rows={voorwaarden([
-            ['Zekerheid', 'Hypotheekrecht in tweede rang, ingeschreven bij het Kadaster achter de bestaande hypotheek'],
-            ['Eerste hypotheekhouder', 'Vereist de akte van uw eerste hypotheek toestemming voor een tweede inschrijving, dan is die toestemming een voorwaarde in de termsheet'],
-            ['Onderpand', 'Woning, beleggingspand, bedrijfspand of gemengd vastgoed in Nederland, met voldoende overwaarde'],
-          ])}
-        />
-      </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
 
-      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
-        <p>{STAPPEN_INLEIDING}</p>
-        <Steps items={STAPPEN} />
-      </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

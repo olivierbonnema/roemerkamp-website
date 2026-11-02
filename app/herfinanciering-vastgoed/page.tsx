@@ -1,19 +1,8 @@
 import type { Metadata } from 'next'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_VERVROEGD,
-  FAQ_AANSPREEKPUNT,
-  verwant,
-} from '@/lib/product-content'
+import { STAPPEN_INLEIDING } from '@/lib/product-content'
 
 export const metadata: Metadata = {
   title: 'Herfinanciering vastgoed | Snel herfinancieren zonder bank',
@@ -29,16 +18,6 @@ export const metadata: Metadata = {
     description: 'Herfinanciering van uw vastgoed afgewezen door de bank? Lange & Partners herfinanciert op basis van uw onderpand. Snel, flexibel en zonder bancaire beperkingen. €200.000 tot €5.000.000.',
   },
 }
-
-const inhoud = [
-  { id: 'wanneer', label: 'Wanneer herfinanciering actueel is' },
-  { id: 'bank', label: 'Waarom de bank niet verlengt' },
-  { id: 'verloop', label: 'Hoe de herfinanciering verloopt' },
-  { id: 'vastgoed', label: 'Welk vastgoed' },
-  { id: 'rekenvoorbeeld', label: 'Rekenvoorbeeld' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'kosten', label: 'Kosten' },
-]
 
 const wanneer = [
   {
@@ -122,21 +101,16 @@ const faq = [
     vraag: 'Kan ik herfinancieren als mijn bank al heeft afgewezen?',
     antwoord: 'Zeker. Een groot deel van onze leningnemers komt bij ons na een bancaire afwijzing. Omdat wij beoordelen op de waarde van het onderpand en op de exit, en niet op inkomensnormen, kunnen wij in veel gevallen herfinancieren waar de bank nee heeft gezegd.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_VERVROEGD,
-  FAQ_AANSPREEKPUNT,
 ]
 
 export default function HerfinancieringVastgoedPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/herfinanciering-vastgoed"
-      breadcrumb="Herfinanciering vastgoed"
+      breadcrumb="Herfinanciering"
       title="Herfinanciering vastgoed zonder bank"
       intro="Loopt uw vastgoedlening af en verlengt de bank niet? Wij herfinancieren op basis van het onderpand en de exit, binnen één tot drie weken. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/voor-investeerders-home.jpg', alt: 'Overleg op het kantoor van Lange & Partners in Haarlem', position: 'center 40%' }}
-      kerngegevens={kerngegevens()}
-      inhoud={inhoud}
       lead={
         <>
           Een herfinanciering is een lening die een bestaande lening aflost, met hetzelfde vastgoed als zekerheid. Op deze
@@ -145,7 +119,6 @@ export default function HerfinancieringVastgoedPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('vastgoed', 'overbrugging', 'tweede', 'hub')}
     >
       <ArticleSection id="wanneer" title="Wanneer herfinanciering van vastgoed actueel is">
         <DefinitionList items={wanneer} />
@@ -193,21 +166,7 @@ export default function HerfinancieringVastgoedPage() {
         </Note>
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
-        <DataTable
-          rows={voorwaarden([
-            ['Zekerheid', 'Hypotheekrecht op het vastgoed, na aflossing van de oude lening doorgaans in eerste rang'],
-            ['Oude lening', 'Wordt bij het passeren door de notaris afgelost uit de nieuwe lening; de oude hypotheek wordt doorgehaald'],
-            ['Onderpand', 'Woning, beleggingspand, bedrijfspand of gemengd vastgoed in Nederland'],
-          ])}
-        />
-      </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

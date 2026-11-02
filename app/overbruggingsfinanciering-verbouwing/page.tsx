@@ -1,19 +1,7 @@
 import type { Metadata } from 'next'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
-import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_TAXATIE,
-  verwant,
-} from '@/lib/product-content'
+import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
   title: 'Overbruggingsfinanciering | Tijdelijke lening bij aankoop of verbouwing',
@@ -29,17 +17,6 @@ export const metadata: Metadata = {
     description: 'Een overbruggingslening nodig bij aankoop van nieuw vastgoed of een verbouwing? Lange & Partners regelt snelle tijdelijke financiering met vastgoed als zekerheid. Bedragen van €200.000 tot €5.000.000.',
   },
 }
-
-const inhoud = [
-  { id: 'wat', label: 'Wat is overbruggingsfinanciering?' },
-  { id: 'situaties', label: 'Typische situaties' },
-  { id: 'depots', label: 'Rentedepot en bouwdepot' },
-  { id: 'exit', label: 'De exit bepaalt alles' },
-  { id: 'rekenvoorbeeld', label: 'Rekenvoorbeeld verbouwing' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'kosten', label: 'Kosten' },
-  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
-]
 
 const situaties = [
   {
@@ -89,20 +66,16 @@ const faq = [
     vraag: 'Hoe werkt het bouwdepot?',
     antwoord: 'Een deel van de lening wordt in depot gehouden en in delen uitbetaald op basis van de voortgang van de verbouwing, bijvoorbeeld tegen facturen van de aannemer. Daarvoor hebben wij vooraf een begroting en een planning nodig.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_TAXATIE,
 ]
 
 export default function OverbruggingsfinancieringPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/overbruggingsfinanciering-verbouwing"
-      breadcrumb="Overbruggingsfinanciering"
+      breadcrumb="Overbrugging en verbouwing"
       title="Overbruggingsfinanciering voor verbouwing en meer"
       intro="Een tijdelijke lening met vastgoed als zekerheid: bij een verbouwing, een aankoop vóór de verkoop, een veiling of een project. Van €200.000 tot €5.000.000, 6 tot 60 maanden, met rentedepot en bouwdepot als dat past."
       image={{ src: '/images/bericht-2-brug.jpg', alt: 'Brug over een gracht', position: 'center 55%' }}
-      kerngegevens={kerngegevens()}
-      inhoud={inhoud}
       lead={
         <>
           Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Op deze pagina leest u voor welke
@@ -111,7 +84,6 @@ export default function OverbruggingsfinancieringPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('exit', 'tweede', 'herfinanciering', 'vastgoed')}
     >
       <ArticleSection id="wat" title="Wat is overbruggingsfinanciering?">
         <p>
@@ -188,27 +160,8 @@ export default function OverbruggingsfinancieringPage() {
         </Note>
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
-        <DataTable
-          rows={voorwaarden([
-            ['Looptijd', '6 tot 60 maanden, afgestemd op de planning van de verkoop of de verbouwing, met ruimte voor uitloop'],
-            ['Rentedepot', 'Mogelijk: de rente voor de looptijd wordt uit de lening gevormd, zodat er geen maandlasten zijn'],
-            ['Bouwdepot', 'Mogelijk: uitbetaling in delen op basis van voortgang, tegen begroting, planning en facturen'],
-            ['Exit', 'Verkoop of bankherfinanciering na oplevering; de exit staat in de termsheet'],
-          ])}
-        />
-      </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
 
-      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
-        <p>{STAPPEN_INLEIDING}</p>
-        <Steps items={STAPPEN} />
-      </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

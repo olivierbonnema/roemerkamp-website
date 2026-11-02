@@ -16,20 +16,37 @@ interface TocItem {
   label: string
 }
 
+interface Crumb {
+  label: string
+  href: string
+}
+
+interface Cta {
+  href: string
+  label: string
+}
+
 interface ProductPageProps {
-  /** Pad van de pagina, bijvoorbeeld '/dga-hypotheek'. */
+  /** Pad van de pagina, bijvoorbeeld '/vastgoedfinanciering-zonder-bank'. */
   href: string
   /** Naam in het kruimelpad en in de BreadcrumbSchema. */
   breadcrumb: string
+  /** Eventuele tussenliggende kruimels (zonder Home en zonder de pagina zelf). */
+  parents?: Crumb[]
   title: string
   intro: string
   image: { src: string; alt: string; position?: string }
+  primary?: Cta
+  secondary?: Cta
   kerngegevens: KeyFact[]
+  kerngegevensTitel?: string
   /** Inhoudsopgave; de secties FAQ en Verwant worden automatisch toegevoegd. */
   inhoud: TocItem[]
   lead: ReactNode
   faq: FaqItem[]
   verwant: RelatedItem[]
+  verwantTitel?: string
+  contactTitel?: string
   contactTekst?: string
   children: ReactNode
 }
@@ -42,40 +59,37 @@ interface ProductPageProps {
 export function ProductPage({
   href,
   breadcrumb,
+  parents = [],
   title,
   intro,
   image,
+  primary = { href: '/financieringsaanvraag', label: 'Aanvraag indienen' },
+  secondary = { href: '#contact', label: 'Stel een vraag' },
   kerngegevens,
+  kerngegevensTitel = 'Kerngegevens',
   inhoud,
   lead,
   faq,
   verwant,
+  verwantTitel = 'Meer lezen',
+  contactTitel,
   contactTekst = CONTACT_TEKST,
   children,
 }: ProductPageProps) {
   const toc: TocItem[] = [...inhoud, { id: 'faq', label: 'Veelgestelde vragen' }]
+  const crumbs: Crumb[] = [...parents, { label: breadcrumb, href }]
   return (
     <>
-      <BreadcrumbSchema items={[{ name: breadcrumb, href }]} />
+      <BreadcrumbSchema items={crumbs.map((c) => ({ name: c.label, href: c.href }))} />
       <FaqSchema items={faq} />
       <Header />
       <main>
-        <PageHero
-          title={title}
-          intro={intro}
-          breadcrumbs={[
-            { label: 'Voor leningnemers', href: '/voor-leningnemers' },
-            { label: breadcrumb, href },
-          ]}
-          image={image}
-          primary={{ href: '/financieringsaanvraag', label: 'Aanvraag indienen' }}
-          secondary={{ href: '#contact', label: 'Stel een vraag' }}
-        />
+        <PageHero title={title} intro={intro} breadcrumbs={crumbs} image={image} primary={primary} secondary={secondary} />
 
         <ArticleLayout
           aside={
             <>
-              <KeyFacts items={kerngegevens} />
+              <KeyFacts title={kerngegevensTitel} items={kerngegevens} />
               <OnThisPage items={toc} />
             </>
           }
@@ -85,12 +99,12 @@ export function ProductPage({
           <ArticleSection id="faq" title="Veelgestelde vragen">
             <FaqList items={faq} />
           </ArticleSection>
-          <ArticleSection id="verwant" title="Verwante financieringen">
+          <ArticleSection id="verwant" title={verwantTitel}>
             <RelatedList items={verwant} />
           </ArticleSection>
         </ArticleLayout>
 
-        <ContactSection text={contactTekst} image={CONTACT_FOTO} />
+        <ContactSection title={contactTitel} text={contactTekst} image={CONTACT_FOTO} />
       </main>
       <Footer />
     </>

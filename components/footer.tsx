@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { PRODUCT_PAGES, INVESTOR_PAGES } from "@/lib/site-nav"
+import { BORROWER_PAGE, INVESTOR_PAGE, SITUATION_PAGES } from "@/lib/site-nav"
 
 const linkClass = "text-gray-600 hover:text-[#311e86] text-xs"
 
-// Product pages come from lib/site-nav.ts (single source of truth for menu, footer, sitemap).
-const borrowerFirst = PRODUCT_PAGES.slice(0, 5)
-const borrowerRest = PRODUCT_PAGES.slice(5)
+// One product, several situations (2 November 2026). Page lists come from
+// lib/site-nav.ts, the single source of truth for menu, footer and sitemap.
+const situatiesEerste = SITUATION_PAGES.slice(0, 4)
+const situatiesRest = SITUATION_PAGES.slice(4)
 
 export function Footer() {
   return (
@@ -13,47 +14,51 @@ export function Footer() {
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
 
-          {/* Voor leningnemers, deel 1 */}
+          {/* Product */}
           <div>
-            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Voor leningnemers</h3>
+            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Financiering</h3>
             <ul className="space-y-1.5">
-              {borrowerFirst.map((p) => (
-                <li key={p.href}>
-                  <Link href={p.href} className={linkClass}>{p.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Voor leningnemers, deel 2 */}
-          <div>
-            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Meer financieringen</h3>
-            <ul className="space-y-1.5">
-              {borrowerRest.map((p) => (
-                <li key={p.href}>
-                  <Link href={p.href} className={linkClass}>{p.label}</Link>
-                </li>
-              ))}
               <li>
-                <Link href="/voor-leningnemers" className={`${linkClass} font-medium`}>Alle financieringen</Link>
+                <Link href={BORROWER_PAGE.href} className={linkClass}>Voor leningnemers</Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Voor investeerders */}
-          <div>
-            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Voor investeerders</h3>
-            <ul className="space-y-1.5">
-              {INVESTOR_PAGES.map((p) => (
-                <li key={p.href}>
-                  <Link href={p.href} className={linkClass}>{p.label}</Link>
-                </li>
-              ))}
+              <li>
+                <Link href={INVESTOR_PAGE.href} className={linkClass}>Voor investeerders</Link>
+              </li>
+              <li>
+                <Link href="/casussen" className={linkClass}>Casussen</Link>
+              </li>
               <li>
                 <Link href="/berichten" className={linkClass}>Berichten</Link>
               </li>
               <li>
                 <Link href="/nadere-informatie" className={linkClass}>Toezicht en registraties</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Situaties, deel 1 */}
+          <div>
+            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Situaties</h3>
+            <ul className="space-y-1.5">
+              {situatiesEerste.map((p) => (
+                <li key={p.href}>
+                  <Link href={p.href} className={linkClass}>{p.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Situaties, deel 2 */}
+          <div>
+            <h3 className="font-semibold text-[#311e86] mb-3 text-sm">Meer situaties</h3>
+            <ul className="space-y-1.5">
+              {situatiesRest.map((p) => (
+                <li key={p.href}>
+                  <Link href={p.href} className={linkClass}>{p.label}</Link>
+                </li>
+              ))}
+              <li>
+                <Link href="/situaties" className={`${linkClass} font-medium`}>Alle situaties</Link>
               </li>
             </ul>
           </div>

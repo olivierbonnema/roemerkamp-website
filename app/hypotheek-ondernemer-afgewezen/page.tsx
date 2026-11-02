@@ -1,19 +1,7 @@
 import type { Metadata } from 'next'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_VEILIG,
-  verwant,
-} from '@/lib/product-content'
 
 export const metadata: Metadata = {
   title: 'Hypotheek ondernemer afgewezen | Alsnog financieren',
@@ -29,16 +17,6 @@ export const metadata: Metadata = {
     description: 'Hypotheek afgewezen als ondernemer? Lange & Partners financiert op basis van uw vastgoed, niet uw jaarcijfers. Snel, flexibel en ook voor starters. €200.000 tot €5.000.000.',
   },
 }
-
-const inhoud = [
-  { id: 'waarom', label: 'Waarom de bank afwijst' },
-  { id: 'watnu', label: 'Wat u nu kunt doen' },
-  { id: 'welniet', label: 'Wanneer wij wel en niet kunnen' },
-  { id: 'aanpak', label: 'Onze beoordeling' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'kosten', label: 'Kosten' },
-  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
-]
 
 const redenen = [
   {
@@ -107,20 +85,16 @@ const faq = [
     vraag: 'Wat als ik later alsnog een bancaire hypotheek kan krijgen?',
     antwoord: 'Dan lost u onze lening vervroegd af. Onze financiering is bij uitstek geschikt als overbrugging tot de bank het overneemt. De voorwaarden voor vervroegd aflossen, en een eventuele vergoeding, staan vooraf in de leningsovereenkomst.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_VEILIG,
 ]
 
 export default function HypotheekOndernemerAfgewezenPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/hypotheek-ondernemer-afgewezen"
-      breadcrumb="Hypotheek afgewezen"
+      breadcrumb="Afgewezen door de bank"
       title="Hypotheek afgewezen als ondernemer?"
       intro="Banken wijzen af op wisselend inkomen, te weinig boekjaren of een complexe structuur. Wij financieren op uw vastgoed en op hoe de lening eindigt, niet op uw jaarcijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
-      kerngegevens={kerngegevens()}
-      inhoud={inhoud}
       lead={
         <>
           Een afwijzing van de bank zegt iets over de bancaire normen, niet per se over uw financiële positie. Op deze
@@ -129,7 +103,6 @@ export default function HypotheekOndernemerAfgewezenPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('jaarcijfers', 'zzp', 'dga', 'vastgoed', 'afgewezenBlog')}
     >
       <ArticleSection id="waarom" title="Waarom de bank ondernemers afwijst">
         <p>
@@ -180,20 +153,8 @@ export default function HypotheekOndernemerAfgewezenPage() {
         </Note>
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
-        <DataTable rows={voorwaarden()} />
-      </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
 
-      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
-        <p>{STAPPEN_INLEIDING}</p>
-        <Steps items={STAPPEN} />
-      </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

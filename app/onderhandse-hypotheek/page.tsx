@@ -1,20 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
-import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_AANSPREEKPUNT,
-  verwant,
-} from '@/lib/product-content'
+import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
   title: 'Onderhandse hypotheek | Particuliere lening met vastgoedzekerheid',
@@ -30,17 +18,6 @@ export const metadata: Metadata = {
     description: 'Een onderhandse hypotheek is een lening van een particuliere geldverstrekker, gedekt door vastgoed. Lange & Partners koppelt investeerders aan geldnemers. Leningen van €200.000 tot €5.000.000.',
   },
 }
-
-const inhoud = [
-  { id: 'wat', label: 'Wat is een onderhandse hypotheek?' },
-  { id: 'zekerheid', label: 'Hoe de zekerheid is geregeld' },
-  { id: 'vergelijking', label: 'Via ons of onderling' },
-  { id: 'situaties', label: 'Voor welke situaties' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'kosten', label: 'Kosten' },
-  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
-  { id: 'investeerder', label: 'Voor investeerders' },
-]
 
 const zekerheid = [
   {
@@ -101,20 +78,16 @@ const faq = [
     vraag: 'Kan ik via Lange & Partners een lening van familie laten vastleggen?',
     antwoord: 'Nee. Wij bemiddelen alleen financieringen van investeerders uit ons eigen netwerk, na onze eigen beoordeling. Wilt u een lening van familie of bekenden met een hypotheekrecht vastleggen, dan kan dat rechtstreeks via een notaris.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_AANSPREEKPUNT,
 ]
 
 export default function OnderhandseHypotheekPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/onderhandse-hypotheek"
       breadcrumb="Onderhandse hypotheek"
       title="Onderhandse hypotheek"
       intro="Een lening van een particuliere geldverstrekker, gedekt door uw vastgoed en notarieel vastgelegd. Wij beoordelen de aanvraag en koppelen u aan een investeerder uit ons netwerk, met volledige hypothecaire zekerheid. Van €200.000 tot €5.000.000."
       image={{ src: '/images/over-ons-section.jpg', alt: 'Het kantoor van Lange & Partners aan de Wilhelminastraat in Haarlem', position: 'center 80%' }}
-      kerngegevens={kerngegevens()}
-      inhoud={inhoud}
       lead={
         <>
           "Onderhands" verwijst naar de partijen, niet naar de manier van vastleggen: de geldverstrekker is een
@@ -124,7 +97,6 @@ export default function OnderhandseHypotheekPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('hub', 'vastgoed', 'tweede', 'investeerders')}
     >
       <ArticleSection id="wat" title="Wat is een onderhandse hypotheek?">
         <p>
@@ -174,20 +146,8 @@ export default function OnderhandseHypotheekPage() {
         <DefinitionList items={situaties} />
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
-        <DataTable rows={voorwaarden()} />
-      </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
 
-      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
-        <p>{STAPPEN_INLEIDING}</p>
-        <Steps items={STAPPEN} />
-      </ArticleSection>
 
       <ArticleSection id="investeerder" title="Bent u vermogend particulier en overweegt u te investeren?">
         <p>
@@ -200,6 +160,6 @@ export default function OnderhandseHypotheekPage() {
           .
         </p>
       </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

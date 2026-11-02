@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { ProductPage } from '@/components/product/product-page'
+import { SITUATION_PAGES } from '@/lib/site-nav'
 import { ArticleSection, Note } from '@/components/product/article-layout'
-import { DataTable, DefinitionList, Steps, Strong } from '@/components/product/content-blocks'
+import { DataTable, Steps, Strong, RelatedList } from '@/components/product/content-blocks'
 import {
   kerngegevens,
   voorwaarden,
@@ -16,17 +17,17 @@ import {
 } from '@/lib/product-content'
 
 export const metadata: Metadata = {
-  title: 'Vastgoedfinanciering zonder bank | Snel en op maat',
-  description: 'Vastgoed financieren zonder bank? Lange & Partners biedt snelle, flexibele vastgoedfinanciering op basis van uw onderpand. Woonpanden, beleggingspanden en bedrijfspanden. €200.000 tot €5.000.000.',
+  title: { absolute: 'Vastgoedfinanciering zonder bank (non-bancaire hypotheek) | Lange & Partners' },
+  description: 'De non-bancaire hypotheek van Lange & Partners: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank' },
   openGraph: {
-    title: 'Vastgoedfinanciering zonder bank | Snel en op maat',
-    description: 'Vastgoed financieren zonder bank? Lange & Partners biedt snelle, flexibele vastgoedfinanciering op basis van uw onderpand. Woonpanden, beleggingspanden en bedrijfspanden. €200.000 tot €5.000.000.',
+    title: 'Vastgoedfinanciering zonder bank (non-bancaire hypotheek) | Lange & Partners',
+    description: 'De non-bancaire hypotheek van Lange & Partners: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.',
     url: 'https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank',
   },
   twitter: {
-    title: 'Vastgoedfinanciering zonder bank | Snel en op maat',
-    description: 'Vastgoed financieren zonder bank? Lange & Partners biedt snelle, flexibele vastgoedfinanciering op basis van uw onderpand. Woonpanden, beleggingspanden en bedrijfspanden. €200.000 tot €5.000.000.',
+    title: 'Vastgoedfinanciering zonder bank (non-bancaire hypotheek) | Lange & Partners',
+    description: 'De non-bancaire hypotheek van Lange & Partners: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.',
   },
 }
 
@@ -41,33 +42,6 @@ const inhoud = [
   { id: 'kosten', label: 'Kosten' },
   { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
   { id: 'niet', label: 'Wat wij niet doen' },
-]
-
-const situaties = [
-  {
-    term: 'De bank wijst af op inkomen of jaarcijfers',
-    text: "U bent ondernemer, DGA of ZZP'er en uw inkomen is wisselend, recent gestart of fiscaal geoptimaliseerd. Het pand is goed, de aanvraag past alleen niet in de bancaire normen. Wij beoordelen op het onderpand.",
-  },
-  {
-    term: 'Een beleggingspand dat banken niet meer financieren',
-    text: 'Verhuurde woningen en appartementen worden door banken steeds terughoudender gefinancierd. Wij kijken naar de marktwaarde en de huurinkomsten van het pand zelf.',
-  },
-  {
-    term: 'Snelheid: een veiling, een deadline, een kans',
-    text: 'Een bancaire aanvraag duurt vier tot acht weken. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren bij de notaris.',
-  },
-  {
-    term: 'Overwaarde benutten zonder de bestaande hypotheek aan te passen',
-    text: 'Een tweede hypotheek op uw woning of beleggingspand, naast de bestaande bankhypotheek, voor een investering in uw onderneming of in ander vastgoed.',
-  },
-  {
-    term: 'Vastgoed in ontwikkeling of transformatie',
-    text: 'Panden die worden verbouwd, gesplitst of getransformeerd. Tijdelijke financiering totdat de definitieve waarde is gerealiseerd en een bank het kan overnemen.',
-  },
-  {
-    term: 'Een aflopende lening herfinancieren',
-    text: 'Uw huidige financier verlengt niet of de rentevaste periode loopt af op een ongunstig moment. Wij overbruggen tot verkoop of tot een nieuwe langlopende hypotheek.',
-  },
 ]
 
 const stappen = [
@@ -117,9 +91,9 @@ export default function VastgoedfinancieringZonderBankPage() {
   return (
     <ProductPage
       href="/vastgoedfinanciering-zonder-bank"
-      breadcrumb="Vastgoedfinanciering zonder bank"
+      breadcrumb="Voor leningnemers"
       title="Vastgoedfinanciering zonder bank"
-      intro="Financiering van €200.000 tot €5.000.000 op basis van de waarde van uw vastgoed, niet op basis van uw inkomen of jaarcijfers. Looptijd 6 tot 60 maanden, doorgaans binnen één tot drie weken geregeld."
+      intro="Onze non-bancaire hypotheek: een tijdelijke lening van €200.000 tot €5.000.000 op basis van de waarde van uw vastgoed, niet op basis van uw inkomen of jaarcijfers. Looptijd 6 tot 60 maanden, doorgaans binnen één tot drie weken geregeld."
       image={{ src: '/images/nbl-herenhuis.jpg', alt: 'Herenhuis in Nederland' }}
       kerngegevens={kerngegevens()}
       inhoud={inhoud}
@@ -131,7 +105,7 @@ export default function VastgoedfinancieringZonderBankPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('hub', 'tweede', 'overbrugging', 'herfinanciering')}
+      verwant={verwant('proces', 'kosten', 'ltv', 'exit', 'watIs', 'investeerders')}
     >
 
 
@@ -156,7 +130,11 @@ export default function VastgoedfinancieringZonderBankPage() {
       </ArticleSection>
 
       <ArticleSection id="situaties" title="Voor welke situaties">
-        <DefinitionList items={situaties} />
+        <p>
+          Het product is steeds hetzelfde; de situatie bepaalt wat er in de beoordeling anders is. Per situatie staat op
+          een eigen pagina wat u kunt verwachten.
+        </p>
+        <RelatedList items={SITUATION_PAGES.map((p) => ({ href: p.href, title: p.label, text: p.description }))} />
       </ArticleSection>
 
       <ArticleSection id="vastgoed" title="Welk vastgoed komt in aanmerking?">

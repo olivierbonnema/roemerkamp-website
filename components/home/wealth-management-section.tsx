@@ -33,7 +33,7 @@ export function WealthManagementSection() {
               </p>
             </div>
             <Link
-              href="/voor-leningnemers"
+              href="/vastgoedfinanciering-zonder-bank"
               className="inline-block mt-8 bg-[#311e86] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#261770] transition-colors"
             >
               Ontdek financieringsmogelijkheden

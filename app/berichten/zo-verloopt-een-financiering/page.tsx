@@ -239,7 +239,7 @@ export default function ZoVerlooptEenFinancieringPage() {
           kop="Een aanvraag indienen?"
           tekst="Het portaal loopt u door dezelfde stappen als hierboven. Heeft u het saldo van uw huidige hypotheek en een recente waardebepaling bij de hand, dan is de aanvraag in een kwartier ingevuld."
           knop={{ href: "/financieringsaanvraag", label: "Aanvraag indienen" }}
-          tweede={{ href: "/voor-leningnemers", label: "Eerst meer lezen" }}
+          tweede={{ href: "/vastgoedfinanciering-zonder-bank", label: "Eerst meer lezen" }}
         />
       </main>
       <Footer />

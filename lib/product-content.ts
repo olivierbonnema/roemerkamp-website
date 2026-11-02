@@ -139,12 +139,12 @@ export const FAQ_VERVROEGD: FaqItem = {
 
 /** Verwante pagina's, per pad op te halen. */
 export const PAGINAS: Record<string, RelatedItem> = {
-  hub: { href: '/non-bancaire-hypotheek', title: 'Non-bancaire hypotheek', text: 'Het overzicht van alle financieringsvormen met vastgoed als zekerheid.' },
+  hub: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina: voorwaarden, kosten, rekenvoorbeeld en aanvraag.' },
   vastgoed: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'Woon-, beleggings- en bedrijfspanden, beoordeeld op marktwaarde en huurinkomsten.' },
   tweede: { href: '/tweede-hypotheek-ondernemer', title: 'Tweede hypotheek voor ondernemers', text: 'Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.' },
   jaarcijfers: { href: '/hypotheek-zonder-jaarcijfers', title: 'Hypotheek zonder jaarcijfers', text: 'Financiering op het onderpand als de cijfers er nog niet zijn of niet passen.' },
   dga: { href: '/dga-hypotheek', title: 'DGA hypotheek', text: 'Voor directeur-grootaandeelhouders met een fiscaal geoptimaliseerd inkomen.' },
-  zzp: { href: '/zzp-hypotheek', title: 'ZZP hypotheek', text: 'Voor zelfstandigen met een wisselend of recent gestart inkomen.' },
+  zzp: { href: '/hypotheek-zonder-jaarcijfers', title: 'Geen drie jaar jaarcijfers', text: 'Starters, ZZP\'ers en ondernemers met een korte of wisselende historie.' },
   onderhands: { href: '/onderhandse-hypotheek', title: 'Onderhandse hypotheek', text: 'Een lening van een particuliere geldverstrekker, notarieel vastgelegd.' },
   overbrugging: { href: '/overbruggingsfinanciering-verbouwing', title: 'Overbruggingsfinanciering en verbouwing', text: 'Tijdelijke financiering bij aankoop, verbouwing of transformatie, met een bouwdepot.' },
   herfinanciering: { href: '/herfinanciering-vastgoed', title: 'Herfinanciering vastgoed', text: 'Een aflopende lening overbruggen tot verkoop of een nieuwe langlopende hypotheek.' },
@@ -153,7 +153,6 @@ export const PAGINAS: Record<string, RelatedItem> = {
   kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een non-bancaire hypotheek?', text: 'Rente, behandelingskosten, taxatie en notaris: een overzicht van alle kosten en wat ze bepaalt.' },
   ltv: { href: '/berichten/tweede-hypotheek-en-ltv', title: 'Tweede hypotheek: waarom de LTV anders is dan u denkt', text: 'Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat.' },
   exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.' },
-  afgewezenBlog: { href: '/berichten/hypotheek-afgewezen-wat-nu', title: 'Hypotheek afgewezen door de bank? Dit zijn uw opties', text: 'Achtergrond bij een afwijzing en de alternatieven die er zijn.' },
   watIs: { href: '/berichten/wat-is-non-bancaire-financiering', title: 'Wat is non-bancaire financiering?', text: 'Uitleg, vormen en werking van financiering buiten de bank om.' },
   investeerders: { href: '/voor-investeerders', title: 'Investeren in vastgoedleningen', text: 'Voor vermogende particulieren die een hypothecair gedekt rendement zoeken.' },
 }

@@ -1,20 +1,7 @@
 import type { Metadata } from 'next'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
-import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_VERVROEGD,
-  FAQ_AANSPREEKPUNT,
-  verwant,
-} from '@/lib/product-content'
+import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
   title: 'DGA hypotheek | Maatwerkfinanciering voor directeur-grootaandeelhouders',
@@ -30,16 +17,6 @@ export const metadata: Metadata = {
     description: 'Als DGA een hypotheek aanvragen op uw privéwoning? Banken toetsen DGA-inkomen streng. Lange & Partners biedt een maatwerkoplossing op basis van uw vastgoed en vermogenspositie.',
   },
 }
-
-const inhoud = [
-  { id: 'waarom', label: 'Waarom de bank een DGA streng toetst' },
-  { id: 'situaties', label: 'Herkenbare situaties' },
-  { id: 'routes', label: 'Privé of via de BV' },
-  { id: 'beoordeling', label: 'Wat wij beoordelen' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'kosten', label: 'Kosten' },
-  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
-]
 
 const situaties = [
   {
@@ -96,21 +73,16 @@ const faq = [
     vraag: 'Welke documenten heb ik nodig voor een aanvraag?',
     antwoord: 'Een beschrijving van het vastgoed en de gewenste financiering, een actueel taxatierapport of een WOZ-beschikking, recente jaarrekeningen voor zover beschikbaar, het saldo van bestaande hypotheken en een toelichting op uw inkomen, uw vermogenspositie en de manier waarop u de lening aflost.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_VERVROEGD,
-  FAQ_AANSPREEKPUNT,
 ]
 
 export default function DgaHypotheekPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/dga-hypotheek"
       breadcrumb="DGA hypotheek"
       title="DGA hypotheek"
       intro="Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw positie solide. Wij beoordelen op het onderpand en op uw werkelijke situatie. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-villa.jpg', alt: 'Villa, zwart-wit' }}
-      kerngegevens={kerngegevens()}
-      inhoud={inhoud}
       lead={
         <>
           Als DGA bent u tegelijk ondernemer en werknemer van uw eigen BV. Dat biedt fiscale voordelen, maar bij een
@@ -119,7 +91,6 @@ export default function DgaHypotheekPage() {
         </>
       }
       faq={faq}
-      verwant={verwant('jaarcijfers', 'tweede', 'vastgoed', 'hub')}
     >
       <ArticleSection id="waarom" title="Waarom de bank een DGA streng toetst">
         <p>
@@ -165,25 +136,8 @@ export default function DgaHypotheekPage() {
         <DefinitionList items={beoordeling} />
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
-        <DataTable
-          rows={voorwaarden([
-            ['Onderpand', 'Eigen woning, tweede woning, beleggingspand of zakelijk vastgoed in Nederland, met voldoende overwaarde'],
-            ['Jaarrekeningen', 'Geen minimum aantal. Wat er is, levert u aan; het onderpand en de exit zijn leidend.'],
-          ])}
-        />
-      </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
 
-      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
-        <p>{STAPPEN_INLEIDING}</p>
-        <Steps items={STAPPEN} />
-      </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

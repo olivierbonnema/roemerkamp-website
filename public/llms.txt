@@ -1,10 +1,10 @@
 # Lange & Partners - Non-bancaire vastgoedfinanciering
 
-> Lange & Partners verstrekt non-bancaire vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers en investeerders in heel Nederland.
+> Lange & Partners bemiddelt non-bancaire vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers, DGA's en vastgoedbeleggers in heel Nederland, gefinancierd door particuliere investeerders. Eén product, uitgelegd per situatie.
 
 ## Over ons
 
-Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Wij bieden maatwerkfinanciering voor ondernemers die buiten de reguliere bancaire criteria vallen. Alle betalingen verlopen via een onafhankelijke Stichting.
+Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector en brengt sinds acht jaar non-bancaire leningen onder bij particuliere investeerders. Wij beoordelen op het onderpand, de betaalbaarheid van de rente en de exit, niet op het inkomen van de afgelopen drie jaar. Alle betalingen verlopen via een onafhankelijke Stichting. Lange & Partners bemiddelt; de investeerder verstrekt de lening.
 
 - Bedrijf: Lange & Partners Financieel Advies B.V. (ook bekend als Lange Financieel Advies)
 - KvK: 34269870
@@ -13,51 +13,51 @@ Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector
 - E-mail: info@langefa.nl
 - Website: https://www.nonbancaireleningen.nl
 
-## Diensten
+## Het product
 
-### Voor leningnemers
-- Non-bancaire hypotheek: alternatief voor bancaire financiering
-- Vastgoedfinanciering zonder bank (woon-, beleggings- en bedrijfspanden)
-- Tweede hypotheek voor ondernemers
-- Hypotheek zonder jaarcijfers (ondernemers met 1 tot 2 jaar cijfers)
-- DGA hypotheek (directeur-grootaandeelhouders, privé of via de BV)
-- ZZP hypotheek (financiering voor zelfstandig ondernemers)
-- Onderhandse hypotheek met vastgoedzekerheid
-- Overbruggingsfinanciering bij aankoop, verbouwing of transformatie
-- Herfinanciering van vastgoed
-- Alsnog financieren na een afwijzing door de bank
+Een tijdelijke lening met een hypotheekrecht op vastgoed in Nederland als zekerheid, in eerste of tweede rang.
 
-### Voor investeerders
-- Investeren in non-bancaire vastgoedleningen
-- Rendement vanaf 6,5% per jaar
-- Hypothecaire zekerheid op vastgoed, ingeschreven bij het Kadaster
-- Beheerd via onafhankelijke Stichting
-
-## Kenmerken
 - Leningbedragen: €200.000 tot €5.000.000
 - Looptijd: 6 tot 60 maanden
-- Rente voor leningnemers: vanaf 7%
-- Loan-to-value: doorgaans tot 70%, maximaal 75% van het totale onderpand
-- Doorlooptijd aanvraag: 1 tot 3 weken, indicatie vaak binnen 24 uur
-- Geen drie jaar jaarcijfers vereist
-- Beoordeling op onderpand, betaalbaarheid en exit (herfinanciering, aflossing of verkoop)
+- Rente voor leningnemers: vanaf 7% per jaar
+- Loan-to-value: doorgaans tot 70%, maximaal 75% van het totale onderpand, inclusief bestaande hypotheken
+- Behandelingskosten: opstartvergoeding van 1% van het leenbedrag, minimaal €3.000; daarnaast taxatie en notaris
+- Doorlooptijd: 1 tot 3 weken vanaf een volledige aanvraag
+- Geen minimum aantal jaarcijfers; eigen inbreng geen vereiste zolang de dekking voldoende is
+- Exit: herfinanciering bij een bank, verkoop of aflossing uit eigen middelen
+- Niet: consumptief krediet, leningen zonder vastgoed als zekerheid, financiering zonder exit
 - Werkgebied: heel Nederland, kantoor in Haarlem
+
+## Situaties waarin wij financieren
+- Afgewezen door de bank (wisselend inkomen, te weinig boekjaren, complexe structuur)
+- Geen drie jaar jaarcijfers (starters, ZZP'ers, ondernemers met een korte of wisselende historie)
+- DGA hypotheek (laag gebruikelijk loon, vermogende BV; lenen in privé of via de BV)
+- Tweede hypotheek (overwaarde benutten naast de bestaande bankhypotheek)
+- Overbrugging en verbouwing (aankoop vóór verkoop, veiling, transformatie; rentedepot en bouwdepot)
+- Herfinanciering (de bank verlengt niet of wijst af)
+- Beleggingspand of bedrijfspand financieren zonder bank
+- Onderhandse hypotheek (lening van een particuliere geldverstrekker, notarieel vastgelegd)
+
+## Voor investeerders
+- Investeren in vastgoedleningen, per lening, met een dossier vooraf
+- Rendement vanaf 6,5% per jaar, vastgelegd in de termsheet
+- Zekerheid: hypotheekrecht op vastgoed in Nederland, ingeschreven bij het Kadaster, eerste of tweede rang
+- Betalingen via een onafhankelijke Stichting; rendement niet gegarandeerd
 
 ## Pagina's
 - Hoofdpagina: https://www.nonbancaireleningen.nl
-- Voor leningnemers: https://www.nonbancaireleningen.nl/voor-leningnemers
-- Voor investeerders: https://www.nonbancaireleningen.nl/voor-investeerders
-- Rendement vastgoedleningen: https://www.nonbancaireleningen.nl/rendement-vastgoedleningen
-- Non-bancaire hypotheek: https://www.nonbancaireleningen.nl/non-bancaire-hypotheek
-- Vastgoedfinanciering zonder bank: https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank
-- Tweede hypotheek voor ondernemers: https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer
-- Hypotheek zonder jaarcijfers: https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers
+- Voor leningnemers (productpagina, voorwaarden en kosten): https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank
+- Voor investeerders (productpagina): https://www.nonbancaireleningen.nl/voor-investeerders
+- Situaties (overzicht): https://www.nonbancaireleningen.nl/situaties
+- Afgewezen door de bank: https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen
+- Geen drie jaar jaarcijfers: https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers
 - DGA hypotheek: https://www.nonbancaireleningen.nl/dga-hypotheek
-- ZZP hypotheek: https://www.nonbancaireleningen.nl/zzp-hypotheek
+- Tweede hypotheek: https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer
+- Overbrugging en verbouwing: https://www.nonbancaireleningen.nl/overbruggingsfinanciering-verbouwing
+- Herfinanciering: https://www.nonbancaireleningen.nl/herfinanciering-vastgoed
+- Beleggingspand of bedrijfspand: https://www.nonbancaireleningen.nl/beleggingspand-financieren
 - Onderhandse hypotheek: https://www.nonbancaireleningen.nl/onderhandse-hypotheek
-- Overbruggingsfinanciering: https://www.nonbancaireleningen.nl/overbruggingsfinanciering-verbouwing
-- Herfinanciering vastgoed: https://www.nonbancaireleningen.nl/herfinanciering-vastgoed
-- Hypotheek afgewezen als ondernemer: https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen
+- Casussen (voorbeeldcasussen): https://www.nonbancaireleningen.nl/casussen
 - Over ons: https://www.nonbancaireleningen.nl/over-ons
 - Toezicht en registraties: https://www.nonbancaireleningen.nl/nadere-informatie
 - Contact: https://www.nonbancaireleningen.nl/contact
@@ -67,6 +67,5 @@ Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector
 - Van aanvraag tot passering, zo verloopt een financiering: https://www.nonbancaireleningen.nl/berichten/zo-verloopt-een-financiering
 - Tweede hypotheek, waarom de LTV anders is dan u denkt: https://www.nonbancaireleningen.nl/berichten/tweede-hypotheek-en-ltv
 - Overbruggingsfinanciering, het draait om de exit: https://www.nonbancaireleningen.nl/berichten/overbruggingsfinanciering-de-exit
-- Hypotheek afgewezen door de bank, dit zijn uw opties: https://www.nonbancaireleningen.nl/berichten/hypotheek-afgewezen-wat-nu
 - Wat is non-bancaire financiering?: https://www.nonbancaireleningen.nl/berichten/wat-is-non-bancaire-financiering
 - Wat kost een non-bancaire hypotheek?: https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek

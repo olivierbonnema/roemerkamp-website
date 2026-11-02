@@ -210,10 +210,10 @@ export default function WatIsNonBancaireFinancieringPage() {
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Meer informatie per situatie</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { href: '/non-bancaire-hypotheek', titel: 'Non-bancaire hypotheek' },
+                  { href: '/vastgoedfinanciering-zonder-bank', titel: 'Vastgoedfinanciering zonder bank' },
                   { href: '/tweede-hypotheek-ondernemer', titel: 'Tweede hypotheek voor ondernemer' },
                   { href: '/vastgoedfinanciering-zonder-bank', titel: 'Vastgoedfinanciering zonder bank' },
-                  { href: '/zzp-hypotheek', titel: 'ZZP hypotheek' },
+                  { href: '/hypotheek-zonder-jaarcijfers', titel: 'Geen drie jaar jaarcijfers' },
                 ].map((p) => (
                   <Link
                     key={p.href}

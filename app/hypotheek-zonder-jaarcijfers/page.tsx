@@ -1,20 +1,7 @@
 import type { Metadata } from 'next'
-import { ProductPage } from '@/components/product/product-page'
+import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
-import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import {
-  kerngegevens,
-  voorwaarden,
-  KOSTEN,
-  KOSTEN_INLEIDING,
-  KOSTEN_FISCAAL,
-  STAPPEN,
-  STAPPEN_INLEIDING,
-  FAQ_EIGEN_GELD,
-  FAQ_TAXATIE,
-  FAQ_VERVROEGD,
-  verwant,
-} from '@/lib/product-content'
+import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
   title: { absolute: 'Hypotheek zonder jaarcijfers | Lange & Partners' },
@@ -30,17 +17,6 @@ export const metadata: Metadata = {
     description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
   },
 }
-
-const inhoud = [
-  { id: 'waarom', label: 'Waarom de bank drie jaar cijfers wil' },
-  { id: 'voorwie', label: 'Voor wie' },
-  { id: 'beoordeling', label: 'Wat wij wel beoordelen' },
-  { id: 'jaren', label: 'Nul, één of twee jaar cijfers' },
-  { id: 'voorwaarden', label: 'Voorwaarden' },
-  { id: 'tijdelijk', label: 'Tijdelijk, tot de bank het overneemt' },
-  { id: 'kosten', label: 'Kosten' },
-  { id: 'aanvraag', label: 'Zo verloopt de aanvraag' },
-]
 
 const voorwie = [
   {
@@ -94,33 +70,35 @@ const faq = [
     antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de kwaliteit van het onderpand en een geloofwaardig terugbetalingsperspectief.',
   },
   {
+    vraag: "Kan ik als ZZP'er een hypotheek krijgen zonder drie jaar jaarcijfers?",
+    antwoord: 'Ja. Banken eisen doorgaans drie jaar jaarcijfers om het gemiddelde ondernemersinkomen te berekenen. Wij beoordelen op het onderpand, uw vermogenspositie en het perspectief op terugbetaling. Een kortere ondernemersgeschiedenis of een wisselend inkomen is op zichzelf geen uitsluitingsgrond.',
+  },
+  {
+    vraag: 'Is dit een gewone woninghypotheek voor 30 jaar?',
+    antwoord: 'Nee. Onze financieringen lopen 6 tot 60 maanden en zijn bedoeld als tijdelijke oplossing, bijvoorbeeld tot de bank u na drie boekjaren wel kan financieren. Zoekt u een langlopende hypotheek voor de aankoop van uw eerste woning met weinig eigen vermogen, dan is een bank of een hypotheekverstrekker via een hypotheekadviseur de aangewezen route.',
+  },
+  {
     vraag: 'Is een hypotheek zonder jaarcijfers een permanente oplossing?',
     antwoord: 'Nee. Onze leningen hebben een looptijd van 6 tot 60 maanden. In de meeste gevallen is het de bedoeling dat u daarna herfinanciert bij een bank, zodra u wel aan de jaarcijfereis voldoet. Dat perspectief bespreken wij bij de beoordeling.',
   },
-  FAQ_EIGEN_GELD,
-  FAQ_TAXATIE,
-  FAQ_VERVROEGD,
 ]
 
 export default function HypotheekZonderJaarcijfersPage() {
   return (
-    <ProductPage
+    <SituationPage
       href="/hypotheek-zonder-jaarcijfers"
-      breadcrumb="Hypotheek zonder jaarcijfers"
+      breadcrumb="Geen drie jaar jaarcijfers"
       title="Hypotheek zonder jaarcijfers"
-      intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer heeft die. Wij beoordelen de aanvraag op uw vastgoed en op hoe de lening eindigt, niet op uw financiële verleden. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer, ZZP'er of DGA heeft die. Wij beoordelen de aanvraag op uw vastgoed en op hoe de lening eindigt, niet op uw financiële verleden. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-kantoor.jpg', alt: 'Kantoorgebouw, zwart-wit' }}
-      kerngegevens={kerngegevens()}
-      inhoud={inhoud}
       lead={
         <>
-          Een startende ondernemer met een gezond bedrijf en voldoende vermogen krijgt bij de bank vaak geen financiering,
-          simpelweg omdat de rekenregel van drie jaar jaarcijfers niet kan worden toegepast. Op deze pagina leest u waarom
-          dat zo is, wat wij in plaats daarvan beoordelen en wat de voorwaarden zijn.
+          Een startende ondernemer, ZZP'er of DGA met een gezond bedrijf en voldoende vermogen krijgt bij de bank vaak
+          geen financiering, simpelweg omdat de rekenregel van drie jaar jaarcijfers niet kan worden toegepast. Op deze
+          pagina leest u waarom dat zo is, wat wij in plaats daarvan beoordelen en voor wie dit wel en niet werkt.
         </>
       }
       faq={faq}
-      verwant={verwant('dga', 'zzp', 'afgewezen', 'hub')}
     >
       <ArticleSection id="waarom" title="Waarom de bank drie jaar cijfers wil">
         <p>
@@ -163,12 +141,29 @@ export default function HypotheekZonderJaarcijfersPage() {
         </Note>
       </ArticleSection>
 
-      <ArticleSection id="voorwaarden" title="Voorwaarden in het kort">
+
+      <ArticleSection id="zzp" title="Ook voor ZZP'ers en freelancers">
+        <p>
+          Zelfstandigen lopen op dezelfde rekenregel vast, en vaak op meer. Inkomen dat per maand of seizoen wisselt valt
+          in een gemiddelde ongunstig uit, sommige banken rekenen met het laagste jaar, en wie recent van loondienst naar
+          ZZP is overgestapt begint voor de bank opnieuw te tellen. Ook gecombineerde inkomsten, bijvoorbeeld ZZP-inkomen
+          naast huurinkomsten of een deeltijdbaan, weegt de bank niet of maar gedeeltelijk mee.
+        </p>
+        <p>
+          Een eerlijk antwoord vooraf scheelt u tijd. Onze financiering is een tijdelijke lening met vastgoed als
+          zekerheid, vanaf €200.000, geen woninghypotheek voor 30 jaar. Koopt u uw eerste woning met weinig eigen geld,
+          dan is een bank of een hypotheekverstrekker via een hypotheekadviseur de aangewezen route. Bezit u vastgoed met
+          overwaarde, koopt u een beleggingspand of heeft u een overbrugging nodig tot de bank u na drie boekjaren wel kan
+          financieren, dan past onze financiering wel.
+        </p>
         <DataTable
-          rows={voorwaarden([
-            ['Jaarcijfers', 'Geen minimum aantal boekjaren. Wat er is, levert u aan; wat er niet is, vervangen wij door een beoordeling van onderpand, vermogen en perspectief.'],
-            ['Eigen woning', 'Financiering op de eigen woning is mogelijk vanaf €200.000 en met voldoende overwaarde. Voor een eigen woning gelden aanvullende regels; wij beoordelen per aanvraag of en hoe wij kunnen helpen.'],
-          ])}
+          head={['Wel', 'Niet']}
+          labelColumn={false}
+          rows={[
+            ['U bezit vastgoed met overwaarde, of koopt vastgoed, en de totale schuld blijft binnen 70% tot 75% van de waarde', 'U koopt uw eerste woning met weinig eigen geld en zoekt een hypotheek voor 30 jaar'],
+            ['Het gaat om €200.000 of meer', 'Het gaat om een kleiner bedrag of om consumptief krediet'],
+            ['U weet hoe de lening eindigt, bijvoorbeeld de bank die overneemt zodra de cijfers er zijn', 'Er is geen zicht op een exit binnen 60 maanden'],
+          ]}
         />
       </ArticleSection>
 
@@ -185,16 +180,7 @@ export default function HypotheekZonderJaarcijfersPage() {
         </p>
       </ArticleSection>
 
-      <ArticleSection id="kosten" title="Wat kost het?">
-        <p>{KOSTEN_INLEIDING}</p>
-        <DataTable head={['Kostenpost', 'Hoogte', 'Wanneer']} rows={KOSTEN} />
-        <Note>{KOSTEN_FISCAAL}</Note>
-      </ArticleSection>
 
-      <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
-        <p>{STAPPEN_INLEIDING}</p>
-        <Steps items={STAPPEN} />
-      </ArticleSection>
-    </ProductPage>
+    </SituationPage>
   )
 }

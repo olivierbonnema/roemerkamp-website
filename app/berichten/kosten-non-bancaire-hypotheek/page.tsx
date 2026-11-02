@@ -187,9 +187,9 @@ export default function KostenNonBancaireHypotheekPage() {
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Meer informatie</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { href: '/non-bancaire-hypotheek', titel: 'Non-bancaire hypotheek' },
+                  { href: '/vastgoedfinanciering-zonder-bank', titel: 'Vastgoedfinanciering zonder bank' },
                   { href: '/berichten/wat-is-non-bancaire-financiering', titel: 'Wat is non-bancaire financiering?' },
-                  { href: '/berichten/hypotheek-afgewezen-wat-nu', titel: 'Hypotheek afgewezen, wat nu?' },
+                  { href: '/hypotheek-ondernemer-afgewezen', titel: 'Afgewezen door de bank' },
                   { href: '/financieringsaanvraag', titel: 'Aanvraag indienen' },
                 ].map((p) => (
                   <Link
