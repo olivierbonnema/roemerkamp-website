@@ -77,26 +77,30 @@ export function voorwaarden(extra: Array<[string, string]> = []): Array<[string,
 /** Kostentabel (kop: Kostenpost, Hoogte, Wanneer). */
 export const KOSTEN: Array<[string, string, string]> = [
   ['Rente', 'Vanaf 7% per jaar', 'Maandelijks, of vooraf via een rentedepot'],
-  ['Behandelingskosten', 'Opstartvergoeding van 1% van het leenbedrag, minimaal €3.000', 'Eenmalig, verrekend bij het passeren'],
+  ['Behandelingskosten', 'Opstartvergoeding van 1% van het leenbedrag, minimaal €3.000', 'Gefactureerd na uw akkoord op de indicatie, vóór de termsheet'],
   ['Taxatie', 'Tarief van de onafhankelijke taxateur', 'Vóór de termsheet, door u opgedragen'],
   ['Notaris', 'Tarief van de notaris voor de hypotheekakte', 'Bij het passeren'],
 ]
 
 export const KOSTEN_INLEIDING =
-  'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover: een beoordeling op het onderpand, een doorlooptijd van weken in plaats van maanden en ruimte voor situaties die een bank niet bedient. Alle kosten staan vooraf in de termsheet; er komen geen opslagen achteraf bij.'
+  'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover: een beoordeling van de hele casus in plaats van langs een vaste norm, een doorlooptijd van weken in plaats van maanden en ruimte voor situaties die een bank niet bedient. Alle kosten staan vooraf in de termsheet; er komen geen opslagen achteraf bij.'
 
 export const KOSTEN_FISCAAL =
   'Rente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering; zakelijke rentelasten zijn doorgaans aftrekbaar als bedrijfskosten. Bespreek dit met uw fiscalist.'
 
-/** De aanvraag in vier stappen (de uitgebreide versie staat in het blog "Zo verloopt een financiering"). */
+/** De aanvraag in vijf stappen (de uitgebreide versie staat in het blog "Zo verloopt een financiering"). */
 export const STAPPEN: Step[] = [
   {
     title: 'De aanvraag',
-    text: 'U dient de aanvraag in via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben: het object en een recente waardebepaling, het actuele saldo van bestaande hypotheken, het doel van de lening en hoe u hem denkt af te lossen.',
+    text: 'U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben: het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen.',
   },
   {
-    title: 'De beoordeling en de termsheet',
-    text: 'Wij beoordelen het onderpand, de totale schuld die erop komt te rusten en de uitstrategie, en controleren de betrokkenen in de openbare registers. Daarna ontvangt u een termsheet met hoofdsom, rente, looptijd, zekerheden, kosten en de voorwaarden voor het passeren.',
+    title: 'De beoordeling',
+    text: 'Wij beoordelen de hele casus op drie punten: de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening eindigt). Daarnaast controleren wij de betrokkenen in de openbare registers.',
+  },
+  {
+    title: 'De indicatie en uw akkoord',
+    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden: bedrag, rente, looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren wij de opstartvergoeding en stellen wij de termsheet op, met alle afspraken en de voorwaarden voor het passeren.',
   },
   {
     title: 'De investeerder',
@@ -109,7 +113,7 @@ export const STAPPEN: Step[] = [
 ]
 
 export const STAPPEN_INLEIDING =
-  'Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren bij de notaris. Een uitgebreide beschrijving van alle stappen staat in het bericht "Van aanvraag tot passering".'
+  'Vanaf een volledige casus rekenen wij op één tot drie weken tot het passeren bij de notaris. Een uitgebreide beschrijving van alle stappen staat in het bericht "Van aanvraag tot passering".'
 
 /** Standaard-FAQ's die op meerdere pagina's passen. */
 export const FAQ_EIGEN_GELD: FaqItem = {
@@ -129,7 +133,7 @@ export const FAQ_AANSPREEKPUNT: FaqItem = {
 
 export const FAQ_TAXATIE: FaqItem = {
   vraag: 'Moet ik een taxatierapport hebben voordat ik een aanvraag doe?',
-  antwoord: 'Voor een eerste indicatie niet; een recente WOZ-waarde of een goede onderbouwing volstaat om te rekenen. Voor de termsheet en het passeren is een rapport van een onafhankelijke taxateur wel vereist. Wie het al heeft, wint daarmee tijd.',
+  antwoord: 'Voor de indicatie niet; een recente WOZ-waarde of een goede onderbouwing van de waarde volstaat dan, naast uw gegevens over inkomen of kasstroom en de exit. Voor de termsheet en het passeren is een rapport van een onafhankelijke taxateur wel vereist. Wie het al heeft, wint daarmee tijd.',
 }
 
 export const FAQ_VERVROEGD: FaqItem = {
@@ -140,9 +144,9 @@ export const FAQ_VERVROEGD: FaqItem = {
 /** Verwante pagina's, per pad op te halen. */
 export const PAGINAS: Record<string, RelatedItem> = {
   hub: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina: voorwaarden, kosten, rekenvoorbeeld en aanvraag.' },
-  vastgoed: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'Woon-, beleggings- en bedrijfspanden, beoordeeld op marktwaarde en huurinkomsten.' },
+  vastgoed: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina: voorwaarden, kosten, rekenvoorbeeld en aanvraag.' },
   tweede: { href: '/tweede-hypotheek-ondernemer', title: 'Tweede hypotheek voor ondernemers', text: 'Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.' },
-  jaarcijfers: { href: '/hypotheek-zonder-jaarcijfers', title: 'Hypotheek zonder jaarcijfers', text: 'Financiering op het onderpand als de cijfers er nog niet zijn of niet passen.' },
+  jaarcijfers: { href: '/hypotheek-zonder-jaarcijfers', title: 'Hypotheek zonder jaarcijfers', text: 'Als de cijfers er nog niet zijn of niet in de norm van de bank passen.' },
   dga: { href: '/dga-hypotheek', title: 'DGA hypotheek', text: 'Voor directeur-grootaandeelhouders met een fiscaal geoptimaliseerd inkomen.' },
   zzp: { href: '/hypotheek-zonder-jaarcijfers', title: 'Geen drie jaar jaarcijfers', text: 'Starters, ZZP\'ers en ondernemers met een korte of wisselende historie.' },
   onderhands: { href: '/onderhandse-hypotheek', title: 'Onderhandse hypotheek', text: 'Een lening van een particuliere geldverstrekker, notarieel vastgelegd.' },
@@ -162,7 +166,7 @@ export function verwant(...keys: Array<keyof typeof PAGINAS>): RelatedItem[] {
 }
 
 export const CONTACT_TEKST =
-  'Twijfelt u of uw situatie past? Bel ons of laat uw gegevens achter. Wij bekijken samen welke financieringsvorm aansluit bij uw vastgoed en uw plannen, en wat daarvoor nodig is. Een eerste indicatie geven wij op basis van een recente waardebepaling en het saldo van uw huidige hypotheek. Vanuit Haarlem werken wij voor leningnemers in heel Nederland.'
+  'Wilt u weten of wij iets met uw situatie kunnen? Leg uw casus aan ons voor, telefonisch of via het formulier. Wij beoordelen de betaalbaarheid, het onderpand en de exit en laten u weten of, en onder welke voorwaarden, een financiering mogelijk is. Vanuit Haarlem werken wij voor leningnemers in heel Nederland.'
 
 export const CONTACT_FOTO = {
   src: '/images/voor-leningnemers-home.jpg',

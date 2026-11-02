@@ -93,8 +93,9 @@ export default function OverbruggingsfinancieringPage() {
         </p>
         <p>
           Banken bieden ook overbruggingskrediet, maar zijn daarin traag en kieskeurig. Wij werken met particuliere
-          investeerders en kunnen snel schakelen. Wij beoordelen de waarde van het onderpand en het realistische
-          perspectief op terugbetaling, niet het inkomen van de afgelopen drie jaar. De rente kan vooraf uit de lening
+          investeerders en kunnen snel schakelen. Wij beoordelen de betaalbaarheid van de rente, de waarde van het
+          onderpand en het realistische perspectief op terugbetaling, niet langs de norm van drie jaar inkomen. De rente
+          kan vooraf uit de lening
           worden voldaan via een rentedepot, zodat u tijdens de overbrugging geen maandlasten heeft.
         </p>
       </ArticleSection>

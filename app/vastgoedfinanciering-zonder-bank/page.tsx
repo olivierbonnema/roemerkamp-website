@@ -47,11 +47,15 @@ const inhoud = [
 const stappen = [
   {
     title: 'De aanvraag',
-    text: 'U dient de aanvraag in via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben: het object en een recente waardebepaling, het actuele saldo van bestaande hypotheken, het doel van de lening en hoe u hem denkt af te lossen. Met die gegevens bij de hand is de aanvraag in een kwartier ingevuld.',
+    text: 'U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben: het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen. Met die gegevens bij de hand is de aanvraag in een kwartier ingevuld.',
   },
   {
     title: 'De beoordeling',
-    text: 'Wij kijken naar het onderpand, naar de totale schuld die erop komt te rusten en naar de uitstrategie. Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten en het insolventieregister. Ziet het er goed uit, dan ontvangt u een indicatie: bedrag, rente, looptijd en zekerheden.',
+    text: 'Wij beoordelen de hele casus op drie punten: de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening eindigt). Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten en het insolventieregister.',
+  },
+  {
+    title: 'De indicatie en uw akkoord',
+    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden: bedrag, rente, looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren wij de opstartvergoeding en stellen wij de termsheet op.',
   },
   {
     title: 'De termsheet',
@@ -75,14 +79,14 @@ const faq = [
   FAQ_EIGEN_GELD,
   {
     vraag: 'Hoe verschilt dit van een bancaire hypotheek?',
-    antwoord: 'Een bancaire hypotheek is een langlopende lening van 10 tot 30 jaar waarbij uw inkomen centraal staat. Onze financiering is kortlopend, 6 tot 60 maanden, en wordt primair beoordeeld op de waarde van het vastgoed. De doorlooptijd is doorgaans één tot drie weken in plaats van vier tot acht.',
+    antwoord: 'Een bancaire hypotheek is een langlopende lening van 10 tot 30 jaar waarbij uw inkomen centraal staat. Onze financiering is kortlopend, 6 tot 60 maanden, en wordt beoordeeld op betaalbaarheid, onderpand en exit in plaats van langs een vaste inkomensnorm. De doorlooptijd is doorgaans één tot drie weken in plaats van vier tot acht.',
   },
   FAQ_VEILIG,
   FAQ_TAXATIE,
   FAQ_AANSPREEKPUNT,
   {
     vraag: 'Wat zijn de bedragen en looptijden?',
-    antwoord: 'Leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag hangt af van de marktwaarde van het onderpand en de bestaande hypotheekschuld.',
+    antwoord: 'Leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag hangt af van de marktwaarde van het onderpand en de eventuele hypotheekschuld.',
   },
 ]
 
@@ -93,7 +97,7 @@ export default function VastgoedfinancieringZonderBankPage() {
       href="/vastgoedfinanciering-zonder-bank"
       breadcrumb="Voor leningnemers"
       title="Vastgoedfinanciering zonder bank"
-      intro="Onze non-bancaire hypotheek: een tijdelijke lening van €200.000 tot €5.000.000 op basis van de waarde van uw vastgoed, niet op basis van uw inkomen of jaarcijfers. Looptijd 6 tot 60 maanden, doorgaans binnen één tot drie weken geregeld."
+      intro="Onze non-bancaire hypotheek: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid, beoordeeld op betaalbaarheid, onderpand en exit in plaats van langs de norm van een bank. Looptijd 6 tot 60 maanden, doorgaans binnen één tot drie weken geregeld."
       image={{ src: '/images/nbl-herenhuis.jpg', alt: 'Herenhuis in Nederland' }}
       kerngegevens={kerngegevens()}
       inhoud={inhoud}
@@ -112,9 +116,10 @@ export default function VastgoedfinancieringZonderBankPage() {
       <ArticleSection id="wat" title="Wat is vastgoedfinanciering zonder bank?">
         <p>
           Een non-bancaire vastgoedfinanciering is een lening met een hypotheekrecht op onroerend goed, verstrekt door een
-          particuliere investeerder in plaats van een bank. De beoordeling draait om twee vragen: wat is het onderpand
-          waard, en hoe wordt de lening aan het einde van de looptijd afgelost. Uw inkomen en jaarcijfers spelen een
-          kleinere rol dan bij een bank.
+          particuliere investeerder in plaats van een bank. De beoordeling draait om drie vragen: kunt u de rente en de
+          kosten dragen, wat is het onderpand waard, en hoe wordt de lening aan het einde van de looptijd afgelost. Inkomen
+          en jaarcijfers tellen dus mee, maar wij wegen ze anders dan een bank: niet langs een vaste norm, maar in
+          samenhang met het onderpand en de exit.
         </p>
         <p>
           Lange &amp; Partners verstrekt de lening niet zelf. Wij beoordelen de aanvraag, stellen de voorwaarden op en
@@ -170,7 +175,7 @@ export default function VastgoedfinancieringZonderBankPage() {
         <DataTable
           head={['', 'Bancaire hypotheek', 'Via Lange & Partners']}
           rows={[
-            ['Beoordeling', 'Inkomen, jaarcijfers en toetsingsnormen', 'Waarde van het onderpand en de uitstrategie'],
+            ['Beoordeling', 'Inkomen en jaarcijfers langs vaste toetsingsnormen', 'Betaalbaarheid, onderpand en exit, in samenhang beoordeeld'],
             ['Looptijd', '10 tot 30 jaar', '6 tot 60 maanden'],
             ['Doorlooptijd', '4 tot 8 weken', '1 tot 3 weken na een volledige aanvraag'],
             ['Rente', 'Lager; gefinancierd met spaargeld en kapitaalmarkt', 'Vanaf 7%; gefinancierd met privaat kapitaal'],
@@ -215,8 +220,8 @@ export default function VastgoedfinancieringZonderBankPage() {
 
       <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
         <p>
-          Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren. De stap die de doorlooptijd
-          bepaalt, is het vinden van een investeerder; een heldere aanvraag met een goede exit vindt er snel een.
+          Vanaf een volledige casus rekenen wij op één tot drie weken tot het passeren. De stap die de doorlooptijd
+          bepaalt, is het vinden van een investeerder; een heldere casus met een goede exit vindt er snel een.
         </p>
         <Steps items={stappen} />
       </ArticleSection>

@@ -4,31 +4,31 @@ import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
-  title: 'Hypotheek ondernemer afgewezen | Alsnog financieren',
-  description: 'Hypotheek afgewezen als ondernemer? Lange & Partners financiert op basis van uw vastgoed, niet uw jaarcijfers. Snel, flexibel en ook voor starters. €200.000 tot €5.000.000.',
+  title: 'Hypotheek afgewezen door de bank? Alsnog financieren',
+  description: 'Afgewezen door de bank als ondernemer, DGA, belegger of particulier met vastgoed? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen' },
   openGraph: {
-    title: 'Hypotheek ondernemer afgewezen | Alsnog financieren',
-    description: 'Hypotheek afgewezen als ondernemer? Lange & Partners financiert op basis van uw vastgoed, niet uw jaarcijfers. Snel, flexibel en ook voor starters. €200.000 tot €5.000.000.',
+    title: 'Hypotheek afgewezen door de bank? Alsnog financieren',
+    description: 'Afgewezen door de bank als ondernemer, DGA, belegger of particulier met vastgoed? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
     url: 'https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen',
   },
   twitter: {
-    title: 'Hypotheek ondernemer afgewezen | Alsnog financieren',
-    description: 'Hypotheek afgewezen als ondernemer? Lange & Partners financiert op basis van uw vastgoed, niet uw jaarcijfers. Snel, flexibel en ook voor starters. €200.000 tot €5.000.000.',
+    title: 'Hypotheek afgewezen door de bank? Alsnog financieren',
+    description: 'Afgewezen door de bank als ondernemer, DGA, belegger of particulier met vastgoed? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
   },
 }
 
 const redenen = [
   {
     term: 'Wisselend inkomen',
-    text: "Als ZZP'er, DGA of freelancer fluctueert uw inkomen van jaar tot jaar. Banken toetsen op gemiddelde jaarcijfers en wijzen af als de cijfers niet stabiel genoeg zijn.",
+    text: "Als ondernemer, ZZP'er, DGA of freelancer fluctueert uw inkomen van jaar tot jaar. Banken toetsen op gemiddelde jaarcijfers en wijzen af als de cijfers niet stabiel genoeg zijn.",
   },
   {
     term: 'Minder dan drie boekjaren',
     text: 'De meeste banken eisen drie volledige boekjaren. Bent u korter ondernemer, dan komt u niet door de acceptatie, ongeacht uw omzet of vermogen.',
   },
   {
-    term: 'Een complexe bedrijfsstructuur',
+    term: 'Een complexe structuur',
     text: 'Meerdere BV\'s, een holding of een combinatie van ondernemerschap en loondienst maken de bancaire beoordeling bewerkelijk. Banken kiezen dan vaak de veilige optie: afwijzen.',
   },
   {
@@ -37,7 +37,11 @@ const redenen = [
   },
   {
     term: 'Het pand zelf',
-    text: 'Een beleggingspand, een pand in ontwikkeling of een bijzonder object past niet in het bancaire acceptatiekader, los van uw inkomen.',
+    text: 'Een beleggingspand, een pand in ontwikkeling of een bijzonder object past niet in het acceptatiekader van de bank, hoe de rest van de aanvraag er ook uitziet.',
+  },
+  {
+    term: 'Leeftijd of een gewijzigde situatie',
+    text: 'Ook particulieren krijgen nee: boven een bepaalde leeftijd, na een scheiding, bij inkomen uit het buitenland of bij een bestaande lening die de bank niet wil verlengen.',
   },
 ]
 
@@ -51,35 +55,31 @@ const watnu = [
     text: 'Ligt het aan een ontbrekend boekjaar dat binnenkort wordt afgesloten, dan kan wachten de beste optie zijn. Banken verschillen ook onderling in acceptatie; een andere bank kan anders oordelen.',
   },
   {
-    title: 'Reken uw dekking uit',
-    text: 'Bepaal de marktwaarde van uw vastgoed (een recente taxatie of WOZ-beschikking) en het saldo van bestaande hypotheken. Blijft de totale schuld binnen 70% tot 75% van de waarde, dan is een non-bancaire financiering met vastgoed als zekerheid een reële optie.',
+    title: 'Zet uw casus op een rij',
+    text: 'Drie dingen bepalen bij ons de haalbaarheid: kunt u de rente en de kosten dragen, wat is uw vastgoed waard en wat staat er al aan hypotheek op, en hoe wordt de lening aan het einde afgelost. Met die gegevens kunnen wij beoordelen.',
   },
   {
-    title: 'Bepaal de exit',
-    text: 'Een non-bancaire lening loopt 6 tot 60 maanden. Weet u hoe de lening eindigt (bankherfinanciering zodra de cijfers er zijn, verkoop, eigen middelen), dan heeft een aanvraag zin.',
-  },
-  {
-    title: 'Vraag een indicatie',
-    text: 'Met de waardebepaling en het hypotheeksaldo geven wij een eerste indicatie van bedrag, rente en looptijd, zonder verplichtingen.',
+    title: 'Leg de casus aan ons voor',
+    text: 'Via het portaal, telefonisch of via uw adviseur. Wij beoordelen de hele situatie en laten u weten of, en onder welke voorwaarden, een financiering mogelijk is.',
   },
 ]
 
 const faq = [
   {
-    vraag: 'Waarom wordt mijn hypotheek als ondernemer afgewezen?',
-    antwoord: 'Banken beoordelen een hypotheekaanvraag primair op inkomensstabiliteit en eisen doorgaans drie volledige boekjaren. Fluctuerende jaarcijfers, een kortere ondernemersgeschiedenis of een complexe bedrijfsstructuur leiden vrijwel altijd tot een afwijzing, ook als uw vermogenspositie solide is.',
+    vraag: 'Waarom wordt mijn hypotheek afgewezen?',
+    antwoord: 'Banken beoordelen een aanvraag langs vaste normen voor inkomen en zekerheid en eisen van ondernemers doorgaans drie volledige boekjaren. Fluctuerende jaarcijfers, een kortere ondernemersgeschiedenis, een complexe structuur, een bijzonder pand of een gewijzigde persoonlijke situatie leiden regelmatig tot een afwijzing, ook als uw vermogenspositie solide is.',
   },
   {
     vraag: 'Hoe kan Lange & Partners alsnog financieren na een bankafwijzing?',
-    antwoord: 'Wij beoordelen de aanvraag primair op de waarde van het vastgoed dat u bezit of wilt kopen, en op de manier waarop de lening eindigt. Uw inkomen en jaarcijfers spelen een kleinere rol. Daardoor kunnen wij in veel gevallen financieren waar de bank nee heeft gezegd, mits de dekking voldoende is.',
+    antwoord: 'Omdat wij anders naar een casus kijken en op andere criteria beoordelen dan een bank. Inkomen en jaarcijfers tellen ook bij ons mee, maar niet langs een vaste norm: wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit in samenhang. Daardoor kunnen wij in veel gevallen financieren waar de bank nee heeft gezegd.',
   },
   {
-    vraag: 'Kan ik ook als startende ondernemer een hypotheek krijgen?',
-    antwoord: 'Ja. Wij stellen geen eis van drie boekjaren. Bezit u vastgoed of koopt u vastgoed met voldoende onderpandwaarde, dan kunnen wij ook een startende ondernemer financieren.',
+    vraag: 'Kan ik ook als startende ondernemer een financiering krijgen?',
+    antwoord: 'Ja. Wij stellen geen eis van drie boekjaren. Bezit u vastgoed of koopt u vastgoed met voldoende onderpandwaarde, kunt u de rente dragen en is duidelijk hoe de lening eindigt, dan kunnen wij ook een startende ondernemer financieren.',
   },
   {
     vraag: 'Welke bedragen en looptijden zijn mogelijk?',
-    antwoord: 'Financieringen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand en de bestaande hypotheekschuld; de looptijd stemmen wij af op uw exit.',
+    antwoord: 'Financieringen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand en de eventuele hypotheekschuld; de looptijd stemmen wij af op uw exit.',
   },
   {
     vraag: 'Wat als ik later alsnog een bancaire hypotheek kan krijgen?',
@@ -92,28 +92,29 @@ export default function HypotheekOndernemerAfgewezenPage() {
     <SituationPage
       href="/hypotheek-ondernemer-afgewezen"
       breadcrumb="Afgewezen door de bank"
-      title="Hypotheek afgewezen als ondernemer?"
-      intro="Banken wijzen af op wisselend inkomen, te weinig boekjaren of een complexe structuur. Wij financieren op uw vastgoed en op hoe de lening eindigt, niet op uw jaarcijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      title="Afgewezen door de bank?"
+      intro="Banken wijzen af op wisselend inkomen, te weinig boekjaren, een complexe structuur of het pand zelf. Wij beoordelen anders: op de betaalbaarheid, het onderpand en de exit. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
       lead={
         <>
-          Een afwijzing van de bank zegt iets over de bancaire normen, niet per se over uw financiële positie. Op deze
-          pagina leest u waarom banken ondernemers afwijzen, wat u na een afwijzing kunt doen, en wanneer een
-          financiering met vastgoed als zekerheid wel en niet kan.
+          Een afwijzing van de bank zegt iets over de normen van de bank, niet per se over uw financiële positie. Dat
+          geldt voor ondernemers en DGA's, maar ook voor beleggers en particulieren met vastgoed. Op deze pagina leest u
+          waarom banken afwijzen, wat u daarna kunt doen, en wanneer een financiering met vastgoed als zekerheid wel en
+          niet kan.
         </>
       }
       faq={faq}
     >
-      <ArticleSection id="waarom" title="Waarom de bank ondernemers afwijst">
+      <ArticleSection id="waarom" title="Waarom de bank afwijst">
         <p>
-          Banken beoordelen hypotheekaanvragen op inkomensstabiliteit en voorspelbaarheid. Als ondernemer voldoet u daar
-          per definitie minder makkelijk aan. De meest voorkomende redenen voor een afwijzing:
+          Banken beoordelen hypotheekaanvragen langs vaste normen voor inkomen, zekerheid en voorspelbaarheid. Wie daar
+          niet in past, krijgt nee, ook als de situatie in werkelijkheid solide is. De meest voorkomende redenen:
         </p>
         <DefinitionList items={redenen} />
       </ArticleSection>
 
       <ArticleSection id="watnu" title="Wat u na een afwijzing kunt doen">
-        <p>Niet elke afwijzing vraagt om dezelfde oplossing. Vijf stappen om te bepalen wat voor u zinvol is.</p>
+        <p>Niet elke afwijzing vraagt om dezelfde oplossing. Vier stappen om te bepalen wat voor u zinvol is.</p>
         <Steps items={watnu} />
       </ArticleSection>
 
@@ -126,35 +127,34 @@ export default function HypotheekOndernemerAfgewezenPage() {
           head={['Wel', 'Niet']}
           labelColumn={false}
           rows={[
-            ['Vastgoed in Nederland met voldoende dekking: de totale schuld blijft binnen 70% tot 75% van de marktwaarde', 'Een lening zonder vastgoed als zekerheid, of op basis van alleen inkomen'],
+            ['Vastgoed in Nederland met voldoende dekking: de totale schuld blijft binnen 70% tot 75% van de marktwaarde', 'Een lening zonder vastgoed als zekerheid'],
+            ['De rente en de kosten zijn te dragen uit inkomen, kasstroom, huur of een rentedepot', 'Een aanvraag waarbij de rente niet is op te brengen'],
             ['Een duidelijke exit: bankherfinanciering, verkoop of aflossing uit eigen middelen', 'Een aanvraag waarbij niet duidelijk is hoe de lening eindigt'],
-            ['Financieringen van €200.000 tot €5.000.000, 6 tot 60 maanden', 'Kleinere bedragen, consumptief krediet of een langlopende hypotheek'],
-            ['Beleggingspanden, bedrijfspanden, vastgoed in ontwikkeling en woningen met overwaarde', 'Een lening om een andere lening af te lossen zonder dat de dekking of de exit verbetert'],
+            ['Financieringen van €200.000 tot €5.000.000, 6 tot 60 maanden, ook een herfinanciering van een bestaande lening', 'Kleinere bedragen, consumptief krediet of een langlopende hypotheek'],
           ]}
         />
       </ArticleSection>
 
       <ArticleSection id="aanpak" title="Onze beoordeling na een bankafwijzing">
         <p>
-          Waar de bank naar uw inkomen kijkt, kijken wij naar uw vastgoed. Wij brengen eerst uw situatie in kaart: welk
-          vastgoed bezit u of wilt u kopen, wat was de reden van de afwijzing en wat is het doel van de financiering. Op
-          basis daarvan zeggen wij snel of een non-bancaire financiering haalbaar is.
+          Wij kunnen vaak financieren waar de bank nee zegt, niet omdat wij minder kijken, maar omdat wij anders kijken.
+          Een bank toetst langs een vaste norm; wij beoordelen de hele casus, van inkomen en onderpand tot exit. Inkomen
+          en jaarcijfers tellen dus ook bij ons mee, alleen zijn wij er flexibeler in: een kort trackrecord, een
+          wisselend inkomen of een complexe structuur is geen reden om niet te kijken.
         </p>
         <p>
-          Daarna beoordelen wij de marktwaarde van het vastgoed en de totale schuld die erop komt te rusten, uw
-          betaalbaarheid van de rente en de exit. Uw inkomen en jaarcijfers spelen daarbij een ondergeschikte rol; een
-          complexe BV-structuur is geen bezwaar. Ziet het er goed uit, dan ontvangt u een termsheet met bedrag, rente,
-          looptijd en alle voorwaarden.
+          De beoordeling zelf is wat een indicatie mogelijk maakt. Wij kijken naar de betaalbaarheid van de rente en de
+          kosten, naar de marktwaarde van het vastgoed en de totale schuld die erop komt te rusten, en naar de exit. Op
+          basis daarvan laten wij u weten of een financiering haalbaar is en tegen welke voorwaarden. Kunnen wij iets met
+          uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden. Na uw akkoord daarop factureren wij
+          de opstartvergoeding en stellen wij de termsheet op.
         </p>
         <Note>
-          Onze financiering is geschikt voor alle typen ondernemers die door de bank zijn afgewezen: ZZP'ers, DGA's,
-          freelancers, eigenaren van een eenmanszaak, VOF of BV, ook met een holdingstructuur of een combinatie van
-          loondienst en ondernemerschap. De voorwaarde is altijd vastgoed met voldoende onderpandwaarde.
+          Onze financiering is er voor iedereen die door de bank is afgewezen en vastgoed met voldoende onderpandwaarde
+          bezit of koopt: ondernemers, ZZP'ers, DGA's, beleggers en particulieren, ook met een holdingstructuur,
+          meerdere vennootschappen of een combinatie van loondienst en ondernemerschap.
         </Note>
       </ArticleSection>
-
-
-
     </SituationPage>
   )
 }

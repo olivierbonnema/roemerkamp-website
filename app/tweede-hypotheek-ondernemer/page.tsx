@@ -56,14 +56,14 @@ const bank = [
   },
   {
     term: 'Verlies of betalingsregelingen',
-    text: 'Een verliesjaar of een lopende betalingsregeling leidt bij de bank vrijwel altijd tot een afwijzing. Wij beoordelen dit per situatie, in samenhang met het onderpand en de exit.',
+    text: 'Een verliesjaar of een lopende betalingsregeling leidt bij de bank regelmatig tot een afwijzing. Wij beoordelen dit per situatie, in samenhang met het onderpand en de exit.',
   },
 ]
 
 const faq = [
   {
     vraag: 'Kan ik een tweede hypotheek krijgen als mijn inkomen schommelt?',
-    antwoord: 'Ja. Banken toetsen ondernemersinkomen op historische gemiddelden, wat bij wisselende inkomsten snel tot een afwijzing leidt. Wij beoordelen breder: de waarde van het onderpand, uw totale vermogenspositie en het perspectief op terugbetaling. Een schommelend inkomen is op zichzelf geen uitsluitingsgrond.',
+    antwoord: 'Ja. Banken toetsen ondernemersinkomen op historische gemiddelden, wat bij wisselende inkomsten snel tot een afwijzing leidt. Wij beoordelen anders: de betaalbaarheid uit uw inkomen en kasstroom zoals die nu zijn, de waarde van het onderpand en de exit. Een schommelend inkomen is op zichzelf geen uitsluitingsgrond.',
   },
   {
     vraag: 'Wat is het maximale bedrag voor een tweede hypotheek?',
@@ -89,7 +89,7 @@ export default function TweedeHypotheekOndernemerPage() {
       href="/tweede-hypotheek-ondernemer"
       breadcrumb="Tweede hypotheek"
       title="Tweede hypotheek voor ondernemers"
-      intro="Overwaarde in uw woning of beleggingspand benutten zonder de bestaande bankhypotheek aan te passen. Een lening in tweede rang, beoordeeld op het vastgoed en niet alleen op uw jaarcijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      intro="Overwaarde in uw woning of beleggingspand benutten zonder de bestaande bankhypotheek aan te passen. Een lening in tweede rang, beoordeeld op betaalbaarheid, onderpand en exit in plaats van langs de norm van de bank. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/bericht-3-haarlem.jpg', alt: 'De Grote Markt in Haarlem', position: 'center 45%' }}
       lead={
         <>
@@ -104,7 +104,7 @@ export default function TweedeHypotheekOndernemerPage() {
         <p>
           Een tweede hypotheek is een lening met een hypotheekrecht in tweede rang: het wordt bij het Kadaster
           ingeschreven achter de hypotheek van uw bank, die blijft gewoon doorlopen. U gebruikt de overwaarde, het verschil
-          tussen de marktwaarde van het pand en de bestaande hypotheekschuld, als zekerheid voor de nieuwe lening.
+          tussen de marktwaarde van het pand en de eventuele hypotheekschuld, als zekerheid voor de nieuwe lening.
         </p>
         <p>
           Bij Lange &amp; Partners komt het geld van een particuliere investeerder. Wij beoordelen de aanvraag, leggen de

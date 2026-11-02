@@ -52,7 +52,7 @@ export const SITUATION_PAGES: SitePage[] = [
   {
     href: "/hypotheek-ondernemer-afgewezen",
     label: "Afgewezen door de bank",
-    description: "Waarom banken ondernemers afwijzen, wat u dan kunt doen en wanneer wij wel kunnen.",
+    description: "Waarom banken afwijzen, wat u dan kunt doen en wanneer wij wel kunnen.",
     updated: "2026-11-02",
   },
   {

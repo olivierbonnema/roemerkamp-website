@@ -70,7 +70,7 @@ export const CASUSSEN: Casus[] = [
     afloop: [
       'Na 20 maanden herfinancierde een bank het pand op basis van de huurhistorie. De lening werd vervroegd afgelost; de voorwaarden daarvoor stonden in de leningsovereenkomst.',
     ],
-    les: 'Een goed pand met een goede huurder hoeft niet te wachten op het derde boekjaar. De bank beoordeelt de eigenaar, wij beoordelen het pand.',
+    les: 'Een goed pand met een goede huurder hoeft niet te wachten op het derde boekjaar. De bank toetst langs een vaste norm; wij beoordelen de hele casus: de betaalbaarheid uit de huur, het pand en de exit.',
     image: '/images/hero-image.jpg',
     imagePosition: 'center 45%',
   },
@@ -137,7 +137,7 @@ export const CASUSSEN: Casus[] = [
     afloop: [
       'De woning werd na zeven maanden verkocht. De lening werd bij de levering afgelost via de notaris; het resterende rentedepot kwam terug naar de leningnemers.',
     ],
-    les: 'Een overbrugging wordt beoordeeld op de exit, niet op het inkomen. Een courante woning zonder schuld is een sterke exit.',
+    les: 'Bij een overbrugging weegt de exit het zwaarst, en met een rentedepot is de betaalbaarheid tijdens de looptijd gedekt. Een courante woning zonder schuld is een sterke exit.',
     image: '/images/bericht-2-brug.jpg',
     imagePosition: 'center 55%',
   },

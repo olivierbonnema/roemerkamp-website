@@ -26,7 +26,7 @@ const wanneer = [
   },
   {
     term: 'De bank wijst de herfinanciering af',
-    text: 'Gewijzigde inkomsten, uw leeftijd of verscherpte acceptatiecriteria. Wij beoordelen op de waarde van het pand en op de exit.',
+    text: 'Gewijzigde inkomsten, uw leeftijd of verscherpte acceptatiecriteria. Wij beoordelen de casus opnieuw, op betaalbaarheid, onderpand en exit.',
   },
   {
     term: 'Een dure of knellende lening vervangen',
@@ -67,8 +67,8 @@ const verloop = [
     text: 'Wij brengen de restschuld, de einddatum, de voorwaarden en de reden van de herfinanciering in kaart, en beoordelen de actuele marktwaarde van het vastgoed. U vraagt bij uw huidige financier een aflosnota op.',
   },
   {
-    title: 'Beoordeling en termsheet',
-    text: 'Op basis van de waarde van het onderpand, de betaalbaarheid van de rente en de exit stellen wij een voorstel op: leningbedrag, rente, looptijd van 6 tot 60 maanden en alle kosten en voorwaarden. Na uw akkoord leggen wij de lening voor aan een investeerder.',
+    title: 'Beoordeling, indicatie en termsheet',
+    text: 'Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit. Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie: leningbedrag, rente, looptijd van 6 tot 60 maanden en de zekerheden. Na uw akkoord factureren wij de opstartvergoeding, stellen wij de termsheet op met alle kosten en voorwaarden, en leggen wij de lening voor aan een investeerder.',
   },
   {
     title: 'Aflossing van de oude lening bij de notaris',
@@ -99,7 +99,7 @@ const faq = [
   },
   {
     vraag: 'Kan ik herfinancieren als mijn bank al heeft afgewezen?',
-    antwoord: 'Zeker. Een groot deel van onze leningnemers komt bij ons na een bancaire afwijzing. Omdat wij beoordelen op de waarde van het onderpand en op de exit, en niet op inkomensnormen, kunnen wij in veel gevallen herfinancieren waar de bank nee heeft gezegd.',
+    antwoord: 'Zeker. Een groot deel van onze leningnemers komt bij ons na een bancaire afwijzing. Omdat wij anders beoordelen dan een bank, op de betaalbaarheid van de rente, het onderpand en de exit in samenhang in plaats van langs een vaste inkomensnorm, kunnen wij in veel gevallen herfinancieren waar de bank nee heeft gezegd.',
   },
 ]
 

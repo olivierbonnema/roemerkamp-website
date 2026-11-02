@@ -5,16 +5,16 @@ import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 
 export const metadata: Metadata = {
   title: { absolute: 'Hypotheek zonder jaarcijfers | Lange & Partners' },
-  description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
+  description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit, niet langs de norm van drie jaar cijfers.',
   alternates: { canonical: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers' },
   openGraph: {
     title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
-    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
+    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit, niet langs de norm van drie jaar cijfers.',
     url: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers',
   },
   twitter: {
     title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
-    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt uw aanvraag op basis van uw vastgoed en perspectief, niet alleen op historisch inkomen.',
+    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit, niet langs de norm van drie jaar cijfers.',
   },
 }
 
@@ -39,16 +39,16 @@ const voorwie = [
 
 const beoordeling = [
   {
-    term: 'Het onderpand',
-    text: 'Marktwaarde, type vastgoed, locatie en verkoopbaarheid. Dit is onze primaire zekerheid en bepaalt de maximale lening: doorgaans tot 70% van de marktwaarde, maximaal 75%, inclusief een bestaande hypotheek.',
+    term: 'De betaalbaarheid',
+    text: 'Kunt u de rente en de kosten dragen? Daarvoor kijken wij naar uw inkomen en kasstroom zoals die nu zijn en straks worden: lopende opdrachten en contracten, huurinkomsten, de cijfers die er wel zijn en een onderbouwde prognose. Niet het gemiddelde van drie jaar terug.',
   },
   {
-    term: 'Het perspectief',
-    text: 'Toekomstige kasstromen, huurinkomsten, lopende contracten en opdrachten. Niet het gemiddelde van drie jaar terug, maar wat er nu en straks binnenkomt.',
+    term: 'Het onderpand',
+    text: 'Marktwaarde, type vastgoed, locatie en verkoopbaarheid. Het onderpand bepaalt de maximale lening: doorgaans tot 70% van de marktwaarde, maximaal 75%, inclusief een eventuele bestaande hypotheek.',
   },
   {
     term: 'De vermogenspositie',
-    text: 'Eigen vermogen, andere activa en de totale schuldenlast geven een completer beeld dan alleen inkomen.',
+    text: 'Eigen vermogen, andere activa en de totale schuldenlast geven een completer beeld dan het inkomen van de afgelopen drie jaar alleen.',
   },
   {
     term: 'Het doel en de exit',
@@ -63,15 +63,15 @@ const faq = [
   },
   {
     vraag: 'Hoe beoordeelt Lange & Partners een aanvraag zonder jaarcijfers?',
-    antwoord: 'Wij kijken naar het vastgoed als onderpand (marktwaarde, type, locatie), naar de aard en het perspectief van uw onderneming, naar uw totale vermogenspositie en naar de manier waarop de lening wordt afgelost. Een realistisch en onderbouwd beeld is voor ons voldoende, ook zonder drie jaar historische cijfers.',
+    antwoord: 'Op dezelfde drie punten als elke casus: de betaalbaarheid (inkomen en kasstroom zoals die nu zijn, lopende opdrachten, een onderbouwde prognose), het onderpand (marktwaarde, type, locatie) en de exit (hoe de lening wordt afgelost). Inkomen telt dus mee, alleen niet als gemiddelde van drie jaar. Een realistisch en onderbouwd beeld is voor ons voldoende.',
   },
   {
     vraag: 'Kan ik ook een lening aanvragen als mijn bedrijf pas één jaar bestaat?',
-    antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de kwaliteit van het onderpand en een geloofwaardig terugbetalingsperspectief.',
+    antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de betaalbaarheid van de rente, de kwaliteit van het onderpand en een geloofwaardige exit.',
   },
   {
     vraag: "Kan ik als ZZP'er een hypotheek krijgen zonder drie jaar jaarcijfers?",
-    antwoord: 'Ja. Banken eisen doorgaans drie jaar jaarcijfers om het gemiddelde ondernemersinkomen te berekenen. Wij beoordelen op het onderpand, uw vermogenspositie en het perspectief op terugbetaling. Een kortere ondernemersgeschiedenis of een wisselend inkomen is op zichzelf geen uitsluitingsgrond.',
+    antwoord: 'Ja. Banken eisen doorgaans drie jaar jaarcijfers om het gemiddelde ondernemersinkomen te berekenen. Wij beoordelen op de betaalbaarheid van de rente, het onderpand en de exit, en wegen uw inkomen zoals het nu is in plaats van als gemiddelde van drie jaar. Een kortere ondernemersgeschiedenis of een wisselend inkomen is op zichzelf geen uitsluitingsgrond.',
   },
   {
     vraag: 'Is dit een gewone woninghypotheek voor 30 jaar?',
@@ -89,7 +89,7 @@ export default function HypotheekZonderJaarcijfersPage() {
       href="/hypotheek-zonder-jaarcijfers"
       breadcrumb="Geen drie jaar jaarcijfers"
       title="Hypotheek zonder jaarcijfers"
-      intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer, ZZP'er of DGA heeft die. Wij beoordelen de aanvraag op uw vastgoed en op hoe de lening eindigt, niet op uw financiële verleden. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer, ZZP'er of DGA heeft die. Wij beoordelen anders dan een bank: op de betaalbaarheid, het onderpand en de exit, niet langs de norm van drie jaar cijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-kantoor.jpg', alt: 'Kantoorgebouw, zwart-wit' }}
       lead={
         <>
@@ -109,7 +109,7 @@ export default function HypotheekZonderJaarcijfersPage() {
         <p>
           Het gevolg: een ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire
           financiering, omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide; uw situatie is dat
-          niet. Wij werken met een andere beoordeling, waarin het onderpand en de exit centraal staan.
+          niet. Wij beoordelen anders: op de betaalbaarheid, het onderpand en de exit, in samenhang.
         </p>
       </ArticleSection>
 
@@ -118,7 +118,7 @@ export default function HypotheekZonderJaarcijfersPage() {
       </ArticleSection>
 
       <ArticleSection id="beoordeling" title="Wat wij wel beoordelen">
-        <p>Wij kijken verder dan historische jaarcijfers. Onze beoordeling rust op vier pijlers.</p>
+        <p>Wij kijken verder dan historische jaarcijfers, maar niet langs het inkomen heen. Onze beoordeling rust op vier pijlers.</p>
         <DefinitionList items={beoordeling} />
       </ArticleSection>
 
@@ -130,8 +130,8 @@ export default function HypotheekZonderJaarcijfersPage() {
         <DataTable
           head={['Situatie', 'Bij de bank', 'Via Lange & Partners']}
           rows={[
-            ['Net gestart, nog geen afgesloten boekjaar', 'Geen inkomenstoets mogelijk, aanvraag wordt afgewezen', 'Beoordeling op onderpand, vermogen, lopende opdrachten en exit'],
-            ['Eén afgesloten boekjaar', 'Meestal afwijzing; soms een prognose met forse korting', 'Jaarcijfer en prognose tellen mee, het onderpand blijft leidend'],
+            ['Net gestart, nog geen afgesloten boekjaar', 'Geen inkomenstoets mogelijk, aanvraag wordt afgewezen', 'Beoordeling op betaalbaarheid (lopende opdrachten, vermogen), onderpand en exit'],
+            ['Eén afgesloten boekjaar', 'Meestal afwijzing; soms een prognose met forse korting', 'Jaarcijfer en prognose tellen mee voor de betaalbaarheid; onderpand en exit wegen even zwaar'],
             ['Twee afgesloten boekjaren', 'Bij sommige banken mogelijk met prognose en lagere maximale hypotheek', 'Financiering voor de periode tot het derde boekjaar, met bankherfinanciering als exit'],
           ]}
         />

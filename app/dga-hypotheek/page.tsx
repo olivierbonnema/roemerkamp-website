@@ -43,12 +43,12 @@ const situaties = [
 
 const beoordeling = [
   {
-    term: 'Het onderpand',
-    text: 'De marktwaarde van de woning of het pand is ons primaire beoordelingscriterium: type vastgoed, locatie, verkoopbaarheid en de bestaande hypotheekschuld. De totale schuld blijft doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
+    term: 'De betaalbaarheid, uit uw werkelijke positie',
+    text: 'Kunt u de rente en de kosten dragen? Daarvoor kijken wij verder dan het DGA-salaris: het bedrijfsvermogen, de kasstromen van de onderneming, de dividendruimte en uw overige bezittingen geven een completer beeld dan het loon van drie jaar.',
   },
   {
-    term: 'Uw werkelijke positie',
-    text: 'Wij kijken verder dan het DGA-salaris: het bedrijfsvermogen, overige bezittingen, de kasstromen van de onderneming en de dividendruimte geven een completer beeld.',
+    term: 'Het onderpand',
+    text: 'De marktwaarde van de woning of het pand: type vastgoed, locatie, verkoopbaarheid en de eventuele hypotheekschuld. De totale schuld blijft doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
   },
   {
     term: 'De exit',
@@ -63,7 +63,7 @@ const faq = [
   },
   {
     vraag: 'Kan ik ook een hypotheek aanvragen als mijn BV pas kortgeleden is opgericht?',
-    antwoord: 'Ja. Wij beoordelen niet uitsluitend op historische jaarcijfers. Is er voldoende onderpand en is het terugbetalingsperspectief realistisch, dan is een non-bancaire lening een oplossing voor de periode totdat u wel aan de bancaire jaarcijfereis voldoet.',
+    antwoord: 'Ja. Wij beoordelen niet langs de norm van drie jaarrekeningen. Is de rente te dragen, is er voldoende onderpand en is het terugbetalingsperspectief realistisch, dan is een non-bancaire lening een oplossing voor de periode totdat u wel aan de bancaire jaarcijfereis voldoet.',
   },
   {
     vraag: 'Wat is het verschil tussen lenen in privé en lenen via de BV?',
@@ -81,7 +81,7 @@ export default function DgaHypotheekPage() {
       href="/dga-hypotheek"
       breadcrumb="DGA hypotheek"
       title="DGA hypotheek"
-      intro="Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw positie solide. Wij beoordelen op het onderpand en op uw werkelijke situatie. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      intro="Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw positie solide. Wij beoordelen op uw werkelijke positie, het onderpand en de exit. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-villa.jpg', alt: 'Villa, zwart-wit' }}
       lead={
         <>
@@ -101,8 +101,9 @@ export default function DgaHypotheekPage() {
           werkelijke draagkracht ligt.
         </p>
         <p>
-          Wij beoordelen een DGA-aanvraag anders. Niet het gemiddelde loon van drie jaar is leidend, maar de waarde van
-          het onderpand, uw totale positie inclusief de BV, en de manier waarop de lening eindigt.
+          Wij beoordelen een DGA-aanvraag anders. Niet het gemiddelde loon van drie jaar is leidend, maar de
+          betaalbaarheid uit uw totale positie inclusief de BV, de waarde van het onderpand en de manier waarop de lening
+          eindigt.
         </p>
       </ArticleSection>
 
@@ -128,7 +129,7 @@ export default function DgaHypotheekPage() {
         />
         <Note>
           Welke route past, hangt af van het vastgoed, het doel en uw fiscale situatie. Bespreek dit met uw accountant
-          of fiscalist; wij denken graag mee over de structuur van de financiering.
+          of fiscalist; wij beoordelen de casus zoals u die aan ons voorlegt.
         </Note>
       </ArticleSection>
 

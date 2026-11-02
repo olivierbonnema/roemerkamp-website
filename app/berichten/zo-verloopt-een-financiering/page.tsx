@@ -96,9 +96,10 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        U dient de aanvraag in via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben:
-                        het object en een recente waardebepaling, het actuele saldo van eventuele bestaande hypotheken,
-                        het doel van de lening en hoe u hem denkt af te lossen. Documenten kunt u direct meesturen.
+                        U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig
+                        hebben: het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen
+                        of kasstroom, het doel van de lening en hoe u hem denkt af te lossen. Documenten kunt u direct
+                        meesturen.
                       </p>
                       <p>
                         Hoe de lening eindigt is voor ons de belangrijkste vraag. Een aanvraag zonder uitstrategie
@@ -112,14 +113,17 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        Wij kijken naar het onderpand: de waarde, en de totale schuld die erop komt te rusten, dus
-                        inclusief hypotheken die vóór ons staan. Wij kijken naar de uitstrategie. En wij controleren de
-                        betrokkenen in de openbare registers, zoals de sanctielijsten, het curatele- en bewindregister
-                        en het insolventieregister. Dat is een wettelijke plicht, en het beschermt de investeerder.
+                        Wij beoordelen de hele casus op drie punten. De betaalbaarheid: kunt u de rente en de kosten
+                        dragen, uit inkomen, kasstroom, huur of een rentedepot. Het onderpand: de waarde, en de totale
+                        schuld die erop komt te rusten, dus inclusief hypotheken die vóór ons staan. En de uitstrategie.
+                        Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten, het
+                        curatele- en bewindregister en het insolventieregister. Dat is een wettelijke plicht, en het
+                        beschermt de investeerder.
                       </p>
                       <p>
-                        Ziet het er goed uit, dan ontvangt u een indicatie van de mogelijkheden: bedrag, rente, looptijd
-                        en de zekerheden die wij vragen.
+                        Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden:
+                        bedrag, rente, looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren
+                        wij de opstartvergoeding en stellen wij de termsheet op.
                       </p>
                     </>
                   ),

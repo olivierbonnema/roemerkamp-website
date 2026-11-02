@@ -103,8 +103,9 @@ export default function BeleggingspandFinancierenPage() {
 
       <ArticleSection id="beoordeling" title="Hoe wij een beleggingspand of bedrijfspand beoordelen">
         <p>
-          Wij beoordelen het pand op zijn eigen merites. De twee vragen zijn dezelfde als bij al onze financieringen,
-          wat is het onderpand waard en hoe eindigt de lening, maar de invulling verschilt per type pand.
+          Wij beoordelen het pand op zijn eigen merites. De drie vragen zijn dezelfde als bij al onze financieringen,
+          is de rente te dragen, wat is het onderpand waard en hoe eindigt de lening, maar de invulling verschilt per
+          type pand.
         </p>
         <DataTable
           head={['', 'Beleggingspand (verhuurde woningen)', 'Bedrijfspand (kantoor, winkel, bedrijfsruimte)']}
