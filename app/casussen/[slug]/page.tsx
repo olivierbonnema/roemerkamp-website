@@ -22,10 +22,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const casus = getCasus(slug)
   if (!casus) return {}
-  // Titles stay as they are until the real cases replace the examples (3 November 2026).
+  // Own title per case, without "Casus:" and without the brand (max 60 characters).
   return pageMetadata({
     path: `/casussen/${casus.slug}`,
-    title: `Casus: ${casus.titel}`,
+    title: casus.titel,
+    brand: false,
     description: casus.samenvatting,
     type: 'article',
   })
@@ -74,10 +75,13 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
             <>
               <KeyFacts title="Kerngegevens van deze casus" items={kerngegevens} />
               <div className="bg-gray-50 px-6 py-5">
-                <h3 className="text-lg font-semibold text-[#1e3a5f] mb-1">Voorbeeldcasus</h3>
+                <h3 className="text-lg font-semibold text-[#1e3a5f] mb-1">
+                  {casus.bron === 'praktijk' ? 'Casus uit de praktijk' : 'Voorbeeldcasus'}
+                </h3>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
-                  Fictieve, maar realistische situatie. Niet herleidbaar tot een leningnemer of investeerder; rente
-                  indicatief. De voorwaarden en kosten staan op de productpagina.
+                  {casus.bron === 'praktijk'
+                    ? 'Geanonimiseerd: zonder namen, plaatsen of andere herleidbare gegevens, met afgeronde bedragen. De rente is de rente bij aanvang. De voorwaarden en kosten staan op de productpagina.'
+                    : 'Een situatie zoals wij die regelmatig financieren, met illustratieve cijfers. De rente is indicatief. De voorwaarden en kosten staan op de productpagina.'}
                 </p>
                 <Link
                   href={productPage.href}
@@ -109,12 +113,12 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
             ))}
           </ArticleSection>
 
-          <ArticleSection id="afloop" title="De afloop">
-            {casus.afloop.map((t, i) => (
+          <ArticleSection id="les" title={casus.afloop ? 'De afloop' : 'Wat deze casus laat zien'}>
+            {(casus.afloop ?? []).map((t, i) => (
               <p key={i}>{t}</p>
             ))}
             <Note>
-              <strong className="font-semibold text-[#1e3a5f]">Wat deze casus laat zien. </strong>
+              <strong className="font-semibold text-[#1e3a5f]">{casus.afloop ? 'Wat deze casus laat zien. ' : 'Kort gezegd. '}</strong>
               {casus.les}
             </Note>
           </ArticleSection>

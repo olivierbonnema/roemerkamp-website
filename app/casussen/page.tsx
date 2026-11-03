@@ -5,15 +5,16 @@ import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { PageHero } from '@/components/product/page-hero'
 import { ContactSection } from '@/components/product/contact-section'
-import { CASUSSEN } from '@/lib/casussen'
+import { CASUSSEN, AANTAL_PRAKTIJK, AANTAL_VOORBEELD } from '@/lib/casussen'
 import { BORROWER_PAGE, INVESTOR_PAGE } from '@/lib/site-nav'
 import { CONTACT_FOTO, CONTACT_TEKST } from '@/lib/product-content'
 import { pageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = pageMetadata({
   path: "/casussen",
-  title: "Casussen: zo verloopt een financiering in de praktijk",
-  description: "Tien voorbeeldcasussen: beleggingspand, DGA, overbrugging, veiling, transformatie, herfinanciering, startende ondernemer, werkkapitaal en de kant van de investeerder. Met bedrag, LTV, looptijd en exit.",
+  title: "Casussen: financieren waar de bank afhaakt",
+  brand: false,
+  description: "Casussen uit de praktijk en voorbeelden: per financiering het bedrag, de loan-to-value, de looptijd, de exit en wat de bank tegenhield.",
 })
 
 export default function CasussenPage() {
@@ -23,8 +24,8 @@ export default function CasussenPage() {
       <Header />
       <main>
         <PageHero
-          title="Casussen"
-          intro="Hoe een financiering in de praktijk verloopt, van aanleiding tot aflossing. Tien voorbeeldcasussen met bedrag, loan-to-value, rang, looptijd en exit, en wat elke casus laat zien over onze beoordeling."
+          title="Casussen: financieren waar de bank afhaakt"
+          intro={`Hoe een financiering verloopt, van aanleiding tot exit. ${AANTAL_PRAKTIJK} casussen komen uit onze praktijk, geanonimiseerd; de andere ${AANTAL_VOORBEELD} zijn voorbeelden van situaties die wij regelmatig financieren.`}
           breadcrumbs={[{ label: 'Casussen', href: '/casussen' }]}
           image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voor leningnemers' }}
@@ -38,7 +39,7 @@ export default function CasussenPage() {
                 {CASUSSEN.map((c, i) => (
                   <li key={c.slug} className={`py-6 ${i === CASUSSEN.length - 1 ? '' : 'border-b border-gray-100'}`}>
                     <p className="text-[13px] uppercase tracking-wide text-[#5b6472] mb-1">
-                      Casus {i + 1} · {c.situatieLabel}
+                      Casus {i + 1} · {c.situatieLabel} · {c.bron === 'praktijk' ? 'Uit de praktijk' : 'Voorbeeld'}
                       {c.perspectief === 'investeerder' ? ' · vanuit de investeerder' : ''}
                     </p>
                     <Link
@@ -74,9 +75,9 @@ export default function CasussenPage() {
               <div className="border border-gray-200 border-t-[5px] border-t-[#f75d20] px-6 py-5 bg-white">
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Over deze casussen</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-3">
-                  De casussen zijn voorbeelden: fictieve, maar realistische situaties zoals wij die in de praktijk
-                  tegenkomen. Namen, plaatsen en bedragen zijn niet herleidbaar tot leningnemers of investeerders.
-                  Rentes zijn indicatief.
+                  De casussen met het label Uit de praktijk komen uit onze eigen dossiers, geanonimiseerd:
+                  zonder namen, plaatsen of andere herleidbare gegevens, met afgeronde bedragen. De andere zijn
+                  voorbeelden van situaties die wij regelmatig financieren; hun cijfers zijn illustratief.
                 </p>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a]">
                   Elke casus volgt dezelfde beoordeling: het onderpand, de betaalbaarheid van de rente en de exit. De
@@ -86,7 +87,7 @@ export default function CasussenPage() {
               <div className="bg-gray-50 px-6 py-5">
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Zelf een situatie voorleggen?</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
-                  Met een recente waardebepaling en het saldo van uw huidige hypotheek geven wij een eerste indicatie.
+                  Leg uw situatie voor via het aanvraagformulier. Na de beoordeling ontvangt u een indicatie per e-mail.
                 </p>
                 <Link
                   href="/financieringsaanvraag"
