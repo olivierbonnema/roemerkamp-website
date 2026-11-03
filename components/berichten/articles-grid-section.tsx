@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { STATIC_POSTS, STATIC_POST_SLUGS } from "@/lib/site-nav"
 
 interface DynamicPost {
   id: string
@@ -11,40 +12,19 @@ interface DynamicPost {
   excerpt: string
   imageDataUrl: string
   imageAlt: string
+  publishedAt: string | null
 }
 
-const hardcodedArticles = [
-  {
-    id: "n1",
-    title: "Van aanvraag tot passering: zo verloopt een financiering",
-    excerpt:
-      "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben en waar de tijd in gaat zitten.",
-    image: "/images/bericht-3-haarlem.jpg",
-    imageStyle: { objectPosition: "center 45%" },
-    slug: "zo-verloopt-een-financiering",
-  },
-  {
-    id: "n2",
-    title: "Tweede hypotheek: waarom de LTV anders is dan u denkt",
-    excerpt:
-      "Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór u in het Kadaster staat. Dezelfde lening blijkt 25% of 65%, afhankelijk van hoe u telt.",
-    image: "/images/bericht-1-boom.jpg",
-    imageStyle: { objectPosition: "center 55%" },
-    slug: "tweede-hypotheek-en-ltv",
-  },
-  {
-    id: "n3",
-    title: "Overbruggingsfinanciering: het draait om de exit",
-    excerpt:
-      "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
-    image: "/images/bericht-2-brug.jpg",
-    imageStyle: { objectPosition: "center 55%" },
-    slug: "overbruggingsfinanciering-de-exit",
-  },
-]
+function formatDate(iso: string | null | undefined) {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
+}
 
-const HARDCODED_SLUGS = new Set(hardcodedArticles.map((a) => a.slug))
-
+// All posts: CMS posts (Firestore) first, then the posts that live as code
+// (lib/site-nav.ts STATIC_POSTS, newest first). Before 2026-10 only the three
+// newest static posts were shown here, so the May 2026 posts were unreachable.
 export function ArticlesGridSection() {
   const [dynamicPosts, setDynamicPosts] = useState<DynamicPost[]>([])
 
@@ -53,7 +33,7 @@ export function ArticlesGridSection() {
       .then((res) => (res.ok ? res.json() : { posts: [] }))
       .then((data) => {
         const posts = (data.posts || []).filter(
-          (p: DynamicPost) => !HARDCODED_SLUGS.has(p.slug)
+          (p: DynamicPost) => !STATIC_POST_SLUGS.has(p.slug)
         )
         setDynamicPosts(posts)
       })
@@ -81,8 +61,13 @@ export function ArticlesGridSection() {
                   </div>
                 )}
               </div>
+              {formatDate(post.publishedAt) && (
+                <p className="text-xs text-gray-500 mb-2">{formatDate(post.publishedAt)}</p>
+              )}
               <h3 className="text-xl font-serif text-[#311e86] mb-3 leading-tight">
-                {post.title}
+                <Link href={"/berichten/" + post.slug} className="hover:underline">
+                  {post.title}
+                </Link>
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed mb-4">{post.excerpt}</p>
               <Link
@@ -95,9 +80,9 @@ export function ArticlesGridSection() {
             </article>
           ))}
 
-          {/* Hardcoded articles */}
-          {hardcodedArticles.map((article) => (
-            <article key={article.id} className="group">
+          {/* Posts that live as code */}
+          {STATIC_POSTS.map((article) => (
+            <article key={article.slug} className="group">
               <div className="relative h-[200px] mb-4 overflow-hidden">
                 <Image
                   src={article.image}
@@ -108,8 +93,11 @@ export function ArticlesGridSection() {
                   style={article.imageStyle}
                 />
               </div>
+              <p className="text-xs text-gray-500 mb-2">{formatDate(article.date)}</p>
               <h3 className="text-xl font-serif text-[#311e86] mb-3 leading-tight">
-                {article.title}
+                <Link href={"/berichten/" + article.slug} className="hover:underline">
+                  {article.title}
+                </Link>
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed mb-4">{article.excerpt}</p>
               <Link

@@ -1,4 +1,4 @@
-# Lange & Partners — Non-bancaire vastgoedfinanciering
+# Lange & Partners - Non-bancaire vastgoedfinanciering
 
 > Lange & Partners verstrekt non-bancaire vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers en investeerders in heel Nederland.
 
@@ -6,7 +6,7 @@
 
 Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector. Wij bieden maatwerkfinanciering voor ondernemers die buiten de reguliere bancaire criteria vallen. Alle betalingen verlopen via een onafhankelijke Stichting.
 
-- Bedrijf: Lange & Partners Financieel Advies B.V.
+- Bedrijf: Lange & Partners Financieel Advies B.V. (ook bekend als Lange Financieel Advies)
 - KvK: 34269870
 - Adres: Wilhelminastraat 50, 2011 VN Haarlem
 - Telefoon: 023-5173100
@@ -17,44 +17,56 @@ Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector
 
 ### Voor leningnemers
 - Non-bancaire hypotheek: alternatief voor bancaire financiering
-- Tweede hypotheek voor ondernemers
-- Onderhandse hypotheek met vastgoedzekerheid
-- Hypotheek zonder jaarcijfers (startende ondernemers)
-- DGA hypotheek (directeur-grootaandeelhouders)
-- Overbruggingsfinanciering bij verbouwing of aankoop
-- ZZP hypotheek (financiering voor zelfstandig ondernemers)
 - Vastgoedfinanciering zonder bank (woon-, beleggings- en bedrijfspanden)
+- Tweede hypotheek voor ondernemers
+- Hypotheek zonder jaarcijfers (ondernemers met 1 tot 2 jaar cijfers)
+- DGA hypotheek (directeur-grootaandeelhouders, privé of via de BV)
+- ZZP hypotheek (financiering voor zelfstandig ondernemers)
+- Onderhandse hypotheek met vastgoedzekerheid
+- Overbruggingsfinanciering bij aankoop, verbouwing of transformatie
+- Herfinanciering van vastgoed
+- Alsnog financieren na een afwijzing door de bank
 
 ### Voor investeerders
 - Investeren in non-bancaire vastgoedleningen
-- Rendement van 6% tot 8% per jaar
-- Hypothecaire zekerheid op vastgoed
+- Rendement vanaf 6,5% per jaar
+- Hypothecaire zekerheid op vastgoed, ingeschreven bij het Kadaster
 - Beheerd via onafhankelijke Stichting
 
 ## Kenmerken
 - Leningbedragen: €200.000 tot €5.000.000
 - Looptijd: 6 tot 60 maanden
-- Doorlooptijd aanvraag: 1 tot 3 weken
-- Geen jaarcijfers verplicht
-- Beoordeling op basis van vastgoed en perspectief
-- Werkgebied: heel Nederland, focus op Randstad
+- Rente voor leningnemers: vanaf 7%
+- Loan-to-value: doorgaans tot 70%, maximaal 75% van het totale onderpand
+- Doorlooptijd aanvraag: 1 tot 3 weken, indicatie vaak binnen 24 uur
+- Geen drie jaar jaarcijfers vereist
+- Beoordeling op onderpand, betaalbaarheid en exit (herfinanciering, aflossing of verkoop)
+- Werkgebied: heel Nederland, kantoor in Haarlem
 
 ## Pagina's
 - Hoofdpagina: https://www.nonbancaireleningen.nl
 - Voor leningnemers: https://www.nonbancaireleningen.nl/voor-leningnemers
 - Voor investeerders: https://www.nonbancaireleningen.nl/voor-investeerders
+- Rendement vastgoedleningen: https://www.nonbancaireleningen.nl/rendement-vastgoedleningen
 - Non-bancaire hypotheek: https://www.nonbancaireleningen.nl/non-bancaire-hypotheek
-- DGA hypotheek: https://www.nonbancaireleningen.nl/dga-hypotheek
-- Tweede hypotheek: https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer
-- Onderhandse hypotheek: https://www.nonbancaireleningen.nl/onderhandse-hypotheek
-- Hypotheek zonder jaarcijfers: https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers
-- Overbruggingsfinanciering: https://www.nonbancaireleningen.nl/overbruggingsfinanciering-verbouwing
-- ZZP hypotheek: https://www.nonbancaireleningen.nl/zzp-hypotheek
 - Vastgoedfinanciering zonder bank: https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank
+- Tweede hypotheek voor ondernemers: https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer
+- Hypotheek zonder jaarcijfers: https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers
+- DGA hypotheek: https://www.nonbancaireleningen.nl/dga-hypotheek
+- ZZP hypotheek: https://www.nonbancaireleningen.nl/zzp-hypotheek
+- Onderhandse hypotheek: https://www.nonbancaireleningen.nl/onderhandse-hypotheek
+- Overbruggingsfinanciering: https://www.nonbancaireleningen.nl/overbruggingsfinanciering-verbouwing
+- Herfinanciering vastgoed: https://www.nonbancaireleningen.nl/herfinanciering-vastgoed
+- Hypotheek afgewezen als ondernemer: https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen
 - Over ons: https://www.nonbancaireleningen.nl/over-ons
+- Toezicht en registraties: https://www.nonbancaireleningen.nl/nadere-informatie
 - Contact: https://www.nonbancaireleningen.nl/contact
+- Financieringsaanvraag: https://www.nonbancaireleningen.nl/financieringsaanvraag
 
 ## Berichten
-- Hypotheek afgewezen — wat nu?: https://www.nonbancaireleningen.nl/berichten/hypotheek-afgewezen-wat-nu
+- Van aanvraag tot passering, zo verloopt een financiering: https://www.nonbancaireleningen.nl/berichten/zo-verloopt-een-financiering
+- Tweede hypotheek, waarom de LTV anders is dan u denkt: https://www.nonbancaireleningen.nl/berichten/tweede-hypotheek-en-ltv
+- Overbruggingsfinanciering, het draait om de exit: https://www.nonbancaireleningen.nl/berichten/overbruggingsfinanciering-de-exit
+- Hypotheek afgewezen door de bank, dit zijn uw opties: https://www.nonbancaireleningen.nl/berichten/hypotheek-afgewezen-wat-nu
 - Wat is non-bancaire financiering?: https://www.nonbancaireleningen.nl/berichten/wat-is-non-bancaire-financiering
 - Wat kost een non-bancaire hypotheek?: https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek
