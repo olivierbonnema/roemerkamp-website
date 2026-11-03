@@ -3,21 +3,13 @@ import { ProductPage } from '@/components/product/product-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps, Strong } from '@/components/product/content-blocks'
 import { verwant } from '@/lib/product-content'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Investeren in vastgoedleningen | Lange & Partners' },
-  description: 'Investeren in vastgoedleningen met een hypotheekrecht op Nederlands vastgoed als zekerheid. Rendement vanaf 6,5% per jaar, looptijd 6 tot 60 maanden, betalingen via een onafhankelijke Stichting. Zo werkt het, inclusief de risico\'s.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/voor-investeerders' },
-  openGraph: {
-    title: 'Investeren in vastgoedleningen | Lange & Partners',
-    description: 'Investeren in vastgoedleningen met een hypotheekrecht op Nederlands vastgoed als zekerheid. Rendement vanaf 6,5% per jaar, looptijd 6 tot 60 maanden, betalingen via een onafhankelijke Stichting.',
-    url: 'https://www.nonbancaireleningen.nl/voor-investeerders',
-  },
-  twitter: {
-    title: 'Investeren in vastgoedleningen | Lange & Partners',
-    description: 'Investeren in vastgoedleningen met een hypotheekrecht op Nederlands vastgoed als zekerheid. Rendement vanaf 6,5% per jaar, looptijd 6 tot 60 maanden, betalingen via een onafhankelijke Stichting.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/voor-investeerders",
+  title: "Investeren in vastgoedleningen",
+  description: "Investeren in vastgoedleningen, hypothecair gedekt op Nederlands vastgoed. Rendement vanaf 6,5% per jaar, looptijd 6 tot 60 maanden. Inclusief de risico's.",
+})
 
 const kerngegevens = [
   { label: 'Rendement', value: 'Vanaf 6,5% per jaar' },

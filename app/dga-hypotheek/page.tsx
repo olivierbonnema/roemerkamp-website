@@ -2,21 +2,13 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'DGA hypotheek | Maatwerkfinanciering voor directeur-grootaandeelhouders',
-  description: 'Als DGA een hypotheek aanvragen op uw privéwoning? Banken toetsen DGA-inkomen streng. Lange & Partners biedt een maatwerkoplossing op basis van uw vastgoed en vermogenspositie.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/dga-hypotheek' },
-  openGraph: {
-    title: 'DGA hypotheek | Maatwerkfinanciering voor directeur-grootaandeelhouders',
-    description: 'Als DGA een hypotheek aanvragen op uw privéwoning? Banken toetsen DGA-inkomen streng. Lange & Partners biedt een maatwerkoplossing op basis van uw vastgoed en vermogenspositie.',
-    url: 'https://www.nonbancaireleningen.nl/dga-hypotheek',
-  },
-  twitter: {
-    title: 'DGA hypotheek | Maatwerkfinanciering voor directeur-grootaandeelhouders',
-    description: 'Als DGA een hypotheek aanvragen op uw privéwoning? Banken toetsen DGA-inkomen streng. Lange & Partners biedt een maatwerkoplossing op basis van uw vastgoed en vermogenspositie.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/dga-hypotheek",
+  title: "DGA hypotheek: privé of via de BV",
+  description: "Banken toetsen DGA-inkomen streng. Wij beoordelen op betaalbaarheid, onderpand en exit, met een lening privé of op naam van de BV. Vanaf €200.000.",
+})
 
 const situaties = [
   {
@@ -80,7 +72,7 @@ export default function DgaHypotheekPage() {
     <SituationPage
       href="/dga-hypotheek"
       breadcrumb="DGA hypotheek"
-      title="DGA hypotheek"
+      title="DGA hypotheek: privé of via de BV"
       intro="Als directeur-grootaandeelhouder voldoet u op papier vaak niet aan de bancaire inkomensnormen, ook al is uw positie solide. Wij beoordelen op uw werkelijke positie, het onderpand en de exit. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-villa.jpg', alt: 'Villa, zwart-wit' }}
       lead={

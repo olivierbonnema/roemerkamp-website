@@ -5,21 +5,15 @@ import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
 import { ArticleSchema } from '@/components/article-schema'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden',
-  description: 'Wat kost een non-bancaire hypotheek? Lees over rentetarieven, afsluitkosten, taxatie en notariskosten. Transparant overzicht van alle kosten.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek' },
-  openGraph: {
-    title: 'Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden | Lange & Partners',
-    description: 'Wat kost een non-bancaire hypotheek? Transparant overzicht van rentetarieven, afsluitkosten en voorwaarden.',
-    url: 'https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek',
-  },
-  twitter: {
-    title: 'Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden | Lange & Partners',
-    description: 'Wat kost een non-bancaire hypotheek? Transparant overzicht van rentetarieven, afsluitkosten en voorwaarden.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten/kosten-non-bancaire-hypotheek",
+  title: "Zakelijke hypotheek zonder bank: rente en kosten",
+  brand: false,
+  description: "Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris: wat een tijdelijke zakelijke hypotheek zonder bank kost.",
+  type: "article",
+})
 
 const faq = [
   {
@@ -32,7 +26,7 @@ const faq = [
   },
   {
     vraag: 'Kan ik de rente fiscaal aftrekken?',
-    antwoord: 'Dat hangt af van de situatie. Hypotheekrente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering. Voor zakelijke financieringen zijn de rentelasten doorgaans als bedrijfskosten aftrekbaar. Wij adviseren om dit altijd met uw fiscalist te bespreken.',
+    antwoord: 'Dat hangt af van de situatie. Hypotheekrente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering. Voor zakelijke financieringen zijn de rentelasten doorgaans als bedrijfskosten aftrekbaar. Bespreek dit altijd met uw fiscalist.',
   },
   {
     vraag: 'Wat gebeurt er als ik tussentijds wil aflossen?',
@@ -45,15 +39,15 @@ export default function KostenNonBancaireHypotheekPage() {
     <>
       <BreadcrumbSchema items={[
         { name: 'Berichten', href: '/berichten' },
-        { name: 'Kosten non-bancaire hypotheek', href: '/berichten/kosten-non-bancaire-hypotheek' },
+        { name: 'Kosten zakelijke hypotheek zonder bank', href: '/berichten/kosten-non-bancaire-hypotheek' },
       ]} />
       <FaqSchema items={faq} />
       <ArticleSchema
-        headline="Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden"
-        description="Wat kost een non-bancaire hypotheek? Transparant overzicht van rentetarieven, afsluitkosten en voorwaarden."
+        headline="Wat kost een zakelijke hypotheek zonder bank?"
+        description="Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris: wat een tijdelijke zakelijke hypotheek zonder bank kost."
         url="https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek"
         datePublished="2026-05-15"
-        dateModified="2026-05-15"
+        dateModified="2026-11-03"
         authorName="Marco Lange"
       />
       <Header />
@@ -66,14 +60,14 @@ export default function KostenNonBancaireHypotheekPage() {
               <div className="flex items-center gap-2 text-white/60 text-sm mb-6">
                 <Link href="/berichten" className="hover:text-white/80 transition-colors">Berichten</Link>
                 <span>/</span>
-                <span className="text-white/80">Kosten non-bancaire hypotheek</span>
+                <span className="text-white/80">Kosten zakelijke hypotheek zonder bank</span>
               </div>
               <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
               <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Wat kost een non-bancaire hypotheek?
+                Wat kost een zakelijke hypotheek zonder bank?
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Een transparant overzicht van de kosten, rentetarieven en voorwaarden bij non-bancaire financiering.
+                Een overzicht van de rente en alle andere kosten van een tijdelijke zakelijke hypotheek buiten de bank.
               </p>
               <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
                 <span>Marco Lange</span>
@@ -91,7 +85,7 @@ export default function KostenNonBancaireHypotheekPage() {
             {/* Intro */}
             <div className="space-y-4">
               <p className="text-gray-700 leading-relaxed text-lg">
-                De kosten van een non-bancaire hypotheek zijn anders opgebouwd dan bij een bank. De rente is hoger, maar daar staat tegenover dat de financiering sneller beschikbaar is, flexibeler is en toegankelijk voor situaties die banken niet bedienen.
+                De kosten van een zakelijke hypotheek zonder bank, ook wel non-bancaire hypotheek genoemd, zijn anders opgebouwd dan bij een bank. De rente is hoger, maar daar staat tegenover dat de financiering sneller beschikbaar is, flexibeler is en toegankelijk voor situaties die banken niet bedienen.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 In dit artikel geven wij een helder overzicht van alle kostenposten, zodat u vooraf weet waar u aan toe bent.
@@ -102,7 +96,7 @@ export default function KostenNonBancaireHypotheekPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Rentetarieven</h2>
               <p className="text-gray-700 leading-relaxed">
-                De rente bij een non-bancaire hypotheek ligt doorgaans tussen de 7% en 12% per jaar. Het exacte tarief hangt af van meerdere factoren:
+                De rente op een zakelijke hypotheek zonder bank ligt doorgaans tussen de 7% en 12% per jaar. Het exacte tarief hangt af van meerdere factoren:
               </p>
               <div className="space-y-3">
                 {[

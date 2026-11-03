@@ -7,19 +7,20 @@ import { ArticleSchema } from "@/components/article-schema"
 import {
   ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, UitDePraktijk, Faq, Vervolg, P,
 } from "@/components/berichten/artikel"
+import { pageMetadata } from '@/lib/seo'
 
 const URL = "https://www.nonbancaireleningen.nl/berichten/tweede-hypotheek-en-ltv"
 const TITEL = "Tweede hypotheek: waarom de LTV anders is dan u denkt"
 const OMSCHRIJVING =
-  "Bij een tweede hypotheek telt niet alleen de nieuwe lening, maar alles wat vóór u in het Kadaster staat. Met een rekenvoorbeeld: dezelfde lening is 25% of 65%, afhankelijk van hoe u telt."
+  "Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat. Rekenvoorbeeld: dezelfde lening is 25% of 65% LTV, afhankelijk van hoe u telt."
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten/tweede-hypotheek-en-ltv",
   title: TITEL,
+  brand: false,
   description: OMSCHRIJVING,
-  alternates: { canonical: URL },
-  openGraph: { title: `${TITEL} | Lange & Partners`, description: OMSCHRIJVING, url: URL, type: "article" },
-  twitter: { title: TITEL, description: OMSCHRIJVING },
-}
+  type: "article",
+})
 
 const faq = [
   {

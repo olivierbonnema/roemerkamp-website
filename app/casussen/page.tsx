@@ -8,17 +8,13 @@ import { ContactSection } from '@/components/product/contact-section'
 import { CASUSSEN } from '@/lib/casussen'
 import { BORROWER_PAGE, INVESTOR_PAGE } from '@/lib/site-nav'
 import { CONTACT_FOTO, CONTACT_TEKST } from '@/lib/product-content'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Casussen: zo verloopt een financiering in de praktijk',
-  description: 'Tien voorbeeldcasussen: beleggingspand, DGA, overbrugging, veiling, transformatie, herfinanciering, startende ondernemer, werkkapitaal en de kant van de investeerder. Met bedrag, LTV, looptijd en exit.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/casussen' },
-  openGraph: {
-    title: 'Casussen | Lange & Partners',
-    description: 'Tien voorbeeldcasussen met bedrag, loan-to-value, looptijd, exit en afloop.',
-    url: 'https://www.nonbancaireleningen.nl/casussen',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/casussen",
+  title: "Casussen: zo verloopt een financiering in de praktijk",
+  description: "Tien voorbeeldcasussen: beleggingspand, DGA, overbrugging, veiling, transformatie, herfinanciering, startende ondernemer, werkkapitaal en de kant van de investeerder. Met bedrag, LTV, looptijd en exit.",
+})
 
 export default function CasussenPage() {
   return (

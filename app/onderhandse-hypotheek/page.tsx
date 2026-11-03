@@ -3,21 +3,14 @@ import Link from 'next/link'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Onderhandse hypotheek | Particuliere lening met vastgoedzekerheid',
-  description: 'Een onderhandse hypotheek is een lening van een particuliere geldverstrekker, gedekt door vastgoed. Lange & Partners koppelt investeerders aan geldnemers. Leningen van €200.000 tot €5.000.000.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/onderhandse-hypotheek' },
-  openGraph: {
-    title: 'Onderhandse hypotheek | Particuliere lening met vastgoedzekerheid',
-    description: 'Een onderhandse hypotheek is een lening van een particuliere geldverstrekker, gedekt door vastgoed. Lange & Partners koppelt investeerders aan geldnemers. Leningen van €200.000 tot €5.000.000.',
-    url: 'https://www.nonbancaireleningen.nl/onderhandse-hypotheek',
-  },
-  twitter: {
-    title: 'Onderhandse hypotheek | Particuliere lening met vastgoedzekerheid',
-    description: 'Een onderhandse hypotheek is een lening van een particuliere geldverstrekker, gedekt door vastgoed. Lange & Partners koppelt investeerders aan geldnemers. Leningen van €200.000 tot €5.000.000.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/onderhandse-hypotheek",
+  title: "Onderhandse hypotheek via particuliere investeerders",
+  brand: false,
+  description: "Onderhandse hypotheek van particuliere investeerders, met hypotheekrecht op uw vastgoed en betalingen via een onafhankelijke Stichting. Vanaf €200.000.",
+})
 
 const zekerheid = [
   {

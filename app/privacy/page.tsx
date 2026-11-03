@@ -1,20 +1,13 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/privacy",
   title: "Privacyverklaring",
-  description: "Privacyverklaring van Lange & Partners: hoe wij omgaan met uw persoonsgegevens.",
-  alternates: { canonical: "https://www.nonbancaireleningen.nl/privacy" },
-  openGraph: {
-    title: "Privacyverklaring | Lange & Partners",
-    description: "Privacyverklaring van Lange & Partners: hoe wij omgaan met uw persoonsgegevens.",
-    url: "https://www.nonbancaireleningen.nl/privacy",
-  },
-  twitter: {
-    title: "Privacyverklaring | Lange & Partners",
-    description: "Privacyverklaring van Lange & Partners: hoe wij omgaan met uw persoonsgegevens.",
-  },
-}
+  description: "Privacyverklaring van Lange Financieel Advies B.V. (Lange & Partners): welke persoonsgegevens wij verwerken, waarom, hoe lang en uw rechten.",
+})
 
 export default function PrivacyPage() {
   return (

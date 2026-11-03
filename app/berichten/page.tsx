@@ -2,21 +2,14 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { BerichtenHeroSection } from "@/components/berichten/hero-section"
 import { ArticlesGridSection } from "@/components/berichten/articles-grid-section"
+import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata = {
-  title: "Berichten",
-  description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
-  alternates: { canonical: "https://www.nonbancaireleningen.nl/berichten" },
-  openGraph: {
-    title: "Berichten | Lange & Partners",
-    description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
-    url: "https://www.nonbancaireleningen.nl/berichten",
-  },
-  twitter: {
-    title: "Berichten | Lange & Partners",
-    description: "Inzichten, marktnieuws en updates van Lange & Partners over non-bancaire financiering en vastgoedbeleggingen.",
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten",
+  title: "Berichten over vastgoedfinanciering",
+  description: "Uitleg en praktijk over vastgoedfinanciering zonder bank: tweede hypotheek, overbrugging, kosten en hoe een financiering verloopt.",
+})
 
 export default function BerichtenPage() {
   return (

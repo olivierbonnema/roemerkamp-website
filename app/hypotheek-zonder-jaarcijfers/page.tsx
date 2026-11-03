@@ -2,21 +2,14 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Hypotheek zonder jaarcijfers | Lange & Partners' },
-  description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit, niet langs de norm van drie jaar cijfers.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers' },
-  openGraph: {
-    title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
-    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit, niet langs de norm van drie jaar cijfers.',
-    url: 'https://www.nonbancaireleningen.nl/hypotheek-zonder-jaarcijfers',
-  },
-  twitter: {
-    title: 'Hypotheek zonder jaarcijfers | Lange & Partners',
-    description: 'Nog geen drie jaar jaarcijfers als ondernemer of DGA? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit, niet langs de norm van drie jaar cijfers.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/hypotheek-zonder-jaarcijfers",
+  title: "Hypotheek of zakelijke lening zonder jaarcijfers",
+  brand: false,
+  description: "Geen drie jaar jaarcijfers als ondernemer, zzp'er of DGA? Een lening vanaf €200.000 met uw vastgoed als zekerheid, beoordeeld op betaalbaarheid en exit.",
+})
 
 const voorwie = [
   {
@@ -88,7 +81,7 @@ export default function HypotheekZonderJaarcijfersPage() {
     <SituationPage
       href="/hypotheek-zonder-jaarcijfers"
       breadcrumb="Geen drie jaar jaarcijfers"
-      title="Hypotheek zonder jaarcijfers"
+      title="Hypotheek of zakelijke lening zonder jaarcijfers"
       intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer, ZZP'er of DGA heeft die. Wij beoordelen anders dan een bank: op de betaalbaarheid, het onderpand en de exit, niet langs de norm van drie jaar cijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-kantoor.jpg', alt: 'Kantoorgebouw, zwart-wit' }}
       lead={

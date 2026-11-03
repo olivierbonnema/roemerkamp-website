@@ -8,19 +8,20 @@ import { SectionHeading } from "@/components/section-heading"
 import {
   ArtikelHero, Sectie, TekstMetFoto, Stappen, UitDePraktijk, Faq, Vervolg, P,
 } from "@/components/berichten/artikel"
+import { pageMetadata } from '@/lib/seo'
 
 const URL = "https://www.nonbancaireleningen.nl/berichten/zo-verloopt-een-financiering"
 const TITEL = "Van aanvraag tot passering: zo verloopt een financiering bij Lange & Partners"
 const OMSCHRIJVING =
-  "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben, en waar de tijd in gaat zitten."
+  "De zes stappen van aanvraag tot passering bij de notaris: wat wij van u nodig hebben, hoe de investeerder beslist en waar de tijd in gaat zitten."
 
-export const metadata: Metadata = {
-  title: TITEL,
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten/zo-verloopt-een-financiering",
+  title: "Zo verloopt een financiering: van aanvraag tot passering",
+  brand: false,
   description: OMSCHRIJVING,
-  alternates: { canonical: URL },
-  openGraph: { title: `${TITEL} | Lange & Partners`, description: OMSCHRIJVING, url: URL, type: "article" },
-  twitter: { title: TITEL, description: OMSCHRIJVING },
-}
+  type: "article",
+})
 
 const faq = [
   {

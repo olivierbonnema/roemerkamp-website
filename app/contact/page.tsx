@@ -4,21 +4,14 @@ import { Footer } from "@/components/footer"
 import { ContactHeroSection } from "@/components/contact/hero-section"
 import { ContactInfoSection } from "@/components/contact/contact-info-section"
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata = {
-  title: "Contact",
-  description: "Neem contact op met Lange & Partners. Bel (023) 517 31 00 of bezoek ons op Wilhelminastraat 50 in Haarlem.",
-  alternates: { canonical: "https://www.nonbancaireleningen.nl/contact" },
-  openGraph: {
-    title: "Contact | Lange & Partners",
-    description: "Neem contact op met Lange & Partners. Bel (023) 517 31 00 of bezoek ons op Wilhelminastraat 50 in Haarlem.",
-    url: "https://www.nonbancaireleningen.nl/contact",
-  },
-  twitter: {
-    title: "Contact | Lange & Partners",
-    description: "Neem contact op met Lange & Partners. Bel (023) 517 31 00 of bezoek ons op Wilhelminastraat 50 in Haarlem.",
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/contact",
+  title: "Contact | Lange & Partners Haarlem",
+  brand: false,
+  description: "Neem contact op met Lange & Partners in Haarlem. Bel (023) 517 31 00 of kom langs op Wilhelminastraat 50, op werkdagen van 9 tot 17 uur.",
+})
 
 const localBusinessJsonLd = {
   '@context': 'https://schema.org',

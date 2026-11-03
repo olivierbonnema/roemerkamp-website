@@ -7,19 +7,20 @@ import { ArticleSchema } from "@/components/article-schema"
 import {
   ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, UitDePraktijk, Faq, Vervolg, P,
 } from "@/components/berichten/artikel"
+import { pageMetadata } from '@/lib/seo'
 
 const URL = "https://www.nonbancaireleningen.nl/berichten/overbruggingsfinanciering-de-exit"
 const TITEL = "Overbruggingsfinanciering: het draait om de exit"
 const OMSCHRIJVING =
-  "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt: verkoop of oversluiten. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt."
+  "Een overbrugging wordt beoordeeld op hoe hij eindigt: verkoop of oversluiten. Wat een geloofwaardige exit is en hoe het rentedepot werkt."
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten/overbruggingsfinanciering-de-exit",
   title: TITEL,
+  brand: false,
   description: OMSCHRIJVING,
-  alternates: { canonical: URL },
-  openGraph: { title: `${TITEL} | Lange & Partners`, description: OMSCHRIJVING, url: URL, type: "article" },
-  twitter: { title: TITEL, description: OMSCHRIJVING },
-}
+  type: "article",
+})
 
 const faq = [
   {

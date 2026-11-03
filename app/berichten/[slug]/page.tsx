@@ -7,6 +7,7 @@ import { adminDb } from "@/lib/firebase-admin"
 import { ArticleSchema } from "@/components/article-schema"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BlogContent } from "@/components/berichten/blog-content"
+import { pageMetadata } from "@/lib/seo"
 
 interface BlogPost {
   title: string
@@ -63,20 +64,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const title = post.metaTitle || post.title
   const description = post.metaDescription || post.excerpt
-  const url = "https://www.nonbancaireleningen.nl/berichten/" + post.slug
 
-  return {
-    title,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      title: title + " | Lange & Partners",
-      description,
-      url,
-      type: "article",
-    },
-    twitter: { title, description },
-  }
+  return pageMetadata({ path: "/berichten/" + post.slug, title, description, type: "article" })
 }
 
 function formatDate(iso: string | null): string {

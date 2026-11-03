@@ -3,7 +3,7 @@
 // DNB supervision, licence described as "AFM-vergunning voor bemiddeling".
 // Facts checked that day in the AFM register (statutory name, licence
 // 12017043) and the Kifid register (number 300.012572, binding rulings).
-// The DSI line from the old text is left out until Olivier confirms it.
+// DSI was a Roemer Kamp & Partners registration (Olivier) and is left out.
 
 const AFM_REGISTER =
   "https://www.afm.nl/nl-nl/sector/registers/vergunningenregisters/financieel-dienstverleners/details?id=8B3A6C57-E5FA-DF11-BB5A-005056BE6692"
@@ -23,15 +23,15 @@ const registraties = [
 
 export function ToezichtSection() {
   return (
-    <section className="bg-[#1e3a5f] py-16">
+    <section className="bg-white py-16">
       <div className="max-w-screen-2xl mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid md:grid-cols-2 gap-12 items-start">
           <div>
-            <div className="w-12 h-1 bg-[#f75d20] rounded-sm mb-4" />
-            <h2 className="font-serif text-[26px] md:text-[32px] font-normal text-white mb-4">
-              Toezicht en registraties
+            <div className="w-16 h-1.5 bg-[#f75d20] mb-3" />
+            <h2 className="font-serif font-semibold text-[#311e86] text-[22px] md:text-[26px] leading-snug mb-4">
+              Vergunning en klachteninstituut
             </h2>
-            <div className="space-y-4 text-white/75 text-sm leading-relaxed font-sans">
+            <div className="space-y-4 text-gray-700 text-[15px] leading-relaxed font-sans">
               <p>
                 Lange &amp; Partners is een handelsnaam van Lange Financieel Advies B.V. (KvK 34269870). Wij hebben
                 een AFM-vergunning voor bemiddeling: wij brengen leningnemer en investeerder bij elkaar, de
@@ -49,19 +49,18 @@ export function ToezichtSection() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4 md:mt-12">
             {registraties.map((r) => (
               <a
                 key={r.label}
                 href={r.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white/10 hover:bg-white/20 border border-white/20 p-5 transition-colors group"
+                className="block border border-gray-200 hover:border-[#311e86] bg-white p-5 transition-colors group"
               >
-                <p className="font-serif text-2xl text-white font-normal mb-1">{r.label}</p>
-                <p className="text-white/50 text-xs font-sans leading-snug group-hover:text-white/75 transition-colors">
-                  {r.description}
-                </p>
+                <p className="font-serif text-2xl text-[#1e3a5f] group-hover:text-[#311e86] font-normal mb-1">{r.label}</p>
+                <p className="text-gray-500 text-xs font-sans leading-snug">{r.description}</p>
+                <span className="text-[#f75d20] text-sm font-medium mt-3 inline-block">Bekijk het register &rarr;</span>
               </a>
             ))}
           </div>

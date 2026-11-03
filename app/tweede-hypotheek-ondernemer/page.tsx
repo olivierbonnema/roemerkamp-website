@@ -2,21 +2,14 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Tweede hypotheek voor ondernemer | Lange & Partners' },
-  description: 'Als ondernemer extra kapitaal nodig maar de bank wijst af? Lange & Partners verstrekt een tweede hypotheek op basis van uw vastgoed. Bedragen van €200.000 tot €5.000.000.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer' },
-  openGraph: {
-    title: 'Tweede hypotheek voor ondernemer | Lange & Partners',
-    description: 'Als ondernemer extra kapitaal nodig maar de bank wijst af? Lange & Partners verstrekt een tweede hypotheek op basis van uw vastgoed. Bedragen van €200.000 tot €5.000.000.',
-    url: 'https://www.nonbancaireleningen.nl/tweede-hypotheek-ondernemer',
-  },
-  twitter: {
-    title: 'Tweede hypotheek voor ondernemer | Lange & Partners',
-    description: 'Als ondernemer extra kapitaal nodig maar de bank wijst af? Lange & Partners verstrekt een tweede hypotheek op basis van uw vastgoed. Bedragen van €200.000 tot €5.000.000.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/tweede-hypotheek-ondernemer",
+  title: "Tweede hypotheek op bedrijfspand of beleggingspand",
+  brand: false,
+  description: "Overwaarde in uw bedrijfspand of beleggingspand benutten? Een tweede hypotheek zonder bank vanaf €200.000, beoordeeld op betaalbaarheid, onderpand en exit.",
+})
 
 const waarvoor = [
   {
@@ -88,7 +81,7 @@ export default function TweedeHypotheekOndernemerPage() {
     <SituationPage
       href="/tweede-hypotheek-ondernemer"
       breadcrumb="Tweede hypotheek"
-      title="Tweede hypotheek voor ondernemers"
+      title="Tweede hypotheek voor ondernemers en beleggers"
       intro="Overwaarde in uw woning of beleggingspand benutten zonder de bestaande bankhypotheek aan te passen. Een lening in tweede rang, beoordeeld op betaalbaarheid, onderpand en exit in plaats van langs de norm van de bank. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/bericht-3-haarlem.jpg', alt: 'De Grote Markt in Haarlem', position: 'center 45%' }}
       lead={

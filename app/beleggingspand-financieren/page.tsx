@@ -2,21 +2,14 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Beleggingspand of bedrijfspand financieren zonder bank',
-  description: 'Verhuurde woningen, winkels, kantoren en bedrijfsruimten financieren als de bank afhaakt. Beoordeeld op marktwaarde, huurinkomsten en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/beleggingspand-financieren' },
-  openGraph: {
-    title: 'Beleggingspand of bedrijfspand financieren zonder bank',
-    description: 'Verhuurde woningen, winkels, kantoren en bedrijfsruimten financieren als de bank afhaakt. Beoordeeld op marktwaarde, huurinkomsten en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
-    url: 'https://www.nonbancaireleningen.nl/beleggingspand-financieren',
-  },
-  twitter: {
-    title: 'Beleggingspand of bedrijfspand financieren zonder bank',
-    description: 'Verhuurde woningen, winkels, kantoren en bedrijfsruimten financieren als de bank afhaakt. Beoordeeld op marktwaarde, huurinkomsten en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/beleggingspand-financieren",
+  title: "Beleggingspand of bedrijfspand financieren zonder bank",
+  brand: false,
+  description: "Tijdelijke verhuurhypotheek of bedrijfshypotheek voor woningen, winkels en bedrijfsruimten. Beoordeeld op marktwaarde, huur en exit. Vanaf €200.000.",
+})
 
 const bank = [
   {

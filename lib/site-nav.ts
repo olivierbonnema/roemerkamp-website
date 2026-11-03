@@ -53,31 +53,31 @@ export const SITUATION_PAGES: SitePage[] = [
     href: "/hypotheek-ondernemer-afgewezen",
     label: "Afgewezen door de bank",
     description: "Waarom banken afwijzen, wat u dan kunt doen en wanneer wij wel kunnen.",
-    updated: "2026-11-02",
+    updated: "2026-11-03",
   },
   {
     href: "/hypotheek-zonder-jaarcijfers",
     label: "Geen drie jaar jaarcijfers",
     description: "Starters, ZZP'ers en ondernemers met een korte of wisselende historie.",
-    updated: "2026-11-02",
+    updated: "2026-11-03",
   },
   {
     href: "/dga-hypotheek",
     label: "DGA hypotheek",
     description: "Een laag gebruikelijk loon en een vermogende BV: lenen in privé of via de BV.",
-    updated: "2026-11-02",
+    updated: "2026-11-03",
   },
   {
     href: "/tweede-hypotheek-ondernemer",
     label: "Tweede hypotheek",
     description: "Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.",
-    updated: "2026-11-02",
+    updated: "2026-11-03",
   },
   {
     href: "/overbruggingsfinanciering-verbouwing",
     label: "Overbrugging en verbouwing",
     description: "Aankoop vóór verkoop, veiling, verbouwing of transformatie, met rentedepot en bouwdepot.",
-    updated: "2026-11-02",
+    updated: "2026-11-03",
   },
   {
     href: "/herfinanciering-vastgoed",
@@ -104,11 +104,11 @@ export const COMPANY_PAGES: SitePage[] = [
   { href: "/situaties", label: "Situaties", description: "Overzicht van situaties waarin wij financieren.", updated: "2026-11-02" },
   { href: "/casussen", label: "Casussen", description: "Voorbeeldcasussen uit de praktijk.", updated: "2026-11-02" },
   { href: "/over-ons", label: "Over ons", description: "Wie wij zijn.", updated: "2026-05-14" },
-  { href: "/nadere-informatie", label: "Nadere informatie", description: "Toezicht, registraties en Raad van Advies.", updated: "2026-05-15" },
+  { href: "/nadere-informatie", label: "Toezicht en registraties", description: "AFM-vergunning, Kifid en duurzaamheid.", updated: "2026-11-03" },
   { href: "/contact", label: "Contact", description: "Neem contact met ons op.", updated: "2026-05-15" },
-  { href: "/financieringsaanvraag", label: "Financieringsaanvraag", description: "Dien uw aanvraag in.", updated: "2026-08-26" },
+  { href: "/financieringsaanvraag", label: "Financieringsaanvraag", description: "Dien uw aanvraag in.", updated: "2026-11-03" },
   { href: "/berichten", label: "Berichten", description: "Inzichten en updates.", updated: "2026-10-27" },
-  { href: "/privacy", label: "Privacyverklaring", description: "Privacy.", updated: "2026-05-15" },
+  { href: "/privacy", label: "Privacyverklaring", description: "Privacy.", updated: "2026-11-03" },
 ]
 
 /** Blog posts that live as code under app/berichten/<slug>/page.tsx, newest first. */
@@ -150,7 +150,7 @@ export const STATIC_POSTS: StaticPost[] = [
   },
   {
     slug: "kosten-non-bancaire-hypotheek",
-    title: "Wat kost een non-bancaire hypotheek? Rente, kosten en voorwaarden",
+    title: "Wat kost een zakelijke hypotheek zonder bank?",
     excerpt:
       "Een overzicht van rente, behandelingskosten, taxatie en notariskosten, en wanneer een hogere rente toch loont.",
     image: "/images/nbl-villa.jpg",

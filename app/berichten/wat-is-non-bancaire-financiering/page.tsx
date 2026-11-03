@@ -5,21 +5,15 @@ import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { FaqSchema } from '@/components/faq-schema'
 import { ArticleSchema } from '@/components/article-schema'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Wat is non-bancaire financiering? Uitleg, vormen en werking',
-  description: 'Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn, voor wie het geschikt is en hoe de zekerheden zijn geregeld.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/berichten/wat-is-non-bancaire-financiering' },
-  openGraph: {
-    title: 'Wat is non-bancaire financiering? Uitleg, vormen en werking | Lange & Partners',
-    description: 'Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn en hoe de zekerheden zijn geregeld.',
-    url: 'https://www.nonbancaireleningen.nl/berichten/wat-is-non-bancaire-financiering',
-  },
-  twitter: {
-    title: 'Wat is non-bancaire financiering? Uitleg, vormen en werking | Lange & Partners',
-    description: 'Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn en hoe de zekerheden zijn geregeld.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten/wat-is-non-bancaire-financiering",
+  title: "Wat is non-bancaire financiering? Uitleg, vormen en werking",
+  brand: false,
+  description: "Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn, voor wie het geschikt is en hoe de zekerheden zijn geregeld.",
+  type: "article",
+})
 
 const faq = [
   {

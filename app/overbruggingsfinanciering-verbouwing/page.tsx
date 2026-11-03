@@ -2,21 +2,14 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Overbruggingsfinanciering | Tijdelijke lening bij aankoop of verbouwing',
-  description: 'Een overbruggingslening nodig bij aankoop van nieuw vastgoed of een verbouwing? Lange & Partners regelt snelle tijdelijke financiering met vastgoed als zekerheid. Bedragen van €200.000 tot €5.000.000.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/overbruggingsfinanciering-verbouwing' },
-  openGraph: {
-    title: 'Overbruggingsfinanciering | Tijdelijke lening bij aankoop of verbouwing',
-    description: 'Een overbruggingslening nodig bij aankoop van nieuw vastgoed of een verbouwing? Lange & Partners regelt snelle tijdelijke financiering met vastgoed als zekerheid. Bedragen van €200.000 tot €5.000.000.',
-    url: 'https://www.nonbancaireleningen.nl/overbruggingsfinanciering-verbouwing',
-  },
-  twitter: {
-    title: 'Overbruggingsfinanciering | Tijdelijke lening bij aankoop of verbouwing',
-    description: 'Een overbruggingslening nodig bij aankoop van nieuw vastgoed of een verbouwing? Lange & Partners regelt snelle tijdelijke financiering met vastgoed als zekerheid. Bedragen van €200.000 tot €5.000.000.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/overbruggingsfinanciering-verbouwing",
+  title: "Overbruggingsfinanciering met vastgoed als zekerheid",
+  brand: false,
+  description: "Tijdelijk geld nodig bij een aankoop, verbouwing of veilingkoop, tot de verkoop of herfinanciering rond is? Met rentedepot of bouwdepot, vanaf €200.000.",
+})
 
 const situaties = [
   {
@@ -73,7 +66,7 @@ export default function OverbruggingsfinancieringPage() {
     <SituationPage
       href="/overbruggingsfinanciering-verbouwing"
       breadcrumb="Overbrugging en verbouwing"
-      title="Overbruggingsfinanciering voor verbouwing en meer"
+      title="Overbruggingsfinanciering bij aankoop, verbouwing of veiling"
       intro="Een tijdelijke lening met vastgoed als zekerheid: bij een verbouwing, een aankoop vóór de verkoop, een veiling of een project. Van €200.000 tot €5.000.000, 6 tot 60 maanden, met rentedepot en bouwdepot als dat past."
       image={{ src: '/images/bericht-2-brug.jpg', alt: 'Brug over een gracht', position: 'center 55%' }}
       lead={

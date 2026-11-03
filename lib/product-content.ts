@@ -154,7 +154,7 @@ export const PAGINAS: Record<string, RelatedItem> = {
   herfinanciering: { href: '/herfinanciering-vastgoed', title: 'Herfinanciering vastgoed', text: 'Een aflopende lening overbruggen tot verkoop of een nieuwe langlopende hypotheek.' },
   afgewezen: { href: '/hypotheek-ondernemer-afgewezen', title: 'Hypotheek afgewezen door de bank', text: 'Wat uw opties zijn na een afwijzing, en wanneer wij wel kunnen.' },
   proces: { href: '/berichten/zo-verloopt-een-financiering', title: 'Van aanvraag tot passering', text: 'De zes stappen van een financiering, wat wij van u nodig hebben en waar de tijd in gaat zitten.' },
-  kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een non-bancaire hypotheek?', text: 'Rente, behandelingskosten, taxatie en notaris: een overzicht van alle kosten en wat ze bepaalt.' },
+  kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een zakelijke hypotheek zonder bank?', text: 'Rente, behandelingskosten, taxatie en notaris: een overzicht van alle kosten en wat ze bepaalt.' },
   ltv: { href: '/berichten/tweede-hypotheek-en-ltv', title: 'Tweede hypotheek: waarom de LTV anders is dan u denkt', text: 'Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat.' },
   exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.' },
   watIs: { href: '/berichten/wat-is-non-bancaire-financiering', title: 'Wat is non-bancaire financiering?', text: 'Uitleg, vormen en werking van financiering buiten de bank om.' },

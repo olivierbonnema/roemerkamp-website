@@ -2,21 +2,14 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Hypotheek afgewezen door de bank? Alsnog financieren',
-  description: 'Afgewezen door de bank als ondernemer, DGA, belegger of particulier met vastgoed? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen' },
-  openGraph: {
-    title: 'Hypotheek afgewezen door de bank? Alsnog financieren',
-    description: 'Afgewezen door de bank als ondernemer, DGA, belegger of particulier met vastgoed? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
-    url: 'https://www.nonbancaireleningen.nl/hypotheek-ondernemer-afgewezen',
-  },
-  twitter: {
-    title: 'Hypotheek afgewezen door de bank? Alsnog financieren',
-    description: 'Afgewezen door de bank als ondernemer, DGA, belegger of particulier met vastgoed? Lange & Partners beoordeelt anders dan een bank: op betaalbaarheid, onderpand en exit. €200.000 tot €5.000.000, 6 tot 60 maanden.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/hypotheek-ondernemer-afgewezen",
+  title: "Hypotheek afgewezen door de bank? Dit is het alternatief",
+  brand: false,
+  description: "Afgewezen als ondernemer, belegger of particulier met vastgoed? Wij beoordelen anders dan een bank: op betaalbaarheid, onderpand en exit. Vanaf €200.000.",
+})
 
 const redenen = [
   {
@@ -92,7 +85,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
     <SituationPage
       href="/hypotheek-ondernemer-afgewezen"
       breadcrumb="Afgewezen door de bank"
-      title="Afgewezen door de bank?"
+      title="Hypotheek of financiering afgewezen door de bank?"
       intro="Banken wijzen af op wisselend inkomen, te weinig boekjaren, een complexe structuur of het pand zelf. Wij beoordelen anders: op de betaalbaarheid, het onderpand en de exit. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
       lead={

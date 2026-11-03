@@ -15,21 +15,14 @@ import {
   FAQ_AANSPREEKPUNT,
   verwant,
 } from '@/lib/product-content'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Vastgoedfinanciering zonder bank (non-bancaire hypotheek) | Lange & Partners' },
-  description: 'De non-bancaire hypotheek van Lange & Partners: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank' },
-  openGraph: {
-    title: 'Vastgoedfinanciering zonder bank (non-bancaire hypotheek) | Lange & Partners',
-    description: 'De non-bancaire hypotheek van Lange & Partners: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.',
-    url: 'https://www.nonbancaireleningen.nl/vastgoedfinanciering-zonder-bank',
-  },
-  twitter: {
-    title: 'Vastgoedfinanciering zonder bank (non-bancaire hypotheek) | Lange & Partners',
-    description: 'De non-bancaire hypotheek van Lange & Partners: een tijdelijke lening van €200.000 tot €5.000.000 met uw vastgoed als zekerheid. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/vastgoedfinanciering-zonder-bank",
+  title: "Vastgoedfinanciering zonder bank | Zakelijke hypotheek",
+  brand: false,
+  description: "Tijdelijke zakelijke hypotheek van €200.000 tot €5.000.000 met uw vastgoed als zekerheid, rente vanaf 7%. Voorwaarden, kosten, rekenvoorbeeld en aanvraag.",
+})
 
 
 const inhoud = [

@@ -13,10 +13,10 @@ const BASE_URL = 'https://www.nonbancaireleningen.nl'
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: 'Lange & Partners | Non-bancaire vastgoedfinanciering',
+    default: 'Lange & Partners | Vastgoedfinanciering zonder bank',
     template: '%s | Lange & Partners',
   },
-  description: 'Non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers en investeerders in heel Nederland.',
+  description: 'Tijdelijke vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers en beleggers, beoordeeld op betaalbaarheid, onderpand en exit.',
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',

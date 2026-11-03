@@ -8,17 +8,13 @@ import { RelatedList } from '@/components/product/content-blocks'
 import { ContactSection } from '@/components/product/contact-section'
 import { BORROWER_PAGE, SITUATION_PAGES } from '@/lib/site-nav'
 import { CONTACT_FOTO, CONTACT_TEKST } from '@/lib/product-content'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Situaties waarin wij financieren',
-  description: 'Afgewezen door de bank, geen drie jaar jaarcijfers, DGA, tweede hypotheek, overbrugging, herfinanciering, beleggingspand of onderhandse hypotheek: één product, uitgelegd per situatie.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/situaties' },
-  openGraph: {
-    title: 'Situaties waarin wij financieren | Lange & Partners',
-    description: 'Eén product, een tijdelijke lening met hypotheekrecht op vastgoed in Nederland, uitgelegd per situatie.',
-    url: 'https://www.nonbancaireleningen.nl/situaties',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/situaties",
+  title: "Situaties waarin wij financieren",
+  description: "Afgewezen door de bank, geen drie jaar jaarcijfers, DGA, tweede hypotheek, overbrugging, herfinanciering of beleggingspand: één product, per situatie.",
+})
 
 export default function SituatiesPage() {
   const items = SITUATION_PAGES.map((p) => ({ href: p.href, title: p.label, text: p.description }))

@@ -3,21 +3,14 @@ import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
 import { STAPPEN_INLEIDING } from '@/lib/product-content'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Herfinanciering vastgoed | Snel herfinancieren zonder bank',
-  description: 'Herfinanciering van uw vastgoed afgewezen door de bank? Lange & Partners herfinanciert op basis van uw onderpand. Snel, flexibel en zonder bancaire beperkingen. €200.000 tot €5.000.000.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl/herfinanciering-vastgoed' },
-  openGraph: {
-    title: 'Herfinanciering vastgoed | Snel herfinancieren zonder bank',
-    description: 'Herfinanciering van uw vastgoed afgewezen door de bank? Lange & Partners herfinanciert op basis van uw onderpand. Snel, flexibel en zonder bancaire beperkingen. €200.000 tot €5.000.000.',
-    url: 'https://www.nonbancaireleningen.nl/herfinanciering-vastgoed',
-  },
-  twitter: {
-    title: 'Herfinanciering vastgoed | Snel herfinancieren zonder bank',
-    description: 'Herfinanciering van uw vastgoed afgewezen door de bank? Lange & Partners herfinanciert op basis van uw onderpand. Snel, flexibel en zonder bancaire beperkingen. €200.000 tot €5.000.000.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/herfinanciering-vastgoed",
+  title: "Herfinanciering bedrijfspand of beleggingspand zonder bank",
+  brand: false,
+  description: "Loopt uw financiering af en verlengt de bank niet? Wij herfinancieren bedrijfspanden, beleggingspanden en woningen met hypotheekrecht. Vanaf €200.000.",
+})
 
 const wanneer = [
   {

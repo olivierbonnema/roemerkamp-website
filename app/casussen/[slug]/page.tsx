@@ -10,6 +10,7 @@ import { KeyFacts } from '@/components/product/aside-panels'
 import { RelatedList } from '@/components/product/content-blocks'
 import { ContactSection } from '@/components/product/contact-section'
 import { CASUSSEN, CASUS_SLUGS, getCasus } from '@/lib/casussen'
+import { pageMetadata } from '@/lib/seo'
 import { BORROWER_PAGE, INVESTOR_PAGE } from '@/lib/site-nav'
 import { CONTACT_FOTO, CONTACT_TEKST } from '@/lib/product-content'
 
@@ -21,13 +22,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const casus = getCasus(slug)
   if (!casus) return {}
-  const url = `https://www.nonbancaireleningen.nl/casussen/${casus.slug}`
-  return {
+  // Titles stay as they are until the real cases replace the examples (3 November 2026).
+  return pageMetadata({
+    path: `/casussen/${casus.slug}`,
     title: `Casus: ${casus.titel}`,
     description: casus.samenvatting,
-    alternates: { canonical: url },
-    openGraph: { title: `Casus: ${casus.titel} | Lange & Partners`, description: casus.samenvatting, url },
-  }
+    type: 'article',
+  })
 }
 
 export default async function CasusPage({ params }: { params: Promise<{ slug: string }> }) {

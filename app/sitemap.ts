@@ -48,7 +48,7 @@ async function cmsPosts(): Promise<MetadataRoute.Sitemap> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const home: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: new Date('2026-10-27'), changeFrequency: 'weekly', priority: 1 },
+    { url: BASE, lastModified: new Date('2026-11-03'), changeFrequency: 'weekly', priority: 1 },
   ]
 
   type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
