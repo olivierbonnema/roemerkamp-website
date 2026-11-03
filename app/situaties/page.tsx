@@ -13,7 +13,7 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/situaties",
   title: "Situaties waarin wij financieren",
-  description: "Afgewezen door de bank, geen drie jaar jaarcijfers, DGA, tweede hypotheek, overbrugging, herfinanciering of beleggingspand: één product, per situatie.",
+  description: "Eén product, per situatie uitgelegd, van een afwijzing door de bank of geen drie jaar jaarcijfers tot DGA, tweede hypotheek, overbrugging, herfinanciering en beleggingspand.",
 })
 
 export default function SituatiesPage() {
@@ -25,7 +25,7 @@ export default function SituatiesPage() {
       <main>
         <PageHero
           title="Situaties waarin wij financieren"
-          intro="Wij hebben één product: een tijdelijke lening van €200.000 tot €5.000.000 met een hypotheekrecht op vastgoed in Nederland. De situaties waarin dat uitkomst biedt, verschillen. Hieronder staat per situatie wat er anders is en hoe wij beoordelen."
+          intro="Wij hebben één product, een tijdelijke lening van €200.000 tot €5.000.000 met een hypotheekrecht op vastgoed in Nederland. De situaties waarin dat uitkomst biedt, verschillen. Hieronder staat per situatie wat er anders is en hoe wij beoordelen."
           breadcrumbs={[{ label: 'Situaties', href: '/situaties' }]}
           image={{ src: '/images/nbl-herenhuis.jpg', alt: 'Herenhuis in Nederland' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voorwaarden en kosten' }}
@@ -42,7 +42,7 @@ export default function SituatiesPage() {
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Eén product, meerdere situaties</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
                   Of u nu DGA bent, een beleggingspand koopt of een overbrugging zoekt, de financiering is dezelfde en
-                  wordt op dezelfde manier beoordeeld: op het onderpand, de betaalbaarheid van de rente en de exit. De
+                  wordt op dezelfde manier beoordeeld, namelijk op het onderpand, de betaalbaarheid van de rente en de exit. De
                   voorwaarden, kosten, het rekenvoorbeeld en de aanvraagstappen staan op één pagina.
                 </p>
                 <Link

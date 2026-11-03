@@ -37,7 +37,7 @@ const situaties = [
   },
   {
     term: 'Eigen bedrijfspand kopen in plaats van huren',
-    text: 'De onderneming of de holding koopt het pand waarin zij zit. Het hypotheekrecht komt op het pand; de huur die u nu betaalt, dekt de rente.',
+    text: 'De onderneming of de holding koopt het pand waarin zij zit. Het hypotheekrecht komt op het pand. De huur die u nu betaalt, dekt de rente.',
   },
   {
     term: 'Herfinanciering van een aflopende lening',
@@ -82,8 +82,8 @@ export default function BeleggingspandFinancierenPage() {
       image={{ src: '/images/hero-image.jpg', alt: 'Panden aan het Spaarne in Haarlem', position: 'center 45%' }}
       lead={
         <>
-          Bij een beleggingspand of een bedrijfspand is het pand zelf de hoofdrolspeler: wat is het waard, wat brengt het
-          op en hoe courant is het. Banken toetsen steeds vaker op de eigenaar in plaats van op het pand, of bedienen dit
+          Bij een beleggingspand of een bedrijfspand is het pand zelf de hoofdrolspeler. Wat is het waard, wat brengt het
+          op en hoe courant is het? Banken toetsen steeds vaker op de eigenaar in plaats van op het pand, of bedienen dit
           segment niet meer. Op deze pagina leest u hoe wij een beleggingspand en een bedrijfspand beoordelen en in welke
           situaties dat uitkomst biedt.
         </>
@@ -126,7 +126,7 @@ export default function BeleggingspandFinancierenPage() {
           alignLast="right"
           rows={[
             ['Marktwaarde in verhuurde staat, volgens taxatie', '€1.600.000'],
-            ['Lening, eerste rang, 65% loan-to-value', '€1.040.000'],
+            ['Lening met 1e hypotheekrecht, 65% loan-to-value', '€1.040.000'],
             ['Eigen inbreng', '€560.000'],
             ['Jaarhuur', '€96.000'],
             ['Rente, in dit voorbeeld 8% per jaar', '€83.200'],
@@ -136,7 +136,7 @@ export default function BeleggingspandFinancierenPage() {
         />
         <Note>
           Fictief voorbeeld met een indicatieve rente van 8%. De opstartvergoeding is 1% van het leenbedrag met een
-          minimum van €3.000; taxatie en notaris komen hier nog bij.
+          minimum van €3.000. Taxatie en notaris komen hier nog bij.
         </Note>
       </ArticleSection>
     </SituationPage>

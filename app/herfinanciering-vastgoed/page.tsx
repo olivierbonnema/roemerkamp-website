@@ -61,11 +61,11 @@ const verloop = [
   },
   {
     title: 'Beoordeling, indicatie en termsheet',
-    text: 'Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit. Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie: leningbedrag, rente, looptijd van 6 tot 60 maanden en de zekerheden. Na uw akkoord factureren wij de opstartvergoeding, stellen wij de termsheet op met alle kosten en voorwaarden, en leggen wij de lening voor aan een investeerder.',
+    text: 'Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit. Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie met het leningbedrag, de rente, de looptijd van 6 tot 60 maanden en de zekerheden. Na uw akkoord factureren wij de opstartvergoeding, stellen wij de termsheet op met alle kosten en voorwaarden, en leggen wij de lening voor aan een investeerder.',
   },
   {
     title: 'Aflossing van de oude lening bij de notaris',
-    text: 'De investeerder stort het bedrag bij de onafhankelijke Stichting. De notaris lost de bestaande lening af uit de nieuwe, de oude hypotheek wordt doorgehaald en de nieuwe hypotheekakte wordt ingeschreven bij het Kadaster, doorgaans in eerste rang.',
+    text: 'De investeerder stort het bedrag bij de onafhankelijke Stichting. De notaris lost de bestaande lening af uit de nieuwe, de oude hypotheek wordt doorgehaald en de nieuwe hypotheekakte wordt ingeschreven bij het Kadaster, doorgaans als 1e hypotheekrecht.',
   },
   {
     title: 'Looptijd en exit',
@@ -84,7 +84,7 @@ const faq = [
   },
   {
     vraag: 'Welke bedragen en looptijden zijn mogelijk bij herfinanciering?',
-    antwoord: 'Van €200.000 tot €5.000.000, met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand: de totale schuld blijft doorgaans binnen 70%, maximaal 75%.',
+    antwoord: 'Van €200.000 tot €5.000.000, met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand. De totale schuld blijft doorgaans binnen 70%, maximaal 75%.',
   },
   {
     vraag: 'Is herfinanciering buiten de bank om veilig?',
@@ -147,15 +147,15 @@ export default function HerfinancieringVastgoedPage() {
             ['Marktwaarde volgens taxatie', '€1.500.000'],
             ['Maximale totale schuld bij 70% loan-to-value', '€1.050.000'],
             ['Af te lossen bancaire lening', '€900.000'],
-            ['Nieuwe lening, eerste rang', '€950.000'],
+            ['Nieuwe lening met 1e hypotheekrecht', '€950.000'],
             ['Waarvan rentedepot, 12 maanden à 8%', '€50.000'],
             ['Loan-to-value na herfinanciering', '63%'],
             ['Looptijd en exit', '24 maanden, verkoop of nieuwe bankfinanciering'],
           ]}
         />
         <Note>
-          Fictief voorbeeld met een indicatieve rente van 8%; het rentedepot is afgerond. De opstartvergoeding is 1% van
-          het leenbedrag met een minimum van €3.000; taxatie en notaris komen hier nog bij.
+          Fictief voorbeeld met een indicatieve rente van 8%. Het rentedepot is afgerond. De opstartvergoeding is 1% van
+          het leenbedrag met een minimum van €3.000. Taxatie en notaris komen hier nog bij.
         </Note>
       </ArticleSection>
 

@@ -11,7 +11,7 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/over-ons",
   title: "Over ons",
-  description: "Lange & Partners (Lange Financieel Advies B.V.) in Haarlem: tijdelijke vastgoedleningen, voortgekomen uit ruim 50 jaar bancaire ervaring.",
+  description: "Lange & Partners (Lange Financieel Advies B.V.) uit Haarlem bemiddelt in tijdelijke vastgoedleningen en is voortgekomen uit ruim 50 jaar bancaire ervaring.",
 })
 
 export default function OverWMPPage() {

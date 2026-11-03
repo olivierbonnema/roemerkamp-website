@@ -10,7 +10,7 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/financieringsaanvraag",
   title: "Financiering aanvragen",
-  description: "Vraag een vastgoedfinanciering aan van €200.000 tot €5.000.000. U ontvangt eerst een indicatie per e-mail; pas na uw akkoord volgen factuur en termsheet.",
+  description: "Vraag een vastgoedfinanciering aan van €200.000 tot €5.000.000. U ontvangt eerst een indicatie per e-mail. Pas na uw akkoord volgen factuur en termsheet.",
 })
 
 export default function FinancieringsaanvraagPage() {

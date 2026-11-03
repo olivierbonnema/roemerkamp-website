@@ -13,7 +13,7 @@ import { pageMetadata } from '@/lib/seo'
 const URL = "https://www.nonbancaireleningen.nl/berichten/zo-verloopt-een-financiering"
 const TITEL = "Van aanvraag tot passering: zo verloopt een financiering bij Lange & Partners"
 const OMSCHRIJVING =
-  "De zes stappen van aanvraag tot passering bij de notaris: wat wij van u nodig hebben, hoe de investeerder beslist en waar de tijd in gaat zitten."
+  "De zes stappen van aanvraag tot passering bij de notaris, met wat wij van u nodig hebben, hoe de investeerder beslist en waar de tijd in gaat zitten."
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten/zo-verloopt-een-financiering",
@@ -25,14 +25,14 @@ export const metadata: Metadata = pageMetadata({
 
 const faq = [
   {
-    vraag: "Wie is mijn aanspreekpunt: Lange & Partners of de investeerder?",
+    vraag: "Wie is mijn aanspreekpunt, Lange & Partners of de investeerder?",
     antwoord:
       "Altijd Lange & Partners, van de aanvraag tot de laatste aflossing. De investeerder financiert, maar staat op afstand. Alle betalingen lopen via de onafhankelijke Stichting, en vragen over de lening stelt u aan ons.",
   },
   {
     vraag: "Moet ik een taxatierapport hebben voordat ik een aanvraag doe?",
     antwoord:
-      "Voor een eerste indicatie niet; een recente WOZ-waarde of een goede onderbouwing volstaat om te kunnen rekenen. Voor de termsheet en het passeren is een taxatierapport van een onafhankelijke taxateur wel vereist. Wie het rapport al heeft, wint daarmee tijd.",
+      "Voor een eerste indicatie niet. Een recente WOZ-waarde of een goede onderbouwing volstaat om te kunnen rekenen. Voor de termsheet en het passeren is een taxatierapport van een onafhankelijke taxateur wel vereist. Wie het rapport al heeft, wint daarmee tijd.",
   },
   {
     vraag: "Kan een financiering na de termsheet nog afketsen?",
@@ -98,7 +98,7 @@ export default function ZoVerlooptEenFinancieringPage() {
                     <>
                       <p>
                         U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig
-                        hebben: het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen
+                        hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen
                         of kasstroom, het doel van de lening en hoe u hem denkt af te lossen. Documenten kunt u direct
                         meesturen.
                       </p>
@@ -114,16 +114,16 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        Wij beoordelen de hele casus op drie punten. De betaalbaarheid: kunt u de rente en de kosten
-                        dragen, uit inkomen, kasstroom, huur of een rentedepot. Het onderpand: de waarde, en de totale
-                        schuld die erop komt te rusten, dus inclusief hypotheken die vóór ons staan. En de uitstrategie.
+                        Wij beoordelen de hele casus op drie punten. Het eerste is de betaalbaarheid. Kunt u de rente en de kosten
+                        dragen, uit inkomen, kasstroom, huur of een rentedepot? Het tweede is het onderpand, dus de waarde en de totale
+                        schuld die erop komt te rusten, inclusief hypotheken die vóór ons staan. Het derde is de uitstrategie.
                         Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten, het
                         curatele- en bewindregister en het insolventieregister. Dat is een wettelijke plicht, en het
                         beschermt de investeerder.
                       </p>
                       <p>
-                        Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden:
-                        bedrag, rente, looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren
+                        Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden,
+                        met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren
                         wij de opstartvergoeding en stellen wij de termsheet op.
                       </p>
                     </>
@@ -134,9 +134,9 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        Alle afspraken op papier: hoofdsom, rente, looptijd, aflossingsvorm, een eventueel rentedepot
+                        Alle afspraken komen op papier. Dat zijn de hoofdsom, de rente, de looptijd, de aflossingsvorm, een eventueel rentedepot
                         of bouwdepot, de zekerheden, de kosten en de voorwaarden die vóór het passeren vervuld moeten
-                        zijn. U tekent de termsheet; daarmee ligt vast wat er gaat gebeuren.
+                        zijn. U tekent de termsheet. Daarmee ligt vast wat er gaat gebeuren.
                       </p>
                       <p>
                         Wat in de termsheet staat, is ook wat de investeerder te zien krijgt. Er zit geen tweede versie
@@ -150,7 +150,7 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        Wij schrijven een pitch voor onze investeerders: de aanvraag, de zekerheden, de LTV, de exit en
+                        Wij schrijven een pitch voor onze investeerders met de aanvraag, de zekerheden, de LTV, de exit en
                         de risico's, benoemd zoals ze zijn. Een investeerder beslist op basis daarvan of hij de lening
                         financiert.
                       </p>
@@ -166,9 +166,9 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        De hypotheekakte wordt door de notaris verleden en ingeschreven bij het Kadaster, in eerste of
-                        tweede rang. De investeerder stort het geld niet aan u, maar bij de onafhankelijke Stichting die
-                        de geldstromen beheert; de notaris keert uit. Er loopt nooit geld rechtstreeks tussen geldnemer
+                        De hypotheekakte wordt door de notaris verleden en ingeschreven bij het Kadaster, als 1e of 2e
+                        hypotheekrecht. De investeerder stort het geld niet aan u, maar bij de onafhankelijke Stichting
+                        die de geldstromen beheert. De notaris keert uit. Er loopt nooit geld rechtstreeks tussen geldnemer
                         en investeerder.
                       </p>
                     </>
@@ -232,8 +232,8 @@ export default function ZoVerlooptEenFinancieringPage() {
           <UitDePraktijk>
             <p>
               De snelste dossiers die wij zien, komen van aanvragers die drie dingen bij de hand hebben op de dag dat
-              zij de aanvraag doen: een taxatie van niet ouder dan een half jaar, een saldo-opgave van hun bank van
-              diezelfde week, en een antwoord op de vraag hoe zij de lening gaan aflossen dat in twee zinnen past.
+              zij de aanvraag doen. Dat zijn een taxatie van niet ouder dan een half jaar, een saldo-opgave van hun bank van
+              diezelfde week en een antwoord op de vraag hoe zij de lening gaan aflossen dat in twee zinnen past.
             </p>
           </UitDePraktijk>
         </Sectie>

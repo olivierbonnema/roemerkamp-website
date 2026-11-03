@@ -34,7 +34,7 @@ export function ToezichtSection() {
             <div className="space-y-4 text-gray-700 text-[15px] leading-relaxed font-sans">
               <p>
                 Lange &amp; Partners is een handelsnaam van Lange Financieel Advies B.V. (KvK 34269870). Wij hebben
-                een AFM-vergunning voor bemiddeling: wij brengen leningnemer en investeerder bij elkaar, de
+                een AFM-vergunning voor bemiddeling. Wij brengen leningnemer en investeerder bij elkaar en de
                 investeerder verstrekt de lening. Alle leningen worden notarieel vastgelegd en ingeschreven bij het
                 Kadaster, en alle betalingen verlopen via een onafhankelijke Stichting.
               </p>

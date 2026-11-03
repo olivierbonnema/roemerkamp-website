@@ -18,7 +18,7 @@ export function VermogensbeheerHomeSection() {
                 Iedere financieringsaanvraag wordt zorgvuldig beoordeeld. Daarbij wordt gekeken naar de onderliggende zekerheid, de betaalbaarheid van maandelijkse rente en kosten en het perspectief op herfinanciering of aflossing. Pas wanneer het geheel (zekerheden, betalingscapaciteit en terugbetaling) naar ons oordeel voldoende solide is, wordt een propositie aan investeerders voorgelegd.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Of het nu gaat om een overbruggingsfinanciering, de aankoop van vastgoed of een situatie waarin bankcriteria onvoldoende aansluiten bij de werkelijkheid: binnen non-bancaire leningen werken wij met duidelijke afspraken, solide zekerheden en een transparante structuur voor alle betrokken partijen.
+                Of het nu gaat om een overbruggingsfinanciering, de aankoop van vastgoed of een situatie waarin bankcriteria onvoldoende aansluiten bij de werkelijkheid, wij werken binnen non-bancaire leningen met duidelijke afspraken, solide zekerheden en een transparante structuur voor alle betrokken partijen.
               </p>
             </div>
             <Link

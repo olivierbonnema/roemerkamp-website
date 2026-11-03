@@ -11,7 +11,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/berichten/kosten-non-bancaire-hypotheek",
   title: "Zakelijke hypotheek zonder bank: rente en kosten",
   brand: false,
-  description: "Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris: wat een tijdelijke zakelijke hypotheek zonder bank kost.",
+  description: "Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris.",
   type: "article",
 })
 
@@ -22,7 +22,7 @@ const faq = [
   },
   {
     vraag: 'Zijn er verborgen kosten bij een non-bancaire hypotheek?',
-    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf: rente, behandelingskosten, taxatiekosten en notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
+    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf. Dat zijn de rente, de behandelingskosten, de taxatiekosten en de notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
   },
   {
     vraag: 'Kan ik de rente fiscaal aftrekken?',
@@ -44,7 +44,7 @@ export default function KostenNonBancaireHypotheekPage() {
       <FaqSchema items={faq} />
       <ArticleSchema
         headline="Wat kost een zakelijke hypotheek zonder bank?"
-        description="Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris: wat een tijdelijke zakelijke hypotheek zonder bank kost."
+        description="Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris."
         url="https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek"
         datePublished="2026-05-15"
         dateModified="2026-11-03"
@@ -96,15 +96,15 @@ export default function KostenNonBancaireHypotheekPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Rentetarieven</h2>
               <p className="text-gray-700 leading-relaxed">
-                De rente op een zakelijke hypotheek zonder bank ligt doorgaans tussen de 7% en 12% per jaar. Het exacte tarief hangt af van meerdere factoren:
+                De rente op een zakelijke hypotheek zonder bank ligt doorgaans tussen de 7% en 12% per jaar. Het exacte tarief hangt af van meerdere factoren.
               </p>
               <div className="space-y-3">
                 {[
-                  'De Loan-to-Value (LTV): hoe lager de LTV, hoe lager de rente',
-                  'De looptijd van de lening: korter is doorgaans voordeliger',
-                  'Het type vastgoed, woningen kennen vaak een lagere rente dan commercieel vastgoed',
-                  'Het risicoprofiel van de aanvrager, financiële stabiliteit drukt de rente',
-                  'De positie van de hypotheek: eerste hypotheek is voordeliger dan tweede hypotheek',
+                  'Hoe lager de loan-to-value (LTV), hoe lager de rente',
+                  'Een kortere looptijd is doorgaans voordeliger',
+                  'Woningen kennen vaak een lagere rente dan commercieel vastgoed',
+                  'Een stabiele financiële positie van de aanvrager drukt de rente',
+                  'Een 1e hypotheekrecht is voordeliger dan een 2e hypotheekrecht',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
@@ -113,7 +113,7 @@ export default function KostenNonBancaireHypotheekPage() {
                 ))}
               </div>
               <p className="text-gray-700 leading-relaxed">
-                Ter vergelijking: bij een bank ligt de hypotheekrente momenteel rond de 4% tot 5%. Het verschil wordt verklaard door de flexibiliteit, snelheid en het feit dat non-bancaire financiers werken met privaat kapitaal.
+                Ter vergelijking, bij een bank ligt de hypotheekrente momenteel rond de 4% tot 5%. Het verschil wordt verklaard door de flexibiliteit, snelheid en het feit dat non-bancaire financiers werken met privaat kapitaal.
               </p>
             </div>
 
@@ -121,12 +121,12 @@ export default function KostenNonBancaireHypotheekPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Eenmalige kosten bij afsluiting</h2>
               <p className="text-gray-700 leading-relaxed">
-                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering. Deze zijn vergelijkbaar met de kosten bij een bancaire hypotheek:
+                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering. Deze zijn vergelijkbaar met de kosten bij een bancaire hypotheek.
               </p>
               <div className="space-y-3">
                 {[
-                  'Behandelingskosten: een opstartvergoeding van 1% van het leenbedrag, met een minimum van €3.000',
-                  'Taxatiekosten: een onafhankelijk taxatierapport is altijd vereist',
+                  'Behandelingskosten in de vorm van een opstartvergoeding van 1% van het leenbedrag, met een minimum van €3.000',
+                  'Taxatiekosten voor een onafhankelijk taxatierapport, dat altijd vereist is',
                   'Notariskosten voor het passeren van de hypotheekakte',
                   'Kadasterkosten voor de inschrijving van het hypotheekrecht',
                 ].map((punt) => (
@@ -145,7 +145,7 @@ export default function KostenNonBancaireHypotheekPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Wanneer loont een hogere rente?</h2>
               <p className="text-gray-700 leading-relaxed">
-                De hogere rente is alleen verantwoord als de financiering waarde toevoegt die u bij de bank niet kunt krijgen. Dat is het geval in situaties zoals:
+                De hogere rente is alleen verantwoord als de financiering waarde toevoegt die u bij de bank niet kunt krijgen. Dat is bijvoorbeeld het geval in de volgende situaties.
               </p>
               <div className="space-y-3">
                 {[

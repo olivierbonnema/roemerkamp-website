@@ -33,11 +33,11 @@ const voorwie = [
 const beoordeling = [
   {
     term: 'De betaalbaarheid',
-    text: 'Kunt u de rente en de kosten dragen? Daarvoor kijken wij naar uw inkomen en kasstroom zoals die nu zijn en straks worden: lopende opdrachten en contracten, huurinkomsten, de cijfers die er wel zijn en een onderbouwde prognose. Niet het gemiddelde van drie jaar terug.',
+    text: 'Kunt u de rente en de kosten dragen? Daarvoor kijken wij naar uw inkomen en kasstroom zoals die nu zijn en straks worden. Denk aan lopende opdrachten en contracten, huurinkomsten, de cijfers die er wel zijn en een onderbouwde prognose. Niet het gemiddelde van drie jaar terug.',
   },
   {
     term: 'Het onderpand',
-    text: 'Marktwaarde, type vastgoed, locatie en verkoopbaarheid. Het onderpand bepaalt de maximale lening: doorgaans tot 70% van de marktwaarde, maximaal 75%, inclusief een eventuele bestaande hypotheek.',
+    text: 'Marktwaarde, type vastgoed, locatie en verkoopbaarheid. Het onderpand bepaalt de maximale lening, doorgaans tot 70% van de marktwaarde en maximaal 75%, inclusief een eventuele bestaande hypotheek.',
   },
   {
     term: 'De vermogenspositie',
@@ -45,7 +45,7 @@ const beoordeling = [
   },
   {
     term: 'Het doel en de exit',
-    text: 'Waarvoor is de financiering en hoe eindigt de lening: herfinanciering bij een bank zodra de cijfers er zijn, verkoop, of aflossing uit eigen middelen. Zonder geloofwaardige exit nemen wij een aanvraag niet in behandeling.',
+    text: 'Waarvoor is de financiering en hoe eindigt de lening? Dat kan met herfinanciering bij een bank zodra de cijfers er zijn, met verkoop of met aflossing uit eigen middelen. Zonder geloofwaardige exit nemen wij een aanvraag niet in behandeling.',
   },
 ]
 
@@ -56,7 +56,7 @@ const faq = [
   },
   {
     vraag: 'Hoe beoordeelt Lange & Partners een aanvraag zonder jaarcijfers?',
-    antwoord: 'Op dezelfde drie punten als elke casus: de betaalbaarheid (inkomen en kasstroom zoals die nu zijn, lopende opdrachten, een onderbouwde prognose), het onderpand (marktwaarde, type, locatie) en de exit (hoe de lening wordt afgelost). Inkomen telt dus mee, alleen niet als gemiddelde van drie jaar. Een realistisch en onderbouwd beeld is voor ons voldoende.',
+    antwoord: 'Op dezelfde drie punten als elke casus, namelijk de betaalbaarheid (inkomen en kasstroom zoals die nu zijn, lopende opdrachten, een onderbouwde prognose), het onderpand (marktwaarde, type, locatie) en de exit (hoe de lening wordt afgelost). Inkomen telt dus mee, alleen niet als gemiddelde van drie jaar. Een realistisch en onderbouwd beeld is voor ons voldoende.',
   },
   {
     vraag: 'Kan ik ook een lening aanvragen als mijn bedrijf pas één jaar bestaat?',
@@ -82,7 +82,7 @@ export default function HypotheekZonderJaarcijfersPage() {
       href="/hypotheek-zonder-jaarcijfers"
       breadcrumb="Geen drie jaar jaarcijfers"
       title="Hypotheek of zakelijke lening zonder jaarcijfers"
-      intro="Banken vragen drie jaar jaarcijfers; niet iedere ondernemer, ZZP'er of DGA heeft die. Wij beoordelen anders dan een bank: op de betaalbaarheid, het onderpand en de exit, niet langs de norm van drie jaar cijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      intro="Banken vragen drie jaar jaarcijfers. Niet iedere ondernemer, ZZP'er of DGA heeft die. Wij beoordelen anders dan een bank. Wij kijken naar de betaalbaarheid, het onderpand en de exit, niet naar de norm van drie jaar cijfers. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/nbl-kantoor.jpg', alt: 'Kantoorgebouw, zwart-wit' }}
       lead={
         <>
@@ -99,9 +99,9 @@ export default function HypotheekZonderJaarcijfersPage() {
           afgelopen drie jaar als basis voor de maximale hypotheek. Zonder drie jaar jaarcijfers ontbreekt de grondslag voor die berekening.
         </p>
         <p>
-          Het gevolg: een ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire
-          financiering, omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide; uw situatie is dat
-          niet. Wij beoordelen anders: op de betaalbaarheid, het onderpand en de exit, in samenhang.
+          Het gevolg is dat een ondernemer met een florerende onderneming en voldoende eigen vermogen geen bancaire
+          financiering krijgt, omdat de bank de rekenregel niet kan toepassen. De bancaire norm is rigide. Uw situatie is dat
+          niet. Wij beoordelen anders en kijken in samenhang naar de betaalbaarheid, het onderpand en de exit.
         </p>
       </ArticleSection>
 
@@ -114,7 +114,7 @@ export default function HypotheekZonderJaarcijfersPage() {
         <DefinitionList items={beoordeling} />
       </ArticleSection>
 
-      <ArticleSection id="jaren" title="Nul, één of twee jaar cijfers: wat kan wel?">
+      <ArticleSection id="jaren" title="Wat kan met nul, één of twee jaar cijfers?">
         <p>
           Het aantal afgesloten boekjaren verandert bij ons niets aan de beoordeling. Het bepaalt wel wat u kunt
           aanleveren en hoe snel een bank de lening later kan overnemen.
@@ -123,12 +123,12 @@ export default function HypotheekZonderJaarcijfersPage() {
           head={['Situatie', 'Bij de bank', 'Via Lange & Partners']}
           rows={[
             ['Net gestart, nog geen afgesloten boekjaar', 'Geen inkomenstoets mogelijk, aanvraag wordt afgewezen', 'Beoordeling op betaalbaarheid (lopende opdrachten, vermogen), onderpand en exit'],
-            ['Eén afgesloten boekjaar', 'Meestal afwijzing; soms een prognose met forse korting', 'Jaarcijfer en prognose tellen mee voor de betaalbaarheid; onderpand en exit wegen even zwaar'],
+            ['Eén afgesloten boekjaar', 'Meestal afwijzing. Soms een prognose met forse korting', 'Jaarcijfer en prognose tellen mee voor de betaalbaarheid. Onderpand en exit wegen even zwaar'],
             ['Twee afgesloten boekjaren', 'Bij sommige banken mogelijk met prognose en lagere maximale hypotheek', 'Financiering voor de periode tot het derde boekjaar, met bankherfinanciering als exit'],
           ]}
         />
         <Note>
-          Hoe de bank rekent verschilt per bank en per situatie; de kolom "Bij de bank" beschrijft het gangbare beeld,
+          Hoe de bank rekent verschilt per bank en per situatie. De kolom "Bij de bank" beschrijft het gangbare beeld,
           geen toezegging van een bank.
         </Note>
       </ArticleSection>
@@ -163,11 +163,11 @@ export default function HypotheekZonderJaarcijfersPage() {
         <p>
           Een non-bancaire hypotheek is voor de meeste ondernemers een tijdelijke oplossing. Zodra u aan de bancaire
           jaarcijfereis voldoet, kunt u doorgaans herfinancieren naar een reguliere hypotheek met een lagere rente en een
-          langere looptijd. Wij stemmen de looptijd daarop af: bij één afgesloten boekjaar bijvoorbeeld 24 maanden, zodat
+          langere looptijd. Wij stemmen de looptijd daarop af. Bij één afgesloten boekjaar is dat bijvoorbeeld 24 maanden, zodat
           het derde boekjaar binnen de looptijd valt.
         </p>
         <p>
-          Vervroegd aflossen bij een bankherfinanciering is in de meeste gevallen mogelijk; de voorwaarden daarvoor staan
+          Vervroegd aflossen bij een bankherfinanciering is in de meeste gevallen mogelijk. De voorwaarden daarvoor staan
           vooraf in de leningsovereenkomst.
         </p>
       </ArticleSection>

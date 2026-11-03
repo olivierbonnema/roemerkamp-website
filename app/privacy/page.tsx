@@ -6,7 +6,7 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/privacy",
   title: "Privacyverklaring",
-  description: "Privacyverklaring van Lange Financieel Advies B.V. (Lange & Partners): welke persoonsgegevens wij verwerken, waarom, hoe lang en uw rechten.",
+  description: "Privacyverklaring van Lange Financieel Advies B.V. (Lange & Partners) over welke persoonsgegevens wij verwerken, waarom en hoe lang, en over uw rechten.",
 })
 
 export default function PrivacyPage() {
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
                 </p>
 
                 <h3 className="font-semibold text-[#1e3a5f] mt-5 mb-2">Doeleinden gegevensverwerking</h3>
-                <p>De persoonsgegevens die wij van u verwerken, worden uitsluitend gebruikt voor de volgende doeleinden:</p>
+                <p>De persoonsgegevens die wij van u verwerken, worden uitsluitend gebruikt voor de volgende doeleinden.</p>
                 <ul className="mt-3 space-y-1.5 list-none">
                   {[
                     "voor het verrichten van de aangeboden diensten",
@@ -114,14 +114,14 @@ export default function PrivacyPage() {
 
                 <div className="mt-5 space-y-5">
                   <div>
-                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van toegang en inzage:</h3>
+                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van toegang en inzage</h3>
                     <p>
                       U heeft het recht om op ieder moment gratis inzage te vragen van uw persoonsgegevens, en
                       van het gebruik dat wij van uw persoonsgegevens maken.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van verbetering, verwijdering en beperking:</h3>
+                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van verbetering, verwijdering en beperking</h3>
                     <p>
                       U heeft steeds het recht om ons te vragen uw persoonsgegevens te verbeteren, aan te vullen
                       of te verwijderen. U mag ook vragen om de verwerking van uw Persoonsgegevens te beperken.
@@ -131,30 +131,30 @@ export default function PrivacyPage() {
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van verzet:</h3>
+                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van verzet</h3>
                     <p>
                       De privacywetgeving biedt u het recht van verzet tegen de verwerking van uw
                       persoonsgegevens om ernstige en legitieme redenen. Daarnaast heeft u steeds het recht om u
-                      te verzetten tegen het gebruik van persoonsgegevens voor doeleinden van direct marketing; u
+                      te verzetten tegen het gebruik van persoonsgegevens voor doeleinden van direct marketing. U
                       hoeft daarvoor geen redenen aan te geven.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van gegevensoverdracht:</h3>
+                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van gegevensoverdracht</h3>
                     <p>
                       U heeft het recht om Uw Persoonsgegevens in gangbare en leesbare vorm te verkrijgen en/of
                       aan andere verantwoordelijken over te dragen.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van intrekking van uw toestemming:</h3>
+                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht van intrekking van uw toestemming</h3>
                     <p>
                       Voor zover de verwerking gebaseerd is op uw voorafgaande toestemming, beschikt U over het
                       recht om die toestemming in te trekken.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht om klacht in te dienen:</h3>
+                    <h3 className="font-semibold text-[#1e3a5f] underline mb-1">Recht om klacht in te dienen</h3>
                     <p>
                       Wanneer u een klacht heeft over privacy schending, dan horen wij dat graag van u. Wij
                       proberen dan zo snel en zo goed mogelijk met u tot een oplossing te komen. Neemt u bij
@@ -251,7 +251,7 @@ export default function PrivacyPage() {
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-3">Vragen en feedback</h2>
                 <p>
                   We controleren regelmatig of we aan dit privacy beleid voldoen. Als u vragen heeft over dit
-                  privacy beleid, kunt u contact met ons opnemen:
+                  privacy beleid, kunt u contact met ons opnemen via de onderstaande gegevens.
                 </p>
                 <address className="not-italic mt-4 space-y-0.5">
                   <p className="font-medium text-[#1e3a5f]">Lange Financieel Advies B.V. (Lange &amp; Partners)</p>

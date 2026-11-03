@@ -35,7 +35,7 @@ export interface StaticPost {
 export const BORROWER_PAGE: SitePage = {
   href: "/vastgoedfinanciering-zonder-bank",
   label: "Voor leningnemers",
-  description: "Vastgoedfinanciering zonder bank: voorwaarden, kosten, rekenvoorbeeld en aanvraag.",
+  description: "Vastgoedfinanciering zonder bank, met de voorwaarden, de kosten, een rekenvoorbeeld en de aanvraag.",
   updated: "2026-11-02",
 }
 
@@ -43,7 +43,7 @@ export const BORROWER_PAGE: SitePage = {
 export const INVESTOR_PAGE: SitePage = {
   href: "/voor-investeerders",
   label: "Voor investeerders",
-  description: "Investeren in vastgoedleningen met hypothecaire zekerheid: rendement, zekerheden, risico's en werkwijze.",
+  description: "Het rendement, de zekerheden, de risico's en de werkwijze van investeren in vastgoedleningen met hypothecaire zekerheid.",
   updated: "2026-11-02",
 }
 
@@ -64,13 +64,13 @@ export const SITUATION_PAGES: SitePage[] = [
   {
     href: "/dga-hypotheek",
     label: "DGA hypotheek",
-    description: "Een laag gebruikelijk loon en een vermogende BV: lenen in privé of via de BV.",
+    description: "Lenen in privé of via de BV, ook met een laag gebruikelijk loon en een vermogende BV.",
     updated: "2026-11-03",
   },
   {
     href: "/tweede-hypotheek-ondernemer",
     label: "Tweede hypotheek",
-    description: "Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.",
+    description: "Overwaarde benutten naast de bestaande bankhypotheek, met een 2e hypotheekrecht.",
     updated: "2026-11-03",
   },
   {
@@ -82,7 +82,7 @@ export const SITUATION_PAGES: SitePage[] = [
   {
     href: "/herfinanciering-vastgoed",
     label: "Herfinanciering",
-    description: "De bank verlengt niet of wijst af: een aflopende lening overbruggen.",
+    description: "Een aflopende lening overbruggen als de bank niet verlengt of afwijst.",
     updated: "2026-11-02",
   },
   {

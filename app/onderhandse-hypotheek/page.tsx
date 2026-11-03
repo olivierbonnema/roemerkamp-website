@@ -15,11 +15,11 @@ export const metadata: Metadata = pageMetadata({
 const zekerheid = [
   {
     term: 'Hypotheekrecht via de notaris en het Kadaster',
-    text: 'De hypotheekakte wordt door de notaris verleden en ingeschreven bij het Kadaster, in eerste of tweede rang. De geldverstrekker krijgt daarmee hetzelfde zakelijke recht op het onderpand als een bank.',
+    text: 'De hypotheekakte wordt door de notaris verleden en ingeschreven bij het Kadaster, als 1e of 2e hypotheekrecht. De geldverstrekker krijgt daarmee hetzelfde zakelijke recht op het onderpand als een bank.',
   },
   {
     term: 'Betalingen via een onafhankelijke Stichting',
-    text: 'De investeerder stort het geld niet aan u, maar bij de Stichting; de notaris keert uit. Rente en aflossing betaalt u aan de Stichting. Er loopt nooit geld rechtstreeks tussen geldnemer en investeerder.',
+    text: 'De investeerder stort het geld niet aan u, maar bij de Stichting. De notaris keert uit. Rente en aflossing betaalt u aan de Stichting. Er loopt nooit geld rechtstreeks tussen geldnemer en investeerder.',
   },
   {
     term: 'Beoordeling vooraf',
@@ -27,7 +27,7 @@ const zekerheid = [
   },
   {
     term: 'Eén termsheet voor beide partijen',
-    text: 'Hoofdsom, rente, looptijd, zekerheden, kosten en voorwaarden staan op papier voordat u tekent. De investeerder ziet hetzelfde document; er zit geen tweede versie achter.',
+    text: 'Hoofdsom, rente, looptijd, zekerheden, kosten en voorwaarden staan op papier voordat u tekent. De investeerder ziet hetzelfde document. Er zit geen tweede versie achter.',
   },
 ]
 
@@ -46,18 +46,18 @@ const situaties = [
   },
   {
     term: 'Geen of te weinig jaarcijfers',
-    text: 'Minder dan drie afgesloten boekjaren is bij ons geen beletsel; het onderpand en de exit zijn leidend.',
+    text: 'Minder dan drie afgesloten boekjaren is bij ons geen beletsel. Het onderpand en de exit zijn leidend.',
   },
 ]
 
 const faq = [
   {
     vraag: 'Wat is het verschil tussen een onderhandse en een bancaire hypotheek?',
-    antwoord: 'Bij een bancaire hypotheek is de bank zowel de geldverstrekker als de partij die de lening aan haar eigen normen toetst. Bij een onderhandse hypotheek is de geldverstrekker een particuliere investeerder. Lange & Partners beoordeelt de aanvraag en brengt geldnemer en investeerder bij elkaar. De hypothecaire zekerheid is in beide gevallen gelijkwaardig: het hypotheekrecht wordt ingeschreven bij het Kadaster.',
+    antwoord: 'Bij een bancaire hypotheek is de bank zowel de geldverstrekker als de partij die de lening aan haar eigen normen toetst. Bij een onderhandse hypotheek is de geldverstrekker een particuliere investeerder. Lange & Partners beoordeelt de aanvraag en brengt geldnemer en investeerder bij elkaar. De hypothecaire zekerheid is in beide gevallen gelijkwaardig, want het hypotheekrecht wordt ingeschreven bij het Kadaster.',
   },
   {
     vraag: 'Hoe hoog kan een onderhandse hypotheek zijn?',
-    antwoord: 'Leningen van €200.000 tot €5.000.000. Het maximum volgt uit de marktwaarde van het onderpand: de totale schuld op het pand blijft doorgaans binnen 70%, maximaal 75%.',
+    antwoord: 'Leningen van €200.000 tot €5.000.000. Het maximum volgt uit de marktwaarde van het onderpand. De totale schuld op het pand blijft doorgaans binnen 70%, maximaal 75%.',
   },
   {
     vraag: 'Hoe is de veiligheid voor de geldnemer gewaarborgd?',
@@ -83,7 +83,7 @@ export default function OnderhandseHypotheekPage() {
       image={{ src: '/images/over-ons-section.jpg', alt: 'Het kantoor van Lange & Partners aan de Wilhelminastraat in Haarlem', position: 'center 80%' }}
       lead={
         <>
-          "Onderhands" verwijst naar de partijen, niet naar de manier van vastleggen: de geldverstrekker is een
+          "Onderhands" verwijst naar de partijen, niet naar de manier van vastleggen. De geldverstrekker is een
           particulier in plaats van een bank, maar de hypotheek wordt gewoon via de notaris gevestigd en bij het Kadaster
           ingeschreven. Op deze pagina leest u hoe dat werkt, hoe de zekerheid is geregeld en wat het verschil is met een
           lening die u onderling afspreekt.
@@ -94,14 +94,14 @@ export default function OnderhandseHypotheekPage() {
       <ArticleSection id="wat" title="Wat is een onderhandse hypotheek?">
         <p>
           Een onderhandse hypotheek is een lening waarbij het geld niet van een bank komt, maar van een particuliere
-          partij: een investeerder die zijn vermogen wil beleggen in vastgoedleningen. De afspraken worden tussen
+          investeerder die zijn vermogen wil beleggen in vastgoedleningen. De afspraken worden tussen
           partijen gemaakt, maar de zekerheid wordt net als bij een bank formeel geregeld. De hypotheekakte wordt door de
           notaris verleden en ingeschreven bij het Kadaster.
         </p>
         <p>
           Lange &amp; Partners treedt op als bemiddelaar. Wij beoordelen de aanvraag, structureren de financiering,
           leggen de voorwaarden vast in een termsheet en brengen de lening onder bij een investeerder uit ons netwerk.
-          Alle geldstromen lopen via een onafhankelijke Stichting. De looptijd is 6 tot 60 maanden; de lening is bedoeld
+          Alle geldstromen lopen via een onafhankelijke Stichting. De looptijd is 6 tot 60 maanden. De lening is bedoeld
           als tijdelijke financiering tot verkoop of herfinanciering.
         </p>
       </ArticleSection>
@@ -120,15 +120,15 @@ export default function OnderhandseHypotheekPage() {
           head={['', 'Via Lange & Partners', 'Onderling, bijvoorbeeld met familie']}
           rows={[
             ['Geldverstrekker', 'Een investeerder uit ons netwerk, die u niet hoeft te kennen', 'Iemand uit uw eigen kring'],
-            ['Beoordeling', 'Onderpand, betaalbaarheid en exit, plus controle in de openbare registers', 'Geen; partijen bepalen zelf'],
-            ['Vastlegging', 'Termsheet, leningsovereenkomst en hypotheekakte bij de notaris', 'Leningsovereenkomst; een hypotheekrecht vereist ook hier een notariële akte'],
+            ['Beoordeling', 'Onderpand, betaalbaarheid en exit, plus controle in de openbare registers', 'Geen. Partijen bepalen zelf'],
+            ['Vastlegging', 'Termsheet, leningsovereenkomst en hypotheekakte bij de notaris', 'Leningsovereenkomst. Een hypotheekrecht vereist ook hier een notariële akte'],
             ['Betalingen', 'Via een onafhankelijke Stichting', 'Rechtstreeks tussen partijen'],
-            ['Rente', 'Vanaf 7% per jaar, afhankelijk van LTV, type vastgoed en rang', 'Vrij af te spreken; voor de fiscus moet de rente zakelijk zijn'],
+            ['Rente', 'Vanaf 7% per jaar, afhankelijk van LTV, type vastgoed en 1e of 2e hypotheekrecht', 'Vrij af te spreken. Voor de fiscus moet de rente zakelijk zijn'],
             ['Aanspreekpunt', 'Lange & Partners, van aanvraag tot aflossing', 'De geldverstrekker zelf'],
           ]}
         />
         <Note>
-          Een lening binnen de familie met een hypotheekrecht kan rechtstreeks via een notaris; de fiscale kant (zakelijke
+          Een lening binnen de familie met een hypotheekrecht kan rechtstreeks via een notaris. De fiscale kant (zakelijke
           rente, eventuele schenking) bespreekt u met uw fiscalist. Wij bemiddelen alleen financieringen van investeerders
           uit ons eigen netwerk.
         </Note>
@@ -144,7 +144,7 @@ export default function OnderhandseHypotheekPage() {
 
       <ArticleSection id="investeerder" title="Bent u vermogend particulier en overweegt u te investeren?">
         <p>
-          De andere kant van een onderhandse hypotheek is de investeerder: een vermogend particulier die een lening
+          De andere kant van een onderhandse hypotheek is de investeerder. Dat is een vermogend particulier die een lening
           financiert met een hypotheekrecht op vastgoed als zekerheid, tegen een rendement vanaf 6,5% per jaar. Lees hoe
           dat werkt op de pagina{' '}
           <Link href="/voor-investeerders" className="font-medium underline underline-offset-2">

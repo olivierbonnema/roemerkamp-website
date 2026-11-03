@@ -13,7 +13,7 @@ export function FinancieringenSection() {
       <div className="max-w-screen-2xl mx-auto px-4">
         <SectionHeading>Eén product, meerdere situaties</SectionHeading>
         <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl text-base">
-          Wij hebben één financiering: een tijdelijke lening van €200.000 tot €5.000.000 met een hypotheekrecht op
+          Wij hebben één financiering, een tijdelijke lening van €200.000 tot €5.000.000 met een hypotheekrecht op
           vastgoed in Nederland als zekerheid. Looptijd 6 tot 60 maanden, rente vanaf 7%, doorgaans binnen één tot drie
           weken geregeld. De situaties waarin dat uitkomst biedt, verschillen.
         </p>

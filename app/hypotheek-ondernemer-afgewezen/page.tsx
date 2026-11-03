@@ -8,7 +8,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/hypotheek-ondernemer-afgewezen",
   title: "Hypotheek afgewezen door de bank? Dit is het alternatief",
   brand: false,
-  description: "Afgewezen als ondernemer, belegger of particulier met vastgoed? Wij beoordelen anders dan een bank: op betaalbaarheid, onderpand en exit. Vanaf €200.000.",
+  description: "Afgewezen als ondernemer, belegger of particulier met vastgoed? Wij beoordelen anders dan een bank, namelijk op betaalbaarheid, onderpand en exit. Vanaf €200.000.",
 })
 
 const redenen = [
@@ -22,7 +22,7 @@ const redenen = [
   },
   {
     term: 'Een complexe structuur',
-    text: 'Meerdere BV\'s, een holding of een combinatie van ondernemerschap en loondienst maken de bancaire beoordeling bewerkelijk. Banken kiezen dan vaak de veilige optie: afwijzen.',
+    text: 'Meerdere BV\'s, een holding of een combinatie van ondernemerschap en loondienst maken de bancaire beoordeling bewerkelijk. Banken kiezen dan vaak voor de veilige optie en wijzen af.',
   },
   {
     term: 'Een of meer slechte jaren',
@@ -34,22 +34,22 @@ const redenen = [
   },
   {
     term: 'Leeftijd of een gewijzigde situatie',
-    text: 'Ook particulieren krijgen nee: boven een bepaalde leeftijd, na een scheiding, bij inkomen uit het buitenland of bij een bestaande lening die de bank niet wil verlengen.',
+    text: 'Ook particulieren krijgen nee, bijvoorbeeld boven een bepaalde leeftijd, na een scheiding, bij inkomen uit het buitenland of bij een bestaande lening die de bank niet wil verlengen.',
   },
 ]
 
 const watnu = [
   {
     title: 'Vraag de reden van de afwijzing',
-    text: 'Vraag de bank schriftelijk waarop de afwijzing is gebaseerd: het inkomen, het aantal boekjaren, de structuur of het pand. Dat bepaalt welke alternatieven zinvol zijn.',
+    text: 'Vraag de bank schriftelijk waarop de afwijzing is gebaseerd. Gaat het om het inkomen, het aantal boekjaren, de structuur of het pand? Dat bepaalt welke alternatieven zinvol zijn.',
   },
   {
     title: 'Bekijk of wachten of een andere bank zin heeft',
-    text: 'Ligt het aan een ontbrekend boekjaar dat binnenkort wordt afgesloten, dan kan wachten de beste optie zijn. Banken verschillen ook onderling in acceptatie; een andere bank kan anders oordelen.',
+    text: 'Ligt het aan een ontbrekend boekjaar dat binnenkort wordt afgesloten, dan kan wachten de beste optie zijn. Banken verschillen ook onderling in acceptatie. Een andere bank kan anders oordelen.',
   },
   {
     title: 'Zet uw casus op een rij',
-    text: 'Drie dingen bepalen bij ons de haalbaarheid: kunt u de rente en de kosten dragen, wat is uw vastgoed waard en wat staat er al aan hypotheek op, en hoe wordt de lening aan het einde afgelost. Met die gegevens kunnen wij beoordelen.',
+    text: 'Drie dingen bepalen bij ons de haalbaarheid. Kunt u de rente en de kosten dragen? Wat is uw vastgoed waard en wat staat er al aan hypotheek op? En hoe wordt de lening aan het einde afgelost? Met die gegevens kunnen wij beoordelen.',
   },
   {
     title: 'Leg de casus aan ons voor',
@@ -64,7 +64,7 @@ const faq = [
   },
   {
     vraag: 'Hoe kan Lange & Partners alsnog financieren na een bankafwijzing?',
-    antwoord: 'Omdat wij anders naar een casus kijken en op andere criteria beoordelen dan een bank. Inkomen en jaarcijfers tellen ook bij ons mee, maar niet langs een vaste norm: wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit in samenhang. Daardoor kunnen wij in veel gevallen financieren waar de bank nee heeft gezegd.',
+    antwoord: 'Omdat wij anders naar een casus kijken en op andere criteria beoordelen dan een bank. Inkomen en jaarcijfers tellen ook bij ons mee, maar niet langs een vaste norm. Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit in samenhang. Daardoor kunnen wij in veel gevallen financieren waar de bank nee heeft gezegd.',
   },
   {
     vraag: 'Kan ik ook als startende ondernemer een financiering krijgen?',
@@ -72,7 +72,7 @@ const faq = [
   },
   {
     vraag: 'Welke bedragen en looptijden zijn mogelijk?',
-    antwoord: 'Financieringen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand en de eventuele hypotheekschuld; de looptijd stemmen wij af op uw exit.',
+    antwoord: 'Financieringen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand en de eventuele hypotheekschuld. De looptijd stemmen wij af op uw exit.',
   },
   {
     vraag: 'Wat als ik later alsnog een bancaire hypotheek kan krijgen?',
@@ -86,7 +86,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
       href="/hypotheek-ondernemer-afgewezen"
       breadcrumb="Afgewezen door de bank"
       title="Hypotheek of financiering afgewezen door de bank?"
-      intro="Banken wijzen af op wisselend inkomen, te weinig boekjaren, een complexe structuur of het pand zelf. Wij beoordelen anders: op de betaalbaarheid, het onderpand en de exit. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
+      intro="Banken wijzen af op wisselend inkomen, te weinig boekjaren, een complexe structuur of het pand zelf. Wij beoordelen anders en kijken naar de betaalbaarheid, het onderpand en de exit. Van €200.000 tot €5.000.000, 6 tot 60 maanden."
       image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
       lead={
         <>
@@ -101,7 +101,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
       <ArticleSection id="waarom" title="Waarom de bank afwijst">
         <p>
           Banken beoordelen hypotheekaanvragen langs vaste normen voor inkomen, zekerheid en voorspelbaarheid. Wie daar
-          niet in past, krijgt nee, ook als de situatie in werkelijkheid solide is. De meest voorkomende redenen:
+          niet in past, krijgt nee, ook als de situatie in werkelijkheid solide is. Dit zijn de meest voorkomende redenen.
         </p>
         <DefinitionList items={redenen} />
       </ArticleSection>
@@ -120,9 +120,9 @@ export default function HypotheekOndernemerAfgewezenPage() {
           head={['Wel', 'Niet']}
           labelColumn={false}
           rows={[
-            ['Vastgoed in Nederland met voldoende dekking: de totale schuld blijft binnen 70% tot 75% van de marktwaarde', 'Een lening zonder vastgoed als zekerheid'],
-            ['De rente en de kosten zijn te dragen uit inkomen, kasstroom of huur, of de rente wordt meegefinancierd in een rentedepot', 'Vastgoed buiten Nederland als zekerheid; een object in het buitenland financieren kan wel, met Nederlands vastgoed als onderpand'],
-            ['Een duidelijke exit: bankherfinanciering, verkoop of aflossing uit eigen middelen', 'Een aanvraag waarbij niet duidelijk is hoe de lening eindigt'],
+            ['Vastgoed in Nederland met voldoende dekking, waarbij de totale schuld binnen 70% tot 75% van de marktwaarde blijft', 'Een lening zonder vastgoed als zekerheid'],
+            ['De rente en de kosten zijn te dragen uit inkomen, kasstroom of huur, of de rente wordt meegefinancierd in een rentedepot', 'Vastgoed buiten Nederland als zekerheid. Een object in het buitenland financieren kan wel, met Nederlands vastgoed als onderpand'],
+            ['Een duidelijke exit, zoals bankherfinanciering, verkoop of aflossing uit eigen middelen', 'Een aanvraag waarbij niet duidelijk is hoe de lening eindigt'],
             ['Financieringen van €200.000 tot €5.000.000, 6 tot 60 maanden, ook een herfinanciering van een bestaande lening', 'Kleinere bedragen, consumptief krediet of een langlopende hypotheek'],
           ]}
         />
@@ -131,8 +131,8 @@ export default function HypotheekOndernemerAfgewezenPage() {
       <ArticleSection id="aanpak" title="Onze beoordeling na een bankafwijzing">
         <p>
           Wij kunnen vaak financieren waar de bank nee zegt, niet omdat wij minder kijken, maar omdat wij anders kijken.
-          Een bank toetst langs een vaste norm; wij beoordelen de hele casus, van inkomen en onderpand tot exit. Inkomen
-          en jaarcijfers tellen dus ook bij ons mee, alleen zijn wij er flexibeler in: een kort trackrecord, een
+          Een bank toetst langs een vaste norm. Wij beoordelen de hele casus, van inkomen en onderpand tot exit. Inkomen
+          en jaarcijfers tellen dus ook bij ons mee, alleen zijn wij er flexibeler in. Een kort trackrecord, een
           wisselend inkomen of een complexe structuur is geen reden om niet te kijken.
         </p>
         <p>
@@ -144,7 +144,7 @@ export default function HypotheekOndernemerAfgewezenPage() {
         </p>
         <Note>
           Onze financiering is er voor iedereen die door de bank is afgewezen en met Nederlands vastgoed voldoende
-          hypothecaire dekking kan bieden: ondernemers, ZZP'ers, DGA's, beleggers en particulieren, ook met een holdingstructuur,
+          hypothecaire dekking kan bieden. Dat geldt voor ondernemers, ZZP'ers, DGA's, beleggers en particulieren, ook met een holdingstructuur,
           meerdere vennootschappen of een combinatie van loondienst en ondernemerschap.
         </Note>
       </ArticleSection>
