@@ -47,7 +47,7 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
     { label: 'Vastgoed', value: casus.kerngegevens.vastgoed },
     { label: 'Bedrag', value: casus.kerngegevens.bedrag },
     { label: 'Loan-to-value', value: casus.kerngegevens.ltv },
-    { label: 'Rang', value: casus.kerngegevens.rang },
+    { label: 'Zekerheid', value: casus.kerngegevens.zekerheid },
     { label: 'Looptijd', value: casus.kerngegevens.looptijd },
     { label: 'Rente', value: casus.kerngegevens.rente },
     { label: 'Exit', value: casus.kerngegevens.exit },
@@ -100,8 +100,10 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
           </ArticleSection>
 
           <ArticleSection id="beoordeling" title="De beoordeling">
-            {casus.beoordeling.map((t, i) => (
-              <p key={i}>{t}</p>
+            {casus.beoordeling.map((punt) => (
+              <p key={punt.kop}>
+                <strong className="font-semibold text-[#1e3a5f]">{punt.kop}:</strong> {punt.tekst}
+              </p>
             ))}
           </ArticleSection>
 

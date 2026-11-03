@@ -59,11 +59,11 @@ export default function CasussenPage() {
                       </div>
                       <div>
                         <dt className="text-[#5b6472]">Looptijd</dt>
-                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.looptijd}</dd>
+                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.looptijd.split(',')[0]}</dd>
                       </div>
                       <div>
-                        <dt className="text-[#5b6472]">Rang</dt>
-                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.rang.split(',')[0]}</dd>
+                        <dt className="text-[#5b6472]">Zekerheid</dt>
+                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.zekerheid.split(',')[0]}</dd>
                       </div>
                     </dl>
                   </li>
