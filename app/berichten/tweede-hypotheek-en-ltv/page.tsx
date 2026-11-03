@@ -12,7 +12,7 @@ import { pageMetadata } from '@/lib/seo'
 const URL = "https://www.nonbancaireleningen.nl/berichten/tweede-hypotheek-en-ltv"
 const TITEL = "Tweede hypotheek: waarom de LTV anders is dan u denkt"
 const OMSCHRIJVING =
-  "Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat. Een rekenvoorbeeld laat zien dat dezelfde lening 25% of 65% LTV is, afhankelijk van hoe u telt."
+  "Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat. In een rekenvoorbeeld is dezelfde lening 25% of 65% LTV, afhankelijk van hoe u telt."
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten/tweede-hypotheek-en-ltv",

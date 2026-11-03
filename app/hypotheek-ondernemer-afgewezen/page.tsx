@@ -8,7 +8,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/hypotheek-ondernemer-afgewezen",
   title: "Hypotheek afgewezen door de bank? Dit is het alternatief",
   brand: false,
-  description: "Afgewezen als ondernemer, belegger of particulier met vastgoed? Wij beoordelen anders dan een bank, namelijk op betaalbaarheid, onderpand en exit. Vanaf €200.000.",
+  description: "Afgewezen als ondernemer, belegger of particulier met vastgoed? Wij kijken anders dan een bank naar betaalbaarheid, onderpand en exit. Vanaf €200.000.",
 })
 
 const redenen = [
