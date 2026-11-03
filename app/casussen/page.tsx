@@ -5,16 +5,16 @@ import { Footer } from '@/components/footer'
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
 import { PageHero } from '@/components/product/page-hero'
 import { ContactSection } from '@/components/product/contact-section'
-import { CASUSSEN, AANTAL_PRAKTIJK, AANTAL_VOORBEELD } from '@/lib/casussen'
+import { CASUSSEN } from '@/lib/casussen'
 import { BORROWER_PAGE, INVESTOR_PAGE } from '@/lib/site-nav'
 import { CONTACT_FOTO, CONTACT_TEKST } from '@/lib/product-content'
 import { pageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = pageMetadata({
   path: "/casussen",
-  title: "Casussen: financieren waar de bank afhaakt",
+  title: "Casussen: gefinancierd waar de bank afhaakte",
   brand: false,
-  description: "Casussen uit de praktijk en voorbeelden: per financiering het bedrag, de loan-to-value, de looptijd, de exit en wat de bank tegenhield.",
+  description: "Casussen uit de praktijk: per financiering het bedrag, de loan-to-value, de looptijd, de exit en waarom de bank afhaakte. Geanonimiseerd.",
 })
 
 export default function CasussenPage() {
@@ -24,8 +24,8 @@ export default function CasussenPage() {
       <Header />
       <main>
         <PageHero
-          title="Casussen: financieren waar de bank afhaakt"
-          intro={`Hoe een financiering verloopt, van aanleiding tot exit. ${AANTAL_PRAKTIJK} casussen komen uit onze praktijk, geanonimiseerd; de andere ${AANTAL_VOORBEELD} zijn voorbeelden van situaties die wij regelmatig financieren.`}
+          title="Casussen: gefinancierd waar de bank afhaakte"
+          intro="Financieringen die wij hebben verzorgd, van aanleiding tot exit. Per casus het bedrag, de loan-to-value, de looptijd, de exit en waarom de bank afhaakte. Geanonimiseerd."
           breadcrumbs={[{ label: 'Casussen', href: '/casussen' }]}
           image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voor leningnemers' }}
@@ -39,7 +39,7 @@ export default function CasussenPage() {
                 {CASUSSEN.map((c, i) => (
                   <li key={c.slug} className={`py-6 ${i === CASUSSEN.length - 1 ? '' : 'border-b border-gray-100'}`}>
                     <p className="text-[13px] uppercase tracking-wide text-[#5b6472] mb-1">
-                      Casus {i + 1} · {c.situatieLabel} · {c.bron === 'praktijk' ? 'Uit de praktijk' : 'Voorbeeld'}
+                      Casus {i + 1} · {c.situatieLabel}
                       {c.perspectief === 'investeerder' ? ' · vanuit de investeerder' : ''}
                     </p>
                     <Link
@@ -75,9 +75,9 @@ export default function CasussenPage() {
               <div className="border border-gray-200 border-t-[5px] border-t-[#f75d20] px-6 py-5 bg-white">
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Over deze casussen</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-3">
-                  De casussen met het label Uit de praktijk komen uit onze eigen dossiers, geanonimiseerd:
-                  zonder namen, plaatsen of andere herleidbare gegevens, met afgeronde bedragen. De andere zijn
-                  voorbeelden van situaties die wij regelmatig financieren; hun cijfers zijn illustratief.
+                  Dit zijn financieringen die wij in de praktijk hebben verzorgd. Ze zijn geanonimiseerd: zonder
+                  namen, plaatsen of andere herleidbare gegevens, en met afgeronde bedragen. De rente is de rente bij
+                  aanvang.
                 </p>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a]">
                   Elke casus volgt dezelfde beoordeling: het onderpand, de betaalbaarheid van de rente en de exit. De

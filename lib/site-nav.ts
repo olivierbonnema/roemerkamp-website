@@ -3,7 +3,7 @@
 // Structure since 2 November 2026 (decision Olivier): one product, several
 // situations. Two product pages (borrowers, investors) carry the conditions,
 // costs, process and FAQ; the situation pages only explain what is different
-// in that situation and link back to the product page. Cases (voorbeeldcasussen)
+// in that situation and link back to the product page. Cases (from practice)
 // live in lib/casussen.ts.
 //
 // Used by: components/header.tsx (desktop dropdowns + mobile menu),
@@ -102,7 +102,7 @@ export const SITUATION_PAGES: SitePage[] = [
 /** Company and service pages that belong in the sitemap. */
 export const COMPANY_PAGES: SitePage[] = [
   { href: "/situaties", label: "Situaties", description: "Overzicht van situaties waarin wij financieren.", updated: "2026-11-02" },
-  { href: "/casussen", label: "Casussen", description: "Casussen uit de praktijk en voorbeelden.", updated: "2026-11-03" },
+  { href: "/casussen", label: "Casussen", description: "Financieringen uit de praktijk, geanonimiseerd.", updated: "2026-11-03" },
   { href: "/over-ons", label: "Over ons", description: "Wie wij zijn.", updated: "2026-05-14" },
   { href: "/nadere-informatie", label: "Toezicht en registraties", description: "AFM-vergunning, Kifid en duurzaamheid.", updated: "2026-11-03" },
   { href: "/contact", label: "Contact", description: "Neem contact met ons op.", updated: "2026-05-15" },

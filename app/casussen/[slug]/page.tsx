@@ -75,13 +75,11 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
             <>
               <KeyFacts title="Kerngegevens van deze casus" items={kerngegevens} />
               <div className="bg-gray-50 px-6 py-5">
-                <h3 className="text-lg font-semibold text-[#1e3a5f] mb-1">
-                  {casus.bron === 'praktijk' ? 'Casus uit de praktijk' : 'Voorbeeldcasus'}
-                </h3>
+                <h3 className="text-lg font-semibold text-[#1e3a5f] mb-1">Casus uit de praktijk</h3>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
-                  {casus.bron === 'praktijk'
-                    ? 'Geanonimiseerd: zonder namen, plaatsen of andere herleidbare gegevens, met afgeronde bedragen. De rente is de rente bij aanvang. De voorwaarden en kosten staan op de productpagina.'
-                    : 'Een situatie zoals wij die regelmatig financieren, met illustratieve cijfers. De rente is indicatief. De voorwaarden en kosten staan op de productpagina.'}
+                  Een financiering die wij hebben verzorgd, geanonimiseerd: zonder namen, plaatsen of andere herleidbare
+                  gegevens, en met afgeronde bedragen. De rente is de rente bij aanvang. De voorwaarden en kosten staan
+                  op de productpagina.
                 </p>
                 <Link
                   href={productPage.href}
