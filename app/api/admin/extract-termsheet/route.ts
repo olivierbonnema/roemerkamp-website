@@ -6,6 +6,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 // without any dossier documents.
 import { getMsToken, listFolderFiles, downloadFile } from "@/lib/onedrive-direct"
 import Anthropic from "@anthropic-ai/sdk"
+import { LEGAL_NAME } from "@/lib/company"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const anthropic = new Anthropic()
@@ -303,8 +304,8 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
     city: "Haarlem",
     date: today,
     salutation: autoSalutation,
-    kredietgever: settings.companyName || "Lange & Partners Financieel Advies",
-    geldverstrekker: "Bemiddeling via Lange & Partners Financieel Advies",
+    kredietgever: settings.companyName || LEGAL_NAME,
+    geldverstrekker: `Bemiddeling via ${LEGAL_NAME}`,
     doelFinanciering: doelMap[(aanvraag.leningDoel || "").toLowerCase()] || "een herfinanciering",
     typeFaciliteit: "Zakelijke Vastgoedfinanciering",
     valuta: "Euro (€)",

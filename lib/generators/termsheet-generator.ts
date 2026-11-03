@@ -20,6 +20,7 @@ import {
   termijnLines,
   termijnTotal,
 } from "./leningdelen"
+import { LEGAL_NAME, TRADE_NAME } from "../company"
 
 const MARGIN_TOP = MM(32)
 const MARGIN_BOTTOM = MM(32)
@@ -193,7 +194,7 @@ export async function generateTermsheet(
   const totalLoan = hasLeningdelen
     ? leningdelenTotal(leningdelen)
     : loanPartsBaseTotal(loanParts)
-  const companyName = s.companyName || "Lange & Partners Financieel Advies"
+  const companyName = s.companyName || LEGAL_NAME
   const loanTotalTxt = totalLoan > 0 ? fmtEuro(totalLoan) : "-"
 
   const logoDataUrl = s.logoDataUrl || DEFAULT_LOGO_DATA_URL
@@ -233,7 +234,7 @@ export async function generateTermsheet(
       par(
         [
           tx(
-            "Lange & Partners Financieel Advies  |  Wilhelminastraat 50  |  2011 VN Haarlem  |  +31 23 517 31 00  |  info@langefa.nl  |  www.langefa.nl  |  KvK 34269870",
+            `${LEGAL_NAME}  |  Wilhelminastraat 50  |  2011 VN Haarlem  |  +31 23 517 31 00  |  info@langefa.nl  |  www.langefa.nl  |  KvK 34269870`,
             { size: SZ_TINY, color: C_GREY }
           ),
         ],
@@ -357,8 +358,8 @@ export async function generateTermsheet(
     par(
       [
         tx("Op uw verzoek doen wij u hierbij een overzicht van de belangrijkste voorwaarden en bepalingen toekomen waarop ", { size: SZ_SMALL }),
-        tx("Lange & Partners Financieel Advies", { bold: true, size: SZ_SMALL }),
-        tx(", hierna te noemen \"de Bemiddelaar\", u een aanbieding wil doen voor een financiering van ", { size: SZ_SMALL }),
+        tx(LEGAL_NAME, { bold: true, size: SZ_SMALL }),
+        tx(`, handelend onder de naam ${TRADE_NAME}, hierna te noemen "de Bemiddelaar", u een aanbieding wil doen voor een financiering van `, { size: SZ_SMALL }),
         tx(loanTotalTxt, { bold: true, size: SZ_SMALL }),
         tx(` met als doel ${data.doelFinanciering || "een herfinanciering"}, waarbij ${objects.length > 1 ? "de volgende objecten als zekerheid dienen" : "het volgende object als zekerheid dient"}:`, { size: SZ_SMALL }),
       ],

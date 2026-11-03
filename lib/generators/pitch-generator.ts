@@ -18,6 +18,7 @@ import {
   logoType,
   logoBase64,
 } from "./docx-helpers"
+import { LEGAL_NAME } from "../company"
 
 // ---------------------------------------------------------------------------
 // Pitch house style (navy + dense) - matches the hand-made reference pitch.
@@ -257,7 +258,7 @@ export async function generatePitch(
       )
     : par(
         [
-          tx(s.companyName || "Lange & Partners Financieel Advies", {
+          tx(s.companyName || LEGAL_NAME, {
             bold: true,
             color: C_BRAND,
             size: SZ_SMALL,

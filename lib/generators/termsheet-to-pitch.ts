@@ -9,6 +9,7 @@ import type { PitchData } from "./pitch-generator"
 import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
 import { PITCH_DEFAULTS } from "./form-defaults"
 import { loanPartsBaseTotal } from "./leningdelen"
+import { LEGAL_NAME } from "../company"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
 
@@ -135,7 +136,7 @@ function buildVerzoek(termsheet: TermsheetData): string {
   const lastB = borrowers[borrowers.length - 1]
   const lastBvRep = !!lastB && lastB.type === "bv" && !!lastB.vertegenwoordiger
   const verb = borrowers.length > 1 ? "hebben" : "heeft"
-  const company = termsheet.kredietgever || "Lange & Partners Financieel Advies"
+  const company = termsheet.kredietgever || LEGAL_NAME
 
   const doel = termsheet.doelFinanciering || "de gevraagde financiering"
   const adres = objectAddress(termsheet)

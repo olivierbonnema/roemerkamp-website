@@ -338,7 +338,7 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
       {/* 2. Verzoek-zin */}
       <PitchSection id="verzoek" title="Verzoek-zin (auto, per aanvraag)" isOpen={isSectionOpen("verzoek")} onToggle={toggleSection}>
         <p className="text-xs text-gray-500">Wordt automatisch ingevuld op basis van de aanvraag (geldnemers, bedrag, doel, adres). Pas aan waar nodig.</p>
-        <textarea value={verzoekText} onChange={(e) => setVerzoekText(e.target.value)} rows={3} placeholder="De heer X en mevrouw Y in privé hebben Lange & Partners Financieel Advies verzocht om een financiering van € ... met als doel ... aan ..." className="w-full border rounded px-2 py-1.5 text-sm" />
+        <textarea value={verzoekText} onChange={(e) => setVerzoekText(e.target.value)} rows={3} placeholder="De heer X en mevrouw Y in privé hebben Lange Financieel Advies B.V. verzocht om een financiering van € ... met als doel ... aan ..." className="w-full border rounded px-2 py-1.5 text-sm" />
       </PitchSection>
 
       {/* 2b. Verhaaltekst */}
