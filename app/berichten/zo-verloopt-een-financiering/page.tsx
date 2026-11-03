@@ -81,8 +81,8 @@ export default function ZoVerlooptEenFinancieringPage() {
             uitgangspunt.
           </P>
           <P>
-            Wij verstrekken leningen van € 200.000 tot € 5.000.000, met looptijden van zes tot zestig maanden, altijd
-            met vastgoed als onderpand. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren.
+            De leningen die wij bemiddelen lopen van € 200.000 tot € 5.000.000, met looptijden van zes tot zestig
+            maanden, altijd met vastgoed als onderpand. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren.
           </P>
         </TekstMetFoto>
 

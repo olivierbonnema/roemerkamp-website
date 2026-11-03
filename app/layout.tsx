@@ -43,7 +43,8 @@ export default function RootLayout({
     '@type': 'FinancialService',
     '@id': 'https://www.nonbancaireleningen.nl/#organization',
     name: 'Lange & Partners',
-    alternateName: 'Lange en Partners',
+    legalName: 'Lange Financieel Advies B.V.',
+    alternateName: ['Lange en Partners', 'Lange Financieel Advies'],
     url: 'https://www.nonbancaireleningen.nl',
     logo: 'https://www.nonbancaireleningen.nl/images/lange-logo-new.png',
     image: 'https://www.nonbancaireleningen.nl/images/og-default.jpg',
@@ -67,11 +68,10 @@ export default function RootLayout({
       '@type': 'Country',
       name: 'Nederland',
     },
-    parentOrganization: {
-      '@type': 'Organization',
-      name: 'Lange & Partners Financieel Advies B.V.',
-      identifier: 'KvK 34269870',
-    },
+    identifier: [
+      { '@type': 'PropertyValue', propertyID: 'KvK', value: '34269870' },
+      { '@type': 'PropertyValue', propertyID: 'AFM-vergunning', value: '12017043' },
+    ],
     sameAs: [
       'https://www.linkedin.com/company/lange-partners-financieel-advies/',
     ],

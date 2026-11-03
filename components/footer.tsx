@@ -106,8 +106,12 @@ export function Footer() {
 
         </div>
 
+        {/* Legal name (Olivier, 3 November 2026): the company is Lange Financieel
+            Advies B.V.; Lange & Partners is its trade name. Licence and Kifid
+            numbers checked in the AFM and Kifid registers on the same day. */}
         <p className="mt-10 text-[11px] text-gray-400">
-          Lange &amp; Partners Financieel Advies B.V., Wilhelminastraat 50, 2011 VN Haarlem. KvK 34269870.
+          Lange &amp; Partners is een handelsnaam van Lange Financieel Advies B.V., Wilhelminastraat 50, 2011 VN Haarlem.
+          KvK 34269870. AFM-vergunning 12017043. Aangesloten bij Kifid onder nummer 300.012572.
         </p>
       </div>
     </footer>

@@ -37,7 +37,8 @@ export default function PrivacyPage() {
                   hoe we hiermee uw gebruikservaring verbeteren.
                 </p>
                 <p className="mt-4">
-                  Dit privacy beleid is van toepassing op de diensten van Lange Financieel Advies. Door gebruik
+                  Dit privacy beleid is van toepassing op de diensten van Lange Financieel Advies B.V., die
+                  handelt onder de naam Lange &amp; Partners. Door gebruik
                   te maken van deze website geeft u aan ons privacy beleid te accepteren.
                 </p>
               </div>
@@ -260,8 +261,9 @@ export default function PrivacyPage() {
                   privacy beleid, kunt u contact met ons opnemen:
                 </p>
                 <address className="not-italic mt-4 space-y-0.5">
-                  <p className="font-medium text-[#1e3a5f]">Lange Financieel Advies</p>
+                  <p className="font-medium text-[#1e3a5f]">Lange Financieel Advies B.V. (Lange &amp; Partners)</p>
                   <p>Wilhelminastraat 50</p>
+                  <p>2011 VN Haarlem</p>
                   <p>
                     <a href="tel:0235173100" className="text-[#311e86] hover:underline">023-5173100</a>
                   </p>

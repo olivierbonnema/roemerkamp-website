@@ -39,6 +39,16 @@
       "source": "/berichten/hypotheek-afgewezen-wat-nu",
       "destination": "/hypotheek-ondernemer-afgewezen",
       "permanent": true
+    },
+    {
+      "source": "/vermogensbeheer",
+      "destination": "/voor-investeerders",
+      "permanent": true
+    },
+    {
+      "source": "/private-markets",
+      "destination": "/voor-investeerders",
+      "permanent": true
     }
   ],
   "headers": [
