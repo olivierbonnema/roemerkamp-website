@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
+import { quoteDefaultsFromAanvraag, sanitizeQuoteInput, type SavedQuote } from "@/lib/generators/quote-generator"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -47,9 +48,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const { status, assignedTo, internalNote } = await req.json()
+  const { status, assignedTo, internalNote, quote } = await req.json()
 
-  if (status === undefined && assignedTo === undefined && internalNote === undefined) {
+  if (status === undefined && assignedTo === undefined && internalNote === undefined && quote === undefined) {
     return NextResponse.json({ error: "Niets om bij te werken." }, { status: 400 })
   }
 
@@ -70,8 +71,40 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (assignedTo !== undefined) update.assignedTo = assignedTo       // "" = unassign
   if (internalNote !== undefined) update.internalNote = internalNote // admin-only, never emailed
 
+  // Quote-mail: the form values + the mail text as it stood, saved on the
+  // aanvraag (admin-only: the partner/client API whitelists applicant fields, so
+  // `quote` never leaves the admin side). Only the latest version is kept.
+  // Everything is re-validated here; the browser's shape is never trusted.
+  let savedQuote: SavedQuote | null = null
+  if (quote !== undefined) {
+    const cleaned = sanitizeQuoteInput(quote, quoteDefaultsFromAanvraag({}))
+    if (!cleaned) return NextResponse.json({ error: "Ongeldige quote." }, { status: 400 })
+    savedQuote = {
+      version: 1,
+      ...cleaned,
+      savedAt: new Date().toISOString(),
+      savedBy: admin.email || "",
+    }
+    update.quote = savedQuote
+  }
+
   try {
     await adminDb.collection("aanvragen").doc(id).update(update)
+
+    if (savedQuote) {
+      await logActivity({
+        action: "quote_saved",
+        userId: admin.uid,
+        userEmail: admin.email || "",
+        targetId: id,
+        targetType: "aanvraag",
+        details: {
+          rentePct: String(savedQuote.data.rentePct),
+          loanAmount: String(savedQuote.data.loanAmount),
+          looptijdMaanden: String(savedQuote.data.looptijdMaanden),
+        },
+      })
+    }
 
     // Status changes still post an in-portal message + activity log (unchanged).
     if (status !== undefined) {
@@ -108,7 +141,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
     // internalNote: silent update, intentionally no message, email, or log.
 
-    return NextResponse.json({ success: true })
+    // The saved quote goes back with the server stamps (savedAt/savedBy) so the
+    // dialog and the card can show them without a refetch.
+    return NextResponse.json(savedQuote ? { success: true, quote: savedQuote } : { success: true })
   } catch {
     return NextResponse.json({ error: "Bijwerken mislukt." }, { status: 500 })
   }

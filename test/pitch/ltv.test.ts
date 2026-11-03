@@ -48,16 +48,17 @@ const offerte = (objects: unknown[]) => {
     geldnemers: [{ type: "persoon", salut: "de heer", name: "J. Voorbeeld" }],
     hypotheekgeverAfwijkend: false, hypotheekgevers: [],
     loanAmount: 1_300_000, rentedepot: 0, bouwdepot: 0,
-    objectWaarde: 4_300_000, objectAdres: "",
+    showLtv: true, objectAdres: "", objectAdresManual: false,
     aflossingsvorm: "aflossingsvrij", berekeningJaren: 30, looptijdMaanden: 24, rentePct: 9,
     objects,
   } as never) as unknown
   return String(typeof out === "string" ? out : JSON.stringify(out))
 }
-const o2 = offerte([{ address: "x", hypotheekRank: "2e", priorLienholders: [{ name: "", inschrijving: 1_150_000, currentOwed: 1_150_000 }] }])
+// Sinds 2026-11-02 staat de waarde per onderpand (objects[].waarde), niet meer als één veld.
+const o2 = offerte([{ address: "x", waarde: 4_300_000, noun: "de woning", hypotheekRank: "2e", priorLienholders: [{ name: "", inschrijving: 1_150_000, currentOwed: 1_150_000 }] }])
 ok("offerte 2e rang: LTV 57% met voorgaande financiering genoemd",
    o2.includes("circa 57%") && o2.includes("inclusief de voorgaande hypothecaire financiering"))
-const o1 = offerte([{ address: "x", hypotheekRank: "1e", priorLienholders: [] }])
+const o1 = offerte([{ address: "x", waarde: 4_300_000, noun: "de woning", hypotheekRank: "1e", priorLienholders: [] }])
 ok("offerte 1e rang: ongewijzigd 30%", o1.includes("circa 30%") && !o1.includes("voorgaande"))
 
 console.log(fails === 0 ? "\nAlle tests geslaagd." : `\n${fails} test(s) gefaald.`)
