@@ -4,6 +4,7 @@
 // dialog can re-render the preview on every keystroke.
 //
 // Used by: components/admin/quote-dialog.tsx  ("Quote-mail" button on an aanvraag)
+//          app/api/admin/aanvragen/[id]/route.ts (sanitizeQuoteData, when a quote is saved)
 
 import { fmtEuro, fmtEuro2dec } from "./docx-helpers"
 import { computeLtv } from "@/lib/generators/ltv"
@@ -19,10 +20,38 @@ export interface QuoteParty {
   name: string
 }
 
+export interface QuotePriorLienholder {
+  name: string
+  inschrijving: number
+  currentOwed: number
+}
+
+// One onderpand. The address and rank feed the Zekerheden block (step 5 of the
+// dialog); `waarde` and `noun` feed the optional LTV sentence in the Lening
+// section (step 2), which covers ALL objects together (Olivier, 2026-11-02).
 export interface QuoteObject {
   address: string
+  // Value as the applicant gave it (or as corrected by the adviser).
+  waarde: number
+  // How the object is called in the LTV sentence: "de woning", "het bedrijfspand",
+  // "het pand", "het perceel" or "het object". Derived from the aanvraag's
+  // object type; editable per object.
+  noun: string
   hypotheekRank: string
-  priorLienholders: { name: string; inschrijving: number; currentOwed: number }[]
+  priorLienholders: QuotePriorLienholder[]
+}
+
+// Noun per object type as the financing form stores it (resolved `type`; a
+// free-text "Anders" value falls through to "het object").
+export const OBJECT_NOUNS = ["de woning", "het bedrijfspand", "het pand", "het perceel", "het object"] as const
+export function objectNounForType(type?: string): string {
+  const t = (type || "").trim().toLowerCase()
+  if (!t) return "de woning"
+  if (t.startsWith("wonen") || t.startsWith("woning")) return "de woning"
+  if (t.startsWith("commerc") || t.includes("bedrijf") || t.includes("kantoor") || t.includes("winkel")) return "het bedrijfspand"
+  if (t.startsWith("gemengd")) return "het pand"
+  if (t.startsWith("grond") || t.includes("perceel") || t.includes("kavel")) return "het perceel"
+  return "het object"
 }
 
 export interface QuoteData {
@@ -36,9 +65,13 @@ export interface QuoteData {
   loanAmount: number
   rentedepot: number
   bouwdepot: number
-  // Optional LTV sentence (3rd example): value of the object + its address.
-  objectWaarde: number
+  // Optional LTV sentence in the Lening section. The value is the SUM of
+  // objects[].waarde; `objectAdres` is the "op ..." part ("de woning aan de
+  // Molenstraat 20, 3252 BE Goedereede" / "de onderpanden aan de A en de B"),
+  // auto-built from the objects unless `objectAdresManual`.
+  showLtv: boolean
   objectAdres: string
+  objectAdresManual: boolean
   aflossingsvorm: QuoteAflossingsvorm
   // Annuïtaire/lineaire berekening basis (years), e.g. 30.
   berekeningJaren: number
@@ -163,6 +196,41 @@ export function effectiveZekerheden(d: QuoteData): string {
   return d.zekerhedenManual ? d.zekerhedenText : buildQuoteZekerheden(d)
 }
 
+/* ---------- onderpanden: value + LTV ---------- */
+
+// Objects that take part in the LTV sentence: anything with an address or a value.
+function ltvObjects(d: QuoteData): QuoteObject[] {
+  return (d.objects || []).filter((o) => (o.address || "").trim() || (o.waarde || 0) > 0)
+}
+
+// Sum of the object values: the denominator of the LTV.
+export function totalObjectWaarde(d: QuoteData): number {
+  return ltvObjects(d).reduce((s, o) => s + (Number(o.waarde) || 0), 0)
+}
+
+// The "op ..." part of the LTV sentence, built from the objects:
+//   one object  -> "de woning aan de Molenstraat 20, 3252 BE Goedereede"
+//   several     -> "de onderpanden aan de Herenstraat 34, 2312 AA Leiden en de Molenstraat 20, 3252 BE Goedereede"
+// (wording chosen by Olivier, 2026-11-02: total value + all addresses).
+export function buildObjectAdres(d: QuoteData): string {
+  const withAddress = ltvObjects(d).filter((o) => (o.address || "").trim())
+  if (!withAddress.length) return ""
+  if (withAddress.length === 1) return `${withAddress[0].noun || "de woning"} aan de ${withAddress[0].address.trim()}`
+  return `de onderpanden aan de ${withAddress.map((o) => o.address.trim()).join(" en de ")}`
+}
+
+export function effectiveObjectAdres(d: QuoteData): string {
+  return d.objectAdresManual ? d.objectAdres : buildObjectAdres(d)
+}
+
+// LTV over all onderpanden together, prior-ranking mortgages included
+// (lib/generators/ltv.ts). Null when there is no value or no loan.
+export function quoteLtv(d: QuoteData) {
+  const waarde = totalObjectWaarde(d)
+  if (!(waarde > 0) || !(d.loanAmount > 0)) return null
+  return computeLtv(d.loanAmount, waarde, d.objects || [])
+}
+
 function leningText(d: QuoteData): string {
   const vormWord =
     d.aflossingsvorm === "annuïtair" ? "Annuïtaire" : d.aflossingsvorm === "lineair" ? "Lineaire" : "Aflossingsvrije"
@@ -172,14 +240,16 @@ function leningText(d: QuoteData): string {
     depots.push(`een rentedepot van ${fmtEuro(d.rentedepot)} om de rente en kosten te dekken gedurende de looptijd van de lening`)
   if (d.bouwdepot > 0) depots.push(`een bouwdepot van ${fmtEuro(d.bouwdepot)}`)
   if (depots.length) s += `, met daarin ${depots.join(" en ")}`
-  if (d.objectWaarde > 0 && d.loanAmount > 0) {
+  const ltv = d.showLtv ? quoteLtv(d) : null
+  if (ltv && ltv.pct !== null) {
     // Alle schuld op het onderpand telt, ook leningen met een hogere rang dan de
     // onze — zie lib/generators/ltv.ts. Zelfde berekening als in de pitch.
-    const ltv = computeLtv(d.loanAmount, d.objectWaarde, d.objects || [])
     const inclusief = ltv.voorgaand > 0
       ? `, inclusief de voorgaande hypothecaire financiering van ${fmtEuro(ltv.voorgaand)},`
       : ""
-    s += `, uitgaande van een waarde van ${fmtEuro(d.objectWaarde)} en een LTV${inclusief} van circa ${Math.round(ltv.pct!)}%${d.objectAdres ? ` op ${d.objectAdres}` : ""}`
+    const meerdere = ltvObjects(d).length > 1
+    const adres = effectiveObjectAdres(d).trim()
+    s += `, uitgaande van een ${meerdere ? "totale waarde" : "waarde"} van ${fmtEuro(ltv.waarde)} en een LTV${inclusief} van circa ${Math.round(ltv.pct)}%${adres ? ` op ${adres}` : ""}`
   }
   s += "."
   if (d.rentedepot > 0) s += "\nOver het rentedepot wordt geen rente vergoed."
@@ -318,12 +388,18 @@ export interface QuoteAanvraagSource {
   aflossingstype?: string
   objectAdres?: string
   objectPlaats?: string
-  objects?: { adres?: string; postcode?: string; plaats?: string; waarde?: string }[]
+  objectType?: string
+  objectWaarde?: string
+  objects?: { type?: string; adres?: string; postcode?: string; plaats?: string; waarde?: string }[]
 }
 
 function toNum(s?: string): number {
   if (!s) return 0
   return parseInt(String(s).replace(/[^\d]/g, ""), 10) || 0
+}
+
+export function newQuoteObject(partial: Partial<QuoteObject> = {}): QuoteObject {
+  return { address: "", waarde: 0, noun: "de woning", hypotheekRank: "1e", priorLienholders: [], ...partial }
 }
 
 export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
@@ -333,15 +409,25 @@ export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
   if (a.naam) geldnemers.push({ type: "prive", salut: "de heer", name: a.naam })
   if (a.medeNaam) geldnemers.push({ type: "prive", salut: "de heer", name: a.medeNaam })
 
+  // Every object of the aanvraag becomes an onderpand, with its own value and
+  // noun, so a second object shows up in BOTH the LTV sentence and the zekerheden.
   const objs = (a.objects || []).filter((o) => o.adres || o.plaats)
   const objects: QuoteObject[] = objs.length
-    ? objs.map((o) => ({
-        address: [o.adres, [o.postcode, o.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", "),
-        hypotheekRank: "1e",
-        priorLienholders: [],
-      }))
+    ? objs.map((o) =>
+        newQuoteObject({
+          address: [o.adres, [o.postcode, o.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+          waarde: toNum(o.waarde),
+          noun: objectNounForType(o.type),
+        })
+      )
     : a.objectAdres
-    ? [{ address: [a.objectAdres, a.objectPlaats].filter(Boolean).join(", "), hypotheekRank: "1e", priorLienholders: [] }]
+    ? [
+        newQuoteObject({
+          address: [a.objectAdres, a.objectPlaats].filter(Boolean).join(", "),
+          waarde: toNum(a.objectWaarde),
+          noun: objectNounForType(a.objectType),
+        }),
+      ]
     : []
 
   const loanAmount = toNum(a.leningBedrag)
@@ -358,8 +444,10 @@ export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
     loanAmount,
     rentedepot: 0,
     bouwdepot: 0,
-    objectWaarde: toNum(objs[0]?.waarde),
-    objectAdres: objects[0]?.address ? `de woning aan de ${objects[0].address}` : "",
+    // On by default whenever a value is known (Olivier, 2026-11-02: keep as it was).
+    showLtv: objects.some((o) => o.waarde > 0),
+    objectAdres: "",
+    objectAdresManual: false,
     aflossingsvorm,
     berekeningJaren: 30,
     looptijdMaanden: toNum(a.looptijd),
@@ -377,4 +465,143 @@ export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
     zekerhedenManual: false,
     benodigdeStukken: [],
   }
+}
+
+/* ---------- saved quote ---------- */
+
+// What is stored on aanvragen/{id}.quote (admin-only; the partner/client API
+// returns a whitelist of applicant fields, so this never reaches them).
+// Only the LATEST version is kept: saving overwrites it (Olivier, 2026-11-02).
+// Timestamps are ISO strings, because /api/admin/aanvragen spreads the raw
+// document into JSON and only converts createdAt.
+export interface SavedQuote {
+  version: 1
+  data: QuoteData
+  // The mail text exactly as it stood when saved, hand edits included.
+  text: string
+  textManual: boolean
+  savedAt: string
+  savedBy: string
+}
+
+// What the dialog sends to PATCH /api/admin/aanvragen/[id] as `quote`.
+export type SavedQuoteInput = Pick<SavedQuote, "data" | "text" | "textManual">
+
+export const QUOTE_LIMITS = {
+  text: 20_000,
+  string: 500,
+  parties: 20,
+  objects: 20,
+  priors: 4,
+  stukken: 50,
+  money: 1_000_000_000,
+}
+
+const AFLOSSINGSVORMEN: QuoteAflossingsvorm[] = ["aflossingsvrij", "annuïtair", "lineair"]
+const RANKS = ["1e", "2e", "3e", "4e"]
+
+function str(v: unknown, max = QUOTE_LIMITS.string): string {
+  return typeof v === "string" ? v.slice(0, max) : ""
+}
+function num(v: unknown, max = QUOTE_LIMITS.money): number {
+  const n = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v.replace(",", ".")) : NaN
+  if (!Number.isFinite(n) || n < 0) return 0
+  return Math.min(n, max)
+}
+function bool(v: unknown, fallback = false): boolean {
+  return typeof v === "boolean" ? v : fallback
+}
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v)
+}
+
+function toParty(v: unknown): QuoteParty | null {
+  if (!isRecord(v)) return null
+  return {
+    type: v.type === "bv" ? "bv" : "prive",
+    salut: v.salut === "mevrouw" ? "mevrouw" : "de heer",
+    name: str(v.name),
+  }
+}
+
+function toObject(v: unknown): QuoteObject | null {
+  if (!isRecord(v)) return null
+  const rank = RANKS.includes(v.hypotheekRank as string) ? (v.hypotheekRank as string) : "1e"
+  const priors = (Array.isArray(v.priorLienholders) ? v.priorLienholders : [])
+    .slice(0, QUOTE_LIMITS.priors)
+    .filter(isRecord)
+    .map((p) => ({ name: str(p.name), inschrijving: num(p.inschrijving), currentOwed: num(p.currentOwed) }))
+  return {
+    address: str(v.address),
+    waarde: num(v.waarde),
+    noun: str(v.noun, 60) || "de woning",
+    hypotheekRank: rank,
+    priorLienholders: priors,
+  }
+}
+
+// Whitelist copy of an untrusted QuoteData-shaped value (from the browser or
+// from Firestore): unknown keys dropped, wrong types replaced by the value from
+// `base`, numbers finite and non-negative, strings and arrays capped. Returns
+// null when the input is not an object at all.
+export function sanitizeQuoteData(input: unknown, base: QuoteData): QuoteData | null {
+  if (!isRecord(input)) return null
+  const v = input
+  const list = <T,>(arr: unknown, max: number, map: (x: unknown) => T | null): T[] =>
+    (Array.isArray(arr) ? arr : []).slice(0, max).map(map).filter((x): x is T => x !== null)
+  return {
+    recipientFirstName: str(v.recipientFirstName, 100),
+    includeGreeting: bool(v.includeGreeting, base.includeGreeting),
+    geldnemers: Array.isArray(v.geldnemers) ? list(v.geldnemers, QUOTE_LIMITS.parties, toParty) : base.geldnemers,
+    hypotheekgeverAfwijkend: bool(v.hypotheekgeverAfwijkend, base.hypotheekgeverAfwijkend),
+    hypotheekgevers: Array.isArray(v.hypotheekgevers) ? list(v.hypotheekgevers, QUOTE_LIMITS.parties, toParty) : base.hypotheekgevers,
+    loanAmount: num(v.loanAmount),
+    rentedepot: num(v.rentedepot),
+    bouwdepot: num(v.bouwdepot),
+    showLtv: bool(v.showLtv, base.showLtv),
+    objectAdres: str(v.objectAdres, 1000),
+    objectAdresManual: bool(v.objectAdresManual, base.objectAdresManual),
+    aflossingsvorm: AFLOSSINGSVORMEN.includes(v.aflossingsvorm as QuoteAflossingsvorm) ? (v.aflossingsvorm as QuoteAflossingsvorm) : base.aflossingsvorm,
+    berekeningJaren: num(v.berekeningJaren, 100) || base.berekeningJaren,
+    looptijdMaanden: num(v.looptijdMaanden, 1200),
+    rentePct: num(v.rentePct, 100),
+    maandbedrag: num(v.maandbedrag),
+    maandbedragManual: bool(v.maandbedragManual, base.maandbedragManual),
+    behandelingskosten: num(v.behandelingskosten),
+    opstartkosten: num(v.opstartkosten),
+    annuleringskosten: num(v.annuleringskosten),
+    bereidstelling: bool(v.bereidstelling, base.bereidstelling),
+    bereidstellingPct: num(v.bereidstellingPct, 100),
+    bereidstellingMaxMaanden: num(v.bereidstellingMaxMaanden, 120),
+    objects: Array.isArray(v.objects) ? list(v.objects, QUOTE_LIMITS.objects, toObject) : base.objects,
+    zekerhedenText: str(v.zekerhedenText, QUOTE_LIMITS.text),
+    zekerhedenManual: bool(v.zekerhedenManual, base.zekerhedenManual),
+    benodigdeStukken: Array.isArray(v.benodigdeStukken)
+      ? v.benodigdeStukken.slice(0, QUOTE_LIMITS.stukken).map((s) => str(s, 200)).filter(Boolean)
+      : base.benodigdeStukken,
+  }
+}
+
+// Same for the whole payload the dialog sends. Null = not usable.
+export function sanitizeQuoteInput(input: unknown, base: QuoteData): SavedQuoteInput | null {
+  if (!isRecord(input)) return null
+  const data = sanitizeQuoteData(input.data, base)
+  if (!data) return null
+  return { data, text: str(input.text, QUOTE_LIMITS.text), textManual: bool(input.textManual) }
+}
+
+// Reading a saved quote back (from Firestore, via the admin list): tolerate a
+// stale or partial shape by merging over the aanvraag defaults.
+export function savedQuoteToData(saved: SavedQuote | null | undefined, base: QuoteData): QuoteData {
+  if (!saved || !isRecord(saved)) return base
+  return sanitizeQuoteData(saved.data, base) || base
+}
+
+// One-line summary for the aanvraag card: "8,16% · € 400.000 · 12 maanden".
+export function quoteSummaryLine(d: QuoteData): string {
+  const parts: string[] = []
+  if (d.rentePct > 0) parts.push(fmtPct(d.rentePct))
+  if (d.loanAmount > 0) parts.push(fmtEuro(d.loanAmount).replace(/,-$/, ""))
+  if (d.looptijdMaanden > 0) parts.push(`${d.looptijdMaanden} maanden`)
+  return parts.join(" · ")
 }

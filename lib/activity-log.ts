@@ -26,6 +26,7 @@ export type ActivityAction =
   | "background_check_created"
   | "aanvraag_assigned"
   | "aanvraag_deleted"
+  | "quote_saved"
   | "message_sent"
   | "document_accessed"
   | "document_esign_sent"

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
-import QuoteDialog from "./quote-dialog"
-import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote } from "lucide-react"
+import QuoteDialog, { fmtSavedAt, shortUser } from "./quote-dialog"
+import { quoteSummaryLine, type SavedQuote, type SavedQuoteInput } from "@/lib/generators/quote-generator"
+import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote, Mail } from "lucide-react"
 
 interface Aanvraag {
   id: string
@@ -49,6 +50,8 @@ interface Aanvraag {
   // Operational fields (admin-only)
   assignedTo?: string
   internalNote?: string
+  // Quote-mail saved from the Quote-mail dialog (latest version only)
+  quote?: SavedQuote | null
   // AI analysis fields (set by Python backend)
   analysisStatus?: string
   analysisRecommendation?: string
@@ -344,6 +347,26 @@ export function AdminAanvragen() {
       }
     } finally {
       setSavingNote(false)
+    }
+  }
+
+  // Save the quote-mail on the aanvraag (admin-only; latest version only).
+  // Returns the stored version (with the server's savedAt/savedBy) or null.
+  async function saveQuote(id: string, input: SavedQuoteInput): Promise<SavedQuote | null> {
+    try {
+      const token = await getToken()
+      const res = await fetch(`/api/admin/aanvragen/${id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ quote: input }),
+      })
+      if (!res.ok) return null
+      const body = await res.json().catch(() => ({}))
+      const stored: SavedQuote | null = body?.quote ?? null
+      if (stored) setAanvragen(prev => prev.map(a => a.id === id ? { ...a, quote: stored } : a))
+      return stored
+    } catch {
+      return null
     }
   }
 
@@ -738,6 +761,24 @@ export function AdminAanvragen() {
               </div>
             )}
 
+            {/* Saved quote-mail (admin-only): one line so a colleague sees a quote exists and at what terms */}
+            {a.quote?.savedAt && (
+              <button
+                type="button"
+                onClick={() => setQuoteModal(a.id)}
+                title="Quote-mail openen"
+                className="w-full text-left bg-[#1E3A5F]/[0.04] border border-[#1E3A5F]/15 rounded-xl px-4 py-2.5 mb-4 flex items-start gap-2 hover:bg-[#1E3A5F]/[0.08] transition-colors"
+              >
+                <Mail size={13} className="text-[#1E3A5F] mt-0.5 flex-shrink-0" />
+                <p className="text-xs font-sans text-gray-600">
+                  <span className="font-medium text-[#1E3A5F]">Quote</span>
+                  {" · "}{fmtSavedAt(a.quote.savedAt)}
+                  {quoteSummaryLine(a.quote.data) ? ` · ${quoteSummaryLine(a.quote.data)}` : ""}
+                  {a.quote.savedBy ? ` · ${shortUser(a.quote.savedBy)}` : ""}
+                </p>
+              </button>
+            )}
+
             {/* AI analysis summary (if completed) */}
             {a.analysisStatus === "completed" && (
               <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4">
@@ -903,7 +944,7 @@ export function AdminAanvragen() {
                 onClick={() => setQuoteModal(a.id)}
                 className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors"
               >
-                Quote-mail
+                {a.quote?.savedAt ? "Quote-mail bewerken" : "Quote-mail"}
               </button>
 
               {/* Send message to applicant */}
@@ -1261,7 +1302,15 @@ export function AdminAanvragen() {
       {/* Quote e-mail dialog */}
       {quoteModal && (() => {
         const qa = aanvragen.find(a => a.id === quoteModal)
-        return qa ? <QuoteDialog aanvraag={qa} onClose={() => setQuoteModal(null)} /> : null
+        return qa ? (
+          <QuoteDialog
+            key={qa.id}
+            aanvraag={qa}
+            savedQuote={qa.quote ?? null}
+            onSave={(input) => saveQuote(qa.id, input)}
+            onClose={() => setQuoteModal(null)}
+          />
+        ) : null
       })()}
 
       {/* Extra text modal */}

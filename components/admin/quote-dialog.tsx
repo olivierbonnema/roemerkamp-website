@@ -1,30 +1,58 @@
 "use client"
 
 // "Quote-mail" — form + live preview of the short indicative e-mail that precedes
-// a termsheet. Pre-filled from the aanvraag record; the admin adds the loan terms
-// and copies the text into their mail client. Wording: lib/generators/quote-generator.ts.
+// a termsheet. Pre-filled from the aanvraag record (or from the quote saved on
+// it); the admin adds the loan terms, saves, and copies the text into their mail
+// client. Wording: lib/generators/quote-generator.ts.
 
 import { useEffect, useMemo, useState } from "react"
-import { X, Copy, Check, RotateCcw, Plus, Trash2, Pencil, AlertTriangle } from "lucide-react"
+import { X, Copy, Check, RotateCcw, Plus, Trash2, Pencil, AlertTriangle, Save } from "lucide-react"
 import { HYPOTHEEK_RANKS, RANK_LABELS } from "@/lib/generators/zekerheden"
+import { fmtEuro } from "@/lib/generators/docx-helpers"
 import {
   type QuoteData,
   type QuoteParty,
   type QuoteAanvraagSource,
+  type SavedQuote,
+  type SavedQuoteInput,
+  OBJECT_NOUNS,
   QUOTE_TEXT,
   buildQuoteEmail,
   buildQuoteZekerheden,
+  buildObjectAdres,
+  effectiveObjectAdres,
   computeMaandbedrag,
   computeAdminkosten,
   effectiveMaandbedrag,
+  newQuoteObject,
   quoteDefaultsFromAanvraag,
+  quoteLtv,
   quoteTextToHtml,
+  savedQuoteToData,
+  totalObjectWaarde,
   fmtMoney,
 } from "@/lib/generators/quote-generator"
 
 interface Props {
   aanvraag: QuoteAanvraagSource & { id: string }
+  // The quote saved on this aanvraag earlier, if any: the dialog opens with it.
+  savedQuote?: SavedQuote | null
+  // Persists the quote (PATCH /api/admin/aanvragen/[id]); resolves to the stored
+  // version with the server's savedAt/savedBy, or null when saving failed.
+  onSave: (input: SavedQuoteInput) => Promise<SavedQuote | null>
   onClose: () => void
+}
+
+// "2 nov 2026 11:30"
+export function fmtSavedAt(iso: string): string {
+  const t = new Date(iso)
+  if (isNaN(t.getTime())) return ""
+  return t.toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
+
+// "olivier" from "olivier@langefa.nl"
+export function shortUser(email: string): string {
+  return (email || "").split("@")[0] || email || ""
 }
 
 /* ---------- small building blocks ---------- */
@@ -210,11 +238,19 @@ async function copyPlain(text: string): Promise<boolean> {
 
 /* ---------- dialog ---------- */
 
-export default function QuoteDialog({ aanvraag, onClose }: Props) {
-  const [d, setD] = useState<QuoteData>(() => quoteDefaultsFromAanvraag(aanvraag))
+// Everything that is persisted; compared as JSON to know whether there are
+// unsaved changes.
+function snapshot(d: QuoteData, text: string, textManual: boolean): string {
+  return JSON.stringify({ d, text, textManual })
+}
+
+export default function QuoteDialog({ aanvraag, savedQuote, onSave, onClose }: Props) {
+  // Open with the saved quote when there is one, otherwise with the aanvraag
+  // defaults. A saved quote is merged over the defaults so an older saved
+  // shape still opens.
+  const [d, setD] = useState<QuoteData>(() => savedQuoteToData(savedQuote, quoteDefaultsFromAanvraag(aanvraag)))
   const up = (patch: Partial<QuoteData>) => setD((prev) => ({ ...prev, ...patch }))
 
-  const [showLtv, setShowLtv] = useState(() => d.objectWaarde > 0)
   const [editing, setEditing] = useState(false)
   const [stukInput, setStukInput] = useState("")
 
@@ -224,10 +260,59 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
     if (!d.zekerhedenManual) setD((prev) => (prev.zekerhedenText === autoZekerheden ? prev : { ...prev, zekerhedenText: autoZekerheden }))
   }, [autoZekerheden, d.zekerhedenManual])
 
+  // Same for the "op ..." part of the LTV sentence: follows the onderpanden
+  // until typed over.
+  const autoObjectAdres = useMemo(() => buildObjectAdres(d), [d])
+  useEffect(() => {
+    if (!d.objectAdresManual) setD((prev) => (prev.objectAdres === autoObjectAdres ? prev : { ...prev, objectAdres: autoObjectAdres }))
+  }, [autoObjectAdres, d.objectAdresManual])
+
   const generated = useMemo(() => buildQuoteEmail(d), [d])
-  const [text, setText] = useState(generated)
-  const [textManual, setTextManual] = useState(false)
+  const [text, setText] = useState(() => (savedQuote?.textManual && savedQuote.text ? savedQuote.text : generated))
+  const [textManual, setTextManual] = useState(() => !!(savedQuote?.textManual && savedQuote.text))
   useEffect(() => { if (!textManual) setText(generated) }, [generated, textManual])
+
+  // ---- saving ----
+  const [lastSaved, setLastSaved] = useState<SavedQuote | null>(savedQuote ?? null)
+  // The snapshot that matches what is stored; null = never saved.
+  const [savedSnap, setSavedSnap] = useState<string | null>(() =>
+    savedQuote ? snapshot(savedQuoteToData(savedQuote, quoteDefaultsFromAanvraag(aanvraag)), savedQuote.textManual && savedQuote.text ? savedQuote.text : generated, !!(savedQuote.textManual && savedQuote.text)) : null
+  )
+  const currentSnap = snapshot(d, text, textManual)
+  const dirty = savedSnap !== currentSnap
+  const [saving, setSaving] = useState(false)
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "failed">("idle")
+  const [closeGuard, setCloseGuard] = useState(false)
+
+  const save = async (): Promise<boolean> => {
+    if (saving) return false
+    setSaving(true)
+    setSaveState("idle")
+    try {
+      const stored = await onSave({ data: d, text, textManual })
+      if (!stored) { setSaveState("failed"); return false }
+      setLastSaved(stored)
+      setSavedSnap(currentSnap)
+      setSaveState("saved")
+      setTimeout(() => setSaveState("idle"), 2500)
+      return true
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Closing with unsaved changes asks first; a plain click outside the panel
+  // used to throw the whole form away silently.
+  const requestClose = () => {
+    if (dirty) setCloseGuard(true)
+    else onClose()
+  }
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); requestClose() } }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty])
 
   // Copy as rich text so Outlook keeps the bold headings, with a plain-text
   // alternative in the same clipboard entry for editors that want it.
@@ -257,17 +342,26 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
   const maandAuto = computeMaandbedrag(d)
   const maand = effectiveMaandbedrag(d)
   const admin = computeAdminkosten(d)
+  const ltv = quoteLtv(d)
+  const totaalWaarde = totalObjectWaarde(d)
+  const ltvObjects = d.objects.filter((o) => o.address.trim() || o.waarde > 0)
 
   return (
-    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={requestClose}>
       <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-[1400px] h-[92vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h3 className="font-serif text-xl text-[#1E3A5F]">Quote-mail</h3>
-            <p className="text-sm text-gray-400 font-sans mt-0.5">Vul links de condities in; rechts staat de e-mail klaar om te kopiëren.</p>
+            <p className="text-sm text-gray-400 font-sans mt-0.5">
+              Vul links de condities in; rechts staat de e-mail klaar om te kopiëren.
+              {lastSaved && (
+                <span className="text-gray-500"> · Laatst opgeslagen op {fmtSavedAt(lastSaved.savedAt)} door {shortUser(lastSaved.savedBy)}</span>
+              )}
+              {dirty && <span className="text-amber-600"> · niet-opgeslagen wijzigingen</span>}
+            </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X size={18} /></button>
+          <button onClick={requestClose} className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[560px_1fr]">
@@ -311,11 +405,47 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
                 )}
               </div>
               <div>
-                <Toggle checked={showLtv} onChange={(v) => { setShowLtv(v); if (!v) up({ objectWaarde: 0 }) }} label="Waarde en LTV vermelden" />
-                {showLtv && (
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <Field label="Waarde onderpand"><MoneyInput value={d.objectWaarde} onChange={(n) => up({ objectWaarde: n })} /></Field>
-                    <Field label="Omschrijving in de zin"><input value={d.objectAdres} onChange={(e) => up({ objectAdres: e.target.value })} placeholder="de woning aan de Molenstraat 20 te Goedereede" className={FULL} /></Field>
+                <Toggle checked={d.showLtv} onChange={(v) => up({ showLtv: v })} label="Waarde en LTV vermelden" />
+                {d.showLtv && (
+                  <div className="mt-3 space-y-3">
+                    {/* One row per onderpand: the LTV covers them all together. Addresses are edited in step 5. */}
+                    {d.objects.length === 0 && (
+                      <p className="text-xs text-gray-400 font-sans">Nog geen onderpand. Voeg er een toe bij stap 5; de waarde vul je hier in.</p>
+                    )}
+                    {d.objects.map((o, i) => (
+                      <div key={i} className="grid grid-cols-[140px_1fr_150px] gap-2 items-end">
+                        <Field label={i === 0 ? "Soort" : ""}>
+                          <select value={OBJECT_NOUNS.includes(o.noun as (typeof OBJECT_NOUNS)[number]) ? o.noun : "het object"} onChange={(e) => updObject(i, { noun: e.target.value })} className={FULL}>
+                            {OBJECT_NOUNS.map((n) => <option key={n} value={n}>{n}</option>)}
+                          </select>
+                        </Field>
+                        <Field label={i === 0 ? "Onderpand (adres via stap 5)" : ""}>
+                          <div className={`${FULL} flex items-center bg-gray-50 text-gray-600 truncate`} title={o.address}>{o.address.trim() || <span className="text-gray-400">Onderpand {i + 1}, nog geen adres</span>}</div>
+                        </Field>
+                        <Field label={i === 0 ? "Waarde" : ""}><MoneyInput value={o.waarde} onChange={(n) => updObject(i, { waarde: n })} /></Field>
+                      </div>
+                    ))}
+                    {d.objects.length > 0 && (
+                      <div className={`rounded-lg border px-3 py-2.5 text-xs font-sans flex items-center justify-between gap-3 ${ltv && ltv.pct !== null && ltv.pct > 100 ? "border-amber-300 bg-amber-50 text-amber-800" : "border-gray-200 bg-gray-50 text-gray-600"}`}>
+                        <span>
+                          {ltvObjects.length > 1 ? "Totale waarde" : "Waarde"} <strong className="text-gray-800">{totaalWaarde > 0 ? fmtEuro(totaalWaarde) : "-"}</strong>
+                          {ltvObjects.length > 1 && totaalWaarde > 0 && <span className="text-gray-400"> ({ltvObjects.map((o) => fmtEuro(o.waarde)).join(" + ")})</span>}
+                        </span>
+                        <span>
+                          LTV <strong className="text-gray-800">{ltv && ltv.pct !== null ? `circa ${Math.round(ltv.pct)}%` : "-"}</strong>
+                          {ltv && ltv.voorgaand > 0 && <span className="text-gray-400"> incl. voorgaande hypotheek {fmtEuro(ltv.voorgaand)}</span>}
+                          {ltv && ltv.pct !== null && ltv.pct > 100 && <span> · boven 100%</span>}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <Field label={d.objectAdresManual ? "Omschrijving in de zin (handmatig)" : "Omschrijving in de zin (automatisch)"}>
+                        <input value={effectiveObjectAdres(d)} onChange={(e) => up({ objectAdres: e.target.value, objectAdresManual: true })} placeholder="de woning aan de Molenstraat 20, 3252 BE Goedereede" className={FULL} />
+                      </Field>
+                      {d.objectAdresManual && (
+                        <button type="button" onClick={() => up({ objectAdresManual: false, objectAdres: autoObjectAdres })} className={`${LINK} mt-1.5`}><RotateCcw size={12} /> Terug naar automatische omschrijving</button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -363,7 +493,7 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
               </div>
             </Section>
 
-            <Section n={5} title="Onderpanden en zekerheden">
+            <Section n={5} title="Onderpanden en zekerheden" hint="Adres en recht van hypotheek per onderpand. De waarde per onderpand staat bij stap 2 (LTV).">
               <div className="space-y-3">
                 {d.objects.map((o, i) => (
                   <div key={i} className="rounded-lg border border-gray-200 p-3 space-y-3">
@@ -385,7 +515,7 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
                     ))}
                   </div>
                 ))}
-                <button type="button" onClick={() => up({ objects: [...d.objects, { address: "", hypotheekRank: "1e", priorLienholders: [] }] })} className={LINK}><Plus size={13} /> Onderpand toevoegen</button>
+                <button type="button" onClick={() => up({ objects: [...d.objects, newQuoteObject()] })} className={LINK}><Plus size={13} /> Onderpand toevoegen</button>
               </div>
               <Field label={d.zekerhedenManual ? "Tekst zekerheden (handmatig)" : "Tekst zekerheden (automatisch)"}>
                 <textarea value={d.zekerhedenText} onChange={(e) => up({ zekerhedenText: e.target.value, zekerhedenManual: true })} rows={4} className={`${FULL} h-auto py-2 leading-relaxed`} />
@@ -461,11 +591,37 @@ export default function QuoteDialog({ aanvraag, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
-          <button onClick={onClose} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Sluiten</button>
-          <button onClick={copy} className={`px-5 py-2.5 text-sm font-medium font-sans text-white rounded-lg transition-colors inline-flex items-center gap-2 ${copyFailed ? "bg-red-600 hover:bg-red-700" : "bg-[#1E3A5F] hover:bg-[#2a4d7a]"}`}>
-            {copied ? <><Check size={14} /> Gekopieerd</> : copyFailed ? <><AlertTriangle size={14} /> Kopiëren mislukt</> : <><Copy size={14} /> Kopieer e-mailtekst</>}
-          </button>
+        <div className="flex items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
+          <div className="text-xs font-sans min-h-[1rem]">
+            {closeGuard ? (
+              <span className="inline-flex items-center gap-3 text-amber-700">
+                <AlertTriangle size={14} className="flex-none" />
+                <span>Je hebt niet-opgeslagen wijzigingen.</span>
+                <button type="button" onClick={async () => { if (await save()) onClose() }} disabled={saving} className="font-medium underline hover:no-underline disabled:opacity-50">Opslaan en sluiten</button>
+                <button type="button" onClick={onClose} className="font-medium underline hover:no-underline text-gray-600">Sluiten zonder opslaan</button>
+                <button type="button" onClick={() => setCloseGuard(false)} className="text-gray-500 hover:text-gray-700">Annuleren</button>
+              </span>
+            ) : saveState === "failed" ? (
+              <span className="text-red-600 inline-flex items-center gap-1.5"><AlertTriangle size={13} /> Opslaan mislukt. Probeer het opnieuw.</span>
+            ) : lastSaved && !dirty ? (
+              <span className="text-gray-400">Opgeslagen op de aanvraag; opnieuw openen laadt deze versie.</span>
+            ) : (
+              <span className="text-gray-400">Niet opgeslagen. Sluiten zonder opslaan gooit de ingevulde condities weg.</span>
+            )}
+          </div>
+          <div className="flex gap-2 flex-none">
+            <button onClick={requestClose} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Sluiten</button>
+            <button
+              onClick={save}
+              disabled={saving || (!dirty && !!lastSaved)}
+              className={`px-4 py-2.5 text-sm font-medium font-sans rounded-lg border transition-colors inline-flex items-center gap-2 ${saveState === "saved" ? "border-green-600 text-green-700 bg-green-50" : "border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F]/5"} disabled:opacity-50 disabled:hover:bg-transparent`}
+            >
+              {saving ? <>Opslaan...</> : saveState === "saved" ? <><Check size={14} /> Opgeslagen</> : <><Save size={14} /> Opslaan</>}
+            </button>
+            <button onClick={copy} className={`px-5 py-2.5 text-sm font-medium font-sans text-white rounded-lg transition-colors inline-flex items-center gap-2 ${copyFailed ? "bg-red-600 hover:bg-red-700" : "bg-[#1E3A5F] hover:bg-[#2a4d7a]"}`}>
+              {copied ? <><Check size={14} /> Gekopieerd</> : copyFailed ? <><AlertTriangle size={14} /> Kopiëren mislukt</> : <><Copy size={14} /> Kopieer e-mailtekst</>}
+            </button>
+          </div>
         </div>
       </div>
     </div>
