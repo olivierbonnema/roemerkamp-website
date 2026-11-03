@@ -12,7 +12,7 @@ import { pageMetadata } from '@/lib/seo'
 const URL = "https://www.nonbancaireleningen.nl/berichten/overbruggingsfinanciering-de-exit"
 const TITEL = "Overbruggingsfinanciering: het draait om de exit"
 const OMSCHRIJVING =
-  "Een overbrugging wordt beoordeeld op hoe hij eindigt: verkoop of oversluiten. Wat een geloofwaardige exit is en hoe het rentedepot werkt."
+  "Een overbrugging wordt beoordeeld op hoe hij eindigt, door verkoop of oversluiten. Wat een geloofwaardige exit is en hoe het rentedepot werkt."
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten/overbruggingsfinanciering-de-exit",
@@ -31,7 +31,7 @@ const faq = [
   {
     vraag: "Hoe lang kan een overbrugging lopen?",
     antwoord:
-      "Doorgaans zes tot vierentwintig maanden. Korter dan zes maanden is zelden zinvol vanwege de eenmalige kosten; langer dan twee jaar is meestal geen overbrugging meer, maar een financiering die om een andere opzet vraagt.",
+      "Doorgaans zes tot vierentwintig maanden. Korter dan zes maanden is zelden zinvol vanwege de eenmalige kosten. Langer dan twee jaar is meestal geen overbrugging meer, maar een financiering die om een andere opzet vraagt.",
   },
   {
     vraag: "Wat als ik nog geen koper heb en ook nog geen bank die wil oversluiten?",
@@ -45,7 +45,7 @@ export default function OverbruggingDeExitPage() {
     <>
       <BreadcrumbSchema items={[
         { name: "Berichten", href: "/berichten" },
-        { name: "Overbruggingsfinanciering: de exit", href: "/berichten/overbruggingsfinanciering-de-exit" },
+        { name: "De exit bij overbruggingsfinanciering", href: "/berichten/overbruggingsfinanciering-de-exit" },
       ]} />
       <FaqSchema items={faq} />
       <ArticleSchema
@@ -73,14 +73,14 @@ export default function OverbruggingDeExitPage() {
             binnenkomt waarmee hij wordt afgelost, en de hele beoordeling draait om de vraag hoe zeker dat moment is.
           </P>
           <P>
-            In de praktijk zijn er twee smaken. De eerste is <strong>verkoop</strong>: u heeft een nieuwe woning gekocht
+            In de praktijk zijn er twee smaken. De eerste is <strong>verkoop</strong>. U heeft een nieuwe woning gekocht
             terwijl de oude nog niet verkocht is, of u knapt een pand op om het daarna te verkopen. De opbrengst van de
-            verkoop lost de lening af. De tweede is <strong>oversluiten</strong>: de bank wil nu nog niet, maar over een
+            verkoop lost de lening af. De tweede is <strong>oversluiten</strong>. De bank wil nu nog niet, maar over een
             jaar wel, bijvoorbeeld omdat dan de tweede jaarrekening er ligt of omdat het pand tegen die tijd verhuurd
             is. De bancaire hypotheek lost dan de overbrugging af.
           </P>
           <P>
-            Welke van de twee het is, bepaalt alles wat volgt: de looptijd, de manier waarop de rente wordt betaald, en
+            Welke van de twee het is, bepaalt alles wat volgt. Denk aan de looptijd, de manier waarop de rente wordt betaald en
             wat er van u wordt gevraagd om de exit aannemelijk te maken.
           </P>
         </TekstMetFoto>
@@ -88,15 +88,15 @@ export default function OverbruggingDeExitPage() {
         <Sectie kop="Wat een geloofwaardige exit is" grijs>
           <P>
             Bij een <strong>verkoop-exit</strong> kijken wij naar het verschil tussen de vraagprijs en de taxatiewaarde.
-            Een vraagprijs die ruim boven de taxatie ligt, is geen exit maar een hoop. We kijken ook naar de tijd: een
+            Een vraagprijs die ruim boven de taxatie ligt, is geen exit maar een hoop. We kijken ook naar de tijd. Een
             woning die vandaag in de verkoop gaat, is bij een vlotte markt na twee maanden verkocht, maar de levering
             bij de notaris is dan vaak pas drie maanden later. Dat zijn vijf maanden, en dan moet er nog niets tegenzitten.
           </P>
           <P>
-            Bij een <strong>oversluit-exit</strong> willen wij weten welke bank, en vooral: welke eis nu niet gehaald
+            Bij een <strong>oversluit-exit</strong> willen wij weten welke bank, en vooral welke eis nu niet gehaald
             wordt en wanneer die wél gehaald wordt. "De bank doet het over een jaar wel" is geen exit. "De Rabobank
             vraagt twee volledige jaarrekeningen, de tweede is in maart klaar, en de accountant heeft dit bevestigd"
-            is er wel een. Hetzelfde geldt voor verhuur: een getekend huurcontract weegt zwaarder dan een verwachting.
+            is er wel een. Hetzelfde geldt voor verhuur. Een getekend huurcontract weegt zwaarder dan een verwachting.
           </P>
           <UitDePraktijk>
             <p>
@@ -110,7 +110,7 @@ export default function OverbruggingDeExitPage() {
 
         <Rekenvoorbeeld
           kop="De rente zit in de lening"
-          toelichting="Bij een overbrugging is er tijdens de looptijd vaak geen inkomen uit het pand. Daarom wordt de rente niet maandelijks betaald, maar bij het passeren apart gezet in een rentedepot. Fictief voorbeeld: € 400.000 voor twaalf maanden tegen 9%."
+          toelichting="Bij een overbrugging is er tijdens de looptijd vaak geen inkomen uit het pand. Daarom wordt de rente niet maandelijks betaald, maar bij het passeren apart gezet in een rentedepot. Een fictief voorbeeld is € 400.000 voor twaalf maanden tegen 9%."
         >
           <Tabel
             donker
@@ -134,14 +134,14 @@ export default function OverbruggingDeExitPage() {
         <Sectie kop="Neem een looptijd met lucht">
           <P>
             De verleiding is om de looptijd zo kort mogelijk te kiezen, omdat elke maand rente kost. Dat is bijna
-            altijd een vergissing. Een verlenging is geen knop waar u op drukt; het is een nieuwe afspraak, die in
+            altijd een vergissing. Een verlenging is geen knop waar u op drukt. Het is een nieuwe afspraak, die in
             overleg met de investeerder tot stand komt en waar opnieuw kosten aan verbonden zijn. Wie negen maanden
             nodig heeft en twaalf afspreekt, betaalt drie maanden rente voor rust. Wie negen afspreekt en tien nodig
             heeft, zit in een gesprek dat hij liever niet had gevoerd.
           </P>
           <P>
             En als het toch uitloopt? Dan kijken wij samen met de investeerder of de lening verlengd kan worden. Dat
-            gaat in overleg; het is geen recht. Lukt een verlenging niet, wat zelden voorkomt, dan moet het pand
+            gaat in overleg. Het is geen recht. Lukt een verlenging niet, wat zelden voorkomt, dan moet het pand
             alsnog verkocht worden. Wij schrijven dat zo in elke pitch aan onze investeerders, en wij vinden dat u het
             ook moet weten voordat u tekent.
           </P>
@@ -156,7 +156,7 @@ export default function OverbruggingDeExitPage() {
           </P>
           <P>
             Geen van deze drie is een reden om een overbrugging af te wijzen. Het zijn redenen om de aanvraag anders
-            in te richten: een langere looptijd, een taxatie vooraf, of één telefoontje met de bank voordat de
+            in te richten, met een langere looptijd, een taxatie vooraf of één telefoontje met de bank voordat de
             termsheet wordt opgesteld.
           </P>
         </Sectie>
@@ -165,7 +165,7 @@ export default function OverbruggingDeExitPage() {
 
         <Vervolg
           kop="Een overbrugging nodig?"
-          tekst="Lees wat een overbruggingsfinanciering via Lange & Partners inhoudt, of dien direct een aanvraag in. Vermeld daarbij hoe de lening eindigt; dat is het eerste waar wij naar kijken."
+          tekst="Lees wat een overbruggingsfinanciering via Lange & Partners inhoudt, of dien direct een aanvraag in. Vermeld daarbij hoe de lening eindigt. Dat is het eerste waar wij naar kijken."
           knop={{ href: "/overbruggingsfinanciering-verbouwing", label: "Overbruggingsfinanciering" }}
           tweede={{ href: "/herfinanciering-vastgoed", label: "Oversluiten als exit" }}
         />

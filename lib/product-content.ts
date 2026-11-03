@@ -43,7 +43,7 @@ export function kerngegevens(overrides: Partial<Record<'Bedrag' | 'Looptijd' | '
     { label: 'Loan-to-value', value: LTV },
     { label: 'Rente', value: RENTE },
     { label: 'Doorlooptijd', value: DOORLOOPTIJD },
-    { label: 'Zekerheid', value: 'Hypotheekrecht op vastgoed in Nederland, 1e of 2e rang' },
+    { label: 'Zekerheid', value: '1e of 2e hypotheekrecht op vastgoed in Nederland' },
   ]
   return basis.map((f) => {
     const v = overrides[f.label as keyof typeof overrides]
@@ -56,11 +56,11 @@ export const VOORWAARDEN: Array<[string, string]> = [
   ['Leenbedrag', BEDRAG],
   ['Looptijd', LOOPTIJD],
   ['Loan-to-value', 'Doorgaans tot 70% van de marktwaarde, maximaal 75%. Een bestaande hypotheek telt mee in de totale schuld op het pand.'],
-  ['Rente', 'Vanaf 7% per jaar. Het tarief hangt af van de loan-to-value, het type vastgoed, de rang van de hypotheek en het risicoprofiel.'],
+  ['Rente', 'Vanaf 7% per jaar. Het tarief hangt af van de loan-to-value, het type vastgoed, een 1e of 2e hypotheekrecht en het risicoprofiel.'],
   ['Rentebetaling', 'Maandelijks, of vooraf via een rentedepot dat uit de lening wordt gevormd'],
-  ['Aflossing', 'Aan het einde van de looptijd, uit verkoop of herfinanciering. Vervroegd aflossen is in de meeste gevallen mogelijk; de voorwaarden staan vooraf in de leningsovereenkomst.'],
-  ['Zekerheid', 'Hypotheekrecht op het vastgoed, ingeschreven bij het Kadaster in eerste of tweede rang'],
-  ['Eigen inbreng', 'Geen vereiste. De dekking is bepalend: blijft de totale schuld binnen de loan-to-value, dan kan de financiering zonder eigen geld. Ander vastgoed kan als extra zekerheid dienen.'],
+  ['Aflossing', 'Aan het einde van de looptijd, uit verkoop of herfinanciering. Vervroegd aflossen is in de meeste gevallen mogelijk. De voorwaarden staan vooraf in de leningsovereenkomst.'],
+  ['Zekerheid', '1e of 2e hypotheekrecht op het vastgoed, ingeschreven bij het Kadaster'],
+  ['Eigen inbreng', 'Geen vereiste. De dekking is bepalend. Blijft de totale schuld binnen de loan-to-value, dan kan de financiering zonder eigen geld. Ander vastgoed kan als extra zekerheid dienen.'],
   ['Betalingen', 'Via een onafhankelijke Stichting die de geldstromen beheert'],
 ]
 
@@ -83,32 +83,32 @@ export const KOSTEN: Array<[string, string, string]> = [
 ]
 
 export const KOSTEN_INLEIDING =
-  'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover: een beoordeling van de hele casus in plaats van langs een vaste norm, een doorlooptijd van weken in plaats van maanden en ruimte voor situaties die een bank niet bedient. Alle kosten staan vooraf in de termsheet; er komen geen opslagen achteraf bij.'
+  'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover dat wij de hele casus beoordelen in plaats van langs een vaste norm, dat de doorlooptijd weken is in plaats van maanden en dat er ruimte is voor situaties die een bank niet bedient. Alle kosten staan vooraf in de termsheet. Er komen geen opslagen achteraf bij.'
 
 export const KOSTEN_FISCAAL =
-  'Rente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering; zakelijke rentelasten zijn doorgaans aftrekbaar als bedrijfskosten. Bespreek dit met uw fiscalist.'
+  'Rente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering. Zakelijke rentelasten zijn doorgaans aftrekbaar als bedrijfskosten. Bespreek dit met uw fiscalist.'
 
 /** De aanvraag in vijf stappen (de uitgebreide versie staat in het blog "Zo verloopt een financiering"). */
 export const STAPPEN: Step[] = [
   {
     title: 'De aanvraag',
-    text: 'U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben: het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen.',
+    text: 'U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen.',
   },
   {
     title: 'De beoordeling',
-    text: 'Wij beoordelen de hele casus op drie punten: de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening eindigt). Daarnaast controleren wij de betrokkenen in de openbare registers.',
+    text: 'Wij beoordelen de hele casus op drie punten, namelijk de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening eindigt). Daarnaast controleren wij de betrokkenen in de openbare registers.',
   },
   {
     title: 'De indicatie en uw akkoord',
-    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden: bedrag, rente, looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren wij de opstartvergoeding en stellen wij de termsheet op, met alle afspraken en de voorwaarden voor het passeren.',
+    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden, met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren wij de opstartvergoeding en stellen wij de termsheet op, met alle afspraken en de voorwaarden voor het passeren.',
   },
   {
     title: 'De investeerder',
-    text: "Wij leggen de aanvraag voor aan onze investeerders, met de zekerheden, de loan-to-value, de exit en de risico's benoemd zoals ze zijn. Deze stap bepaalt de doorlooptijd; een heldere aanvraag met een goede exit vindt snel een investeerder.",
+    text: "Wij leggen de aanvraag voor aan onze investeerders, met de zekerheden, de loan-to-value, de exit en de risico's benoemd zoals ze zijn. Deze stap bepaalt de doorlooptijd. Een heldere aanvraag met een goede exit vindt snel een investeerder.",
   },
   {
     title: 'De notaris en de looptijd',
-    text: 'De hypotheekakte passeert en wordt ingeschreven bij het Kadaster. De investeerder stort bij de onafhankelijke Stichting, de notaris keert uit. Tijdens de looptijd betaalt u rente via de Stichting; aan het einde lost u af uit verkoop of herfinanciering. Uw aanspreekpunt blijft Lange & Partners.',
+    text: 'De hypotheekakte passeert en wordt ingeschreven bij het Kadaster. De investeerder stort bij de onafhankelijke Stichting, de notaris keert uit. Tijdens de looptijd betaalt u rente via de Stichting. Aan het einde lost u af uit verkoop of herfinanciering. Uw aanspreekpunt blijft Lange & Partners.',
   },
 ]
 
@@ -118,12 +118,12 @@ export const STAPPEN_INLEIDING =
 /** Standaard-FAQ's die op meerdere pagina's passen. */
 export const FAQ_EIGEN_GELD: FaqItem = {
   vraag: 'Kan ik financieren zonder eigen geld?',
-  antwoord: 'Ja, eigen inbreng is geen vereiste. Bepalend is de dekking: de totale schuld op het onderpand blijft binnen de loan-to-value van doorgaans 70% en maximaal 75%. Is de ruimte in het ene pand te klein, dan kan ander vastgoed als extra zekerheid dienen.',
+  antwoord: 'Ja, eigen inbreng is geen vereiste. Bepalend is de dekking. De totale schuld op het onderpand blijft binnen de loan-to-value van doorgaans 70% en maximaal 75%. Is de ruimte in het ene pand te klein, dan kan ander vastgoed als extra zekerheid dienen.',
 }
 
 export const FAQ_VEILIG: FaqItem = {
   vraag: 'Is een financiering buiten de bank om veilig?',
-  antwoord: 'Het hypotheekrecht wordt ingeschreven bij het Kadaster, net als bij een bancaire hypotheek. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van alle partijen waarborgt. Lange & Partners heeft een AFM-vergunning voor bemiddeling; de registraties staan op de pagina Nadere informatie.',
+  antwoord: 'Het hypotheekrecht wordt ingeschreven bij het Kadaster, net als bij een bancaire hypotheek. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van alle partijen waarborgt. Lange & Partners heeft een AFM-vergunning voor bemiddeling. De registraties staan op de pagina Nadere informatie.',
 }
 
 export const FAQ_AANSPREEKPUNT: FaqItem = {
@@ -133,7 +133,7 @@ export const FAQ_AANSPREEKPUNT: FaqItem = {
 
 export const FAQ_TAXATIE: FaqItem = {
   vraag: 'Moet ik een taxatierapport hebben voordat ik een aanvraag doe?',
-  antwoord: 'Voor de indicatie niet; een recente WOZ-waarde of een goede onderbouwing van de waarde volstaat dan, naast uw gegevens over inkomen of kasstroom en de exit. Voor de termsheet en het passeren is een rapport van een onafhankelijke taxateur wel vereist. Wie het al heeft, wint daarmee tijd.',
+  antwoord: 'Voor de indicatie niet. Een recente WOZ-waarde of een goede onderbouwing van de waarde volstaat dan, naast uw gegevens over inkomen of kasstroom en de exit. Voor de termsheet en het passeren is een rapport van een onafhankelijke taxateur wel vereist. Wie het al heeft, wint daarmee tijd.',
 }
 
 export const FAQ_VERVROEGD: FaqItem = {
@@ -143,9 +143,9 @@ export const FAQ_VERVROEGD: FaqItem = {
 
 /** Verwante pagina's, per pad op te halen. */
 export const PAGINAS: Record<string, RelatedItem> = {
-  hub: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina: voorwaarden, kosten, rekenvoorbeeld en aanvraag.' },
-  vastgoed: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina: voorwaarden, kosten, rekenvoorbeeld en aanvraag.' },
-  tweede: { href: '/tweede-hypotheek-ondernemer', title: 'Tweede hypotheek voor ondernemers', text: 'Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.' },
+  hub: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina met de voorwaarden, de kosten, een rekenvoorbeeld en de aanvraag.' },
+  vastgoed: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina met de voorwaarden, de kosten, een rekenvoorbeeld en de aanvraag.' },
+  tweede: { href: '/tweede-hypotheek-ondernemer', title: 'Tweede hypotheek voor ondernemers', text: 'Overwaarde benutten naast de bestaande bankhypotheek, met een 2e hypotheekrecht.' },
   jaarcijfers: { href: '/hypotheek-zonder-jaarcijfers', title: 'Hypotheek zonder jaarcijfers', text: 'Als de cijfers er nog niet zijn of niet in de norm van de bank passen.' },
   dga: { href: '/dga-hypotheek', title: 'DGA hypotheek', text: 'Voor directeur-grootaandeelhouders met een fiscaal geoptimaliseerd inkomen.' },
   zzp: { href: '/hypotheek-zonder-jaarcijfers', title: 'Geen drie jaar jaarcijfers', text: 'Starters, ZZP\'ers en ondernemers met een korte of wisselende historie.' },
@@ -154,7 +154,7 @@ export const PAGINAS: Record<string, RelatedItem> = {
   herfinanciering: { href: '/herfinanciering-vastgoed', title: 'Herfinanciering vastgoed', text: 'Een aflopende lening overbruggen tot verkoop of een nieuwe langlopende hypotheek.' },
   afgewezen: { href: '/hypotheek-ondernemer-afgewezen', title: 'Hypotheek afgewezen door de bank', text: 'Wat uw opties zijn na een afwijzing, en wanneer wij wel kunnen.' },
   proces: { href: '/berichten/zo-verloopt-een-financiering', title: 'Van aanvraag tot passering', text: 'De zes stappen van een financiering, wat wij van u nodig hebben en waar de tijd in gaat zitten.' },
-  kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een zakelijke hypotheek zonder bank?', text: 'Rente, behandelingskosten, taxatie en notaris: een overzicht van alle kosten en wat ze bepaalt.' },
+  kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een zakelijke hypotheek zonder bank?', text: 'Een overzicht van alle kosten, van rente en behandelingskosten tot taxatie en notaris, en wat ze bepaalt.' },
   ltv: { href: '/berichten/tweede-hypotheek-en-ltv', title: 'Tweede hypotheek: waarom de LTV anders is dan u denkt', text: 'Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat.' },
   exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.' },
   watIs: { href: '/berichten/wat-is-non-bancaire-financiering', title: 'Wat is non-bancaire financiering?', text: 'Uitleg, vormen en werking van financiering buiten de bank om.' },

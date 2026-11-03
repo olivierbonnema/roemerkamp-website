@@ -22,7 +22,7 @@ const faq = [
   },
   {
     vraag: 'Wordt non-bancaire financiering gereguleerd?',
-    antwoord: 'Lange & Partners heeft een AFM-vergunning voor bemiddeling: wij brengen leningnemer en investeerder bij elkaar, de investeerder verstrekt de lening. Alle leningen worden notarieel vastgelegd en ingeschreven bij het Kadaster, en alle betalingen verlopen via een onafhankelijke Stichting.',
+    antwoord: 'Lange & Partners heeft een AFM-vergunning voor bemiddeling. Wij brengen leningnemer en investeerder bij elkaar en de investeerder verstrekt de lening. Alle leningen worden notarieel vastgelegd en ingeschreven bij het Kadaster, en alle betalingen verlopen via een onafhankelijke Stichting.',
   },
   {
     vraag: 'Kan ik non-bancaire financiering combineren met mijn bestaande hypotheek?',
@@ -94,7 +94,7 @@ export default function WatIsNonBancaireFinancieringPage() {
 
             {/* Definitie */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Definitie: financiering buiten de bank</h2>
+              <h2 className="text-2xl font-serif text-[#1e3a5f]">Financiering buiten de bank</h2>
               <p className="text-gray-700 leading-relaxed">
                 Non-bancaire financiering is een verzamelnaam voor leningen die niet door een bank worden verstrekt. Het kapitaal komt van particuliere investeerders, institutionele beleggers of gespecialiseerde fondsen. De lening wordt, net als bij een bank, hypothecair vastgelegd op vastgoed.
               </p>
@@ -107,7 +107,7 @@ export default function WatIsNonBancaireFinancieringPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Hoe werkt het in de praktijk?</h2>
               <p className="text-gray-700 leading-relaxed">
-                Bij Lange &amp; Partners verloopt een non-bancaire financiering via een gestructureerd proces met dezelfde juridische waarborgen als een bancaire hypotheek:
+                Bij Lange &amp; Partners verloopt een non-bancaire financiering via een gestructureerd proces met dezelfde juridische waarborgen als een bancaire hypotheek.
               </p>
               <div className="space-y-3">
                 {[
@@ -124,7 +124,7 @@ export default function WatIsNonBancaireFinancieringPage() {
                 ))}
               </div>
               <p className="text-gray-700 leading-relaxed">
-                De doorlooptijd is aanzienlijk korter dan bij een bank: doorgaans &eacute;&eacute;n tot drie weken bij een volledige aanvraag.
+                De doorlooptijd is aanzienlijk korter dan bij een bank, doorgaans &eacute;&eacute;n tot drie weken bij een volledige aanvraag.
               </p>
             </div>
 
@@ -134,7 +134,7 @@ export default function WatIsNonBancaireFinancieringPage() {
               <p className="text-gray-700 leading-relaxed">
                 Non-bancaire financiering is niet bedoeld als vervanging van de bank. Het is een oplossing voor situaties waarin de bank niet kan of wil financieren, terwijl de aanvrager w&eacute;l beschikt over vastgoed met voldoende overwaarde.
               </p>
-              <p className="text-gray-700 leading-relaxed">Typische situaties:</p>
+              <p className="text-gray-700 leading-relaxed">Dit zijn typische situaties.</p>
               <div className="space-y-3">
                 {[
                   'ZZP\'ers zonder drie jaar jaarcijfers die een woning willen kopen',
@@ -155,7 +155,7 @@ export default function WatIsNonBancaireFinancieringPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Welke vormen bestaan er?</h2>
               <p className="text-gray-700 leading-relaxed">
-                Non-bancaire financiering is een breed begrip. Bij Lange &amp; Partners richten wij ons specifiek op hypothecaire leningen met vastgoed als onderpand. Dit kan verschillende vormen aannemen:
+                Non-bancaire financiering is een breed begrip. Bij Lange &amp; Partners richten wij ons specifiek op hypothecaire leningen met vastgoed als onderpand. Dit kan verschillende vormen aannemen.
               </p>
               <div className="space-y-3">
                 {[
@@ -179,7 +179,7 @@ export default function WatIsNonBancaireFinancieringPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Hoe zijn de zekerheden geregeld?</h2>
               <p className="text-gray-700 leading-relaxed">
-                Een veelgestelde vraag is of non-bancaire financiering net zo veilig is als een bancaire lening. Het antwoord: de juridische structuur is vergelijkbaar.
+                Een veelgestelde vraag is of non-bancaire financiering net zo veilig is als een bancaire lening. Het antwoord is dat de juridische structuur vergelijkbaar is.
               </p>
               <div className="space-y-3">
                 {[

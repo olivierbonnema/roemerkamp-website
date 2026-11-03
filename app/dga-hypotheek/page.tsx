@@ -17,7 +17,7 @@ const situaties = [
   },
   {
     term: 'Laag DGA-salaris, hoog bedrijfsvermogen',
-    text: 'U keert uzelf het gebruikelijk loon uit en laat de winst in de BV. De bank ziet een laag inkomen; u ziet een vermogend bedrijf.',
+    text: 'U keert uzelf het gebruikelijk loon uit en laat de winst in de BV. De bank ziet een laag inkomen. U ziet een vermogend bedrijf.',
   },
   {
     term: 'Wisselende winst door investeringsjaren of seizoenen',
@@ -36,15 +36,15 @@ const situaties = [
 const beoordeling = [
   {
     term: 'De betaalbaarheid, uit uw werkelijke positie',
-    text: 'Kunt u de rente en de kosten dragen? Daarvoor kijken wij verder dan het DGA-salaris: het bedrijfsvermogen, de kasstromen van de onderneming, de dividendruimte en uw overige bezittingen geven een completer beeld dan het loon van drie jaar.',
+    text: 'Kunt u de rente en de kosten dragen? Daarvoor kijken wij verder dan het DGA-salaris. Het bedrijfsvermogen, de kasstromen van de onderneming, de dividendruimte en uw overige bezittingen geven een completer beeld dan het loon van drie jaar.',
   },
   {
     term: 'Het onderpand',
-    text: 'De marktwaarde van de woning of het pand: type vastgoed, locatie, verkoopbaarheid en de eventuele hypotheekschuld. De totale schuld blijft doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
+    text: 'Wij kijken naar de marktwaarde van de woning of het pand, het type vastgoed, de locatie, de verkoopbaarheid en de eventuele hypotheekschuld. De totale schuld blijft doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
   },
   {
     term: 'De exit',
-    text: 'Hoe wordt de lening aan het einde afgelost of geherfinancierd: via een bank zodra de jaarrekeningen er zijn, uit dividend of uit verkoop. Dat beoordelen wij op uw situatie, niet met een standaardformule.',
+    text: 'Hoe wordt de lening aan het einde afgelost of geherfinancierd? Dat kan via een bank zodra de jaarrekeningen er zijn, uit dividend of uit verkoop. Dat beoordelen wij op uw situatie, niet met een standaardformule.',
   },
 ]
 
@@ -59,7 +59,7 @@ const faq = [
   },
   {
     vraag: 'Wat is het verschil tussen lenen in privé en lenen via de BV?',
-    antwoord: 'In privé leent u als particulier, met uw eigen woning of een privé beleggingspand als onderpand; dit is de meest gangbare route voor DGA\'s. Via de BV is de vennootschap de geldnemer en dient zakelijk vastgoed van de BV als onderpand. Dat is een ander traject met eigen fiscale, juridische en administratieve overwegingen, dat wij graag in een persoonlijk gesprek doornemen.',
+    antwoord: 'In privé leent u als particulier, met uw eigen woning of een privé beleggingspand als onderpand. Dit is de meest gangbare route voor DGA\'s. Via de BV is de vennootschap de geldnemer en dient zakelijk vastgoed van de BV als onderpand. Dat is een ander traject met eigen fiscale, juridische en administratieve overwegingen, dat wij graag in een persoonlijk gesprek doornemen.',
   },
   {
     vraag: 'Welke documenten heb ik nodig voor een aanvraag?',
@@ -88,7 +88,7 @@ export default function DgaHypotheekPage() {
         <p>
           Banken tellen uw salaris en de winst van de onderneming mee, gemiddeld over drie jaar, en verlangen drie jaar
           volledige jaarrekeningen van de BV. DGA's die zichzelf het minimaal gebruikelijke loon toekennen om fiscaal
-          optimaal te ondernemen, zien dat terug in de hypotheektoets: de bank ziet een laag inkomen, u ziet een vermogend
+          optimaal te ondernemen, zien dat terug in de hypotheektoets. De bank ziet een laag inkomen, u ziet een vermogend
           bedrijf. Dat verschil leidt regelmatig tot een afwijzing, of tot een maximale hypotheek die ver onder uw
           werkelijke draagkracht ligt.
         </p>
@@ -103,7 +103,7 @@ export default function DgaHypotheekPage() {
         <DefinitionList items={situaties} />
       </ArticleSection>
 
-      <ArticleSection id="routes" title="Privé of via de BV: twee routes">
+      <ArticleSection id="routes" title="Lenen in privé of via de BV">
         <p>
           De meest gangbare route voor DGA's is lenen in privé, met de eigen woning of een privé beleggingspand als
           onderpand. Daarnaast kan de BV zelf de geldnemer zijn, met zakelijk vastgoed als onderpand. De verschillen op
@@ -116,12 +116,12 @@ export default function DgaHypotheekPage() {
             ['Onderpand', 'Eigen woning, tweede woning of privé beleggingspand', 'Zakelijk vastgoed op naam van de BV, eventueel aangevuld met privévastgoed'],
             ['Doel', 'Aankoop, verbouwing, overwaarde benutten, overbrugging', 'Bedrijfspand, beleggingsvastgoed, werkkapitaal met vastgoed als zekerheid'],
             ['Rente fiscaal', 'Voor de eigen woning onder voorwaarden aftrekbaar', 'Doorgaans aftrekbaar als bedrijfskosten'],
-            ['Bijzonderheden', 'Voor de eigen woning gelden aanvullende regels; wij beoordelen per aanvraag', 'Eigen fiscale, juridische en administratieve overwegingen; afstemming met uw accountant'],
+            ['Bijzonderheden', 'Voor de eigen woning gelden aanvullende regels. Wij beoordelen per aanvraag', 'Eigen fiscale, juridische en administratieve overwegingen. Afstemming met uw accountant'],
           ]}
         />
         <Note>
           Welke route past, hangt af van het vastgoed, het doel en uw fiscale situatie. Bespreek dit met uw accountant
-          of fiscalist; wij beoordelen de casus zoals u die aan ons voorlegt.
+          of fiscalist. Wij beoordelen de casus zoals u die aan ons voorlegt.
         </Note>
       </ArticleSection>
 

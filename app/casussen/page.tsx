@@ -12,8 +12,8 @@ import { pageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = pageMetadata({
   path: "/casussen",
-  title: "Casussen: zo verloopt een financiering in de praktijk",
-  description: "Tien voorbeeldcasussen: beleggingspand, DGA, overbrugging, veiling, transformatie, herfinanciering, startende ondernemer, werkkapitaal en de kant van de investeerder. Met bedrag, LTV, looptijd en exit.",
+  title: "Casussen uit de praktijk",
+  description: "Financieringen die wij hebben verzorgd, geanonimiseerd. Per casus het bedrag, de loan-to-value, de looptijd, de exit en waarom de bank afhaakte.",
 })
 
 export default function CasussenPage() {
@@ -23,8 +23,8 @@ export default function CasussenPage() {
       <Header />
       <main>
         <PageHero
-          title="Casussen"
-          intro="Hoe een financiering in de praktijk verloopt, van aanleiding tot aflossing. Tien voorbeeldcasussen met bedrag, loan-to-value, rang, looptijd en exit, en wat elke casus laat zien over onze beoordeling."
+          title="Casussen uit de praktijk"
+          intro="Financieringen die wij hebben verzorgd, van aanleiding tot exit. Per casus ziet u het bedrag, de loan-to-value, de looptijd en waarom de bank afhaakte."
           breadcrumbs={[{ label: 'Casussen', href: '/casussen' }]}
           image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voor leningnemers' }}
@@ -59,11 +59,11 @@ export default function CasussenPage() {
                       </div>
                       <div>
                         <dt className="text-[#5b6472]">Looptijd</dt>
-                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.looptijd}</dd>
+                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.looptijd.split(',')[0]}</dd>
                       </div>
                       <div>
-                        <dt className="text-[#5b6472]">Rang</dt>
-                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.rang.split(',')[0]}</dd>
+                        <dt className="text-[#5b6472]">Zekerheid</dt>
+                        <dd className="font-medium text-[#1e3a5f]">{c.kerngegevens.zekerheid.split(',')[0]}</dd>
                       </div>
                     </dl>
                   </li>
@@ -74,19 +74,19 @@ export default function CasussenPage() {
               <div className="border border-gray-200 border-t-[5px] border-t-[#f75d20] px-6 py-5 bg-white">
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Over deze casussen</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-3">
-                  De casussen zijn voorbeelden: fictieve, maar realistische situaties zoals wij die in de praktijk
-                  tegenkomen. Namen, plaatsen en bedragen zijn niet herleidbaar tot leningnemers of investeerders.
-                  Rentes zijn indicatief.
+                  Dit zijn financieringen die wij in de praktijk hebben verzorgd. Ze zijn geanonimiseerd, dus zonder
+                  namen, plaatsen of andere herleidbare gegevens, en de bedragen zijn afgerond. De rente is de rente bij
+                  aanvang.
                 </p>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a]">
-                  Elke casus volgt dezelfde beoordeling: het onderpand, de betaalbaarheid van de rente en de exit. De
-                  voorwaarden en kosten staan op de productpagina.
+                  Bij elke casus beoordelen wij het onderpand, de betaalbaarheid van de rente en de exit. De voorwaarden
+                  en kosten staan op de productpagina.
                 </p>
               </div>
               <div className="bg-gray-50 px-6 py-5">
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Zelf een situatie voorleggen?</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
-                  Met een recente waardebepaling en het saldo van uw huidige hypotheek geven wij een eerste indicatie.
+                  Leg uw situatie voor via het aanvraagformulier. Na de beoordeling ontvangt u een indicatie per e-mail.
                 </p>
                 <Link
                   href="/financieringsaanvraag"

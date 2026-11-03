@@ -80,7 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const cases: MetadataRoute.Sitemap = CASUSSEN.map((c) => ({
     url: `${BASE}/casussen/${c.slug}`,
-    lastModified: new Date('2026-11-02'),
+    lastModified: new Date('2026-11-03'),
     changeFrequency: 'yearly',
     priority: 0.5,
   }))

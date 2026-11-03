@@ -12,7 +12,7 @@ import { pageMetadata } from '@/lib/seo'
 const URL = "https://www.nonbancaireleningen.nl/berichten/tweede-hypotheek-en-ltv"
 const TITEL = "Tweede hypotheek: waarom de LTV anders is dan u denkt"
 const OMSCHRIJVING =
-  "Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat. Rekenvoorbeeld: dezelfde lening is 25% of 65% LTV, afhankelijk van hoe u telt."
+  "Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat. Een rekenvoorbeeld laat zien dat dezelfde lening 25% of 65% LTV is, afhankelijk van hoe u telt."
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten/tweede-hypotheek-en-ltv",
@@ -26,7 +26,7 @@ const faq = [
   {
     vraag: "Telt een aflossingsvrije eerste hypotheek anders mee dan een annuïtaire?",
     antwoord:
-      "Op het moment van beoordelen niet: in beide gevallen telt het bedrag dat op dat moment openstaat. Het verschil zit in de jaren daarna. Een annuïtaire eerste hypotheek wordt elke maand kleiner, waardoor de buffer onder de tweede hypotheek vanzelf groeit. Bij een aflossingsvrije eerste hypotheek blijft die buffer gelijk. Voor een investeerder die twee jaar vooruitkijkt, is dat een wezenlijk verschil.",
+      "Op het moment van beoordelen niet. In beide gevallen telt het bedrag dat op dat moment openstaat. Het verschil zit in de jaren daarna. Een annuïtaire eerste hypotheek wordt elke maand kleiner, waardoor de buffer onder de tweede hypotheek vanzelf groeit. Bij een aflossingsvrije eerste hypotheek blijft die buffer gelijk. Voor een investeerder die twee jaar vooruitkijkt, is dat een wezenlijk verschil.",
   },
   {
     vraag: "Heb ik toestemming van de bank nodig voor een tweede hypotheek?",
@@ -61,7 +61,7 @@ export default function TweedeHypotheekEnLtvPage() {
         <ArtikelHero
           categorie="Financiering"
           titel={<>Tweede hypotheek: waarom de LTV anders is dan u&nbsp;denkt</>}
-          intro="Een tweede hypotheek klinkt als een lening erbij. Voor degene die het geld verstrekt is het iets anders: een plaats in de rij. Dat verandert de rekensom, en daarmee de rente."
+          intro="Een tweede hypotheek klinkt als een lening erbij. Voor degene die het geld verstrekt is het iets anders, namelijk een plaats in de rij. Dat verandert de rekensom, en daarmee de rente."
           auteur="Marco Lange"
           datumIso="2026-09-30"
           datumTekst="30 september 2026"
@@ -70,26 +70,26 @@ export default function TweedeHypotheekEnLtvPage() {
         <TekstMetFoto kop="Wat 'tweede' eigenlijk betekent" foto="/images/bericht-1-boom.jpg" alt="Solitaire boom in een weiland" fotoPositie="center 55%">
           <P>
             Hypotheken worden ingeschreven bij het Kadaster, in de volgorde waarin ze zijn gevestigd. Wie het eerst
-            inschrijft, staat eerste in rang. Die volgorde is geen formaliteit: bij een gedwongen verkoop wordt de
-            opbrengst in precies die volgorde verdeeld. Eerst wordt de eerste hypotheekhouder volledig betaald.
+            inschrijft, heeft het eerste recht van hypotheek. Die volgorde is geen formaliteit. Bij een gedwongen verkoop
+            wordt de opbrengst in precies die volgorde verdeeld. Eerst wordt de eerste hypotheekhouder volledig betaald.
             Wat overblijft, gaat naar de tweede.
           </P>
           <P>
-            Een geldverstrekker in tweede rang kijkt daarom nooit alleen naar zijn eigen lening ten opzichte van de
+            Een geldverstrekker met een 2e hypotheekrecht kijkt daarom nooit alleen naar zijn eigen lening ten opzichte van de
             woning. Hij kijkt naar alles wat vóór hem staat, plús zijn eigen lening, ten opzichte van de woning. Dat is
             de Loan-to-Value zoals een investeerder hem leest. En dat is bijna altijd een ander getal dan de aanvrager
             in zijn hoofd heeft.
           </P>
           <P>
-            Het misverstand is begrijpelijk. U vraagt tweehonderdduizend euro op een woning van acht ton en denkt:
-            dat is een kwart. Maar de bank die er al drie ton op heeft staan, verdwijnt niet doordat u een tweede
+            Het misverstand is begrijpelijk. U vraagt tweehonderdduizend euro op een woning van acht ton en denkt dat het
+            om een kwart gaat. Maar de bank die er al drie ton op heeft staan, verdwijnt niet doordat u een tweede
             lening afsluit. Die staat er nog, en staat er vóór.
           </P>
         </TekstMetFoto>
 
         <Rekenvoorbeeld
           kop="Dezelfde lening, twee uitkomsten"
-          toelichting="Een fictief voorbeeld. Taxatiewaarde van de woning: € 800.000. Bij de bank staat nog € 320.000 open. Gevraagd: een tweede hypotheek van € 200.000."
+          toelichting="Een fictief voorbeeld. De woning is getaxeerd op € 800.000. Bij de bank staat nog € 320.000 open. Gevraagd wordt een tweede hypotheek van € 200.000."
         >
           <Tabel
             donker
@@ -110,7 +110,7 @@ export default function TweedeHypotheekEnLtvPage() {
         <Sectie kop="Wat er gebeurt bij een tegenvallende verkoop">
           <P>
             Stel dat de woning uit het voorbeeld gedwongen verkocht moet worden. Een gedwongen verkoop levert vrijwel
-            nooit de taxatiewaarde op. Twee scenario's laten zien waarom de tweede rang zo anders is dan de eerste.
+            nooit de taxatiewaarde op. Twee scenario's laten zien waarom een 2e hypotheekrecht zo anders is dan een 1e.
           </P>
           <div className="pt-2">
             <Tabel
@@ -133,7 +133,7 @@ export default function TweedeHypotheekEnLtvPage() {
         <Sectie kop="Inschrijving is niet hetzelfde als schuld" grijs>
           <P>
             Er is nog een getal dat verwarring geeft. De bank schrijft een hypotheek vaak in voor een hoger bedrag dan
-            wat u werkelijk leent. Een inschrijving van vier ton bij een schuld van € 320.000 is heel gewoon; het geeft
+            wat u werkelijk leent. Een inschrijving van vier ton bij een schuld van € 320.000 is heel gewoon. Het geeft
             de bank ruimte voor rente, kosten en een eventuele verhoging.
           </P>
           <P>
@@ -146,7 +146,7 @@ export default function TweedeHypotheekEnLtvPage() {
           <UitDePraktijk>
             <p>
               De vraag die wij bij een tweede hypotheek als eerste stellen, is niet hoeveel de woning waard is, maar
-              wat het actuele saldo van de eerste hypotheek is. Niet het oorspronkelijke bedrag, niet de inschrijving:
+              wat het actuele saldo van de eerste hypotheek is. Niet het oorspronkelijke bedrag en niet de inschrijving, maar
               het saldo van vandaag. Een recent jaaroverzicht of een saldo-opgave van de bank is genoeg. Zonder dat
               getal kunnen wij geen voorstel doen dat later standhoudt.
             </p>
@@ -163,7 +163,7 @@ export default function TweedeHypotheekEnLtvPage() {
           <P>
             Soms is de conclusie daarom dat een tweede hypotheek niet de beste route is. Als de eerste hypotheek klein
             is ten opzichte van wat u nodig heeft, kan het goedkoper zijn om de hele financiering in één keer over te
-            sluiten: één hypotheek in eerste rang in plaats van twee leningen achter elkaar. Dat rekenen wij bij de
+            sluiten, met één lening en een 1e hypotheekrecht in plaats van twee leningen achter elkaar. Dat rekenen wij bij de
             aanvraag altijd door.
           </P>
         </Sectie>
@@ -172,7 +172,7 @@ export default function TweedeHypotheekEnLtvPage() {
 
         <Vervolg
           kop="Een tweede hypotheek overwegen?"
-          tekst="Lees hoe wij een tweede hypotheek beoordelen en wat wij daarvoor van u nodig hebben. Of dien direct een aanvraag in; met het actuele saldo van uw eerste hypotheek kunnen wij snel rekenen."
+          tekst="Lees hoe wij een tweede hypotheek beoordelen en wat wij daarvoor van u nodig hebben. Of dien direct een aanvraag in. Met het actuele saldo van uw eerste hypotheek kunnen wij snel rekenen."
           knop={{ href: "/tweede-hypotheek-ondernemer", label: "Tweede hypotheek voor ondernemers" }}
           tweede={{ href: "/herfinanciering-vastgoed", label: "Of alles in één keer oversluiten" }}
         />

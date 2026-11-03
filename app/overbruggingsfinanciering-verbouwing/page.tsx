@@ -22,7 +22,7 @@ const situaties = [
   },
   {
     term: 'Aankoop op een veiling',
-    text: 'Een veilingaankoop moet vaak binnen enkele weken worden betaald. Een bancaire hypotheek haalt die termijn zelden; wij rekenen op één tot drie weken vanaf een volledige aanvraag.',
+    text: 'Een veilingaankoop moet vaak binnen enkele weken worden betaald. Een bancaire hypotheek haalt die termijn zelden. Wij rekenen op één tot drie weken vanaf een volledige aanvraag.',
   },
   {
     term: 'Vastgoed in ontwikkeling',
@@ -41,11 +41,11 @@ const situaties = [
 const faq = [
   {
     vraag: 'Wat is het verschil tussen een overbruggingslening en een reguliere hypotheek?',
-    antwoord: 'Een reguliere hypotheek is een langlopende lening van doorgaans 10 tot 30 jaar, bedoeld als permanente financiering. Een overbruggingslening is tijdelijk, bij ons 6 tot 60 maanden, en bedoeld om het gat te dichten tussen twee momenten: aankoop en verkoop, of het begin en het einde van een project. De lening wordt afgelost zodra het vastgoed is verkocht of de definitieve financiering is geregeld.',
+    antwoord: 'Een reguliere hypotheek is een langlopende lening van doorgaans 10 tot 30 jaar, bedoeld als permanente financiering. Een overbruggingslening is tijdelijk, bij ons 6 tot 60 maanden, en bedoeld om het gat te dichten tussen twee momenten, zoals aankoop en verkoop of het begin en het einde van een project. De lening wordt afgelost zodra het vastgoed is verkocht of de definitieve financiering is geregeld.',
   },
   {
     vraag: 'Hoe snel kan een overbruggingslening worden verstrekt?',
-    antwoord: 'Bij een volledige aanvraag en een duidelijk onderpand rekenen wij op één tot drie weken tot het passeren. In urgente gevallen, zoals een veiling, proberen wij dit te versnellen; de agenda van de notaris en een eventuele toestemming van een eerste hypotheekhouder bepalen mede de doorlooptijd.',
+    antwoord: 'Bij een volledige aanvraag en een duidelijk onderpand rekenen wij op één tot drie weken tot het passeren. In urgente gevallen, zoals een veiling, proberen wij dit te versnellen. De agenda van de notaris en een eventuele toestemming van een eerste hypotheekhouder bepalen mede de doorlooptijd.',
   },
   {
     vraag: 'Kan ik een overbrugging aanvragen als mijn huidige woning nog niet is verkocht?',
@@ -53,7 +53,7 @@ const faq = [
   },
   {
     vraag: 'Wat gebeurt er als de overbrugging langer duurt dan verwacht?',
-    antwoord: 'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wij hanteren geen starre einddatum zonder eerst de situatie te beoordelen; wel moet de exit geloofwaardig blijven.',
+    antwoord: 'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wij hanteren geen starre einddatum zonder eerst de situatie te beoordelen. Wel moet de exit geloofwaardig blijven.',
   },
   {
     vraag: 'Hoe werkt het bouwdepot?',
@@ -67,7 +67,7 @@ export default function OverbruggingsfinancieringPage() {
       href="/overbruggingsfinanciering-verbouwing"
       breadcrumb="Overbrugging en verbouwing"
       title="Overbruggingsfinanciering bij aankoop, verbouwing of veiling"
-      intro="Een tijdelijke lening met vastgoed als zekerheid: bij een verbouwing, een aankoop vóór de verkoop, een veiling of een project. Van €200.000 tot €5.000.000, 6 tot 60 maanden, met rentedepot en bouwdepot als dat past."
+      intro="Een tijdelijke lening met vastgoed als zekerheid voor een verbouwing, een aankoop vóór de verkoop, een veiling of een project. Van €200.000 tot €5.000.000, 6 tot 60 maanden, met rentedepot en bouwdepot als dat past."
       image={{ src: '/images/bericht-2-brug.jpg', alt: 'Brug over een gracht', position: 'center 55%' }}
       lead={
         <>
@@ -80,9 +80,9 @@ export default function OverbruggingsfinancieringPage() {
     >
       <ArticleSection id="wat" title="Wat is overbruggingsfinanciering?">
         <p>
-          Overbruggingsfinanciering is een tijdelijke lening die het gat dicht tussen twee momenten: de aankoop van nieuw
+          Overbruggingsfinanciering is een tijdelijke lening die het gat dicht tussen twee momenten. Denk aan de aankoop van nieuw
           vastgoed en de verkoop van het huidige, of de start van een verbouwing en de definitieve financiering erna. De
-          lening heeft een hypotheekrecht op vastgoed als zekerheid, in eerste of tweede rang.
+          lening heeft een 1e of 2e hypotheekrecht op vastgoed als zekerheid.
         </p>
         <p>
           Banken bieden ook overbruggingskrediet, maar zijn daarin traag en kieskeurig. Wij werken met particuliere
@@ -94,7 +94,7 @@ export default function OverbruggingsfinancieringPage() {
       </ArticleSection>
 
       <ArticleSection id="situaties" title="Typische situaties">
-        <p>Het gemeenschappelijke kenmerk: een tijdelijk gat in de financiering en voldoende onderpand.</p>
+        <p>Wat ze gemeen hebben, is een tijdelijk gat in de financiering en voldoende onderpand.</p>
         <DefinitionList items={situaties} />
       </ArticleSection>
 
@@ -108,8 +108,8 @@ export default function OverbruggingsfinancieringPage() {
           rows={[
             ['Wat is het', 'De rente voor de looptijd wordt bij het passeren uit de lening apart gezet', 'Het deel van de lening dat voor de verbouwing is bestemd, wordt in depot gehouden'],
             ['Waarvoor', 'Geen maandlasten tijdens een verbouwing of in de periode tot de verkoop', 'Uitbetaling in delen, op basis van de voortgang van het werk'],
-            ['Wat wij nodig hebben', 'De looptijd en het rentepercentage; het depot wordt meegenomen in de hoofdsom', 'Een begroting, een planning, de vergunningen en facturen van de aannemer voor elke uitbetaling'],
-            ['Effect op de LTV', 'Het depot telt mee in de totale schuld', 'Het depot telt mee in de totale schuld; wij kijken naar de waarde nu en na oplevering'],
+            ['Wat wij nodig hebben', 'De looptijd en het rentepercentage. Het depot wordt meegenomen in de hoofdsom', 'Een begroting, een planning, de vergunningen en facturen van de aannemer voor elke uitbetaling'],
+            ['Effect op de LTV', 'Het depot telt mee in de totale schuld', 'Het depot telt mee in de totale schuld. Wij kijken naar de waarde nu en na oplevering'],
           ]}
         />
       </ArticleSection>
@@ -117,7 +117,7 @@ export default function OverbruggingsfinancieringPage() {
       <ArticleSection id="exit" title="De exit bepaalt alles">
         <p>
           Bij een overbrugging is de belangrijkste vraag niet hoeveel u leent, maar hoe de lening eindigt. De gangbare
-          exits: de verkoop van het huidige of het verbouwde pand, of een bankhypotheek zodra de verbouwing is opgeleverd
+          exits zijn de verkoop van het huidige of het verbouwde pand, of een bankhypotheek zodra de verbouwing is opgeleverd
           en de nieuwe waarde is getaxeerd. Een geloofwaardige exit is er een met een datum, een onderbouwing en ruimte
           in de planning.
         </p>
@@ -138,9 +138,9 @@ export default function OverbruggingsfinancieringPage() {
           rows={[
             ['Marktwaarde nu, volgens taxatie', '€800.000'],
             ['Maximale totale schuld bij 70% loan-to-value', '€560.000'],
-            ['Bestaande hypotheek, eerste rang', '€300.000'],
+            ['Bestaande hypotheek, 1e hypotheekrecht', '€300.000'],
             ['Ruimte voor de overbrugging', '€260.000'],
-            ['Lening, tweede rang', '€250.000'],
+            ['Lening met 2e hypotheekrecht', '€250.000'],
             ['Waarvan bouwdepot', '€200.000'],
             ['Waarvan rentedepot, 12 maanden à 8%', '€20.000'],
             ['Waarvan vrij beschikbaar, voor opstartvergoeding en onvoorzien', '€30.000'],
@@ -149,7 +149,7 @@ export default function OverbruggingsfinancieringPage() {
         />
         <Note>
           Fictief voorbeeld met een indicatieve rente van 8%. De opstartvergoeding is 1% van het leenbedrag met een
-          minimum van €3.000; taxatie en notaris komen hier nog bij. Wij rekenen de loan-to-value op de waarde nu; de
+          minimum van €3.000. Taxatie en notaris komen hier nog bij. Wij rekenen de loan-to-value op de waarde nu. De
           waarde na oplevering is de basis voor de exit.
         </Note>
       </ArticleSection>

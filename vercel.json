@@ -49,6 +49,56 @@
       "source": "/private-markets",
       "destination": "/voor-investeerders",
       "permanent": true
+    },
+    {
+      "source": "/casussen/beleggingspand-starter-vier-appartementen",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/dga-overname-tweede-hypotheek-eigen-woning",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/overbrugging-aankoop-voor-verkoop",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/veilingaankoop-bedrijfspand",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/transformatie-kantoor-naar-appartementen",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/herfinanciering-bank-verlengt-niet",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/startende-ondernemer-eigen-bedrijfspand",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/afgewezen-holding-tweede-beleggingspand",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/werkkapitaal-met-pand-als-zekerheid",
+      "destination": "/casussen",
+      "permanent": true
+    },
+    {
+      "source": "/casussen/investeerder-eerste-rang-verhuurd-woonpand",
+      "destination": "/casussen",
+      "permanent": true
     }
   ],
   "headers": [

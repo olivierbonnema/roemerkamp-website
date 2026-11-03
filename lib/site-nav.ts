@@ -3,7 +3,7 @@
 // Structure since 2 November 2026 (decision Olivier): one product, several
 // situations. Two product pages (borrowers, investors) carry the conditions,
 // costs, process and FAQ; the situation pages only explain what is different
-// in that situation and link back to the product page. Cases (voorbeeldcasussen)
+// in that situation and link back to the product page. Cases (from practice)
 // live in lib/casussen.ts.
 //
 // Used by: components/header.tsx (desktop dropdowns + mobile menu),
@@ -35,7 +35,7 @@ export interface StaticPost {
 export const BORROWER_PAGE: SitePage = {
   href: "/vastgoedfinanciering-zonder-bank",
   label: "Voor leningnemers",
-  description: "Vastgoedfinanciering zonder bank: voorwaarden, kosten, rekenvoorbeeld en aanvraag.",
+  description: "Vastgoedfinanciering zonder bank, met de voorwaarden, de kosten, een rekenvoorbeeld en de aanvraag.",
   updated: "2026-11-02",
 }
 
@@ -43,7 +43,7 @@ export const BORROWER_PAGE: SitePage = {
 export const INVESTOR_PAGE: SitePage = {
   href: "/voor-investeerders",
   label: "Voor investeerders",
-  description: "Investeren in vastgoedleningen met hypothecaire zekerheid: rendement, zekerheden, risico's en werkwijze.",
+  description: "Het rendement, de zekerheden, de risico's en de werkwijze van investeren in vastgoedleningen met hypothecaire zekerheid.",
   updated: "2026-11-02",
 }
 
@@ -64,13 +64,13 @@ export const SITUATION_PAGES: SitePage[] = [
   {
     href: "/dga-hypotheek",
     label: "DGA hypotheek",
-    description: "Een laag gebruikelijk loon en een vermogende BV: lenen in privé of via de BV.",
+    description: "Lenen in privé of via de BV, ook met een laag gebruikelijk loon en een vermogende BV.",
     updated: "2026-11-03",
   },
   {
     href: "/tweede-hypotheek-ondernemer",
     label: "Tweede hypotheek",
-    description: "Overwaarde benutten naast de bestaande bankhypotheek, in tweede rang.",
+    description: "Overwaarde benutten naast de bestaande bankhypotheek, met een 2e hypotheekrecht.",
     updated: "2026-11-03",
   },
   {
@@ -82,7 +82,7 @@ export const SITUATION_PAGES: SitePage[] = [
   {
     href: "/herfinanciering-vastgoed",
     label: "Herfinanciering",
-    description: "De bank verlengt niet of wijst af: een aflopende lening overbruggen.",
+    description: "Een aflopende lening overbruggen als de bank niet verlengt of afwijst.",
     updated: "2026-11-02",
   },
   {
@@ -102,7 +102,7 @@ export const SITUATION_PAGES: SitePage[] = [
 /** Company and service pages that belong in the sitemap. */
 export const COMPANY_PAGES: SitePage[] = [
   { href: "/situaties", label: "Situaties", description: "Overzicht van situaties waarin wij financieren.", updated: "2026-11-02" },
-  { href: "/casussen", label: "Casussen", description: "Voorbeeldcasussen uit de praktijk.", updated: "2026-11-02" },
+  { href: "/casussen", label: "Casussen", description: "Financieringen uit de praktijk, geanonimiseerd.", updated: "2026-11-03" },
   { href: "/over-ons", label: "Over ons", description: "Wie wij zijn.", updated: "2026-05-14" },
   { href: "/nadere-informatie", label: "Toezicht en registraties", description: "AFM-vergunning, Kifid en duurzaamheid.", updated: "2026-11-03" },
   { href: "/contact", label: "Contact", description: "Neem contact met ons op.", updated: "2026-05-15" },

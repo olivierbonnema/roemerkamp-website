@@ -8,7 +8,7 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/berichten",
   title: "Berichten over vastgoedfinanciering",
-  description: "Uitleg en praktijk over vastgoedfinanciering zonder bank: tweede hypotheek, overbrugging, kosten en hoe een financiering verloopt.",
+  description: "Uitleg en praktijk over vastgoedfinanciering zonder bank, zoals de tweede hypotheek, overbrugging, de kosten en hoe een financiering verloopt.",
 })
 
 export default function BerichtenPage() {
