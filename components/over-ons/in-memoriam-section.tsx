@@ -20,7 +20,7 @@ export function InMemoriamSection() {
 
           <div>
             <h3 className="text-xl font-serif font-normal text-gray-800 mb-4">
-              Jean Michel Kamp (1969 – 2016)
+              Jean Michel Kamp (1969-2016)
             </h3>
             <p className="text-gray-600 leading-relaxed mb-4">
               Op zondag 10 april 2016 werd een ski-ongeval onze collega en vriend Jean-Michel Kamp fataal. Van het ene op het andere moment was hij er niet meer. Hij liet een vrouw en zoontje achter. Jean-Michel was een zeer integere, energieke en bijzondere man.

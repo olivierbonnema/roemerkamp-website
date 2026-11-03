@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { ShieldCheck, Menu, X, ChevronDown } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import { PRODUCT_PAGES, INVESTOR_PAGES } from "@/lib/site-nav"
+import { BORROWER_PAGE, INVESTOR_PAGE, SITUATION_PAGES } from "@/lib/site-nav"
 
 interface DropdownItem {
   href: string
@@ -22,22 +22,21 @@ interface NavItem {
 
 const PORTAL_PATHS = ["/mijn-aanvragen", "/financieringsaanvraag", "/admin", "/account", "/portaal"]
 
-// Public navigation. Product pages come from lib/site-nav.ts so menu, footer,
-// homepage and sitemap stay in sync.
+// Public navigation. One product, several situations (decision 2 November 2026):
+// the product pages are direct links, the situations sit in one dropdown.
+// Page lists come from lib/site-nav.ts so menu, footer, homepage and sitemap stay in sync.
 const NAV_ITEMS: NavItem[] = [
+  { href: BORROWER_PAGE.href, label: "Voor leningnemers" },
+  { href: INVESTOR_PAGE.href, label: "Voor investeerders" },
   {
-    href: "/voor-leningnemers",
-    label: "Voor leningnemers",
+    href: "/situaties",
+    label: "Situaties",
     dropdown: [
-      { href: "/voor-leningnemers", label: "Overzicht financieringen" },
-      ...PRODUCT_PAGES.map((p) => ({ href: p.href, label: p.label })),
+      { href: "/situaties", label: "Alle situaties" },
+      ...SITUATION_PAGES.map((p) => ({ href: p.href, label: p.label })),
     ],
   },
-  {
-    href: "/voor-investeerders",
-    label: "Voor investeerders",
-    dropdown: INVESTOR_PAGES.map((p) => ({ href: p.href, label: p.label })),
-  },
+  { href: "/casussen", label: "Casussen" },
   { href: "/berichten", label: "Berichten" },
   { href: "/over-ons", label: "Over ons" },
   { href: "/contact", label: "Contact" },
@@ -200,7 +199,7 @@ export function Header() {
           <div className="flex items-center gap-10">
             <Logo />
 
-            <nav className="hidden md:flex items-center gap-10" aria-label="Hoofdmenu">
+            <nav className="hidden lg:flex items-center gap-7 xl:gap-9" aria-label="Hoofdmenu">
               {NAV_ITEMS.map((item) => (
                 <div key={item.href} className="relative group">
                   <Link
@@ -237,6 +236,12 @@ export function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
+            <a
+              href="tel:+31235173100"
+              className="hidden xl:inline text-sm font-medium text-[#1e3a5f] hover:text-[#311e86] transition-colors mr-2"
+            >
+              023 517 31 00
+            </a>
             {!loading && user ? (
               /* Logged in - Account dropdown */
               <div className="relative group">
@@ -275,7 +280,7 @@ export function Header() {
               </div>
             ) : !loading ? (
               /* Not logged in */
-              <div className="relative group hidden md:block">
+              <div className="relative group hidden lg:block">
                 <Link
                   href="/login"
                   className="px-4 py-2 text-sm font-medium text-[#311e86] border border-[#311e86] rounded-full hover:bg-gray-50 transition-colors"
@@ -305,7 +310,7 @@ export function Header() {
             {/* Mobile menu button */}
             <button
               type="button"
-              className="md:hidden inline-flex items-center justify-center w-11 h-11 -mr-2 rounded-md text-[#311e86] hover:bg-gray-50"
+              className="lg:hidden inline-flex items-center justify-center w-11 h-11 -mr-2 rounded-md text-[#311e86] hover:bg-gray-50"
               aria-label={mobileOpen ? "Menu sluiten" : "Menu openen"}
               aria-expanded={mobileOpen}
               aria-controls="mobiel-menu"
@@ -322,7 +327,7 @@ export function Header() {
         <nav
           id="mobiel-menu"
           aria-label="Hoofdmenu"
-          className="md:hidden border-t border-gray-100 bg-white max-h-[calc(100vh-88px)] overflow-y-auto"
+          className="lg:hidden border-t border-gray-100 bg-white max-h-[calc(100vh-88px)] overflow-y-auto"
         >
           <ul className="px-4 py-2 divide-y divide-gray-100">
             {NAV_ITEMS.map((item) => (

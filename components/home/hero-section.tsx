@@ -8,7 +8,7 @@ export function HeroSection() {
           {/* Left content */}
           <div className="py-10 md:py-14 pr-4">
             <h1 className="text-[45px] md:text-[56px] font-serif font-normal text-white mb-2 leading-tight">
-              Non-bancaire<br />vastgoedfinanciering
+              Vastgoed financieren<br />buiten de bank
             </h1>
             <div className="w-16 h-1.5 bg-[#f75d20] my-4" />
             <p className="text-[30px] md:text-[36px] font-serif text-white">Velen praten over een lange termijn strategie. Slechts weinigen handelen ernaar.</p>

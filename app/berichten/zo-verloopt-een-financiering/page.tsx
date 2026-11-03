@@ -8,19 +8,20 @@ import { SectionHeading } from "@/components/section-heading"
 import {
   ArtikelHero, Sectie, TekstMetFoto, Stappen, UitDePraktijk, Faq, Vervolg, P,
 } from "@/components/berichten/artikel"
+import { pageMetadata } from '@/lib/seo'
 
 const URL = "https://www.nonbancaireleningen.nl/berichten/zo-verloopt-een-financiering"
 const TITEL = "Van aanvraag tot passering: zo verloopt een financiering bij Lange & Partners"
 const OMSCHRIJVING =
-  "Wat gebeurt er tussen het moment dat een aanvraag binnenkomt en de dag dat de notaris passeert? De zes stappen, wat wij van u nodig hebben, en waar de tijd in gaat zitten."
+  "De zes stappen van aanvraag tot passering bij de notaris: wat wij van u nodig hebben, hoe de investeerder beslist en waar de tijd in gaat zitten."
 
-export const metadata: Metadata = {
-  title: TITEL,
+export const metadata: Metadata = pageMetadata({
+  path: "/berichten/zo-verloopt-een-financiering",
+  title: "Zo verloopt een financiering: van aanvraag tot passering",
+  brand: false,
   description: OMSCHRIJVING,
-  alternates: { canonical: URL },
-  openGraph: { title: `${TITEL} | Lange & Partners`, description: OMSCHRIJVING, url: URL, type: "article" },
-  twitter: { title: TITEL, description: OMSCHRIJVING },
-}
+  type: "article",
+})
 
 const faq = [
   {
@@ -81,8 +82,8 @@ export default function ZoVerlooptEenFinancieringPage() {
             uitgangspunt.
           </P>
           <P>
-            Wij verstrekken leningen van € 200.000 tot € 5.000.000, met looptijden van zes tot zestig maanden, altijd
-            met vastgoed als onderpand. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren.
+            De leningen die wij bemiddelen lopen van € 200.000 tot € 5.000.000, met looptijden van zes tot zestig
+            maanden, altijd met vastgoed als onderpand. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren.
           </P>
         </TekstMetFoto>
 
@@ -96,9 +97,10 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        U dient de aanvraag in via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben:
-                        het object en een recente waardebepaling, het actuele saldo van eventuele bestaande hypotheken,
-                        het doel van de lening en hoe u hem denkt af te lossen. Documenten kunt u direct meesturen.
+                        U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig
+                        hebben: het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen
+                        of kasstroom, het doel van de lening en hoe u hem denkt af te lossen. Documenten kunt u direct
+                        meesturen.
                       </p>
                       <p>
                         Hoe de lening eindigt is voor ons de belangrijkste vraag. Een aanvraag zonder uitstrategie
@@ -112,14 +114,17 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        Wij kijken naar het onderpand: de waarde, en de totale schuld die erop komt te rusten, dus
-                        inclusief hypotheken die vóór ons staan. Wij kijken naar de uitstrategie. En wij controleren de
-                        betrokkenen in de openbare registers, zoals de sanctielijsten, het curatele- en bewindregister
-                        en het insolventieregister. Dat is een wettelijke plicht, en het beschermt de investeerder.
+                        Wij beoordelen de hele casus op drie punten. De betaalbaarheid: kunt u de rente en de kosten
+                        dragen, uit inkomen, kasstroom, huur of een rentedepot. Het onderpand: de waarde, en de totale
+                        schuld die erop komt te rusten, dus inclusief hypotheken die vóór ons staan. En de uitstrategie.
+                        Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten, het
+                        curatele- en bewindregister en het insolventieregister. Dat is een wettelijke plicht, en het
+                        beschermt de investeerder.
                       </p>
                       <p>
-                        Ziet het er goed uit, dan ontvangt u een indicatie van de mogelijkheden: bedrag, rente, looptijd
-                        en de zekerheden die wij vragen.
+                        Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden:
+                        bedrag, rente, looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren
+                        wij de opstartvergoeding en stellen wij de termsheet op.
                       </p>
                     </>
                   ),
@@ -239,7 +244,7 @@ export default function ZoVerlooptEenFinancieringPage() {
           kop="Een aanvraag indienen?"
           tekst="Het portaal loopt u door dezelfde stappen als hierboven. Heeft u het saldo van uw huidige hypotheek en een recente waardebepaling bij de hand, dan is de aanvraag in een kwartier ingevuld."
           knop={{ href: "/financieringsaanvraag", label: "Aanvraag indienen" }}
-          tweede={{ href: "/voor-leningnemers", label: "Eerst meer lezen" }}
+          tweede={{ href: "/vastgoedfinanciering-zonder-bank", label: "Eerst meer lezen" }}
         />
       </main>
       <Footer />

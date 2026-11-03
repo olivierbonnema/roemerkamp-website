@@ -1,20 +1,13 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/privacy",
   title: "Privacyverklaring",
-  description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
-  alternates: { canonical: "https://www.nonbancaireleningen.nl/privacy" },
-  openGraph: {
-    title: "Privacyverklaring | Lange & Partners",
-    description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
-    url: "https://www.nonbancaireleningen.nl/privacy",
-  },
-  twitter: {
-    title: "Privacyverklaring | Lange & Partners",
-    description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
-  },
-}
+  description: "Privacyverklaring van Lange Financieel Advies B.V. (Lange & Partners): welke persoonsgegevens wij verwerken, waarom, hoe lang en uw rechten.",
+})
 
 export default function PrivacyPage() {
   return (
@@ -37,7 +30,8 @@ export default function PrivacyPage() {
                   hoe we hiermee uw gebruikservaring verbeteren.
                 </p>
                 <p className="mt-4">
-                  Dit privacy beleid is van toepassing op de diensten van Lange Financieel Advies. Door gebruik
+                  Dit privacy beleid is van toepassing op de diensten van Lange Financieel Advies B.V., die
+                  handelt onder de naam Lange &amp; Partners. Door gebruik
                   te maken van deze website geeft u aan ons privacy beleid te accepteren.
                 </p>
               </div>
@@ -50,7 +44,7 @@ export default function PrivacyPage() {
                 <p>
                   Als persoonsgegevens gelden gegevens die kunnen worden gebruikt om uw identiteit te
                   achterhalen. Wij maken daarbij onderscheid tussen persoonsgegevens die u actief aan ons
-                  verstrekt en persoonsgegevens die – om technische redenen – automatisch aan ons worden
+                  verstrekt en persoonsgegevens die (om technische redenen) automatisch aan ons worden
                   doorgegeven door gebruik van cookies (zie onder).
                 </p>
                 <p className="mt-4">
@@ -260,8 +254,9 @@ export default function PrivacyPage() {
                   privacy beleid, kunt u contact met ons opnemen:
                 </p>
                 <address className="not-italic mt-4 space-y-0.5">
-                  <p className="font-medium text-[#1e3a5f]">Lange Financieel Advies</p>
+                  <p className="font-medium text-[#1e3a5f]">Lange Financieel Advies B.V. (Lange &amp; Partners)</p>
                   <p>Wilhelminastraat 50</p>
+                  <p>2011 VN Haarlem</p>
                   <p>
                     <a href="tel:0235173100" className="text-[#311e86] hover:underline">023-5173100</a>
                   </p>

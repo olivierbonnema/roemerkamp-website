@@ -1,30 +1,22 @@
 import type { Metadata } from 'next'
-import { PT_Serif, Roboto } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/contexts/auth-context'
 import './globals.css'
 
-const ptSerif = PT_Serif({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-pt-serif",
-});
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-  variable: "--font-droid-sans",
-});
+// Lettertypen: de site gebruikt bewust de standaardstapels van de browser
+// (ui-serif/Georgia voor koppen via `font-serif`, de systeemletter voor tekst).
+// PT Serif en Roboto werden hier eerder geladen maar nergens toegepast
+// (de CSS-variabelen werden niet gebruikt); het laden is verwijderd op 27-10-2026.
 
 const BASE_URL = 'https://www.nonbancaireleningen.nl'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: 'Lange & Partners | Non-bancaire vastgoedfinanciering',
+    default: 'Lange & Partners | Vastgoedfinanciering zonder bank',
     template: '%s | Lange & Partners',
   },
-  description: 'Non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers en investeerders in heel Nederland.',
+  description: 'Tijdelijke vastgoedleningen van €200.000 tot €5.000.000 voor ondernemers en beleggers, beoordeeld op betaalbaarheid, onderpand en exit.',
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
@@ -51,7 +43,8 @@ export default function RootLayout({
     '@type': 'FinancialService',
     '@id': 'https://www.nonbancaireleningen.nl/#organization',
     name: 'Lange & Partners',
-    alternateName: 'Lange en Partners',
+    legalName: 'Lange Financieel Advies B.V.',
+    alternateName: ['Lange en Partners', 'Lange Financieel Advies'],
     url: 'https://www.nonbancaireleningen.nl',
     logo: 'https://www.nonbancaireleningen.nl/images/lange-logo-new.png',
     image: 'https://www.nonbancaireleningen.nl/images/og-default.jpg',
@@ -75,11 +68,10 @@ export default function RootLayout({
       '@type': 'Country',
       name: 'Nederland',
     },
-    parentOrganization: {
-      '@type': 'Organization',
-      name: 'Lange & Partners Financieel Advies B.V.',
-      identifier: 'KvK 34269870',
-    },
+    identifier: [
+      { '@type': 'PropertyValue', propertyID: 'KvK', value: '34269870' },
+      { '@type': 'PropertyValue', propertyID: 'AFM-vergunning', value: '12017043' },
+    ],
     sameAs: [
       'https://www.linkedin.com/company/lange-partners-financieel-advies/',
     ],
@@ -87,7 +79,7 @@ export default function RootLayout({
 
   return (
     <html lang="nl">
-      <body className={`${ptSerif.variable} ${roboto.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
-import { PRODUCT_PAGES, INVESTOR_PAGES, COMPANY_PAGES, STATIC_POSTS, STATIC_POST_SLUGS } from '@/lib/site-nav'
+import { BORROWER_PAGE, INVESTOR_PAGE, SITUATION_PAGES, COMPANY_PAGES, STATIC_POSTS, STATIC_POST_SLUGS } from '@/lib/site-nav'
+import { CASUSSEN } from '@/lib/casussen'
 
 // Rebuilt 2026-10-27 (SEO batch 1). The page list comes from lib/site-nav.ts, so a
 // page added there is in the sitemap automatically. Before this the list was typed
@@ -47,14 +48,14 @@ async function cmsPosts(): Promise<MetadataRoute.Sitemap> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const home: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: new Date('2026-10-27'), changeFrequency: 'weekly', priority: 1 },
+    { url: BASE, lastModified: new Date('2026-11-03'), changeFrequency: 'weekly', priority: 1 },
   ]
 
   type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
   const companyFreq = (href: string): Freq =>
     href === '/berichten' ? 'weekly' : href === '/privacy' || href === '/nadere-informatie' ? 'yearly' : 'monthly'
   const companyPriority = (href: string): number =>
-    href === '/voor-leningnemers' ? 0.9 : href === '/privacy' ? 0.2 : href === '/nadere-informatie' ? 0.3 : href === '/berichten' ? 0.6 : 0.7
+    href === '/situaties' || href === '/casussen' ? 0.8 : href === '/privacy' ? 0.2 : href === '/nadere-informatie' ? 0.3 : href === '/berichten' ? 0.6 : 0.7
 
   const company: MetadataRoute.Sitemap = COMPANY_PAGES.map((p) => ({
     url: `${BASE}${p.href}`,
@@ -63,18 +64,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: companyPriority(p.href),
   }))
 
-  const products: MetadataRoute.Sitemap = PRODUCT_PAGES.map((p) => ({
+  const products: MetadataRoute.Sitemap = [BORROWER_PAGE, INVESTOR_PAGE].map((p) => ({
     url: `${BASE}${p.href}`,
     lastModified: new Date(p.updated),
     changeFrequency: 'monthly',
-    priority: p.href === '/non-bancaire-hypotheek' ? 0.9 : 0.8,
+    priority: 0.9,
   }))
 
-  const investors: MetadataRoute.Sitemap = INVESTOR_PAGES.map((p) => ({
+  const situations: MetadataRoute.Sitemap = SITUATION_PAGES.map((p) => ({
     url: `${BASE}${p.href}`,
     lastModified: new Date(p.updated),
     changeFrequency: 'monthly',
-    priority: p.href === '/voor-investeerders' ? 0.9 : 0.8,
+    priority: 0.8,
+  }))
+
+  const cases: MetadataRoute.Sitemap = CASUSSEN.map((c) => ({
+    url: `${BASE}/casussen/${c.slug}`,
+    lastModified: new Date('2026-11-02'),
+    changeFrequency: 'yearly',
+    priority: 0.5,
   }))
 
   const posts: MetadataRoute.Sitemap = STATIC_POSTS.map((p) => ({
@@ -84,5 +92,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...home, ...company, ...products, ...investors, ...posts, ...(await cmsPosts())]
+  return [...home, ...company, ...products, ...situations, ...posts, ...cases, ...(await cmsPosts())]
 }

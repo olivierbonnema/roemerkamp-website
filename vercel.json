@@ -14,6 +14,41 @@
       "source": "/berichten/persoonlijk-vermogensbeheer-vanuit-het-hart-van-haarlem",
       "destination": "/berichten",
       "permanent": true
+    },
+    {
+      "source": "/non-bancaire-hypotheek",
+      "destination": "/vastgoedfinanciering-zonder-bank",
+      "permanent": true
+    },
+    {
+      "source": "/voor-leningnemers",
+      "destination": "/vastgoedfinanciering-zonder-bank",
+      "permanent": true
+    },
+    {
+      "source": "/zzp-hypotheek",
+      "destination": "/hypotheek-zonder-jaarcijfers",
+      "permanent": true
+    },
+    {
+      "source": "/rendement-vastgoedleningen",
+      "destination": "/voor-investeerders",
+      "permanent": true
+    },
+    {
+      "source": "/berichten/hypotheek-afgewezen-wat-nu",
+      "destination": "/hypotheek-ondernemer-afgewezen",
+      "permanent": true
+    },
+    {
+      "source": "/vermogensbeheer",
+      "destination": "/voor-investeerders",
+      "permanent": true
+    },
+    {
+      "source": "/private-markets",
+      "destination": "/voor-investeerders",
+      "permanent": true
     }
   ],
   "headers": [

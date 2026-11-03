@@ -4,10 +4,10 @@ export function NadereInformatieHero() {
       <div className="max-w-screen-2xl mx-auto px-4">
         <div className="w-16 h-1.5 bg-[#f75d20] mb-6" />
         <h1 className="font-serif text-[30px] md:text-[42px] font-normal text-white leading-tight mb-3">
-          Nadere informatie
+          Toezicht en registraties
         </h1>
         <p className="text-white/70 text-base font-sans max-w-lg">
-          Toezicht, registraties, onze Raad van Advies en wat wij graag steunen.
+          Onze vergunning, het klachteninstituut waarbij wij zijn aangesloten en ons duurzaamheidsbeleid.
         </p>
       </div>
     </section>

@@ -9,27 +9,21 @@ import { VermogensbeheerHomeSection } from "@/components/home/vermogensbeheer-ho
 import { PrivateMarketsHomeSection } from "@/components/home/private-markets-home-section"
 import { BerichtenHomeSection } from "@/components/home/berichten-home-section"
 import { MeerWetenSection } from "@/components/home/meer-weten-section"
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Non-bancaire vastgoedfinanciering | Lange & Partners' },
-  description: 'Lange & Partners verstrekt non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers in heel Nederland.',
-  alternates: { canonical: 'https://www.nonbancaireleningen.nl' },
-  openGraph: {
-    title: 'Non-bancaire vastgoedfinanciering | Lange & Partners',
-    description: 'Lange & Partners verstrekt non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers in heel Nederland.',
-    url: 'https://www.nonbancaireleningen.nl',
-  },
-  twitter: {
-    title: 'Non-bancaire vastgoedfinanciering | Lange & Partners',
-    description: 'Lange & Partners verstrekt non-bancaire vastgoedleningen van €200.000 tot €5.000.000. Snel, flexibel en op maat voor ondernemers in heel Nederland.',
-  },
-}
+export const metadata: Metadata = pageMetadata({
+  path: "/",
+  title: "Lange & Partners | Lange Financieel Advies",
+  brand: false,
+  description: "Tijdelijke vastgoedleningen van €200.000 tot €5.000.000 via particuliere investeerders, beoordeeld op betaalbaarheid, onderpand en exit.",
+})
 
 const localBusinessJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   '@id': 'https://www.nonbancaireleningen.nl/#localbusiness',
   name: 'Lange & Partners',
+  legalName: 'Lange Financieel Advies B.V.',
   url: 'https://www.nonbancaireleningen.nl',
   telephone: '+31235173100',
   address: {

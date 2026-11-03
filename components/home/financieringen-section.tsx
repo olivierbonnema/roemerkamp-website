@@ -1,53 +1,56 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 import { SectionHeading } from "@/components/section-heading"
-import { PRODUCT_PAGES } from "@/lib/site-nav"
+import { BORROWER_PAGE, INVESTOR_PAGE, SITUATION_PAGES } from "@/lib/site-nav"
 
-// Homepage overview of all product pages. Before this section existed the
-// product pages were only reachable from blog posts and from each other
-// (SEO audit 21-10-2026: click depth 2 to 4, three orphan pages).
+// Homepage: one product, several situations. An index in two columns instead
+// of a tile grid (decision Olivier, 27 October and 2 November 2026).
 export function FinancieringenSection() {
+  const half = Math.ceil(SITUATION_PAGES.length / 2)
+  const columns = [SITUATION_PAGES.slice(0, half), SITUATION_PAGES.slice(half)]
+
   return (
-    <section className="py-20 bg-gray-50" id="financieringen">
+    <section id="financieringen" className="py-16 bg-gray-50">
       <div className="max-w-screen-2xl mx-auto px-4">
-        <SectionHeading>Onze financieringen</SectionHeading>
-        <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl">
-          Vastgoedleningen van &euro;200.000 tot &euro;5.000.000, met een looptijd van 6 tot 60 maanden en altijd met
-          hypotheekrecht op vastgoed als zekerheid. Kies de situatie die bij u past.
+        <SectionHeading>Eén product, meerdere situaties</SectionHeading>
+        <p className="text-gray-700 leading-relaxed mt-4 max-w-2xl text-base">
+          Wij hebben één financiering: een tijdelijke lening van €200.000 tot €5.000.000 met een hypotheekrecht op
+          vastgoed in Nederland als zekerheid. Looptijd 6 tot 60 maanden, rente vanaf 7%, doorgaans binnen één tot drie
+          weken geregeld. De situaties waarin dat uitkomst biedt, verschillen.
         </p>
 
-        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mt-10">
-          {PRODUCT_PAGES.map((page) => (
-            <li key={page.href}>
-              <Link
-                href={page.href}
-                className="group flex h-full flex-col justify-between bg-white border border-gray-200 rounded-md p-5 hover:border-[#311e86] hover:shadow-sm transition-all"
-              >
-                <div>
-                  <h3 className="font-serif text-lg text-[#311e86] leading-snug">{page.label}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed mt-2">{page.description}</p>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[#311e86] text-sm font-medium mt-4 group-hover:underline">
-                  Lees meer
-                  <ArrowRight size={14} aria-hidden="true" />
-                </span>
-              </Link>
-            </li>
+        <div className="mt-8 grid md:grid-cols-2 gap-x-12">
+          {columns.map((column, c) => (
+            <ul key={c} className="list-none m-0 p-0">
+              {column.map((page, i) => (
+                <li
+                  key={page.href}
+                  className={`py-3.5 ${i === column.length - 1 && c === columns.length - 1 ? "" : "border-b border-gray-200"}`}
+                >
+                  <Link
+                    href={page.href}
+                    className="block text-[17px] font-semibold text-[#1e3a5f] hover:text-[#311e86] hover:underline"
+                  >
+                    {page.label}
+                  </Link>
+                  <p className="text-[15px] text-gray-600 leading-relaxed mt-0.5">{page.description}</p>
+                </li>
+              ))}
+            </ul>
           ))}
-        </ul>
+        </div>
 
-        <div className="flex flex-wrap gap-3 justify-center mt-10">
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link
-            href="/voor-leningnemers"
-            className="bg-[#311e86] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#261770] transition-colors"
+            href={BORROWER_PAGE.href}
+            className="inline-block bg-[#cc4410] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#b83a0a] transition-colors"
           >
-            Alle informatie voor leningnemers
+            Voorwaarden, kosten en aanvraag
           </Link>
-          <Link
-            href="/financieringsaanvraag"
-            className="text-[#311e86] border border-[#311e86] px-6 py-3 text-sm font-medium rounded-full hover:bg-white transition-colors"
-          >
-            Direct een aanvraag indienen
+          <Link href="/casussen" className="text-sm font-medium text-[#1e3a5f] underline underline-offset-2 hover:text-[#311e86]">
+            Bekijk de casussen
+          </Link>
+          <Link href={INVESTOR_PAGE.href} className="text-sm font-medium text-[#1e3a5f] underline underline-offset-2 hover:text-[#311e86]">
+            Voor investeerders
           </Link>
         </div>
       </div>

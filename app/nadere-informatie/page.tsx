@@ -1,24 +1,18 @@
+import type { Metadata } from 'next'
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { NadereInformatieHero } from "@/components/nadere-informatie/hero-section"
-import { RaadVanAdviesSection } from "@/components/nadere-informatie/raad-van-advies-section"
 import { ToezichtSection } from "@/components/nadere-informatie/toezicht-section"
 import { OverigeSection } from "@/components/nadere-informatie/overige-section"
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata = {
-  title: "Nadere informatie",
-  description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners.",
-  alternates: { canonical: "https://www.nonbancaireleningen.nl/nadere-informatie" },
-  openGraph: {
-    title: "Nadere informatie | Lange & Partners",
-    description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners.",
-    url: "https://www.nonbancaireleningen.nl/nadere-informatie",
-  },
-  twitter: {
-    title: "Nadere informatie | Lange & Partners",
-    description: "Toezicht, registraties, Raad van Advies en duurzaamheidsbeleid van Lange & Partners.",
-  },
-}
+// 3 November 2026: the Raad van Advies, the DSI line and the Black Jaguar
+// Foundation came from the Roemer Kamp & Partners site (Olivier) and are gone.
+export const metadata: Metadata = pageMetadata({
+  path: "/nadere-informatie",
+  title: "Toezicht en registraties",
+  description: "Lange & Partners is een handelsnaam van Lange Financieel Advies B.V., met een AFM-vergunning voor bemiddeling (12017043) en aangesloten bij Kifid.",
+})
 
 export default function NadereInformatiePage() {
   return (
@@ -26,7 +20,6 @@ export default function NadereInformatiePage() {
       <Header />
       <main>
         <NadereInformatieHero />
-        <RaadVanAdviesSection />
         <ToezichtSection />
         <OverigeSection />
       </main>
