@@ -18,6 +18,7 @@ import {
   fmtEuro, fmtNlDate,
   getImageSize, logoType, logoBase64,
 } from "./docx-helpers"
+import { LEGAL_NAME, TRADE_NAME } from "../company"
 
 const MARGIN_TOP = MM(22)
 const MARGIN_BOTTOM = MM(18)
@@ -27,6 +28,8 @@ const C_RULE = "555555"      // table rules
 const C_HAIR = "BBBBBB"      // light letterhead/footer hairline
 
 const IBAN = "NL86 ABNA 0423 4510 57"
+// Statutory name on every invoice (Olivier, 3 November 2026).
+const FOOTER_LINE_0 = `${TRADE_NAME} is een handelsnaam van ${LEGAL_NAME}`
 const FOOTER_LINE_1 = "Wilhelminastraat 50  |  T 023-5173100  |  info@langefa.nl  |  NL86 ABNA 0423 4510 57  |  KvK 34269870"
 const FOOTER_LINE_2 = "2011 VN Haarlem  |  www.langefa.nl  |  BTW NL8177.63.466.B01  |  AFM 12017043"
 
@@ -140,15 +143,16 @@ export async function generateInvoiceDoc(r: InvoiceRecord, settings: TermsheetSe
 
   // ── Signature ──
   children.push(par([tx("Met vriendelijke groet,", { size: SZ_SMALL })], { before: 0, after: 0 }))
-  children.push(par([tx("Lange & partners Financieel Advies", { size: SZ_SMALL })], { before: 0, after: 0 }))
+  children.push(par([tx(TRADE_NAME, { size: SZ_SMALL })], { before: 0, after: 0 }))
 
   const footer = new docx.Footer({
     children: [
       new docx.Paragraph({
-        children: [tx(FOOTER_LINE_1, { size: SZ_TINY, color: C_GREY })],
+        children: [tx(FOOTER_LINE_0, { size: SZ_TINY, color: C_GREY })],
         alignment: ALIGN.CENTER, spacing: { before: 60, after: 0 },
         border: { top: rule(C_HAIR, 6) },
       }),
+      par([tx(FOOTER_LINE_1, { size: SZ_TINY, color: C_GREY })], { align: ALIGN.CENTER, before: 0, after: 0 }),
       par([tx(FOOTER_LINE_2, { size: SZ_TINY, color: C_GREY })], { align: ALIGN.CENTER, before: 0, after: 0 }),
     ],
   })

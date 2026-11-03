@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { verifyAdmin } from "@/lib/admin-auth"
 import { logActivity } from "@/lib/activity-log"
+import { LEGAL_NAME } from "@/lib/company"
 
 const SETTINGS_DOC = "admin_settings"
 
@@ -29,7 +30,7 @@ export async function PUT(req: NextRequest) {
       advisorName: advisorName || "",
       advisorPhone: advisorPhone || "",
       advisorEmail: advisorEmail || "",
-      companyName: companyName || "Lange & Partners Financieel Advies",
+      companyName: companyName || LEGAL_NAME,
       notaris: notaris || "",
       logoDataUrl: logoDataUrl || "",
       updatedAt: new Date().toISOString(),

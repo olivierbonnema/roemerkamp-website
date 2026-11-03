@@ -3,6 +3,7 @@
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
 import type { PitchData } from "./pitch-generator"
+import { LEGAL_NAME } from "../company"
 
 /* ── Register Calibri-compatible font (Carlito, metrically identical) ── */
 
@@ -69,7 +70,7 @@ interface Props {
 
 export function PitchPDF({ data, settings }: Props) {
   const logoUrl = settings.logoDataUrl || ""
-  const companyName = settings.companyName || "Lange & Partners Financieel Advies"
+  const companyName = settings.companyName || LEGAL_NAME
   const finRows = data.financieringsopzet || []
   const ltvRows = data.ltvRows || []
   const objects = (data.collateralObjects || []).filter((o) => o.description)

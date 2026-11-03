@@ -2,6 +2,7 @@
 
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
+import { LEGAL_NAME } from "../company"
 
 /* ── Register Calibri-compatible font (Carlito, metrically identical) ── */
 
@@ -335,7 +336,7 @@ export function CheckPDF({ data, settings }: { data: CheckPdfData; settings?: Re
   const subj = data.subject
   const displayName = subj.type === "natural_person" ? subj.fullName : (subj.company || subj.fullName)
   const logoUrl = settings?.logoDataUrl || ""
-  const companyName = settings?.companyName || "Lange & Partners Financieel Advies"
+  const companyName = settings?.companyName || LEGAL_NAME
 
   // Prefer the per-subject results (a check can cover several subjects); fall
   // back to the single result stored on older checks.
@@ -376,7 +377,7 @@ export function CheckPDF({ data, settings }: { data: CheckPdfData; settings?: Re
 
         <View style={s.footer} fixed>
           <Text style={s.footerText}>
-            {companyName} — vertrouwelijk. Bevat persoonsgegevens; niet verspreiden buiten het dossier.
+            {companyName}. Vertrouwelijk: bevat persoonsgegevens; niet verspreiden buiten het dossier.
           </Text>
           <Text style={s.footerPage} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>

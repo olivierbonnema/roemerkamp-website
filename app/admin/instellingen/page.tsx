@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
+import { LEGAL_NAME } from "@/lib/company"
 
 export default function InstellingenPage() {
   const { user } = useAuth()
@@ -12,7 +13,7 @@ export default function InstellingenPage() {
   const [advisorName, setAdvisorName] = useState("")
   const [advisorPhone, setAdvisorPhone] = useState("")
   const [advisorEmail, setAdvisorEmail] = useState("")
-  const [companyName, setCompanyName] = useState("Lange & Partners Financieel Advies")
+  const [companyName, setCompanyName] = useState(LEGAL_NAME)
   const [notaris, setNotaris] = useState("")
   const [logoDataUrl, setLogoDataUrl] = useState("")
 
@@ -30,7 +31,7 @@ export default function InstellingenPage() {
           setAdvisorName(s.advisorName || "")
           setAdvisorPhone(s.advisorPhone || "")
           setAdvisorEmail(s.advisorEmail || "")
-          setCompanyName(s.companyName || "Lange & Partners Financieel Advies")
+          setCompanyName(s.companyName || LEGAL_NAME)
           setNotaris(s.notaris || "")
           setLogoDataUrl(s.logoDataUrl || "")
         }

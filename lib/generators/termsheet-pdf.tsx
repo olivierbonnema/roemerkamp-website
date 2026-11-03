@@ -13,6 +13,7 @@ import {
   termijnLines,
   termijnTotal,
 } from "./leningdelen"
+import { LEGAL_NAME, TRADE_NAME } from "../company"
 
 /* ── Register Calibri-compatible font (Carlito, metrically identical) ── */
 
@@ -179,7 +180,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
   const totalLoan = hasLeningdelen
     ? leningdelenTotal(leningdelen)
     : loanPartsBaseTotal(loanParts)
-  const companyName = settings.companyName || "Lange & Partners Financieel Advies"
+  const companyName = settings.companyName || LEGAL_NAME
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
   const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "-"
   const logoUrl = settings.logoDataUrl || ""
@@ -252,7 +253,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
 
         {/* Fixed footer */}
         <Text style={s.footer} fixed>
-          Lange & Partners Financieel Advies  |  Wilhelminastraat 50  |  2011 VN Haarlem  |  +31 23 517 31 00  |  info@langefa.nl  |  www.langefa.nl  |  KvK 34269870
+          {LEGAL_NAME}  |  Wilhelminastraat 50  |  2011 VN Haarlem  |  +31 23 517 31 00  |  info@langefa.nl  |  www.langefa.nl  |  KvK 34269870
         </Text>
 
         {/* Borrower addresses */}
@@ -282,8 +283,8 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
         {/* Intro paragraph */}
         <Text style={{ fontSize: SZ.small, lineHeight: 1.6, marginBottom: 10 }}>
           Op uw verzoek doen wij u hierbij een overzicht van de belangrijkste voorwaarden en bepalingen toekomen waarop{" "}
-          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>Lange & Partners Financieel Advies</Text>
-          , hierna te noemen "de Bemiddelaar", u een aanbieding wil doen voor een financiering van{" "}
+          <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{LEGAL_NAME}</Text>
+          , handelend onder de naam {TRADE_NAME}, hierna te noemen "de Bemiddelaar", u een aanbieding wil doen voor een financiering van{" "}
           <Text style={{ fontFamily: "Calibri", fontWeight: "bold" as const }}>{totalLoan > 0 ? fmtEuro(totalLoan) : "-"}</Text>
           {" "}met als doel {data.doelFinanciering || "een herfinanciering"}, waarbij{" "}
           {objects.length > 1 ? "de volgende objecten als zekerheid dienen" : "het volgende object als zekerheid dient"}:

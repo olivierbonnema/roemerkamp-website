@@ -21,6 +21,7 @@ import {
   buildAflossingSummary,
   buildFaciliteitSuggestion,
 } from "@/lib/generators/leningdelen"
+import { LEGAL_NAME } from "@/lib/company"
 
 interface Borrower {
   type: "privepersoon" | "bv"
@@ -140,8 +141,8 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [city, setCity] = useState((d as Record<string, unknown>).city as string || "Haarlem")
   const [date, setDate] = useState(baseDate)
   const [salutation, setSalutation] = useState((d as Record<string, unknown>).salutation as string || "")
-  const [kredietgever, setKredietgever] = useState((d as Record<string, unknown>).kredietgever as string || s.companyName || "Lange & Partners Financieel Advies")
-  const [geldverstrekker, setGeldverstrekker] = useState((d as Record<string, unknown>).geldverstrekker as string || "Bemiddeling via Lange & Partners Financieel Advies")
+  const [kredietgever, setKredietgever] = useState((d as Record<string, unknown>).kredietgever as string || s.companyName || LEGAL_NAME)
+  const [geldverstrekker, setGeldverstrekker] = useState((d as Record<string, unknown>).geldverstrekker as string || `Bemiddeling via ${LEGAL_NAME}`)
   const [doelFinanciering, setDoelFinanciering] = useState((d as Record<string, unknown>).doelFinanciering as string || "een herfinanciering")
   const [typeFaciliteit, setTypeFaciliteit] = useState((d as Record<string, unknown>).typeFaciliteit as string || TD.faciliteiten[0])
   const [valuta, setValuta] = useState((d as Record<string, unknown>).valuta as string || "Euro (€)")
