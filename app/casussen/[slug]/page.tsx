@@ -66,7 +66,7 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
             { label: `Casus ${index + 1}`, href: `/casussen/${casus.slug}` },
           ]}
           image={{ src: casus.image, alt: casus.titel, position: casus.imagePosition }}
-          primary={{ href: casus.situatie, label: `Meer over: ${casus.situatieLabel}` }}
+          primary={{ href: casus.situatie, label: `Meer over ${casus.situatieLabel.charAt(0).toLowerCase()}${casus.situatieLabel.slice(1)}` }}
           secondary={{ href: productPage.href, label: productPage.label }}
         />
 
@@ -77,9 +77,9 @@ export default async function CasusPage({ params }: { params: Promise<{ slug: st
               <div className="bg-gray-50 px-6 py-5">
                 <h3 className="text-lg font-semibold text-[#1e3a5f] mb-1">Casus uit de praktijk</h3>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
-                  Een financiering die wij hebben verzorgd, geanonimiseerd: zonder namen, plaatsen of andere herleidbare
-                  gegevens, en met afgeronde bedragen. De rente is de rente bij aanvang. De voorwaarden en kosten staan
-                  op de productpagina.
+                  Een financiering die wij hebben verzorgd. De casus is geanonimiseerd, dus zonder namen, plaatsen of
+                  andere herleidbare gegevens, en de bedragen zijn afgerond. De rente is de rente bij aanvang. De
+                  voorwaarden en kosten staan op de productpagina.
                 </p>
                 <Link
                   href={productPage.href}

@@ -12,9 +12,8 @@ import { pageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = pageMetadata({
   path: "/casussen",
-  title: "Casussen: gefinancierd waar de bank afhaakte",
-  brand: false,
-  description: "Casussen uit de praktijk: per financiering het bedrag, de loan-to-value, de looptijd, de exit en waarom de bank afhaakte. Geanonimiseerd.",
+  title: "Casussen uit de praktijk",
+  description: "Financieringen die wij hebben verzorgd, geanonimiseerd. Per casus het bedrag, de loan-to-value, de looptijd, de exit en waarom de bank afhaakte.",
 })
 
 export default function CasussenPage() {
@@ -24,8 +23,8 @@ export default function CasussenPage() {
       <Header />
       <main>
         <PageHero
-          title="Casussen: gefinancierd waar de bank afhaakte"
-          intro="Financieringen die wij hebben verzorgd, van aanleiding tot exit. Per casus het bedrag, de loan-to-value, de looptijd, de exit en waarom de bank afhaakte. Geanonimiseerd."
+          title="Casussen uit de praktijk"
+          intro="Financieringen die wij hebben verzorgd, van aanleiding tot exit. Per casus ziet u het bedrag, de loan-to-value, de looptijd en waarom de bank afhaakte."
           breadcrumbs={[{ label: 'Casussen', href: '/casussen' }]}
           image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voor leningnemers' }}
@@ -75,13 +74,13 @@ export default function CasussenPage() {
               <div className="border border-gray-200 border-t-[5px] border-t-[#f75d20] px-6 py-5 bg-white">
                 <h2 className="text-lg font-semibold text-[#1e3a5f] mb-2">Over deze casussen</h2>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-3">
-                  Dit zijn financieringen die wij in de praktijk hebben verzorgd. Ze zijn geanonimiseerd: zonder
-                  namen, plaatsen of andere herleidbare gegevens, en met afgeronde bedragen. De rente is de rente bij
+                  Dit zijn financieringen die wij in de praktijk hebben verzorgd. Ze zijn geanonimiseerd, dus zonder
+                  namen, plaatsen of andere herleidbare gegevens, en de bedragen zijn afgerond. De rente is de rente bij
                   aanvang.
                 </p>
                 <p className="text-[15px] leading-relaxed text-[#2a2f3a]">
-                  Elke casus volgt dezelfde beoordeling: het onderpand, de betaalbaarheid van de rente en de exit. De
-                  voorwaarden en kosten staan op de productpagina.
+                  Bij elke casus beoordelen wij het onderpand, de betaalbaarheid van de rente en de exit. De voorwaarden
+                  en kosten staan op de productpagina.
                 </p>
               </div>
               <div className="bg-gray-50 px-6 py-5">
