@@ -13,7 +13,7 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/situaties",
   title: "Situaties waarin wij financieren",
-  description: "Eén product, per situatie uitgelegd, van een afwijzing door de bank of geen drie jaar jaarcijfers tot DGA, tweede hypotheek, overbrugging, herfinanciering en beleggingspand.",
+  description: "Eén product voor elke situatie, van een bankafwijzing of geen jaarcijfers tot DGA, tweede hypotheek, overbrugging, herfinanciering en beleggingspand.",
 })
 
 export default function SituatiesPage() {
