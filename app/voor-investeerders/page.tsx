@@ -143,7 +143,7 @@ const faq = [
   },
   {
     vraag: 'Staat Lange & Partners onder toezicht?',
-    antwoord: 'Lange & Partners bemiddelt tussen leningnemer en investeerder; de investeerder verstrekt de lening. De registraties en het toezicht staan op de pagina Nadere informatie.',
+    antwoord: 'Lange & Partners heeft een AFM-vergunning voor bemiddeling: wij brengen leningnemer en investeerder bij elkaar, de investeerder verstrekt de lening. De registraties staan op de pagina Nadere informatie.',
   },
 ]
 

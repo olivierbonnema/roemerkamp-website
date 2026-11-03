@@ -28,7 +28,7 @@ const faq = [
   },
   {
     vraag: 'Wordt non-bancaire financiering gereguleerd?',
-    antwoord: 'De verstrekking van zakelijke leningen met hypothecaire zekerheid valt niet onder dezelfde toezichtsregels als consumentenkrediet. Lange & Partners opereert onder een AFM-vergunning voor financieel advies en bemiddeling. Alle leningen worden notarieel vastgelegd en ingeschreven bij het Kadaster.',
+    antwoord: 'Lange & Partners heeft een AFM-vergunning voor bemiddeling: wij brengen leningnemer en investeerder bij elkaar, de investeerder verstrekt de lening. Alle leningen worden notarieel vastgelegd en ingeschreven bij het Kadaster, en alle betalingen verlopen via een onafhankelijke Stichting.',
   },
   {
     vraag: 'Kan ik non-bancaire financiering combineren met mijn bestaande hypotheek?',
@@ -73,7 +73,7 @@ export default function WatIsNonBancaireFinancieringPage() {
                 Wat is non-bancaire financiering?
               </h1>
               <p className="text-white/80 leading-relaxed text-lg">
-                Een groeiend alternatief voor ondernemers die buiten de bancaire criteria vallen &mdash; maar w&eacute;l beschikken over solide onderpand.
+                Een groeiend alternatief voor ondernemers die buiten de bancaire criteria vallen, maar w&eacute;l beschikken over solide onderpand.
               </p>
               <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
                 <span>Marco Lange</span>
@@ -102,7 +102,7 @@ export default function WatIsNonBancaireFinancieringPage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-serif text-[#1e3a5f]">Definitie: financiering buiten de bank</h2>
               <p className="text-gray-700 leading-relaxed">
-                Non-bancaire financiering is een verzamelnaam voor leningen die niet door een bank worden verstrekt. Het kapitaal komt van particuliere investeerders, institutionele beleggers of gespecialiseerde fondsen. De lening wordt &mdash; net als bij een bank &mdash; hypothecair vastgelegd op vastgoed.
+                Non-bancaire financiering is een verzamelnaam voor leningen die niet door een bank worden verstrekt. Het kapitaal komt van particuliere investeerders, institutionele beleggers of gespecialiseerde fondsen. De lening wordt, net als bij een bank, hypothecair vastgelegd op vastgoed.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 Het verschil zit niet in de juridische structuur, maar in de beoordeling. Waar banken zich richten op vaste inkomensnormen, kijken non-bancaire financiers primair naar de waarde van het onderpand en het totale financiële plaatje van de aanvrager.
@@ -120,7 +120,7 @@ export default function WatIsNonBancaireFinancieringPage() {
                   'U dient een aanvraag in met gegevens over het vastgoed en uw financiële situatie',
                   'Wij beoordelen het onderpand op marktwaarde en bestemming',
                   'Bij akkoord wordt de lening notarieel vastgelegd en ingeschreven bij het Kadaster',
-                  'Alle betalingen verlopen via een onafhankelijke Stichting Hypotheekbewaking',
+                  'Alle betalingen verlopen via een onafhankelijke Stichting',
                   'Na afloop van de looptijd wordt de lening afgelost of geherfinancierd',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
@@ -191,7 +191,7 @@ export default function WatIsNonBancaireFinancieringPage() {
                 {[
                   'De lening wordt notarieel vastgelegd via een hypotheekakte',
                   'Inschrijving bij het Kadaster geeft de geldverstrekker zakelijke zekerheid',
-                  'Een onafhankelijke Stichting Hypotheekbewaking beheert alle geldstromen',
+                  'Een onafhankelijke Stichting beheert alle geldstromen',
                   'Er wordt altijd een taxatierapport opgesteld door een onafhankelijk taxateur',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">

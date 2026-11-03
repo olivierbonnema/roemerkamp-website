@@ -23,7 +23,7 @@ export default function FaqPage() {
             <div className="w-12 h-1 bg-[#f75d20] mt-3" />
             <p className="text-white/70 mt-4 text-sm max-w-xl">
               Stel uw vraag hieronder. Onze assistent beantwoordt vragen over onze
-              diensten op basis van bedrijfsinformatie. Voor persoonlijk advies kunt u
+              diensten op basis van bedrijfsinformatie. Voor een vraag over uw eigen situatie kunt u
               altijd contact met ons opnemen.
             </p>
           </div>

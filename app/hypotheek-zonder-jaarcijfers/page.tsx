@@ -59,7 +59,7 @@ const beoordeling = [
 const faq = [
   {
     vraag: 'Waarom eist een bank drie jaar jaarcijfers?',
-    antwoord: 'Banken hanteren inkomenstoetsen op basis van normen van De Nederlandsche Bank. Voor ondernemers rekenen zij met het gemiddelde inkomen van de afgelopen drie jaar. Zonder drie jaar jaarcijfers kunnen zij die berekening niet maken en wijzen zij de aanvraag doorgaans af.',
+    antwoord: 'Banken toetsen het inkomen van ondernemers langs vaste normen. Voor ondernemers rekenen zij met het gemiddelde inkomen van de afgelopen drie jaar. Zonder drie jaar jaarcijfers kunnen zij die berekening niet maken en wijzen zij de aanvraag doorgaans af.',
   },
   {
     vraag: 'Hoe beoordeelt Lange & Partners een aanvraag zonder jaarcijfers?',
@@ -102,9 +102,8 @@ export default function HypotheekZonderJaarcijfersPage() {
     >
       <ArticleSection id="waarom" title="Waarom de bank drie jaar cijfers wil">
         <p>
-          Banken zijn gebonden aan normen van De Nederlandsche Bank voor de inkomenstoetsing van hypotheken. Voor
-          ondernemers gebruiken zij het gemiddelde inkomen over de afgelopen drie jaar als basis voor de maximale
-          hypotheek. Zonder drie jaar jaarcijfers ontbreekt de grondslag voor die berekening.
+          Banken toetsen het inkomen van ondernemers langs vaste normen. Zij gebruiken het gemiddelde inkomen over de
+          afgelopen drie jaar als basis voor de maximale hypotheek. Zonder drie jaar jaarcijfers ontbreekt de grondslag voor die berekening.
         </p>
         <p>
           Het gevolg: een ondernemer met een florerende onderneming en voldoende eigen vermogen krijgt geen bancaire

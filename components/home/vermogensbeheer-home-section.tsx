@@ -12,7 +12,7 @@ export function VermogensbeheerHomeSection() {
             <SectionHeading>Voor investeerders</SectionHeading>
             <div className="mt-6 space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                Non-bancaire leningen vormen een alternatief wanneer traditionele banken geen financiering verstrekken. Door kapitaal van particuliere investeerders te koppelen aan kredietnemers ontstaan mogelijkheden buiten het standaard bancaire kader. Zo kunnen transacties toch doorgaan wanneer snelheid, maatwerk of specifieke omstandigheden maken dat een bankfinanciering niet haalbaar is.
+                Non-bancaire leningen vormen een alternatief wanneer traditionele banken geen financiering verstrekken. Door kapitaal van particuliere investeerders te koppelen aan kredietnemers ontstaan mogelijkheden buiten het standaard bancaire kader. Zo kunnen transacties toch doorgaan wanneer snelheid of specifieke omstandigheden maken dat een bankfinanciering niet haalbaar is.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 Iedere financieringsaanvraag wordt zorgvuldig beoordeeld. Daarbij wordt gekeken naar de onderliggende zekerheid, de betaalbaarheid van maandelijkse rente en kosten en het perspectief op herfinanciering of aflossing. Pas wanneer het geheel (zekerheden, betalingscapaciteit en terugbetaling) naar ons oordeel voldoende solide is, wordt een propositie aan investeerders voorgelegd.

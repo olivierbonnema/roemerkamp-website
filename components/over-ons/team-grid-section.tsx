@@ -43,7 +43,7 @@ const team = [
       },
       {
         heading: "Geen nee",
-        text: "Ik ben een fanatiek tennisser en wil graag winnen. In de zomer sta ik gerust 2–3 keer per week op de baan en heb meerdere toernooien gewonnen. Maar als de tegenstander echt beter is, zie ik dat ook als een uitdaging. Zo leer ik nog beter te worden. Dat doe ik ook in mijn werk. Blijven leren en blijven ontwikkelen. Mijn kracht zit in het logisch denken. Met de juiste argumenten kun je een heel eind komen. Het woord nee, dat hoor ik niet graag. Ik blijf net zo lang doorzoeken totdat het wel kan.",
+        text: "Ik ben een fanatiek tennisser en wil graag winnen. In de zomer sta ik gerust 2 tot 3 keer per week op de baan en heb meerdere toernooien gewonnen. Maar als de tegenstander echt beter is, zie ik dat ook als een uitdaging. Zo leer ik nog beter te worden. Dat doe ik ook in mijn werk. Blijven leren en blijven ontwikkelen. Mijn kracht zit in het logisch denken. Met de juiste argumenten kun je een heel eind komen. Het woord nee, dat hoor ik niet graag. Ik blijf net zo lang doorzoeken totdat het wel kan.",
       },
       {
         heading: "Keurslijf",

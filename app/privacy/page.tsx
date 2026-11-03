@@ -3,16 +3,16 @@ import { Footer } from "@/components/footer"
 
 export const metadata = {
   title: "Privacyverklaring",
-  description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
+  description: "Privacyverklaring van Lange & Partners: hoe wij omgaan met uw persoonsgegevens.",
   alternates: { canonical: "https://www.nonbancaireleningen.nl/privacy" },
   openGraph: {
     title: "Privacyverklaring | Lange & Partners",
-    description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
+    description: "Privacyverklaring van Lange & Partners: hoe wij omgaan met uw persoonsgegevens.",
     url: "https://www.nonbancaireleningen.nl/privacy",
   },
   twitter: {
     title: "Privacyverklaring | Lange & Partners",
-    description: "Privacyverklaring van Lange & Partners – hoe wij omgaan met uw persoonsgegevens.",
+    description: "Privacyverklaring van Lange & Partners: hoe wij omgaan met uw persoonsgegevens.",
   },
 }
 
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
                 <p>
                   Als persoonsgegevens gelden gegevens die kunnen worden gebruikt om uw identiteit te
                   achterhalen. Wij maken daarbij onderscheid tussen persoonsgegevens die u actief aan ons
-                  verstrekt en persoonsgegevens die – om technische redenen – automatisch aan ons worden
+                  verstrekt en persoonsgegevens die (om technische redenen) automatisch aan ons worden
                   doorgegeven door gebruik van cookies (zie onder).
                 </p>
                 <p className="mt-4">

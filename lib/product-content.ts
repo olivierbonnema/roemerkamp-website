@@ -123,7 +123,7 @@ export const FAQ_EIGEN_GELD: FaqItem = {
 
 export const FAQ_VEILIG: FaqItem = {
   vraag: 'Is een financiering buiten de bank om veilig?',
-  antwoord: 'Het hypotheekrecht wordt ingeschreven bij het Kadaster, net als bij een bancaire hypotheek. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van alle partijen waarborgt. Lange & Partners bemiddelt onder toezicht; de registraties staan op de pagina Nadere informatie.',
+  antwoord: 'Het hypotheekrecht wordt ingeschreven bij het Kadaster, net als bij een bancaire hypotheek. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van alle partijen waarborgt. Lange & Partners heeft een AFM-vergunning voor bemiddeling; de registraties staan op de pagina Nadere informatie.',
 }
 
 export const FAQ_AANSPREEKPUNT: FaqItem = {
