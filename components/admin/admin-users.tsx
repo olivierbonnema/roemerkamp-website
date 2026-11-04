@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
+import { InviteMailDialog, LoginBadge, type InviteAccount } from "./invite-mail-dialog"
 
-interface UserRecord {
+interface UserRecord extends InviteAccount {
   uid: string
   email: string
   displayName?: string
@@ -25,6 +26,11 @@ export function AdminUsers() {
   const [createSuccess, setCreateSuccess] = useState("")
   const [deletingUid, setDeletingUid] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState("")
+  const [inviteFor, setInviteFor] = useState<UserRecord | null>(null)
+  const [onlyNotLoggedIn, setOnlyNotLoggedIn] = useState(false)
+  const neverLoggedIn = (u: UserRecord) => !!u.loginKnown && !u.authMissing && !u.lastSignInAt
+  const notLoggedInCount = users.filter(neverLoggedIn).length
+  const shown = onlyNotLoggedIn ? users.filter(neverLoggedIn) : users
 
   useEffect(() => { loadUsers() }, [])
 
@@ -119,26 +125,52 @@ export function AdminUsers() {
       </div>
 
       <div>
-        <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Bestaande accounts</h2>
+        <div className="flex items-baseline justify-between gap-4 mb-4">
+          <h2 className="font-serif text-xl text-[#1E3A5F]">Bestaande accounts</h2>
+          {notLoggedInCount > 0 && (
+            <label className="flex items-center gap-2 text-[12px] font-sans text-amber-700 cursor-pointer">
+              <input type="checkbox" checked={onlyNotLoggedIn} onChange={(e) => setOnlyNotLoggedIn(e.target.checked)} />
+              Alleen nog niet ingelogd ({notLoggedInCount})
+            </label>
+          )}
+        </div>
         {deleteError && <p className="text-sm text-red-500 font-sans mb-3">{deleteError}</p>}
         {usersLoading && <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" /></div>}
         {usersError && <p className="text-red-500 text-sm font-sans">{usersError}</p>}
         {!usersLoading && users.length === 0 && !usersError && <p className="text-gray-400 font-sans text-sm">Nog geen gebruikersaccounts aangemaakt.</p>}
         <div className="space-y-2">
-          {users.map((u) => (
+          {shown.map((u) => (
             <div key={u.uid} className="flex items-center justify-between gap-4 px-5 py-3.5 border border-gray-200 rounded-xl bg-white">
               <div>
                 {u.displayName && <p className="text-sm font-medium text-gray-900 font-sans">{u.displayName}</p>}
                 <p className="text-sm text-gray-600 font-sans">{u.email}</p>
+                <div className="mt-1"><LoginBadge u={u} /></div>
               </div>
-              <button onClick={() => deleteUser(u.uid)} disabled={deletingUid === u.uid}
-                className="text-xs text-red-500 hover:text-red-700 font-sans transition-colors disabled:opacity-50">
-                {deletingUid === u.uid ? "Verwijderen…" : "Verwijder"}
-              </button>
+              <div className="flex items-center gap-4">
+                {!u.authMissing && (
+                  <button onClick={() => setInviteFor(u)}
+                    className={`text-xs font-sans transition-colors hover:underline ${neverLoggedIn(u) ? "text-[#311E86] font-medium" : "text-gray-500"}`}>
+                    {neverLoggedIn(u) ? "Uitnodiging opnieuw sturen" : "Uitnodiging"}
+                  </button>
+                )}
+                <button onClick={() => deleteUser(u.uid)} disabled={deletingUid === u.uid}
+                  className="text-xs text-red-500 hover:text-red-700 font-sans transition-colors disabled:opacity-50">
+                  {deletingUid === u.uid ? "Verwijderen…" : "Verwijder"}
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
+
+      {inviteFor && (
+        <InviteMailDialog
+          key={inviteFor.uid}
+          account={inviteFor}
+          onClose={() => setInviteFor(null)}
+          onSent={(r) => setUsers((prev) => prev.map((x) => (x.uid === inviteFor.uid ? { ...x, ...r } : x)))}
+        />
+      )}
     </div>
   )
 }

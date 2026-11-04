@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
+import { InviteMailDialog, LoginBadge, type InviteAccount } from "./invite-mail-dialog"
 
 interface PartnerOrg {
   id: string
@@ -12,7 +13,7 @@ interface PartnerOrg {
   createdAt?: string
 }
 
-interface PartnerUser {
+interface PartnerUser extends InviteAccount {
   uid: string
   email: string
   displayName?: string
@@ -100,6 +101,8 @@ export function AdminPartners() {
   const [inviteSuccess, setInviteSuccess] = useState("")
 
   const [deletingUid, setDeletingUid] = useState<string | null>(null)
+  const [inviteFor, setInviteFor] = useState<PartnerUser | null>(null)
+  const neverLoggedIn = (p: PartnerUser) => !!p.loginKnown && !p.authMissing && !p.lastSignInAt
   const [detail, setDetail] = useState<PartnerUser | null>(null)
   const [detailActivity, setDetailActivity] = useState<ActivityEntry[]>([])
   const [detailEmails, setDetailEmails] = useState<EmailEntry[]>([])
@@ -411,6 +414,7 @@ export function AdminPartners() {
                       <div>
                         {p.displayName && <p className="text-sm font-medium text-gray-900 font-sans">{p.displayName}</p>}
                         <p className="text-sm text-gray-600 font-sans">{p.email}</p>
+                        <div className="mt-1"><LoginBadge u={p} /></div>
                         {(p.supervisesOrgIds?.length ?? 0) > 0 && (
                           <p className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-[#311E86]/10 text-[#311E86]">
                             Hoofdaccount · meekijken bij {p.supervisesOrgIds!.length} kanto{p.supervisesOrgIds!.length === 1 ? "or" : "ren"}
@@ -418,6 +422,12 @@ export function AdminPartners() {
                         )}
                       </div>
                       <div className="flex items-center gap-4">
+                        {!p.authMissing && (
+                          <button onClick={() => setInviteFor(p)}
+                            className={`text-xs font-sans transition-colors hover:underline ${neverLoggedIn(p) ? "text-[#311E86] font-medium" : "text-gray-500"}`}>
+                            {neverLoggedIn(p) ? "Uitnodiging opnieuw sturen" : "Uitnodiging"}
+                          </button>
+                        )}
                         <button onClick={() => openDetail(p)}
                           className="text-xs text-[#311E86] hover:underline font-sans transition-colors">
                           Beheren
@@ -435,6 +445,15 @@ export function AdminPartners() {
           })}
         </div>
       </div>
+
+      {inviteFor && (
+        <InviteMailDialog
+          key={inviteFor.uid}
+          account={inviteFor}
+          onClose={() => setInviteFor(null)}
+          onSent={(r) => setPartners((prev) => prev.map((x) => (x.uid === inviteFor.uid ? { ...x, ...r } : x)))}
+        />
+      )}
 
       {detail && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setDetail(null)}>
