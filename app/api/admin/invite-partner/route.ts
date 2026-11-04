@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { SITE_URL } from "@/lib/site"
 import { randomBytes } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { sendEmail } from "@/lib/brevo"
 import { logActivity } from "@/lib/activity-log"
 import { PARTNER_ROLE } from "@/lib/partners"
 import { passwordResetLink } from "@/lib/auth-links"
+import { inviteMailFor } from "@/lib/invite-email"
 
 // Admin-only: invite an advisor into a partner organization. Creates the account
 // (already email-verified, since an authenticated admin provisions it and there
@@ -15,7 +15,6 @@ import { passwordResetLink } from "@/lib/auth-links"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
-const BASE_URL = SITE_URL
 
 async function verifyAdmin(req: NextRequest) {
   const auth = req.headers.get("authorization")
@@ -65,12 +64,15 @@ export async function POST(req: NextRequest) {
     })
 
     const setupLink = await passwordResetLink(email)
+    const mail = inviteMailFor({ role: PARTNER_ROLE, orgName, setupLink })
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: email,
-      subject: "Uitnodiging partnerportaal - Lange & Partners",
-      html: inviteHtml({ orgName, setupLink }),
+      subject: mail.subject,
+      type: mail.type,
+      html: mail.html,
     })
+    await adminDb.collection("users").doc(user.uid).update({ inviteSentAt: new Date().toISOString(), inviteCount: 1 }).catch(() => {})
 
     await logActivity({
       action: "partner_invited",
@@ -90,49 +92,4 @@ export async function POST(req: NextRequest) {
     console.error("invite-partner failed:", err)
     return NextResponse.json({ error: "Partner uitnodigen mislukt." }, { status: 500 })
   }
-}
-
-function inviteHtml({ orgName, setupLink }: { orgName: string; setupLink: string }) {
-  return `
-    <div style="background:#f3f4f6;padding:32px 16px;font-family:sans-serif;">
-      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden;">
-        <div style="border-top:4px solid #F75D20;background:#fff;padding:36px 40px 32px;">
-          <img src="${BASE_URL}/images/lange-logo.png" alt="Lange &amp; Partners" style="height:60px;width:auto;display:block;" />
-        </div>
-        <div style="background:#1E3A5F;padding:22px 40px 24px;">
-          <div style="color:#fff;font-size:20px;font-weight:400;line-height:1.3;font-family:'PT Serif',Georgia,serif;">Welkom als partner</div>
-        </div>
-        <div style="padding:36px 40px;">
-          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">
-            U bent toegevoegd als partner van Lange &amp; Partners${orgName ? ` (${orgName})` : ""}. Via het partnerportaal kunt u financieringsaanvragen indienen en de status ervan volgen.
-          </p>
-          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 24px;">
-            Stel hieronder uw wachtwoord in. Daarna stelt u eenmalig tweestapsverificatie in en kunt u direct aan de slag.
-          </p>
-          <a href="${setupLink}"
-             style="display:inline-block;background:#311E86;color:#fff;text-decoration:none;padding:10px 22px;border-radius:4px;font-size:13px;font-weight:500;">
-            Wachtwoord instellen →
-          </a>
-          <p style="font-size:13px;line-height:1.8;color:#374151;margin:24px 0 0;">
-            Heeft u deze uitnodiging niet verwacht? Dan kunt u deze e-mail negeren.
-          </p>
-        </div>
-        <div style="background:#1E3A5F;padding:24px 40px;">
-          <table style="width:100%;border-collapse:collapse;">
-            <tr>
-              <td style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.9;font-family:sans-serif;">
-                <span style="color:#fff;font-weight:500;font-size:13px;">Lange &amp; Partners</span><br>
-                Wilhelminastraat 50 &nbsp;&middot;&nbsp; 2011 VN Haarlem<br>
-                <a href="tel:+31235173100" style="color:rgba(255,255,255,0.6);text-decoration:none;">(023) 517 31 00</a>
-                &nbsp;&middot;&nbsp;
-                <a href="mailto:info@langefa.nl" style="color:rgba(255,255,255,0.6);text-decoration:none;">info@langefa.nl</a>
-              </td>
-              <td style="text-align:right;vertical-align:middle;">
-                <a href="https://langefa.nl" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;letter-spacing:0.5px;font-family:sans-serif;">langefa.nl</a>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </div>
-    </div>`
 }

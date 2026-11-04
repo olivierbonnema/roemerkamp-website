@@ -4,7 +4,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
 import { sendEmail } from "@/lib/brevo"
 import { passwordResetLink } from "@/lib/auth-links"
-import { inviteEmailHtml } from "@/lib/invite-email"
+import { inviteMailFor } from "@/lib/invite-email"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
@@ -52,17 +52,15 @@ export async function POST(req: NextRequest) {
 
     // Branded invite with a set-password link.
     const setupLink = await passwordResetLink(email)
+    const mail = inviteMailFor({ setupLink })
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: email,
-      subject: "Uw account bij Lange & Partners",
-      type: "user_invite",
-      html: inviteEmailHtml({
-        heading: "Welkom bij Lange & Partners",
-        intro: "Er is een account voor u aangemaakt voor het beheerderspaneel van Lange &amp; Partners.",
-        setupLink,
-      }),
+      subject: mail.subject,
+      type: mail.type,
+      html: mail.html,
     })
+    await adminDb.collection("users").doc(user.uid).update({ inviteSentAt: new Date().toISOString(), inviteCount: 1 }).catch(() => {})
 
     await logActivity({
       action: "user_created",
