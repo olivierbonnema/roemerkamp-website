@@ -52,6 +52,9 @@ export function InviteMailDialog({ account, onClose, onSent }: {
   const [error, setError] = useState("")
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState("")
+  const [link, setLink] = useState("")
+  const [linkBusy, setLinkBusy] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   async function call(body: Record<string, unknown>) {
     const token = await auth.currentUser?.getIdToken()
@@ -86,6 +89,24 @@ export function InviteMailDialog({ account, onClose, onSent }: {
       setError((e as Error).message || "Uitnodiging versturen mislukt.")
     } finally {
       setSending(false)
+    }
+  }
+
+  // Make a set-password link WITHOUT sending a mail, so the admin can send it
+  // from their own Outlook when our noreply mail does not get through.
+  async function makeLink() {
+    setLinkBusy(true)
+    setError("")
+    try {
+      const d = await call({ linkOnly: true })
+      setLink(d.setupLink)
+      let ok = false
+      try { await navigator.clipboard.writeText(d.setupLink); ok = true } catch {}
+      setLinkCopied(ok)
+    } catch (e: unknown) {
+      setError((e as Error).message || "Link maken mislukt.")
+    } finally {
+      setLinkBusy(false)
     }
   }
 
@@ -130,11 +151,29 @@ export function InviteMailDialog({ account, onClose, onSent }: {
               )}
             </>
           )}
+          {link && (
+            <div className="border border-[#311E86]/20 bg-[#311E86]/[0.03] rounded-lg p-3 space-y-2">
+              <p className="text-[12px] font-sans text-gray-700">
+                {linkCopied ? "Link gekopieerd. " : "Kopieer de link hieronder. "}
+                Stuur hem zelf vanuit je eigen mail naar {account.email}. De link is <strong>ongeveer 1 uur geldig</strong> en werkt maar één keer; daarna kun je een nieuwe maken.
+              </p>
+              <input readOnly value={link} onFocus={(e) => e.currentTarget.select()}
+                className="w-full h-9 px-3 text-[12px] font-mono border border-gray-300 rounded-md bg-white text-gray-700" />
+            </div>
+          )}
           {error && <p className="text-sm text-red-500 font-sans">{error}</p>}
           {sent && <p className="text-sm text-green-600 font-sans">{sent}</p>}
         </div>
 
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+          <button
+            onClick={makeLink}
+            disabled={linkBusy || !preview}
+            title="Maakt de inloglink zonder te mailen, zodat je hem zelf kunt versturen"
+            className="mr-auto px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311E86] text-[#311E86] hover:bg-[#311E86]/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {linkBusy ? "Link maken…" : link ? "Nieuwe link kopiëren" : "Link kopiëren"}
+          </button>
           <button onClick={onClose} className="px-5 py-2 text-sm font-medium font-sans rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
             Sluiten
           </button>
