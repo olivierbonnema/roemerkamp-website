@@ -12,6 +12,11 @@ import { inviteMailFor } from "@/lib/invite-email"
 //
 //   POST { uid, preview: true }  -> { subject, html, to }   nothing is sent,
 //                                   the button points to a placeholder link
+//   POST { uid, linkOnly: true } -> { to, setupLink }        nothing is sent;
+//                                   the admin mails the link from their own
+//                                   mailbox (for recipients whose spam filter
+//                                   blocks our noreply mail). Logs
+//                                   "invite_link_created". (2026-11-04)
 //   POST { uid }                 -> sends with a NEW link, stamps
 //                                   users/{uid}.inviteSentAt + inviteCount,
 //                                   logs "invite_resent"
@@ -40,6 +45,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const uid = typeof body?.uid === "string" ? body.uid : ""
   const preview = body?.preview === true
+  const linkOnly = body?.linkOnly === true
   if (!uid) return NextResponse.json({ error: "UID is verplicht." }, { status: 400 })
 
   try {
@@ -68,6 +74,19 @@ export async function POST(req: NextRequest) {
     }
 
     const setupLink = await passwordResetLink(authUser.email)
+
+    if (linkOnly) {
+      await logActivity({
+        action: "invite_link_created",
+        userId: admin.uid,
+        userEmail: admin.email || "",
+        targetId: uid,
+        targetType: "user",
+        details: { email: authUser.email },
+      })
+      return NextResponse.json({ to: authUser.email, setupLink })
+    }
+
     const mail = inviteMailFor({ role, orgName, setupLink, resent: true })
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,

@@ -28,6 +28,7 @@ export type ActivityAction =
   | "aanvraag_deleted"
   | "quote_saved"
   | "invite_resent"
+  | "invite_link_created"
   | "message_sent"
   | "document_accessed"
   | "document_esign_sent"

@@ -79,6 +79,7 @@ const ACTION_LABELS: Record<string, string> = {
   aanvraag_assigned: "Behandelaar toegewezen",
   quote_saved: "Quote-mail opgeslagen",
   invite_resent: "Uitnodiging opnieuw verstuurd",
+  invite_link_created: "Uitnodigingslink gekopieerd",
   login: "Ingelogd",
   aanvraag_submitted: "Aanvraag ingediend",
   document_uploaded: "Document geüpload",
