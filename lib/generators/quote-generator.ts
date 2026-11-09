@@ -298,7 +298,7 @@ function annuleringText(d: QuoteData): string {
   return s
 }
 
-function bereidstellingText(d: QuoteData): string {
+export function bereidstellingText(d: QuoteData): string {
   return (
     "De Geldnemer wenst op dit moment zekerheid over de beschikbaarheid van de financiering, terwijl de lening pas over enkele maanden wordt opgenomen. " +
     "Lange Financieel Advies houdt de hoofdsom gedurende deze periode gereserveerd, zodat deze op het vooraf overeengekomen moment volledig beschikbaar is. " +

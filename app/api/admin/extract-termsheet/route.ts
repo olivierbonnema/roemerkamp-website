@@ -7,6 +7,9 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { getMsToken, listFolderFiles, downloadFile } from "@/lib/onedrive-direct"
 import Anthropic from "@anthropic-ai/sdk"
 import { LEGAL_NAME } from "@/lib/company"
+import { buildExtraAflossen } from "@/lib/generators/form-defaults"
+import { applyQuoteToTermsheet } from "@/lib/generators/quote-to-termsheet"
+import type { SavedQuote } from "@/lib/generators/quote-generator"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const anthropic = new Anthropic()
@@ -277,9 +280,7 @@ function mapDirectFields(aanvraag: AanvraagData, settings: Record<string, string
   }
 
   const halfLooptijd = looptijdMonths > 0 ? Math.ceil(looptijdMonths / 2) : 0
-  const extraAflossenText = halfLooptijd > 0
-    ? `Indien u de lening geheel of gedeeltelijk aflost binnen ${halfLooptijd} maanden na passeren bedragen de kosten ${halfLooptijd} maanden het termijnbedrag verminderd met de reeds betaalde termijnbedragen. Na ${halfLooptijd} maanden kan er volledig boetevrij worden afgelost met een aanzegtermijn van minimaal 1 maand. Minimale aflossing bedraagt € 50.000,- per transactie met een administratievergoeding van € 250,- per keer.`
-    : undefined
+  const extraAflossenText = halfLooptijd > 0 ? buildExtraAflossen(halfLooptijd) : undefined
 
   // Advisor name from logged-in email
   const advisorFromEmail = adminEmail ? EMAIL_TO_NAME[adminEmail.toLowerCase()] : undefined
@@ -587,14 +588,24 @@ export async function POST(req: NextRequest) {
     }))
     result.voorafgaandeCondities = voorafgaandeCondities
 
+    // A quote saved on this aanvraag (Quote-mail dialog, "Opslaan") carries the
+    // conditions the adviser already typed: rente, looptijd, kosten, depots,
+    // onderpanden with rang and voorliggende hypotheken, geldnemers, stukken.
+    // Lay it over the pre-fill LAST, so it wins over the generic defaults and
+    // the AI's guesses, while the documents' own contribution (kadastrale
+    // omschrijvingen, adressen, ontvangen stukken) stays. lib/generators/quote-to-termsheet.ts
+    const overlay = applyQuoteToTermsheet(result, (aanvraag.quote as SavedQuote | undefined) ?? null)
+    const termsheetData = overlay ? overlay.data : result
+
     return NextResponse.json({
-      termsheetData: result,
+      termsheetData,
       source: {
         directFields: Object.keys(directFields).length,
         documentsProcessed: documentText ? documentText.split("---").length - 1 : 0,
         aiFieldsExtracted: Object.keys(aiExtracted).length,
         filesUploaded: uploadedFiles.length,
         oneDriveFiles: allFileNames.length - uploadedFiles.length,
+        fromQuote: overlay ? overlay.source : null,
       },
     })
   } catch (err) {

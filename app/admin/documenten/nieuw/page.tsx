@@ -32,6 +32,22 @@ export default function NieuwDocumentPage() {
     return undefined
   }, [isPrefill])
 
+  // Where the pre-fill came from: when the aanvraag had a saved quote, the
+  // extract route laid it over the pre-fill and says so here (banner below).
+  const prefillSource = useMemo<PrefillSource | null>(() => {
+    if (!isPrefill) return null
+    try {
+      const raw = sessionStorage.getItem("doc-prefill-source")
+      if (raw) {
+        sessionStorage.removeItem("doc-prefill-source")
+        return JSON.parse(raw) as PrefillSource
+      }
+    } catch {
+      // ignore
+    }
+    return null
+  }, [isPrefill])
+
   // Link a prefilled document back to its source aanvraag (enables "Maak pitch" later).
   const prefillAanvraagId = useMemo(() => {
     if (!isPrefill) return null
@@ -207,10 +223,24 @@ export default function NieuwDocumentPage() {
       </div>
 
       {prefillData && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-5 flex items-center gap-2">
-          <span className="text-emerald-600 text-sm font-sans">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-5 space-y-1">
+          <p className="text-emerald-700 text-sm font-sans">
             Formulier is automatisch ingevuld op basis van de aanvraag en bijbehorende documenten. Controleer alle velden voor je opslaat.
-          </span>
+          </p>
+          {prefillSource?.fromQuote && (
+            <p className="text-emerald-800 text-sm font-sans">
+              <strong>Condities overgenomen uit de opgeslagen quote</strong>
+              {prefillSource.fromQuote.savedAt ? ` van ${fmtDateTime(prefillSource.fromQuote.savedAt)}` : ""}
+              {prefillSource.fromQuote.savedBy ? ` door ${prefillSource.fromQuote.savedBy.split("@")[0]}` : ""}
+              {prefillSource.fromQuote.summary ? ` (${prefillSource.fromQuote.summary})` : ""}
+              {prefillSource.fromQuote.applied?.length ? `: ${prefillSource.fromQuote.applied.join(", ")}.` : "."}
+            </p>
+          )}
+          {prefillSource?.fromQuote?.notTransferred?.length ? (
+            <p className="text-amber-700 text-sm font-sans">
+              Let op: {prefillSource.fromQuote.notTransferred.join(" ")}
+            </p>
+          ) : null}
         </div>
       )}
 
@@ -239,6 +269,22 @@ export default function NieuwDocumentPage() {
       )}
     </div>
   )
+}
+
+interface PrefillSource {
+  fromQuote?: {
+    savedAt?: string
+    savedBy?: string
+    summary?: string
+    applied?: string[]
+    notTransferred?: string[]
+  } | null
+}
+
+function fmtDateTime(iso: string): string {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ""
+  return d.toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
 }
 
 function deriveDocName(type: string, data: unknown): string {

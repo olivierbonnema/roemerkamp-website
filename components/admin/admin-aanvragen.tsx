@@ -393,6 +393,9 @@ export function AdminAanvragen() {
       const data = await res.json()
       sessionStorage.setItem("doc-prefill", JSON.stringify(data.termsheetData))
       sessionStorage.setItem("doc-aanvraagId", aanvraagId)
+      // Where the pre-fill came from (saved quote or not); the termsheet page
+      // shows it in its banner.
+      sessionStorage.setItem("doc-prefill-source", JSON.stringify(data.source || {}))
       setExtraText("")
       setUploadedFiles([])
       setExtraTextModal(null)
@@ -1321,6 +1324,17 @@ export function AdminAanvragen() {
             <p className="text-sm text-gray-400 font-sans mb-5">
               De gegevens uit de aanvraag en bijbehorende documenten worden automatisch geëxtraheerd.
             </p>
+            {(() => {
+              const qa = aanvragen.find(a => a.id === extraTextModal)
+              return qa?.quote?.savedAt ? (
+                <div className="bg-[#1E3A5F]/[0.04] border border-[#1E3A5F]/15 rounded-lg px-4 py-2.5 mb-5 flex items-start gap-2">
+                  <Mail size={13} className="text-[#1E3A5F] mt-0.5 flex-shrink-0" />
+                  <p className="text-xs font-sans text-gray-700">
+                    De opgeslagen quote van {fmtSavedAt(qa.quote.savedAt)}{quoteSummaryLine(qa.quote.data) ? ` (${quoteSummaryLine(qa.quote.data)})` : ""} wordt overgenomen: rente, looptijd, kosten, onderpanden, geldnemers en benodigde stukken hoef je niet opnieuw in te vullen.
+                  </p>
+                </div>
+              ) : null
+            })()}
 
             {/* File upload */}
             <label className="text-xs font-medium text-gray-600 font-sans mb-2 block">

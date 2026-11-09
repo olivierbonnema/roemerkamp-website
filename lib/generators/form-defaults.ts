@@ -28,6 +28,21 @@ export const TERMSHEET_DEFAULTS = {
   ],
 }
 
+// The "Extra aflossen" clause with the boetevrije periode filled in: H months
+// (normally half the looptijd, rounded up). TERMSHEET_DEFAULTS.extraAflossen is
+// this text for H = 12. Used by the aanvraag pre-fill and the quote hand-off.
+export function buildExtraAflossen(halfLooptijdMaanden: number): string {
+  const h = Math.max(1, Math.round(halfLooptijdMaanden))
+  return `Indien u de lening geheel of gedeeltelijk aflost binnen ${h} maanden na passeren bedragen de kosten ${h} maanden het termijnbedrag verminderd met de reeds betaalde termijnbedragen. Na ${h} maanden kan er volledig boetevrij worden afgelost met een aanzegtermijn van minimaal 1 maand. Minimale aflossing bedraagt € 50.000,- per transactie met een administratievergoeding van € 250,- per keer.`
+}
+
+// The "Rente" text with a given percentage, keeping the fixed second line of
+// TERMSHEET_DEFAULTS.rente.
+export function buildRenteText(pctText: string): string {
+  const secondLine = TERMSHEET_DEFAULTS.rente.split("\n").slice(1).join("\n")
+  return `${pctText} per jaar, per maand achteraf te voldoen.${secondLine ? `\n${secondLine}` : ""}`
+}
+
 // Long Dutch date ("8 augustus 2026") — matches the Geldigheidsduur row's fmtNlDate.
 function fmtNlLong(iso: string): string {
   if (!iso) return ""
