@@ -597,6 +597,11 @@ export async function POST(req: NextRequest) {
     const overlay = applyQuoteToTermsheet(result, (aanvraag.quote as SavedQuote | undefined) ?? null)
     const termsheetData = overlay ? overlay.data : result
 
+    // A B.V. files no IB-aangifte: name the privé kredietnemers in that
+    // conditie (after the overlay, which may have added them). With a B.V.
+    // and no privé borrower it is the bestuurder's aangifte that matters.
+    personaliseStandaardCondities(termsheetData)
+
     return NextResponse.json({
       termsheetData,
       source: {
@@ -615,3 +620,20 @@ export async function POST(req: NextRequest) {
     )
   }
 }
+
+function personaliseStandaardCondities(data: Record<string, unknown>) {
+  const borrowers = Array.isArray(data.borrowers) ? (data.borrowers as Record<string, unknown>[]) : []
+  const prive = borrowers.filter((b) => b.type !== "bv" && String(b.name || "").trim())
+  const hasBv = borrowers.some((b) => b.type === "bv")
+  const names = prive.map((b) => `${b.salut ? `${b.salut} ` : ""}${String(b.name).replace(/\s*\(in priv[ée]\)\s*$/i, "").trim()}`)
+  const joined = names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0] || ""
+  const ibVan = joined ? joined : hasBv ? "de bestuurder(s) van de kredietnemer" : "de kredietnemer"
+  const legVan = borrowers.length > 1 ? "de kredietnemers" : "de kredietnemer"
+  const condities = Array.isArray(data.voorafgaandeCondities) ? (data.voorafgaandeCondities as { text: string; received: boolean }[]) : []
+  data.voorafgaandeCondities = condities.map((c) => {
+    if (c.text === "Aangifte inkomstenbelasting van de kredietnemer") return { ...c, text: `Aangifte inkomstenbelasting van ${ibVan}` }
+    if (c.text === "Geldig legitimatiebewijs van de kredietnemer") return { ...c, text: `Geldig legitimatiebewijs van ${legVan}` }
+    return c
+  })
+}
+

@@ -3,8 +3,12 @@ export const TERMSHEET_DEFAULTS = {
     "De Kredietnemer verstrekt aan de Bemiddelaar tijdig alle relevante informatie die volledig, juist en niet-misleidend is, voor zover deze informatie redelijkerwijs van belang kan zijn voor de beoordeling, structurering en totstandkoming van de financiering.",
   toepasselijkRecht:
     "Nederlands recht. Geschillen worden voorgelegd aan de bevoegde rechter in Nederland.",
+  // The lender side (investors) may transfer the loan without the borrower's
+  // consent; the borrower may not transfer without the lender's. The old text
+  // named the Kredietnemer on both sides, which made the clause meaningless
+  // (fixed 2026-11-09; have the jurist confirm the wording once).
   overdracht:
-    "De rechten en verplichtingen van de Kredietnemer uit hoofde van deze lening zijn overdraagbaar zonder voorafgaande schriftelijke toestemming van de Kredietnemer.",
+    "De rechten en verplichtingen van de Kredietgever uit hoofde van deze lening zijn overdraagbaar zonder voorafgaande schriftelijke toestemming van de Kredietnemer. De Kredietnemer kan zijn rechten en verplichtingen uit hoofde van deze lening niet overdragen zonder voorafgaande schriftelijke toestemming van de Kredietgever.",
   betalingswijze:
     "De rente en eventuele aflossingen zijn per maand achteraf verschuldigd en worden automatisch geïncasseerd van de door de Kredietnemer opgegeven bankrekening.",
   betalingswijzePrive:

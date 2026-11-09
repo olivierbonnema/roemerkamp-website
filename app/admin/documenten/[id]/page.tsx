@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, use } from "react"
+import { esignSignerNames } from "@/lib/generators/termsheet-parties"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { Download, Save, Trash2, ArrowLeft, Eye, Send, FileText, Receipt } from "lucide-react"
@@ -202,11 +203,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const docData = doc.data as Record<string, unknown> | undefined
   const isTermsheet = docType === "termsheet"
 
+  // Who signs: the kredietnemers, then the echtgenoten who co-sign for consent
+  // or as hypotheekgever, in the order of the signature blocks (the e-sign
+  // placeholders are numbered in that order).
   const getBorrowerNames = (): string[] => {
     const formData = getFormData()
     if (!formData || typeof formData !== "object") return []
-    const borrowers = (formData as Record<string, unknown>).borrowers as { name?: string }[] | undefined
-    return borrowers?.map((b) => b.name).filter((n): n is string => !!n) || []
+    return esignSignerNames(formData as Parameters<typeof esignSignerNames>[0])
   }
 
   const handleGenerateDocx = async (forEsign?: boolean): Promise<Blob | null> => {

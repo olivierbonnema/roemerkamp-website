@@ -109,12 +109,14 @@ ok("received flags untouched", (d.voorafgaandeCondities as Rec[])[0].received ==
 // Bepalingen
 const bep = d.bepalingen as string[]
 ok("bereidstelling as bepaling (quote wording)", bep.some((x) => x.startsWith("De Geldnemer wenst op dit moment zekerheid") && x.includes("0,25%")))
-ok("hypotheekgever as bepaling", bep.some((x) => x === "Hypotheekgever (eigenaar van het onderpand, niet zijnde de Kredietnemer): de heer G. Fictief en mevrouw A. Testpersoon."))
+ok("hypotheekgevers row from the quote", d.hypotheekgevers === "de heer G. Fictief en mevrouw A. Testpersoon", String(d.hypotheekgevers))
+ok("geldnemers among the hypotheekgevers get the flag", b[1].isHypotheekgever === true && b[2].isHypotheekgever === true && !b[0].isHypotheekgever)
+ok("salut carried to privé borrowers", b[1].salut === "de heer" && b[2].salut === "mevrouw")
 
 // Source for the banner
 ok("summary", r.source.summary === "7,96% · € 120.000 · 24 maanden", r.source.summary)
 ok("applied lists the main blocks", ["geldnemers", "onderpanden met rang en voorliggende hypotheken", "leenbedrag met depot", "rente en termijnbedrag", "looptijd", "kosten"].every((x) => r.source.applied.includes(x)), JSON.stringify(r.source.applied))
-ok("hypotheekgever flagged for review", r.source.notTransferred.length === 1)
+ok("nothing left untransferred", r.source.notTransferred.length === 0)
 ok("zekerhedenText is NOT passed (form must keep regenerating)", !("zekerhedenText" in d))
 
 // ---- a minimal quote (rente only) leaves the rest of the pre-fill alone ----
