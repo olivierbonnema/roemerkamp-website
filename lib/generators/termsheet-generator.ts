@@ -3,6 +3,7 @@
 import * as docx from "docx"
 import { fmtZegge } from "./number-to-words"
 import { buildZekerhedenText, depotZekerheden, type ZekerheidObject } from "./zekerheden"
+import { annuleringskostenLine, hypotheekgeversText, kredietnemersText, spouseConsentBepaling, termsheetSigners } from "./termsheet-parties"
 import {
   MM, PAGE_W, PAGE_H, MARGIN_SIDE,
   C_BRAND, C_GREY, C_BLACK, C_HRULE,
@@ -45,6 +46,16 @@ export interface TermsheetBorrower {
   vertegenwoordiger?: string
   holdingBV?: boolean
   holdingName?: string
+  // Privé borrower: aanhef ("de heer" / "mevrouw"), used in the kredietnemers
+  // row, the signature block and the spouse consent clause.
+  salut?: string
+  // Also gives the mortgage (owns the object): signs as "Kredietnemer en Hypotheekgever".
+  isHypotheekgever?: boolean
+  // Married / registered partner of a privé borrower (art. 1:88 BW consent;
+  // signs as hypotheekgever too when mede-eigenaar). See termsheet-parties.ts.
+  spouseName?: string
+  spouseSalut?: string
+  spouseOwner?: boolean
 }
 
 export interface PriorLienholder {
@@ -87,6 +98,11 @@ export interface TermsheetData {
   salutation?: string
   kredietgever?: string
   geldverstrekker?: string
+  // Free text for the Hypotheekgever(s) row; empty = built from the borrower
+  // flags (termsheet-parties.ts), no row when nobody is marked.
+  hypotheekgevers?: string
+  // Several kredietnemers are hoofdelijk verbonden unless set to false.
+  hoofdelijk?: boolean
   doelFinanciering?: string
   typeFaciliteit?: string
   valuta?: string
@@ -159,18 +175,6 @@ function parseLooptijdMaanden(looptijdStr?: string): number {
   const jaren = looptijdStr.match(/(\d+)\s*(jr|jaar|jaren)/i)
   if (jaren) return parseInt(jaren[1]) * 12
   return parseInt(looptijdStr) || 0
-}
-
-function signingName(b: TermsheetBorrower): string {
-  if (!b) return "-"
-  if (b.type !== "bv") return b.name || "-"
-  const bvName = b.bvName || b.name || "-"
-  const salut = b.vertegenwoordigerSalut || "Dhr."
-  const vert = b.vertegenwoordiger || ""
-  if (b.holdingBV && b.holdingName) {
-    return `${bvName}, rechtsgeldig vertegenwoordigd door ${b.holdingName}, op haar beurt rechtsgeldig vertegenwoordigd door ${salut} ${vert}`
-  }
-  return `${bvName}, rechtsgeldig vertegenwoordigd door ${salut} ${vert}`
 }
 
 const DEFAULT_LOGO_DATA_URL = ""
@@ -388,7 +392,8 @@ export async function generateTermsheet(
   // FIRST CONDITIONS TABLE
   letterChildren.push(sectionHead("De belangrijkste condities en voorwaarden zijn:"))
 
-  const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "-"
+  const kredietnemersTxt = kredietnemersText(data)
+  const hypotheekgeversTxt = hypotheekgeversText(data)
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
   const leningRows: docx.TableRow[] = []
 
@@ -462,7 +467,7 @@ export async function generateTermsheet(
       )
     }
   }
-  if (entree.annulering) entreeLines.push(`Annuleringskosten: ${fmtEuro(entree.annulering)}`)
+  if (entree.annulering) entreeLines.push(annuleringskostenLine(entree))
   const entreePars = entreeLines.length
     ? entreeLines.map((l) => par([tx(l, { size: SZ_SMALL })], { before: 30, after: 30 }))
     : [par([tx("-", { size: SZ_SMALL })], { before: 30, after: 30 })]
@@ -477,6 +482,7 @@ export async function generateTermsheet(
   const table1Rows = [
     condRow("Kredietgever", [tx(data.kredietgever || companyName, { size: SZ_SMALL })]),
     condRow(borrowers.length > 1 ? "Kredietnemers" : "Kredietnemer", [tx(kredietnemersTxt, { size: SZ_SMALL })]),
+    ...(hypotheekgeversTxt ? [condRow(hypotheekgeversTxt.includes(" en ") ? "Hypotheekgevers" : "Hypotheekgever", [tx(hypotheekgeversTxt, { size: SZ_SMALL })])] : []),
     condRow("Geldverstrekker", [tx(data.geldverstrekker || "-", { size: SZ_SMALL })]),
     condRow("Type faciliteit", [tx(data.typeFaciliteit || "-", { size: SZ_SMALL })]),
     condRow("Valuta", [tx(data.valuta || "Euro (€)", { size: SZ_SMALL })]),
@@ -528,8 +534,14 @@ export async function generateTermsheet(
     : [par([tx("-", { size: SZ_SMALL })], { before: 50, after: 50 })]
 
   // Bepalingen (extra custom lines)
-  const extraBepalingen = (data as Record<string, unknown>).bepalingen as string[] | undefined
-  const bepalingenPars = (extraBepalingen && extraBepalingen.length > 0)
+  // The adviser's bepalingen, plus the spouse consent clause when a privé
+  // borrower is married (built at render time so it always matches the names).
+  const consent = spouseConsentBepaling(data)
+  const extraBepalingen = [
+    ...(((data as Record<string, unknown>).bepalingen as string[] | undefined) || []),
+    ...(consent ? [consent] : []),
+  ]
+  const bepalingenPars = extraBepalingen.length > 0
     ? extraBepalingen.map((b) => par([tx(b, { size: SZ_SMALL })], { before: 20, after: 20 }))
     : []
 
@@ -563,17 +575,19 @@ export async function generateTermsheet(
   const esign = options?.forEsign === true
   letterChildren.push(par([], { hrule: true, before: 0, after: 80 }))
   letterChildren.push(
-    par([tx("Ondergetekenden verklaren akkoord te gaan met de bovenstaande condities:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 120 })
+    par([tx("Ondergetekenden verklaren akkoord te gaan met de bovenstaande condities:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 120, keepNext: true })
   )
 
-  borrowers.forEach((b, idx) => {
+  // Kredietnemers first, then the echtgenoten (consent / hypotheekgever); the
+  // e-sign placeholders number them in this same order (esignSignerNames).
+  termsheetSigners(data).forEach((signer, idx) => {
     const signerNum = idx + 1
     const dateField = esign ? `{{d:${signerNum}:y::::250:25}}` : UNDERSCORES
     const sigField = esign ? `{{s:${signerNum}:y::::300:50}}` : UNDERSCORES
     const tagColor = esign ? "FFFFFF" : C_GREY
 
     letterChildren.push(
-      par([tx("Kredietnemer: ", { bold: true, size: SZ_SMALL }), tx(signingName(b), { bold: true, size: SZ_SMALL })], { before: 0, after: 480 })
+      par([tx(`${signer.label}: `, { bold: true, size: SZ_SMALL }), tx(signer.name, { bold: true, size: SZ_SMALL })], { before: 0, after: 480, keepNext: true })
     )
 
     letterChildren.push(
@@ -585,14 +599,16 @@ export async function generateTermsheet(
           new docx.TableRow({
             height: { value: MM(12), rule: docx.HeightRule.ATLEAST },
             children: [
-              cell(par([tx("Datum:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 0 }), SIGN_LBL, { margins: { top: 60, bottom: 200, left: 0, right: 40 } }),
-              cell(par([tx(dateField, { size: SZ_SMALL, color: tagColor })], { before: 0, after: 0 }), SIGN_VAL, { margins: { top: 60, bottom: 200, left: 0, right: 0 } }),
+              // keepNext on these cells keeps the Datum row on one page with the
+              // Ondertekening row below it (a signature block never splits).
+              cell(par([tx("Datum:", { size: SZ_SMALL, color: C_GREY })], { before: 0, after: 0, keepNext: true }), SIGN_LBL, { margins: { top: 60, bottom: 200, left: 0, right: 40 } }),
+              cell(par([tx(dateField, { size: SZ_SMALL, color: tagColor })], { before: 0, after: 0, keepNext: true }), SIGN_VAL, { margins: { top: 60, bottom: 200, left: 0, right: 0 } }),
             ],
           }),
         ],
       })
     )
-    letterChildren.push(empty(160))
+    letterChildren.push(par([tx("")], { before: 0, after: 160, keepNext: true }))
 
     letterChildren.push(
       new docx.Table({

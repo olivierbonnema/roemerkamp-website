@@ -48,11 +48,14 @@ export function par(
     indent?: number
     bullet?: number
     hrule?: boolean
+    // Keep on the same page as the next paragraph/table (signature labels).
+    keepNext?: boolean
   } = {}
 ) {
   return new docx.Paragraph({
     children,
     alignment: opts.align || docx.AlignmentType.LEFT,
+    keepNext: opts.keepNext || undefined,
     spacing: {
       before: opts.before !== undefined ? opts.before : 60,
       after: opts.after !== undefined ? opts.after : 60,

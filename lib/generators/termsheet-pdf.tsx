@@ -2,7 +2,8 @@
 
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
-import type { TermsheetData, TermsheetBorrower } from "./termsheet-generator"
+import type { TermsheetData } from "./termsheet-generator"
+import { annuleringskostenLine, hypotheekgeversText, kredietnemersText, spouseConsentBepaling, termsheetSigners } from "./termsheet-parties"
 import { numberToWords, fmtZegge } from "./number-to-words"
 import {
   type Leningdeel,
@@ -55,18 +56,6 @@ function parseLooptijdMaanden(s?: string): number {
   const j = s.match(/(\d+)\s*(jr|jaar|jaren)/i)
   if (j) return parseInt(j[1]) * 12
   return parseInt(s) || 0
-}
-
-function signingName(b: TermsheetBorrower): string {
-  if (!b) return "-"
-  if (b.type !== "bv") return b.name || "-"
-  const bvName = b.bvName || b.name || "-"
-  const salut = b.vertegenwoordigerSalut || "Dhr."
-  const vert = b.vertegenwoordiger || ""
-  if (b.holdingBV && b.holdingName) {
-    return `${bvName}, rechtsgeldig vertegenwoordigd door ${b.holdingName}, op haar beurt rechtsgeldig vertegenwoordigd door ${salut} ${vert}`
-  }
-  return `${bvName}, rechtsgeldig vertegenwoordigd door ${salut} ${vert}`
 }
 
 /* ── Colors & sizes ── */
@@ -182,7 +171,8 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
     : loanPartsBaseTotal(loanParts)
   const companyName = settings.companyName || LEGAL_NAME
   const looptijdMaanden = parseLooptijdMaanden(data.looptijd)
-  const kredietnemersTxt = borrowers.map((b) => b.name).filter(Boolean).join(", ") || "-"
+  const kredietnemersTxt = kredietnemersText(data)
+  const hypotheekgeversTxt = hypotheekgeversText(data)
   const logoUrl = settings.logoDataUrl || ""
   const rate = Number(data.rentePct) || 0
   const termijnNum = Number(data.termijnbedrag) || 0
@@ -211,7 +201,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
       entreeLines.push(`Opstartkosten: ${fmtEuro(entree.opstart)} te voldoen direct bij ondertekening van de termsheet. Dit zal verrekend worden met de totale afsluitkosten, waardoor bij passering nog ${fmtEuro(naPassering > 0 ? naPassering : 0)} is te voldoen.`)
     }
   }
-  if (entree.annulering) entreeLines.push(`Annuleringskosten: ${fmtEuro(entree.annulering)}`)
+  if (entree.annulering) entreeLines.push(annuleringskostenLine(entree))
 
   const objectDescs = objects.map((o, i) => {
     const desc = o.description || ""
@@ -220,7 +210,11 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
 
   const manualZekerheden = (data as Record<string, unknown>).zekerhedenText as string | undefined
   const rankWords: Record<string, string> = { "1e": "eerste", "2e": "tweede", "3e": "derde", "4e": "vierde" }
-  const extraBepalingen = (data as Record<string, unknown>).bepalingen as string[] | undefined
+  const consent = spouseConsentBepaling(data)
+  const extraBepalingen = [
+    ...(((data as Record<string, unknown>).bepalingen as string[] | undefined) || []),
+    ...(consent ? [consent] : []),
+  ]
 
   return (
     <Document title={`Termsheet - ${borrowers[0]?.name || "Geldnemer"}`} author="Lange & Partners">
@@ -305,6 +299,7 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
 
         <CondRow label="Kredietgever"><V>{data.kredietgever || companyName}</V></CondRow>
         <CondRow label={borrowers.length > 1 ? "Kredietnemers" : "Kredietnemer"}><V>{kredietnemersTxt}</V></CondRow>
+        {hypotheekgeversTxt ? <CondRow label={hypotheekgeversTxt.includes(" en ") ? "Hypotheekgevers" : "Hypotheekgever"}><V>{hypotheekgeversTxt}</V></CondRow> : null}
         <CondRow label="Geldverstrekker"><V>{data.geldverstrekker || "-"}</V></CondRow>
         <CondRow label="Type faciliteit"><V>{data.typeFaciliteit || "-"}</V></CondRow>
         <CondRow label="Valuta"><V>{data.valuta || "Euro (€)"}</V></CondRow>
@@ -479,10 +474,10 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
             Ondergetekenden verklaren akkoord te gaan met de bovenstaande condities:
           </Text>
 
-          {borrowers.map((b, idx) => (
+          {termsheetSigners(data).map((signer, idx) => (
             <View key={idx} style={{ marginBottom: 30 }} wrap={false}>
               <Text style={{ fontSize: SZ.small, fontFamily: "Calibri", fontWeight: "bold" as const, marginBottom: 24 }}>
-                Kredietnemer: {signingName(b)}
+                {signer.label}: {signer.name}
               </Text>
               <View style={{ flexDirection: "row", marginBottom: 8, alignItems: "flex-end" }}>
                 <Text style={{ width: 90, fontSize: SZ.small, color: C.grey }}>Datum:</Text>

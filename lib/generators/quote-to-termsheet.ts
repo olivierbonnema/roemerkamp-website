@@ -22,7 +22,7 @@
 //   annuleringskosten             -> entreekosten {afsluit, opstart, annulering}
 //   benodigdeStukken              -> voorafgaandeCondities (added when not yet listed)
 //   bereidstelling                -> bepalingen (the quote's own text)
-//   hypotheekgevers (afwijkend)   -> bepalingen (one descriptive line)
+//   hypotheekgevers (afwijkend)   -> hypotheekgevers row + "tevens hypotheekgever" flags
 //
 // NOT passed: zekerhedenText. The termsheet form treats any prefilled text as
 // hand-edited and stops regenerating it; it rebuilds the same mortgage lines
@@ -133,7 +133,7 @@ function borrowersFromQuote(q: QuoteData, base: Rec[]): Rec[] {
         bvName: name,
       })
     } else {
-      out.push({ ...blank, ...keep(["address", "postalCode", "city", "initials"]), type: "privepersoon", name })
+      out.push({ ...blank, ...keep(["address", "postalCode", "city", "initials"]), type: "privepersoon", name, salut: p.salut === "mevrouw" ? "mevrouw" : "de heer" })
     }
   }
   return out
@@ -309,15 +309,24 @@ export function applyQuoteToTermsheet(base: Rec, saved: SavedQuote | null | unde
     bepalingen.push(bereidstellingText(q))
     applied.push("bereidstellingsprovisie (als bepaling)")
   }
+  if (bepalingen.length) data.bepalingen = bepalingen
+
+  // Hypotheekgevers: the Hypotheekgever(s) row of the termsheet, and the
+  // "tevens hypotheekgever" flag on the geldnemers that are among them.
   if (q.hypotheekgeverAfwijkend) {
-    const owners = q.hypotheekgevers.map((p) => (p.type === "bv" ? p.name.trim() : `${p.salut} ${p.name.trim()}`)).filter((s) => s.trim())
+    const owners = q.hypotheekgevers.filter((p) => p.name.trim())
     if (owners.length) {
-      bepalingen.push(`Hypotheekgever (eigenaar van het onderpand, niet zijnde de Kredietnemer): ${owners.join(" en ")}.`)
-      applied.push("hypotheekgever (als bepaling)")
-      notTransferred.push("Hypotheekgever staat als bepaling, niet als partij: controleer de formulering.")
+      const label = (p: QuoteParty) => (p.type === "bv" ? p.name.trim() : `${p.salut} ${p.name.trim()}`)
+      const names = owners.map(label)
+      data.hypotheekgevers = names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0]
+      const ownerKeys = owners.map((p) => (p.type === "bv" ? bvKey(p.name) : norm(getLastName(p.name))))
+      data.borrowers = ((data.borrowers as Rec[]) || []).map((b) => {
+        const key = b.type === "bv" ? bvKey(b.bvName || b.name) : norm(getLastName(String(b.name || "")))
+        return key && ownerKeys.includes(key) ? { ...b, isHypotheekgever: true } : b
+      })
+      applied.push(names.length > 1 ? "hypotheekgevers" : "hypotheekgever")
     }
   }
-  if (bepalingen.length) data.bepalingen = bepalingen
 
   const summaryParts: string[] = []
   if (q.rentePct > 0) summaryParts.push(fmtPct(q.rentePct))

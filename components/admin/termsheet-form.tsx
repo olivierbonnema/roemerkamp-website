@@ -22,6 +22,7 @@ import {
   buildFaciliteitSuggestion,
 } from "@/lib/generators/leningdelen"
 import { LEGAL_NAME } from "@/lib/company"
+import { hypotheekgeversText, spouseCondities } from "@/lib/generators/termsheet-parties"
 
 interface Borrower {
   type: "privepersoon" | "bv"
@@ -34,6 +35,13 @@ interface Borrower {
   vertegenwoordiger?: string
   holdingBV?: boolean
   holdingName?: string
+  // Privé: aanhef, "tevens hypotheekgever", and the married / registered
+  // partner (art. 1:88 BW consent; hypotheekgever when mede-eigenaar).
+  salut?: string
+  isHypotheekgever?: boolean
+  spouseName?: string
+  spouseSalut?: string
+  spouseOwner?: boolean
 }
 
 interface CollateralObject {
@@ -143,6 +151,9 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
   const [salutation, setSalutation] = useState((d as Record<string, unknown>).salutation as string || "")
   const [kredietgever, setKredietgever] = useState((d as Record<string, unknown>).kredietgever as string || s.companyName || LEGAL_NAME)
   const [geldverstrekker, setGeldverstrekker] = useState((d as Record<string, unknown>).geldverstrekker as string || `Bemiddeling via ${LEGAL_NAME}`)
+  // Hypotheekgever(s) row: free text; empty = built from the borrower flags.
+  const [hypotheekgevers, setHypotheekgevers] = useState(((d as Record<string, unknown>).hypotheekgevers as string) || "")
+  const [hoofdelijk, setHoofdelijk] = useState<boolean>((d as Record<string, unknown>).hoofdelijk !== false)
   const [doelFinanciering, setDoelFinanciering] = useState((d as Record<string, unknown>).doelFinanciering as string || "een herfinanciering")
   const [typeFaciliteit, setTypeFaciliteit] = useState((d as Record<string, unknown>).typeFaciliteit as string || TD.faciliteiten[0])
   const [valuta, setValuta] = useState((d as Record<string, unknown>).valuta as string || "Euro (€)")
@@ -312,6 +323,21 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
     setTypeFaciliteit(buildFaciliteitSuggestion(leningdelen))
   }, [splitMode, leningdelen])
 
+  // A married privé borrower brings two stukken for the notaris (huwelijkse
+  // voorwaarden / huwelijksgoederenregister, legitimatie of the spouse). Added
+  // once per spouse name; the adviser can still delete or edit them.
+  const spouseKey = borrowers.map((b) => (b.type === "bv" ? "" : `${b.spouseSalut || ""}|${(b.spouseName || "").trim()}|${b.name}`)).join(";")
+  useEffect(() => {
+    const wanted = spouseCondities(borrowers as unknown as TermsheetData["borrowers"])
+    if (!wanted.length) return
+    setVooraf((prev) => {
+      const have = new Set(prev.map((c) => c.text.trim().toLowerCase()))
+      const missing = wanted.filter((t) => !have.has(t.toLowerCase()))
+      return missing.length ? [...prev, ...missing.map((text) => ({ text, received: false }))] : prev
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spouseKey])
+
   const updateVooraf = (idx: number, updates: Partial<VoorafConditie>) => {
     setVooraf((prev) => prev.map((c, i) => (i === idx ? { ...c, ...updates } : c)))
   }
@@ -374,6 +400,11 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
           vertegenwoordiger: b.vertegenwoordiger,
           holdingBV: b.holdingBV,
           holdingName: b.holdingName,
+          salut: b.salut,
+          isHypotheekgever: !!b.isHypotheekgever,
+          spouseName: b.type === "bv" ? "" : (b.spouseName || "").trim(),
+          spouseSalut: b.spouseSalut,
+          spouseOwner: !!b.spouseOwner,
         })),
         objects: filteredObjects.map((o) => ({
           description: o.description,
@@ -396,6 +427,8 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
         salutation,
         kredietgever,
         geldverstrekker,
+        hypotheekgevers,
+        hoofdelijk,
         doelFinanciering,
         typeFaciliteit,
         valuta,
@@ -443,11 +476,36 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
               <button type="button" onClick={() => removeBorrower(i)} className="ml-auto text-red-400 hover:text-red-600 text-lg">×</button>
             </div>
             {b.type === "privepersoon" ? (
-              <div className="flex flex-wrap gap-2">
-                <input placeholder="Volledige naam" value={b.name} onChange={(e) => updateBorrower(i, { name: e.target.value })} className="flex-1 min-w-[160px] border rounded px-2 py-1.5 text-sm" />
-                <input placeholder="Straat + huisnr." value={b.address} onChange={(e) => updateBorrower(i, { address: e.target.value })} className="flex-1 min-w-[160px] border rounded px-2 py-1.5 text-sm" />
-                <input placeholder="Postcode" value={b.postalCode} onChange={(e) => updateBorrower(i, { postalCode: e.target.value })} className="w-[100px] border rounded px-2 py-1.5 text-sm" />
-                <input placeholder="Woonplaats" value={b.city} onChange={(e) => updateBorrower(i, { city: e.target.value })} className="flex-1 min-w-[140px] border rounded px-2 py-1.5 text-sm" />
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <select value={b.salut || ""} onChange={(e) => updateBorrower(i, { salut: e.target.value })} className="w-[110px] border rounded px-2 py-1.5 text-sm">
+                    <option value="">Aanhef</option>
+                    <option value="de heer">de heer</option>
+                    <option value="mevrouw">mevrouw</option>
+                  </select>
+                  <input placeholder="Volledige naam" value={b.name} onChange={(e) => updateBorrower(i, { name: e.target.value })} className="flex-1 min-w-[160px] border rounded px-2 py-1.5 text-sm" />
+                  <input placeholder="Straat + huisnr." value={b.address} onChange={(e) => updateBorrower(i, { address: e.target.value })} className="flex-1 min-w-[160px] border rounded px-2 py-1.5 text-sm" />
+                  <input placeholder="Postcode" value={b.postalCode} onChange={(e) => updateBorrower(i, { postalCode: e.target.value })} className="w-[100px] border rounded px-2 py-1.5 text-sm" />
+                  <input placeholder="Woonplaats" value={b.city} onChange={(e) => updateBorrower(i, { city: e.target.value })} className="flex-1 min-w-[140px] border rounded px-2 py-1.5 text-sm" />
+                </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={!!b.isHypotheekgever} onChange={(e) => updateBorrower(i, { isHypotheekgever: e.target.checked })} />
+                  Tevens hypotheekgever (eigenaar van het onderpand)
+                </label>
+                <div className="rounded border border-dashed border-gray-300 p-2 space-y-1.5">
+                  <p className="text-xs text-gray-500">Gehuwd of geregistreerd partner? Vul de partner in: de termsheet krijgt dan de toestemmingsbepaling (art. 1:88 BW), de benodigde stukken en een handtekeningblok.</p>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <select value={b.spouseSalut || "mevrouw"} onChange={(e) => updateBorrower(i, { spouseSalut: e.target.value })} className="w-[110px] border rounded px-2 py-1.5 text-sm">
+                      <option value="mevrouw">mevrouw</option>
+                      <option value="de heer">de heer</option>
+                    </select>
+                    <input placeholder="Naam partner (bijv. R. Qamari)" value={b.spouseName || ""} onChange={(e) => updateBorrower(i, { spouseName: e.target.value })} className="flex-1 min-w-[200px] border rounded px-2 py-1.5 text-sm" />
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input type="checkbox" checked={!!b.spouseOwner} disabled={!(b.spouseName || "").trim()} onChange={(e) => updateBorrower(i, { spouseOwner: e.target.checked })} />
+                      Mede-eigenaar van het onderpand (tekent ook als hypotheekgever)
+                    </label>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
@@ -471,6 +529,10 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
                 {b.holdingBV && (
                   <input placeholder="Naam Holding B.V." value={b.holdingName || ""} onChange={(e) => updateBorrower(i, { holdingName: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" />
                 )}
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={!!b.isHypotheekgever} onChange={(e) => updateBorrower(i, { isHypotheekgever: e.target.checked })} />
+                  Tevens hypotheekgever (eigenaar van het onderpand)
+                </label>
               </div>
             )}
           </div>
@@ -583,6 +645,22 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
             <label className="text-xs font-medium text-gray-600 mb-1 block">Geldverstrekker</label>
             <input value={geldverstrekker} onChange={(e) => setGeldverstrekker(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm" />
           </div>
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">Hypotheekgever(s)</label>
+            <input
+              value={hypotheekgevers}
+              onChange={(e) => setHypotheekgevers(e.target.value)}
+              placeholder={hypotheekgeversText({ borrowers: borrowers as unknown as TermsheetData["borrowers"], hypotheekgevers: "" }) || "Leeg: volgt uit de vinkjes bij de geldnemers"}
+              className="w-full border rounded px-2 py-1.5 text-sm"
+            />
+            <p className="text-[11px] text-gray-400 mt-0.5">Leeg laten = automatisch uit de vinkjes "tevens hypotheekgever" en "mede-eigenaar". Alleen een rij in de termsheet als er iemand is.</p>
+          </div>
+          {borrowers.length > 1 && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer self-end pb-2">
+              <input type="checkbox" checked={hoofdelijk} onChange={(e) => setHoofdelijk(e.target.checked)} />
+              Kredietnemers hoofdelijk verbonden
+            </label>
+          )}
         </div>
 
         <div>
@@ -762,6 +840,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
             <div>
               <label className="text-xs text-gray-600 block">Annuleringskosten (€)</label>
               <input type="number" value={entree.annulering || ""} onChange={(e) => setEntree((p) => ({ ...p, annulering: parseFloat(e.target.value) || 0 }))} className="w-full border rounded px-2 py-1.5 text-sm" />
+              <p className="text-[11px] text-gray-400 mt-0.5">In de termsheet: "na ondertekening van de termsheet", en bij opstartkosten de verrekening daarvan.</p>
             </div>
           </div>
           {entree.opstart > 0 && (
