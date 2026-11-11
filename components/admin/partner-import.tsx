@@ -18,7 +18,8 @@
 //                                                       -> /api/admin/invite-campaign
 //                                                          (text rules: lib/invite-campaign-email.ts)
 //         One mail every few seconds: Exchange Online allows a mailbox about
-//         30 messages a minute.
+//         30 messages a minute. The admin can untick recipients, for example
+//         to send the real mail to one test account first.
 //
 // Every step asks for confirmation first and reports per row what happened.
 // (Olivier, 2026-11-11.) Used by components/admin/admin-partners.tsx.
@@ -99,6 +100,11 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
   const [mailPreview, setMailPreview] = useState<{ to: string; subject: string; html: string } | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [sendError, setSendError] = useState("")
+  // Recipients: every pending account, minus the ones the admin unticked. Kept
+  // as "unticked" so an account that is added later counts as selected, and
+  // never reset by the code: after a test to one address the others stay
+  // unticked until the admin selects them.
+  const [unticked, setUnticked] = useState<Set<string>>(new Set())
 
   // ---- own mail in newsletter style ----
   const [mailKind, setMailKind] = useState<"standaard" | "eigen">("standaard")
@@ -196,6 +202,17 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
     pending.forEach((p) => map.set(p.orgName, [...(map.get(p.orgName) || []), p]))
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "nl"))
   }, [pending])
+  // The accounts that will actually be mailed.
+  const chosen = useMemo(() => pending.filter((p) => !unticked.has(p.uid)), [pending, unticked])
+
+  function tick(uids: string[], on: boolean) {
+    setConfirmSend(false)
+    setUnticked((prev) => {
+      const next = new Set(prev)
+      uids.forEach((u) => { if (on) next.delete(u); else next.add(u) })
+      return next
+    })
+  }
 
   function reset() {
     setText(""); setFileName(""); setError(""); setPlan(null); setConfirmCreate(false); setResults({}); setCreateDone("")
@@ -262,12 +279,13 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
   }
 
   async function showMailPreview() {
-    if (!pending.length) return
+    const first = chosen[0] ?? pending[0]
+    if (!first) return
     setPreviewBusy(true); setSendError("")
     try {
       const d = mailKind === "eigen"
-        ? await post("/api/admin/invite-campaign", { mode: "preview", uid: pending[0].uid, mail: camp })
-        : await post("/api/admin/resend-invite", { uid: pending[0].uid, preview: true })
+        ? await post("/api/admin/invite-campaign", { mode: "preview", uid: first.uid, mail: camp })
+        : await post("/api/admin/resend-invite", { uid: first.uid, preview: true })
       setMailPreview(d)
       setPreviewKey(campKey)
     } catch (e: unknown) {
@@ -278,7 +296,9 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
   }
 
   async function sendAll() {
-    const todo = [...pending]
+    // Only the ticked accounts, exactly as they were when the admin confirmed.
+    const todo = [...chosen]
+    if (!todo.length) return
     const own = mailKind === "eigen"
     const mail = camp
     const attachment = attachmentPayload()
@@ -306,7 +326,8 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
     onChanged()
   }
 
-  const sendMinutes = Math.max(1, Math.ceil((pending.length * (SEND_PAUSE_MS + 1500)) / 60000))
+  const sendMinutes = Math.max(1, Math.ceil((chosen.length * (SEND_PAUSE_MS + 1500)) / 60000))
+  const subset = chosen.length !== pending.length
 
   const c = plan?.counts
   const busy = checking || creating
@@ -327,13 +348,26 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
 
           {pending.length > 0 && (
             <details className="mt-3">
-              <summary className="text-[13px] text-[#311E86] font-sans cursor-pointer">Toon de {pending.length} adviseurs per kantoor</summary>
+              <summary className="text-[13px] text-[#311E86] font-sans cursor-pointer">
+                Ontvangers: <strong>{chosen.length} van {pending.length}</strong> geselecteerd. Klik om te kiezen wie de e-mail krijgt.
+              </summary>
+              <div className="flex items-center gap-4 mt-2 text-[12px] font-sans">
+                <button type="button" disabled={sending} onClick={() => tick(pending.map((p) => p.uid), true)} className="text-[#311E86] hover:underline disabled:opacity-50">Alles selecteren</button>
+                <button type="button" disabled={sending} onClick={() => tick(pending.map((p) => p.uid), false)} className="text-[#311E86] hover:underline disabled:opacity-50">Niets selecteren</button>
+                <span className="text-gray-400">Wie niet is aangevinkt krijgt geen e-mail en blijft op &ldquo;Nog niet uitgenodigd&rdquo; staan.</span>
+              </div>
               <div className="mt-2 max-h-72 overflow-y-auto bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
                 {pendingByOrg.map(([org, list]) => (
                   <div key={org} className="px-4 py-2">
-                    <p className="text-[12px] font-semibold text-gray-900 font-sans">{org} <span className="font-normal text-gray-400">· {list.length}</span></p>
+                    <label className="flex items-center gap-2 text-[12px] font-semibold text-gray-900 font-sans cursor-pointer">
+                      <input type="checkbox" disabled={sending} checked={list.every((p) => !unticked.has(p.uid))} onChange={(e) => tick(list.map((p) => p.uid), e.target.checked)} />
+                      {org} <span className="font-normal text-gray-400">· {list.length}</span>
+                    </label>
                     {list.map((p) => (
-                      <p key={p.uid} className="text-[12px] text-gray-600 font-sans">{p.displayName ? `${p.displayName} · ` : ""}{p.email}</p>
+                      <label key={p.uid} className="flex items-center gap-2 pl-5 mt-0.5 text-[12px] text-gray-600 font-sans cursor-pointer">
+                        <input type="checkbox" disabled={sending} checked={!unticked.has(p.uid)} onChange={(e) => tick([p.uid], e.target.checked)} />
+                        {p.displayName ? `${p.displayName} · ` : ""}{p.email}
+                      </label>
                     ))}
                   </div>
                 ))}
@@ -473,12 +507,15 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
             confirmSend ? (
               <div className="mt-4 border border-amber-300 bg-white rounded-lg p-4">
                 <p className="text-sm text-gray-800 font-sans">
-                  U verstuurt nu <strong>{pending.length} e-mail{pending.length === 1 ? "" : "s"}</strong> naar externe adviseurs
+                  U verstuurt nu <strong>{chosen.length} e-mail{chosen.length === 1 ? "" : "s"}</strong>{subset ? ` (van de ${pending.length} accounts die nog niet zijn uitgenodigd)` : ""} naar externe adviseurs
                   {mailKind === "eigen" ? <> met het onderwerp &ldquo;{camp.onderwerp}&rdquo;{att ? <> en de bijlage <strong>{att.name}</strong> ({fmtSize(att.size)})</> : " zonder bijlage"}</> : " (de standaarduitnodiging)"}.
                   {" "}Dit kan niet ongedaan worden gemaakt. De link in de e-mail is 14 dagen geldig. Het versturen duurt ongeveer {sendMinutes} {sendMinutes === 1 ? "minuut" : "minuten"}.
                 </p>
+                {chosen.length <= 5 && (
+                  <p className="text-[12px] text-gray-600 font-sans mt-2">Naar: {chosen.map((p) => (p.displayName ? `${p.displayName} (${p.email})` : p.email)).join(", ")}</p>
+                )}
                 <div className="flex items-center gap-2 mt-3">
-                  <button onClick={sendAll} className={BTN_PRIMARY}>Ja, verstuur {pending.length} uitnodiging{pending.length === 1 ? "" : "en"}</button>
+                  <button onClick={sendAll} className={BTN_PRIMARY}>Ja, verstuur {chosen.length} uitnodiging{chosen.length === 1 ? "" : "en"}</button>
                   <button onClick={() => setConfirmSend(false)} className={BTN_GHOST}>Annuleren</button>
                 </div>
               </div>
@@ -489,9 +526,12 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
                   {mailKind === "eigen" && (
                     <button onClick={sendTest} disabled={testBusy || needsAttachment} className={BTN_GHOST}>{testBusy ? "Versturen…" : "Testmail naar mijzelf"}</button>
                   )}
-                  <button onClick={() => setConfirmSend(true)} disabled={mailKind === "eigen" && (needsAttachment || !previewCurrent)} className={BTN_PRIMARY}>Uitnodigingen versturen ({pending.length})</button>
+                  <button onClick={() => setConfirmSend(true)} disabled={chosen.length === 0 || (mailKind === "eigen" && (needsAttachment || !previewCurrent))} className={BTN_PRIMARY}>Uitnodigingen versturen ({chosen.length}{subset ? ` van ${pending.length}` : ""})</button>
                 </div>
-                {mailKind === "eigen" && !needsAttachment && !previewCurrent && (
+                {chosen.length === 0 && (
+                  <p className="text-[12px] text-amber-700 font-sans mt-2">Er is niemand geselecteerd. Kies hierboven bij &ldquo;Ontvangers&rdquo; wie de e-mail krijgt.</p>
+                )}
+                {chosen.length > 0 && mailKind === "eigen" && !needsAttachment && !previewCurrent && (
                   <p className="text-[12px] text-gray-500 font-sans mt-2">Bekijk eerst het voorbeeld van de huidige tekst; daarna kunt u versturen.</p>
                 )}
               </div>
