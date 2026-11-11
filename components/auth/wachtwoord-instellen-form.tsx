@@ -7,13 +7,39 @@ import { useSearchParams } from "next/navigation"
 import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 
-// Branded "set a new password" page. Used by the partner invite + the client
-// "wachtwoord vergeten" emails (see lib/auth-links.ts). It receives the Firebase
-// oobCode in the URL and completes the reset with the client SDK, which works
-// from any domain, so we don't depend on Firebase's (misconfigured) action handler.
+// Branded "set a new password" page. Used by the invite mails and the
+// "wachtwoord vergeten" mails (see lib/auth-links.ts). It completes the reset
+// with the client SDK, which works from any domain, so we don't depend on
+// Firebase's (misconfigured) action handler.
+//
+// Two kinds of link arrive here:
+//   ?oobCode=...       "wachtwoord vergeten": the Firebase code itself (1 hour)
+//   ?uitnodiging=...   an invite: our own token, valid for 14 days. It is
+//                      traded for a fresh Firebase code at /api/invite/redeem
+//                      (lib/invite-token.ts), again when the page was left
+//                      open for more than an hour.
+type InviteProblem = "" | "expired" | "used" | "invalid"
+
+async function redeemInvite(token: string, done = false): Promise<{ oobCode?: string; error?: string }> {
+  try {
+    const res = await fetch("/api/invite/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(done ? { token, done: true } : { token }),
+    })
+    const data = await res.json().catch(() => ({}))
+    return res.ok ? data : { error: data.error || "invalid" }
+  } catch {
+    return { error: "server" }
+  }
+}
+
 export function WachtwoordInstellenForm() {
   const params = useSearchParams()
-  const oobCode = params.get("oobCode") || ""
+  const inviteToken = params.get("uitnodiging") || ""
+  const urlCode = params.get("oobCode") || ""
+  const [oobCode, setOobCode] = useState(urlCode)
+  const [inviteProblem, setInviteProblem] = useState<InviteProblem>("")
 
   const [email, setEmail] = useState("")
   const [verifying, setVerifying] = useState(true)
@@ -25,17 +51,32 @@ export function WachtwoordInstellenForm() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    if (!oobCode) {
+    let cancelled = false
+    const fail = (problem: InviteProblem = "") => {
+      if (cancelled) return
+      setInviteProblem(problem)
       setInvalid(true)
       setVerifying(false)
-      return
     }
-    let cancelled = false
-    verifyPasswordResetCode(auth, oobCode)
-      .then((mail) => { if (!cancelled) { setEmail(mail); setVerifying(false) } })
-      .catch(() => { if (!cancelled) { setInvalid(true); setVerifying(false) } })
+    ;(async () => {
+      let code = urlCode
+      if (inviteToken) {
+        const r = await redeemInvite(inviteToken)
+        if (cancelled) return
+        if (!r.oobCode) { fail(r.error === "expired" || r.error === "used" ? r.error : "invalid"); return }
+        code = r.oobCode
+        setOobCode(code)
+      }
+      if (!code) { fail(); return }
+      try {
+        const mail = await verifyPasswordResetCode(auth, code)
+        if (!cancelled) { setEmail(mail); setVerifying(false) }
+      } catch {
+        fail()
+      }
+    })()
     return () => { cancelled = true }
-  }, [oobCode])
+  }, [inviteToken, urlCode])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +85,21 @@ export function WachtwoordInstellenForm() {
     if (pw !== pw2) { setError("De wachtwoorden komen niet overeen."); return }
     setSubmitting(true)
     try {
-      await confirmPasswordReset(auth, oobCode, pw)
+      try {
+        await confirmPasswordReset(auth, oobCode, pw)
+      } catch (err: unknown) {
+        // Invite page left open for more than an hour: the Firebase code behind
+        // it has expired, but the invite itself is still good. Get a fresh code
+        // and try once more.
+        const code = (err as { code?: string }).code
+        if (!inviteToken || (code !== "auth/expired-action-code" && code !== "auth/invalid-action-code")) throw err
+        const r = await redeemInvite(inviteToken)
+        if (!r.oobCode) throw err
+        setOobCode(r.oobCode)
+        await confirmPasswordReset(auth, r.oobCode, pw)
+      }
+      // The invite has done its job: make the link stop working.
+      if (inviteToken) await redeemInvite(inviteToken, true)
       setDone(true)
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
@@ -79,9 +134,15 @@ export function WachtwoordInstellenForm() {
               </div>
             ) : invalid ? (
               <div>
-                <h1 className="font-serif text-3xl font-normal text-gray-900 mb-2">Link ongeldig</h1>
+                <h1 className="font-serif text-3xl font-normal text-gray-900 mb-2">
+                  {inviteProblem === "used" ? "Account al geactiveerd" : inviteProblem === "expired" ? "Uitnodiging verlopen" : "Link ongeldig"}
+                </h1>
                 <p className="text-[14px] text-gray-500 font-sans">
-                  Deze link is verlopen of al gebruikt. Vraag een nieuwe aan via &lsquo;Wachtwoord vergeten&rsquo; op de inlogpagina.
+                  {inviteProblem === "used"
+                    ? "Via deze uitnodiging is al een wachtwoord ingesteld. U kunt inloggen. Weet u het wachtwoord niet meer, kies dan \u2018Wachtwoord vergeten\u2019 op de inlogpagina."
+                    : inviteProblem === "expired"
+                      ? "Deze uitnodiging is niet meer geldig. Kies \u2018Wachtwoord vergeten\u2019 op de inlogpagina en vul uw e-mailadres in; u ontvangt dan direct een nieuwe link."
+                      : "Deze link is verlopen of al gebruikt. Vraag een nieuwe aan via \u2018Wachtwoord vergeten\u2019 op de inlogpagina."}
                 </p>
                 <Link href="/login" className="inline-block mt-6 text-[14px] text-[#311e86] hover:underline font-sans">
                   → Naar inloggen

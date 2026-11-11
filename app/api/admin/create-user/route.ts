@@ -3,7 +3,7 @@ import { randomBytes } from "crypto"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
 import { sendEmail } from "@/lib/brevo"
-import { passwordResetLink } from "@/lib/auth-links"
+import { inviteLink } from "@/lib/auth-links"
 import { inviteMailFor } from "@/lib/invite-email"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Branded invite with a set-password link.
-    const setupLink = await passwordResetLink(email)
+    const setupLink = await inviteLink(user.uid, user.email || email, admin.email || "")
     const mail = inviteMailFor({ setupLink })
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,

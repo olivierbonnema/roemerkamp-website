@@ -30,6 +30,11 @@ interface SendEmailParams {
   subject: string
   html: string
   type?: string // category for the email log, e.g. "partner_invite", "status_update"
+  // Where replies should go (the sender mailbox is a no-reply box).
+  replyTo?: string
+  // File attachments, base64. Graph accepts these inline up to about 3 MB in
+  // total; callers must check the size (lib/invite-campaign-email.ts does).
+  attachments?: { name: string; contentType: string; contentBytes: string }[]
 }
 
 function parseSenderName(from: string): string {
@@ -96,6 +101,17 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
         toRecipients: recipients.map((email) => ({
           emailAddress: { address: email },
         })),
+        ...(params.replyTo ? { replyTo: [{ emailAddress: { address: params.replyTo.trim() } }] } : {}),
+        ...(params.attachments?.length
+          ? {
+              attachments: params.attachments.map((a) => ({
+                "@odata.type": "#microsoft.graph.fileAttachment",
+                name: a.name,
+                contentType: a.contentType,
+                contentBytes: a.contentBytes,
+              })),
+            }
+          : {}),
       },
       saveToSentItems: false,
     }

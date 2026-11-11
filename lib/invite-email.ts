@@ -1,4 +1,5 @@
 import { SITE_URL } from "@/lib/site"
+import { INVITE_VALID_DAYS } from "@/lib/invite-validity"
 
 // The account invite mails, in ONE place, so the first invite and a resent
 // invite are always the same mail:
@@ -64,7 +65,7 @@ export function inviteEmailHtml(opts: { heading: string; intro: string; setupLin
             ${opts.intro}
           </p>
           <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 24px;">
-            Stel hieronder uw wachtwoord in. Daarna stelt u eenmalig tweestapsverificatie in en kunt u direct aan de slag.
+            Stel hieronder uw wachtwoord in. Daarna stelt u eenmalig tweestapsverificatie in en kunt u direct aan de slag. De link is ${INVITE_VALID_DAYS} dagen geldig.
           </p>
           <a href="${opts.setupLink}"
              style="display:inline-block;background:#311E86;color:#fff;text-decoration:none;padding:10px 22px;border-radius:4px;font-size:13px;font-weight:500;">
