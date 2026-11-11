@@ -33,6 +33,7 @@ export type ActivityAction =
   | "document_accessed"
   | "document_esign_sent"
   | "partner_invited"
+  | "partner_imported"
   | "login"
   | "aanvraag_submitted"
   | "document_uploaded"
