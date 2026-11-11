@@ -41,7 +41,7 @@ export interface CampaignMail {
 // can change every field before sending.
 export const DEFAULT_CAMPAIGN: CampaignMail = {
   onderwerp: "Webinar Financieringsgilde: je account voor het aanvragenportaal",
-  label: "Aanvragenportaal · november 2026",
+  label: "November 2026",
   kop: "Je account voor het aanvragenportaal",
   intro: [
     "Beste {voornaam},",
@@ -164,6 +164,7 @@ export function campaignMailHtml(opts: {
     .wrap { width:100% !important; }
     .pad { padding-left:20px !important; padding-right:20px !important; }
     .h1 { font-size:22px !important; line-height:28px !important; }
+    .logo { width:150px !important; }
   }
 </style>
 </head>
@@ -176,8 +177,8 @@ export function campaignMailHtml(opts: {
   <tr><td class="pad" style="padding:28px 36px 20px 36px;border-bottom:1px solid #E2E2EC;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="vertical-align:middle;"><img src="${esc(logoUrl)}" width="190" alt="Lange &amp; Partners Financieel Advies" style="width:190px;height:auto;"></td>
-        <td align="right" style="vertical-align:middle;font-size:12px;line-height:18px;color:#6B6B8A;text-transform:uppercase;letter-spacing:.08em;">LFA Update${mail.label ? `<br><span style="color:#2E2060;font-weight:600;">${esc(mail.label)}</span>` : ""}</td>
+        <td style="vertical-align:middle;"><img class="logo" src="${esc(logoUrl)}" width="190" alt="Lange &amp; Partners Financieel Advies" style="width:190px;height:auto;"></td>
+        <td align="right" style="vertical-align:middle;padding-left:12px;font-size:12px;line-height:18px;color:#6B6B8A;text-transform:uppercase;letter-spacing:.08em;">LFA Update${mail.label ? `<br><span style="color:#2E2060;font-weight:600;">${esc(mail.label)}</span>` : ""}</td>
       </tr>
     </table>
   </td></tr>

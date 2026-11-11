@@ -26,7 +26,7 @@ ok("validity stated", html.includes("14 dagen geldig"))
 ok("section labels from # lines", html.includes(">Het aanvragenportaal</td>") && html.includes(">Webinar gemist of nog even terugkijken?</td>") && !html.includes("# Het"))
 ok("signature and reply address", html.includes("<strong>Olivier Bonnema</strong>") && html.includes('href="mailto:olivier@langefa.nl"'))
 ok("newsletter look: lilac page, purple heading, purple block", html.includes("background:#F4F4F8") && html.includes("color:#2E2060;\">Je account voor het aanvragenportaal</h1>") && html.includes("background:#2E2060;border-radius:8px"))
-ok("label at the top right", html.includes("LFA Update<br>") && html.includes("Aanvragenportaal · november 2026"))
+ok("label at the top right", html.includes("LFA Update<br>") && html.includes(">November 2026</span>"))
 ok("no dashes in the default text", !/[–—]/.test(JSON.stringify(DEFAULT_CAMPAIGN)))
 ok("subject", campaignSubject(DEFAULT_CAMPAIGN, { voornaam: "Jan", kantoor: "X" }) === "Webinar Financieringsgilde: je account voor het aanvragenportaal")
 
