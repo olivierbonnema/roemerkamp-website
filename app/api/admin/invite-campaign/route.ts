@@ -5,7 +5,7 @@ import { sendEmail } from "@/lib/brevo"
 import { inviteLink } from "@/lib/auth-links"
 import { SITE_URL } from "@/lib/site"
 import { PARTNER_ROLE } from "@/lib/partners"
-import { campaignMailHtml, campaignSubject, firstNameOf, mentionsAttachment, sanitizeAttachment, sanitizeCampaign } from "@/lib/invite-campaign-email"
+import { campaignMailHtml, campaignSubject, firstNameOf, mentionsAttachment, parseSigners, sanitizeAttachment, sanitizeCampaign } from "@/lib/invite-campaign-email"
 
 // Admin-only: the first invite for imported accounts as an own mail in
 // newsletter style, optionally with one attachment (Partners > "Uitnodigingen
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
   if (mode === "test") {
     if (!admin.email) return NextResponse.json({ error: "Geen e-mailadres bij uw account." }, { status: 400 })
-    const vars = { voornaam: firstNameOf(mail.naam), kantoor: "Financieringsgilde Voorbeeld" }
+    const vars = { voornaam: firstNameOf(parseSigners(mail.ondertekening).signers[0]?.naam), kantoor: "Financieringsgilde Voorbeeld" }
     try {
       await sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
