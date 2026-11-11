@@ -21,6 +21,19 @@ import { inviteMailFor } from "@/lib/invite-email"
 //                                   users/{uid}.inviteSentAt + inviteCount,
 //                                   logs "invite_resent"
 // (Olivier, 2026-11-04)
+//
+// Imported accounts (app/api/admin/import-partners) have invitePending = true:
+// they exist but were never mailed. For those this route sends the FIRST
+// invite (without the "nieuwe uitnodiging" line), sets inviteCount to 1,
+// clears invitePending and logs "partner_invited".
+//   POST { uid, onlyIfPending: true } -> used by "Uitnodigingen versturen" for
+//                                   the whole batch: sends only when the
+//                                   account is still pending, otherwise
+//                                   answers { skipped: true }. The pending
+//                                   flag is claimed in a transaction before
+//                                   sending, so a double click or a second
+//                                   browser tab can never mail someone twice.
+// (Olivier, 2026-11-11)
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nonbancaireleningen.nl"
@@ -46,7 +59,12 @@ export async function POST(req: NextRequest) {
   const uid = typeof body?.uid === "string" ? body.uid : ""
   const preview = body?.preview === true
   const linkOnly = body?.linkOnly === true
+  const onlyIfPending = body?.onlyIfPending === true
   if (!uid) return NextResponse.json({ error: "UID is verplicht." }, { status: 400 })
+
+  // Set once this request has claimed an imported account's pending flag; if
+  // anything fails after that, the claim is given back (see the catch).
+  let claimedRef: FirebaseFirestore.DocumentReference | null = null
 
   try {
     // Same lookup as delete-user: the doc ID is normally the Auth UID but can be
@@ -68,9 +86,24 @@ export async function POST(req: NextRequest) {
       orgName = String(org.data()?.name ?? "")
     }
 
+    // Never mailed yet (imported account): this is the first invite.
+    const pending = data.invitePending === true
+
     if (preview) {
-      const mail = inviteMailFor({ role, orgName, setupLink: PREVIEW_LINK, resent: true })
-      return NextResponse.json({ to: authUser.email, subject: mail.subject, html: mail.html })
+      const mail = inviteMailFor({ role, orgName, setupLink: PREVIEW_LINK, resent: !pending })
+      return NextResponse.json({ to: authUser.email, subject: mail.subject, html: mail.html, first: pending })
+    }
+
+    if (onlyIfPending && !linkOnly) {
+      // Claim the pending flag first; whoever claims it sends, nobody else does.
+      const claimed = await adminDb.runTransaction(async (tx) => {
+        const snap = await tx.get(docRef)
+        if (snap.data()?.invitePending !== true) return false
+        tx.update(docRef, { invitePending: false })
+        return true
+      })
+      if (!claimed) return NextResponse.json({ skipped: true, to: authUser.email, reason: "Is al uitgenodigd." })
+      claimedRef = docRef
     }
 
     const setupLink = await passwordResetLink(authUser.email)
@@ -87,7 +120,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ to: authUser.email, setupLink })
     }
 
-    const mail = inviteMailFor({ role, orgName, setupLink, resent: true })
+    const mail = inviteMailFor({ role, orgName, setupLink, resent: !pending })
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to: authUser.email,
@@ -95,22 +128,29 @@ export async function POST(req: NextRequest) {
       type: mail.type,
       html: mail.html,
     })
+    // Sent: from here on the claim stands, whatever happens next.
+    claimedRef = null
 
     const inviteSentAt = new Date().toISOString()
-    const inviteCount = (typeof data.inviteCount === "number" ? data.inviteCount : 1) + 1
-    await docRef.update({ inviteSentAt, inviteCount }).catch(() => {})
+    const inviteCount = pending ? 1 : (typeof data.inviteCount === "number" ? data.inviteCount : 1) + 1
+    await docRef.update({ inviteSentAt, inviteCount, invitePending: false }).catch(() => {})
 
     await logActivity({
-      action: "invite_resent",
+      action: pending ? "partner_invited" : "invite_resent",
       userId: admin.uid,
       userEmail: admin.email || "",
       targetId: uid,
       targetType: "user",
-      details: { email: authUser.email, neverLoggedIn: !authUser.metadata.lastSignInTime },
+      details: pending
+        ? { email: authUser.email, partnerOrgId: String(data.partnerOrgId ?? ""), orgName, viaImport: "ja" }
+        : { email: authUser.email, neverLoggedIn: !authUser.metadata.lastSignInTime },
     })
 
-    return NextResponse.json({ success: true, to: authUser.email, inviteSentAt, inviteCount })
+    return NextResponse.json({ success: true, to: authUser.email, inviteSentAt, inviteCount, invitePending: false })
   } catch (err) {
+    // Nothing was sent: give the claim back, so the account stays "Nog niet
+    // uitgenodigd" and can be mailed again.
+    if (claimedRef) await claimedRef.update({ invitePending: true }).catch(() => {})
     console.error("resend-invite failed:", err)
     return NextResponse.json({ error: "Uitnodiging versturen mislukt." }, { status: 500 })
   }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
 import { InviteMailDialog, LoginBadge, type InviteAccount } from "./invite-mail-dialog"
+import { PartnerImport, type PendingInvite } from "./partner-import"
 
 interface PartnerOrg {
   id: string
@@ -286,6 +287,10 @@ export function AdminPartners() {
   }
 
   const advisorsFor = (orgId: string) => partners.filter((p) => p.partnerOrgId === orgId)
+  // Imported accounts that were never mailed (see partner-import.tsx).
+  const pendingInvites: PendingInvite[] = partners
+    .filter((p) => p.invitePending === true && !p.authMissing)
+    .map((p) => ({ uid: p.uid, email: p.email, displayName: p.displayName, orgName: orgs.find((o) => o.id === p.partnerOrgId)?.name || "(onbekend kantoor)" }))
 
   return (
     <div className="space-y-8">
@@ -357,6 +362,9 @@ export function AdminPartners() {
         )}
       </div>
 
+      {/* Bulk import + sending the pending invites */}
+      <PartnerImport pending={pendingInvites} onChanged={loadAll} />
+
       {/* Organizations + advisors */}
       <div>
         <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Partnerorganisaties</h2>
@@ -425,7 +433,7 @@ export function AdminPartners() {
                         {!p.authMissing && (
                           <button onClick={() => setInviteFor(p)}
                             className={`text-xs font-sans transition-colors hover:underline ${neverLoggedIn(p) ? "text-[#311E86] font-medium" : "text-gray-500"}`}>
-                            {neverLoggedIn(p) ? "Uitnodiging opnieuw sturen" : "Uitnodiging"}
+                            {p.invitePending ? "Uitnodiging versturen" : neverLoggedIn(p) ? "Uitnodiging opnieuw sturen" : "Uitnodiging"}
                           </button>
                         )}
                         <button onClick={() => openDetail(p)}
@@ -451,7 +459,7 @@ export function AdminPartners() {
           key={inviteFor.uid}
           account={inviteFor}
           onClose={() => setInviteFor(null)}
-          onSent={(r) => setPartners((prev) => prev.map((x) => (x.uid === inviteFor.uid ? { ...x, ...r } : x)))}
+          onSent={(r) => setPartners((prev) => prev.map((x) => (x.uid === inviteFor.uid ? { ...x, ...r, invitePending: false } : x)))}
         />
       )}
 

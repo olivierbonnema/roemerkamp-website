@@ -17,6 +17,8 @@ export interface InviteAccount {
   authMissing?: boolean
   inviteSentAt?: string | null
   inviteCount?: number
+  // Imported account that was never mailed (app/api/admin/import-partners).
+  invitePending?: boolean
 }
 
 function fmt(iso?: string | null) {
@@ -31,6 +33,7 @@ function fmt(iso?: string | null) {
 export function LoginBadge({ u }: { u: InviteAccount }) {
   if (!u.loginKnown) return null
   if (u.authMissing) return <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-red-50 text-red-700">Geen inlogaccount</span>
+  if (u.invitePending) return <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-blue-50 text-blue-700">Nog niet uitgenodigd</span>
   if (!u.lastSignInAt) {
     return (
       <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-medium font-sans bg-amber-50 text-amber-700">
@@ -182,7 +185,7 @@ export function InviteMailDialog({ account, onClose, onSent }: {
             disabled={sending || !preview || !!sent}
             className="px-5 py-2 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {sending ? "Versturen…" : sent ? "Verstuurd" : "Uitnodiging opnieuw versturen"}
+            {sending ? "Versturen…" : sent ? "Verstuurd" : account.invitePending ? "Uitnodiging versturen" : "Uitnodiging opnieuw versturen"}
           </button>
         </div>
       </div>
