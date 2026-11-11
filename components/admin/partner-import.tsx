@@ -255,7 +255,7 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
             confirmSend ? (
               <div className="mt-4 border border-amber-300 bg-white rounded-lg p-4">
                 <p className="text-sm text-gray-800 font-sans">
-                  U verstuurt nu <strong>{pending.length} e-mail{pending.length === 1 ? "" : "s"}</strong> naar externe adviseurs. Dit kan niet ongedaan worden gemaakt. De link in de e-mail is ongeveer 1 uur geldig; daarna vraagt de adviseur zelf een nieuwe aan via &ldquo;Wachtwoord vergeten&rdquo;.
+                  U verstuurt nu <strong>{pending.length} e-mail{pending.length === 1 ? "" : "s"}</strong> naar externe adviseurs. Dit kan niet ongedaan worden gemaakt. De link in de e-mail is 14 dagen geldig.
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <button onClick={sendAll} className={BTN_PRIMARY}>Ja, verstuur {pending.length} uitnodiging{pending.length === 1 ? "" : "en"}</button>

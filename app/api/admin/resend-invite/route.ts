@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
 import { sendEmail } from "@/lib/brevo"
-import { passwordResetLink } from "@/lib/auth-links"
+import { inviteLink } from "@/lib/auth-links"
 import { inviteMailFor } from "@/lib/invite-email"
 
 // Admin-only: show or resend the account invite ("Wachtwoord instellen") mail
 // for an existing account, e.g. someone who never logged in or whose link
-// expired (Firebase set-password links are short-lived). Same mail as the
+// expired (invite links are valid for 14 days, lib/invite-token.ts). Same mail as the
 // first invite (lib/invite-email.ts), with one line saying it is a new link.
 //
 //   POST { uid, preview: true }  -> { subject, html, to }   nothing is sent,
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       claimedRef = docRef
     }
 
-    const setupLink = await passwordResetLink(authUser.email)
+    const setupLink = await inviteLink(authUser.uid, authUser.email, admin.email || "")
 
     if (linkOnly) {
       await logActivity({

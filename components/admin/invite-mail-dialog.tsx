@@ -158,7 +158,7 @@ export function InviteMailDialog({ account, onClose, onSent }: {
             <div className="border border-[#311E86]/20 bg-[#311E86]/[0.03] rounded-lg p-3 space-y-2">
               <p className="text-[12px] font-sans text-gray-700">
                 {linkCopied ? "Link gekopieerd. " : "Kopieer de link hieronder. "}
-                Stuur hem zelf vanuit je eigen mail naar {account.email}. De link is <strong>ongeveer 1 uur geldig</strong> en werkt maar één keer; daarna kun je een nieuwe maken.
+                Stuur hem zelf vanuit je eigen mail naar {account.email}. De link is <strong>14 dagen geldig</strong> en werkt tot het wachtwoord is ingesteld. Een nieuwe link of uitnodiging maakt deze ongeldig.
               </p>
               <input readOnly value={link} onFocus={(e) => e.currentTarget.select()}
                 className="w-full h-9 px-3 text-[12px] font-mono border border-gray-300 rounded-md bg-white text-gray-700" />
