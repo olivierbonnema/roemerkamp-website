@@ -11,14 +11,22 @@
 //         mail is sent; the accounts show as "Nog niet uitgenodigd".
 //                                                       -> /api/admin/import-partners (create)
 // Step 4  "Uitnodigingen versturen": the first invite to every account that is
-//         still pending, one by one.                    -> /api/admin/resend-invite (onlyIfPending)
+//         still pending, one by one. Either the standard invite
+//                                                       -> /api/admin/resend-invite (onlyIfPending)
+//         or an own mail in newsletter style, with an optional attachment, a
+//         preview and a test mail to yourself
+//                                                       -> /api/admin/invite-campaign
+//                                                          (text rules: lib/invite-campaign-email.ts)
+//         One mail every few seconds: Exchange Online allows a mailbox about
+//         30 messages a minute.
 //
 // Every step asks for confirmation first and reports per row what happened.
 // (Olivier, 2026-11-11.) Used by components/admin/admin-partners.tsx.
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
 import { parseTable, type ImportPlan, type ImportRowPlan } from "@/lib/partner-import"
+import { ATTACHMENT_EXTENSIONS, ATTACHMENT_MAX_BYTES, DEFAULT_CAMPAIGN, mentionsAttachment, type CampaignMail } from "@/lib/invite-campaign-email"
 
 export interface PendingInvite {
   uid: string
@@ -42,6 +50,19 @@ async function post(url: string, body: Record<string, unknown>) {
 }
 
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+// Time between two invite mails (see the note on Exchange Online above).
+const SEND_PAUSE_MS = 2500
+// Where the text of an own mail is kept in this browser, so a reload does not lose it.
+const DRAFT_KEY = "lfa-invite-campaign-v1"
+
+const INPUT = "w-full h-[40px] px-4 text-sm font-sans bg-white border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
+const AREA = "w-full px-4 py-3 text-sm font-sans bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors leading-relaxed"
+const LABEL = "block text-[12px] font-medium text-gray-700 font-sans mb-1.5"
+
+function fmtSize(bytes: number) {
+  return bytes >= 1_000_000 ? `${(bytes / 1_000_000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(bytes / 1000))} kB`
+}
 
 const BADGE = "inline-block px-2 py-0.5 rounded-full text-[11px] font-medium font-sans"
 const BTN_PRIMARY = "px-6 py-2.5 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
@@ -78,6 +99,96 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
   const [mailPreview, setMailPreview] = useState<{ to: string; subject: string; html: string } | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [sendError, setSendError] = useState("")
+
+  // ---- own mail in newsletter style ----
+  const [mailKind, setMailKind] = useState<"standaard" | "eigen">("standaard")
+  const [camp, setCamp] = useState<CampaignMail>(DEFAULT_CAMPAIGN)
+  const [att, setAtt] = useState<{ name: string; size: number; contentBytes: string } | null>(null)
+  const [attError, setAttError] = useState("")
+  // What exactly was previewed last (text + attachment), so sending is only
+  // possible for a mail the admin has seen.
+  const [previewKey, setPreviewKey] = useState("")
+  const [testBusy, setTestBusy] = useState(false)
+  const [testMsg, setTestMsg] = useState("")
+  const attRef = useRef<HTMLInputElement>(null)
+
+  const campKey = `${mailKind}|${JSON.stringify(camp)}|${att?.name || ""}|${att?.size || 0}`
+  const needsAttachment = mailKind === "eigen" && mentionsAttachment(camp) && !att
+  const previewCurrent = !!mailPreview && previewKey === campKey
+
+  // Restore the text of an own mail from this browser; a fresh start is signed
+  // by whoever is logged in.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY)
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<CampaignMail>
+        setCamp((c) => {
+          const next = { ...c }
+          for (const k of Object.keys(c) as (keyof CampaignMail)[]) if (typeof saved[k] === "string") next[k] = saved[k] as string
+          return next
+        })
+        return
+      }
+    } catch {
+      /* no stored draft, or storage is blocked: start from the default text */
+    }
+    const u = auth.currentUser
+    if (u?.email && u.displayName) setCamp((c) => ({ ...c, naam: u.displayName as string, email: u.email as string }))
+  }, [])
+
+  function setField(key: keyof CampaignMail, value: string) {
+    setTestMsg("")
+    setCamp((c) => {
+      const next = { ...c, [key]: value }
+      try { window.localStorage.setItem(DRAFT_KEY, JSON.stringify(next)) } catch { /* not essential */ }
+      return next
+    })
+  }
+
+  function resetCampaign() {
+    try { window.localStorage.removeItem(DRAFT_KEY) } catch { /* not essential */ }
+    setCamp(DEFAULT_CAMPAIGN)
+    setTestMsg("")
+  }
+
+  function onAttachment(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    setAttError(""); setTestMsg("")
+    if (!f) return
+    const ext = f.name.includes(".") ? f.name.split(".").pop()!.toLowerCase() : ""
+    const refuse = (msg: string) => { setAtt(null); setAttError(msg); e.target.value = "" }
+    if (!ATTACHMENT_EXTENSIONS.includes(ext)) { refuse(`Dit type bestand kan niet worden meegestuurd. Toegestaan: ${ATTACHMENT_EXTENSIONS.join(", ")}.`); return }
+    if (f.size > ATTACHMENT_MAX_BYTES) { refuse(`Dit bestand is ${fmtSize(f.size)}; de bijlage mag maximaal ${fmtSize(ATTACHMENT_MAX_BYTES)} zijn. Sla een presentatie op als PDF, dat is meestal kleiner.`); return }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const url = String(reader.result || "")
+      const b64 = url.includes(",") ? url.slice(url.indexOf(",") + 1) : ""
+      if (!b64) { refuse("Het bestand kon niet worden gelezen."); return }
+      setAtt({ name: f.name, size: f.size, contentBytes: b64 })
+    }
+    reader.onerror = () => refuse("Het bestand kon niet worden gelezen.")
+    reader.readAsDataURL(f)
+  }
+
+  function removeAttachment() {
+    setAtt(null); setAttError(""); setTestMsg("")
+    if (attRef.current) attRef.current.value = ""
+  }
+
+  const attachmentPayload = () => (att ? { name: att.name, contentBytes: att.contentBytes } : undefined)
+
+  async function sendTest() {
+    setTestBusy(true); setTestMsg(""); setSendError("")
+    try {
+      const d = await post("/api/admin/invite-campaign", { mode: "test", mail: camp, attachment: attachmentPayload() })
+      setTestMsg(`Testmail verstuurd naar ${d.to}. De knop in de testmail gaat naar de inlogpagina; er wordt geen account gewijzigd.`)
+    } catch (e: unknown) {
+      setSendError((e as Error).message || "Testmail versturen mislukt.")
+    } finally {
+      setTestBusy(false)
+    }
+  }
 
   const grouped = useMemo(() => (plan ? groupByKantoor(plan.rows) : []), [plan])
   const pendingByOrg = useMemo(() => {
@@ -154,7 +265,11 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
     if (!pending.length) return
     setPreviewBusy(true); setSendError("")
     try {
-      setMailPreview(await post("/api/admin/resend-invite", { uid: pending[0].uid, preview: true }))
+      const d = mailKind === "eigen"
+        ? await post("/api/admin/invite-campaign", { mode: "preview", uid: pending[0].uid, mail: camp })
+        : await post("/api/admin/resend-invite", { uid: pending[0].uid, preview: true })
+      setMailPreview(d)
+      setPreviewKey(campKey)
     } catch (e: unknown) {
       setSendError((e as Error).message || "Voorbeeld laden mislukt.")
     } finally {
@@ -164,6 +279,9 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
 
   async function sendAll() {
     const todo = [...pending]
+    const own = mailKind === "eigen"
+    const mail = camp
+    const attachment = attachmentPayload()
     setConfirmSend(false)
     setSending(true)
     setSendReport(null)
@@ -172,19 +290,23 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
     const report = { sent: 0, skipped: 0, failed: [] as { email: string; message: string }[] }
     for (let i = 0; i < todo.length; i++) {
       try {
-        const d = await post("/api/admin/resend-invite", { uid: todo[i].uid, onlyIfPending: true })
+        const d = own
+          ? await post("/api/admin/invite-campaign", { mode: "send", uid: todo[i].uid, mail, attachment })
+          : await post("/api/admin/resend-invite", { uid: todo[i].uid, onlyIfPending: true })
         if (d.skipped) report.skipped++
         else report.sent++
       } catch (e: unknown) {
         report.failed.push({ email: todo[i].email, message: (e as Error).message || "Mislukt" })
       }
       setSendProgress({ done: i + 1, total: todo.length })
-      await pause(250)
+      if (i < todo.length - 1) await pause(SEND_PAUSE_MS)
     }
     setSending(false)
     setSendReport(report)
     onChanged()
   }
+
+  const sendMinutes = Math.max(1, Math.ceil((pending.length * (SEND_PAUSE_MS + 1500)) / 60000))
 
   const c = plan?.counts
   const busy = checking || creating
@@ -219,13 +341,108 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
             </details>
           )}
 
+          {/* Which mail */}
+          {pending.length > 0 && !sending && (
+            <div className="mt-5">
+              <p className={LABEL}>Welke e-mail krijgen zij?</p>
+              <div className="flex flex-wrap gap-2">
+                {([["standaard", "Standaarduitnodiging"], ["eigen", "Eigen e-mail in nieuwsbriefstijl"]] as const).map(([kind, label]) => (
+                  <button key={kind} type="button" onClick={() => { setMailKind(kind); setMailPreview(null); setConfirmSend(false); setTestMsg("") }}
+                    className={`px-4 py-2 text-sm font-medium font-sans rounded-full border transition-colors ${mailKind === kind ? "bg-[#1E3A5F] border-[#1E3A5F] text-white" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Own mail: editor */}
+          {pending.length > 0 && !sending && mailKind === "eigen" && (
+            <div className="mt-4 bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+              <p className="text-[12px] text-gray-500 font-sans leading-relaxed">
+                Een lege regel begint een nieuwe alinea. Een regel die met <code className="font-mono">#</code> begint wordt een tussenkop. <code className="font-mono">**vet**</code> maakt tekst vet.
+                {" "}<code className="font-mono">{"{voornaam}"}</code> en <code className="font-mono">{"{kantoor}"}</code> worden per adviseur ingevuld. De knop met de persoonlijke link en de zin over de geldigheid komen er automatisch in.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className={LABEL}>Onderwerp</label>
+                  <input type="text" value={camp.onderwerp} onChange={(e) => setField("onderwerp", e.target.value)} className={INPUT} />
+                </div>
+                <div>
+                  <label className={LABEL}>Kop</label>
+                  <input type="text" value={camp.kop} onChange={(e) => setField("kop", e.target.value)} className={INPUT} />
+                </div>
+                <div>
+                  <label className={LABEL}>Label rechtsboven (optioneel)</label>
+                  <input type="text" value={camp.label} onChange={(e) => setField("label", e.target.value)} className={INPUT} />
+                </div>
+              </div>
+              <div>
+                <label className={LABEL}>Tekst boven de knop</label>
+                <textarea rows={9} value={camp.intro} onChange={(e) => setField("intro", e.target.value)} className={AREA} />
+              </div>
+              <div className="border border-[#2E2060]/20 bg-[#2E2060]/[0.03] rounded-xl p-4 space-y-3">
+                <p className="text-[12px] font-semibold text-[#2E2060] font-sans">Het blok met de knop</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={LABEL}>Titel</label>
+                    <input type="text" value={camp.ctaKop} onChange={(e) => setField("ctaKop", e.target.value)} className={INPUT} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>Tekst op de knop</label>
+                    <input type="text" value={camp.knop} onChange={(e) => setField("knop", e.target.value)} className={INPUT} />
+                  </div>
+                </div>
+                <div>
+                  <label className={LABEL}>Tekst in het blok (optioneel)</label>
+                  <textarea rows={3} value={camp.ctaTekst} onChange={(e) => setField("ctaTekst", e.target.value)} className={AREA} />
+                </div>
+              </div>
+              <div>
+                <label className={LABEL}>Tekst onder de knop (optioneel)</label>
+                <textarea rows={6} value={camp.na} onChange={(e) => setField("na", e.target.value)} className={AREA} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={LABEL}>Ondertekening: naam</label>
+                  <input type="text" value={camp.naam} onChange={(e) => setField("naam", e.target.value)} className={INPUT} />
+                </div>
+                <div>
+                  <label className={LABEL}>Ondertekening: e-mailadres</label>
+                  <input type="email" value={camp.email} onChange={(e) => setField("email", e.target.value)} className={INPUT} />
+                  <p className="text-[11px] text-gray-400 font-sans mt-1">Antwoorden op de e-mail komen op dit adres binnen.</p>
+                </div>
+              </div>
+              <div>
+                <label className={LABEL}>Bijlage (optioneel, één bestand, maximaal {fmtSize(ATTACHMENT_MAX_BYTES)})</label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <input ref={attRef} type="file" accept={ATTACHMENT_EXTENSIONS.map((x) => `.${x}`).join(",")} onChange={onAttachment}
+                    className="text-[13px] font-sans text-gray-600 file:mr-3 file:px-4 file:py-2 file:rounded-full file:border file:border-gray-300 file:bg-white file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-50" />
+                  {att && (
+                    <span className="text-[12px] text-gray-700 font-sans">
+                      {att.name} · {fmtSize(att.size)}{" "}
+                      <button type="button" onClick={removeAttachment} className="text-red-500 hover:underline ml-1">verwijderen</button>
+                    </span>
+                  )}
+                </div>
+                {attError && <p className="text-sm text-red-500 font-sans mt-1.5">{attError}</p>}
+                {needsAttachment && !attError && <p className="text-[12px] text-amber-700 font-sans mt-1.5">De tekst noemt een bijlage, maar er is nog geen bestand gekozen. Versturen kan pas met een bijlage, of nadat de verwijzing uit de tekst is gehaald.</p>}
+              </div>
+              <button type="button" onClick={resetCampaign} className="text-[12px] text-gray-400 hover:text-gray-600 hover:underline font-sans">Tekst terugzetten naar het begin</button>
+            </div>
+          )}
+
           {mailPreview && (
             <div className="mt-4 space-y-2">
               <div className="text-[13px] font-sans text-gray-700">
                 <p><span className="text-gray-400">Onderwerp:</span> {mailPreview.subject}</p>
-                <p className="text-[11px] text-gray-400">Voorbeeld voor {mailPreview.to}. Elke adviseur krijgt dezelfde e-mail met de naam van het eigen kantoor en een eigen, persoonlijke link.</p>
+                <p className="text-[11px] text-gray-400">
+                  Voorbeeld voor {mailPreview.to}. Elke adviseur krijgt dezelfde e-mail met {mailKind === "eigen" ? "de eigen voornaam, " : ""}de naam van het eigen kantoor en een eigen, persoonlijke link.
+                  {mailKind === "eigen" && att ? ` Bijlage: ${att.name} (${fmtSize(att.size)}).` : ""}
+                </p>
+                {!previewCurrent && <p className="text-[12px] text-amber-700">Dit voorbeeld is niet meer actueel. Klik op &ldquo;Voorbeeld vernieuwen&rdquo; om de huidige tekst te zien.</p>}
               </div>
-              <iframe title="Voorbeeld uitnodiging" srcDoc={mailPreview.html} sandbox="" className="w-full h-[420px] border border-gray-200 rounded-lg bg-white" />
+              <iframe title="Voorbeeld uitnodiging" srcDoc={mailPreview.html} sandbox="" className={`w-full border border-gray-200 rounded-lg bg-white ${mailKind === "eigen" ? "h-[640px]" : "h-[420px]"}`} />
             </div>
           )}
 
@@ -234,7 +451,7 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
               <div className="h-2 bg-white rounded-full overflow-hidden border border-amber-200">
                 <div className="h-full bg-[#311E86] transition-all" style={{ width: `${sendProgress.total ? (sendProgress.done / sendProgress.total) * 100 : 0}%` }} />
               </div>
-              <p className="text-[12px] text-gray-600 font-sans mt-1.5">Versturen… {sendProgress.done} van {sendProgress.total}. Laat dit venster open.</p>
+              <p className="text-[12px] text-gray-600 font-sans mt-1.5">Versturen… {sendProgress.done} van {sendProgress.total}. Laat dit venster open; er gaat om de paar seconden één e-mail uit.</p>
             </div>
           )}
 
@@ -249,13 +466,16 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
               )}
             </div>
           )}
+          {testMsg && <p className="mt-3 text-sm text-green-700 font-sans">{testMsg}</p>}
           {sendError && <p className="mt-3 text-sm text-red-500 font-sans">{sendError}</p>}
 
           {pending.length > 0 && !sending && (
             confirmSend ? (
               <div className="mt-4 border border-amber-300 bg-white rounded-lg p-4">
                 <p className="text-sm text-gray-800 font-sans">
-                  U verstuurt nu <strong>{pending.length} e-mail{pending.length === 1 ? "" : "s"}</strong> naar externe adviseurs. Dit kan niet ongedaan worden gemaakt. De link in de e-mail is 14 dagen geldig.
+                  U verstuurt nu <strong>{pending.length} e-mail{pending.length === 1 ? "" : "s"}</strong> naar externe adviseurs
+                  {mailKind === "eigen" ? <> met het onderwerp &ldquo;{camp.onderwerp}&rdquo;{att ? <> en de bijlage <strong>{att.name}</strong> ({fmtSize(att.size)})</> : " zonder bijlage"}</> : " (de standaarduitnodiging)"}.
+                  {" "}Dit kan niet ongedaan worden gemaakt. De link in de e-mail is 14 dagen geldig. Het versturen duurt ongeveer {sendMinutes} {sendMinutes === 1 ? "minuut" : "minuten"}.
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <button onClick={sendAll} className={BTN_PRIMARY}>Ja, verstuur {pending.length} uitnodiging{pending.length === 1 ? "" : "en"}</button>
@@ -263,9 +483,17 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
                 </div>
               </div>
             ) : (
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                <button onClick={showMailPreview} disabled={previewBusy} className={BTN_GHOST}>{previewBusy ? "Laden…" : mailPreview ? "Voorbeeld vernieuwen" : "Voorbeeld van de e-mail"}</button>
-                <button onClick={() => setConfirmSend(true)} className={BTN_PRIMARY}>Uitnodigingen versturen ({pending.length})</button>
+              <div className="mt-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button onClick={showMailPreview} disabled={previewBusy} className={BTN_GHOST}>{previewBusy ? "Laden…" : mailPreview ? "Voorbeeld vernieuwen" : "Voorbeeld van de e-mail"}</button>
+                  {mailKind === "eigen" && (
+                    <button onClick={sendTest} disabled={testBusy || needsAttachment} className={BTN_GHOST}>{testBusy ? "Versturen…" : "Testmail naar mijzelf"}</button>
+                  )}
+                  <button onClick={() => setConfirmSend(true)} disabled={mailKind === "eigen" && (needsAttachment || !previewCurrent)} className={BTN_PRIMARY}>Uitnodigingen versturen ({pending.length})</button>
+                </div>
+                {mailKind === "eigen" && !needsAttachment && !previewCurrent && (
+                  <p className="text-[12px] text-gray-500 font-sans mt-2">Bekijk eerst het voorbeeld van de huidige tekst; daarna kunt u versturen.</p>
+                )}
               </div>
             )
           )}

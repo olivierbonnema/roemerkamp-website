@@ -1,5 +1,5 @@
 import { SITE_URL } from "@/lib/site"
-import { INVITE_VALID_DAYS } from "@/lib/invite-token"
+import { INVITE_VALID_DAYS } from "@/lib/invite-validity"
 
 // The account invite mails, in ONE place, so the first invite and a resent
 // invite are always the same mail:

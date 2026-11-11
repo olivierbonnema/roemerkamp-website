@@ -16,8 +16,9 @@
 // Storage and the link itself: lib/auth-links.ts (inviteLink).
 
 import { createHash, randomBytes } from "crypto"
+import { INVITE_VALID_DAYS } from "./invite-validity"
 
-export const INVITE_VALID_DAYS = 14
+export { INVITE_VALID_DAYS }
 
 export interface InviteTokenDoc {
   uid: string
