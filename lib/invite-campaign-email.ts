@@ -1,8 +1,10 @@
 // "Eigen e-mail" for a batch of invites, in the look of the LFA Update
 // newsletter (Origination/Nieuwsbrief/LFA-Update-editie-1-okt-2026.html):
 // white card on lilac, logo with a label on the right, purple heading, section
-// labels with a bar, a dark purple block with a white button, signature and a
-// grey footer. Olivier, 2026-11-11: the Financieringsgilde advisers get their
+// labels with a bar, a dark purple block with a white button, the signers and
+// a grey footer. The company is called Lange & Partners everywhere in the
+// text (Olivier, 2026-11-11); the statutory name only appears in the legal
+// line of the footer, worded as in the website footer. Olivier, 2026-11-11: the Financieringsgilde advisers get their
 // portal invite together with a note about the webinar and the slides.
 //
 // Pure (no Firebase, no env), so it is testable and the browser can use the
@@ -32,8 +34,16 @@ export interface CampaignMail {
   knop: string
   // Text below the block.
   na: string
-  // Signature. Replies go to `email`.
+  // Signature: one person per line, "naam | telefoon | e-mailadres" (phone and
+  // address optional). See parseSigners.
+  ondertekening: string
+  // Where replies go (the sending mailbox is a general one).
+  email: string
+}
+
+export interface Signer {
   naam: string
+  telefoon: string
   email: string
 }
 
@@ -45,7 +55,7 @@ export const DEFAULT_CAMPAIGN: CampaignMail = {
   kop: "Je account voor het aanvragenportaal",
   intro: [
     "Beste {voornaam},",
-    "Vandaag hebben wij een webinar gegeven voor Financieringsgilde. Lange Financieel Advies is nu officieel aangesloten als geldverstrekker, en in de webinar hebben we laten zien hoe we de samenwerking met alle kantoren verder vormgeven: voor welke dossiers je bij ons terechtkunt, hoe wij beoordelen en hoe het proces van aanvraag tot passeren verloopt.",
+    "Vandaag hebben wij een webinar gegeven voor Financieringsgilde. Lange & Partners is nu officieel aangesloten als geldverstrekker, en in de webinar hebben we laten zien hoe we de samenwerking met alle kantoren verder vormgeven: voor welke dossiers je bij ons terechtkunt, hoe wij beoordelen en hoe het proces van aanvraag tot passeren verloopt.",
     "# Het aanvragenportaal",
     "In het aanvragenportaal dien je in een paar stappen een aanvraag in namens je klant, voeg je de stukken toe en volg je de status. Je collega's van {kantoor} zien dezelfde aanvragen.",
   ].join("\n\n"),
@@ -57,17 +67,21 @@ export const DEFAULT_CAMPAIGN: CampaignMail = {
     "In de bijlage vind je de presentatie van de webinar. Handig als je er niet bij kon zijn, en ook als je er wel was en iets wilt nalezen.",
     "Heb je een dossier waar je over twijfelt, of een vraag over het portaal? Bel of mail gerust.",
   ].join("\n\n"),
-  naam: "Olivier Bonnema",
+  ondertekening: [
+    "Olivier Bonnema | 06 30 50 40 84 | olivier@langefa.nl",
+    "Marco Lange | 06 24 24 43 75 | marco@langefa.nl",
+    "Christian de Vries | 06 15 25 89 21 | christian@langefa.nl",
+  ].join("\n"),
   email: "olivier@langefa.nl",
 }
 
 const LIMITS: Record<keyof CampaignMail, number> = {
-  onderwerp: 150, label: 60, kop: 120, intro: 5000, ctaKop: 120, ctaTekst: 1500, knop: 40, na: 5000, naam: 80, email: 120,
+  onderwerp: 150, label: 60, kop: 120, intro: 5000, ctaKop: 120, ctaTekst: 1500, knop: 40, na: 5000, ondertekening: 800, email: 120,
 }
-const REQUIRED: (keyof CampaignMail)[] = ["onderwerp", "kop", "intro", "ctaKop", "knop", "naam", "email"]
+const REQUIRED: (keyof CampaignMail)[] = ["onderwerp", "kop", "intro", "ctaKop", "knop", "ondertekening", "email"]
 const LABELS: Record<keyof CampaignMail, string> = {
   onderwerp: "Onderwerp", label: "Label rechtsboven", kop: "Kop", intro: "Tekst boven de knop", ctaKop: "Titel van het blok met de knop",
-  ctaTekst: "Tekst in het blok met de knop", knop: "Knoptekst", na: "Tekst onder de knop", naam: "Naam ondertekening", email: "E-mailadres ondertekening",
+  ctaTekst: "Tekst in het blok met de knop", knop: "Knoptekst", na: "Tekst onder de knop", ondertekening: "Ondertekening", email: "Antwoordadres",
 }
 
 // Takes whatever the browser sent and returns clean strings, or the reason it
@@ -81,9 +95,29 @@ export function sanitizeCampaign(input: unknown): { mail?: CampaignMail; error?:
     if (v.length > LIMITS[key]) return { error: `${LABELS[key]} is te lang (maximaal ${LIMITS[key]} tekens).` }
     mail[key] = v
   }
-  if (/[\n]/.test(mail.onderwerp + mail.kop + mail.knop + mail.naam + mail.label + mail.ctaKop)) return { error: "Onderwerp, kop, label, titel, knoptekst en naam mogen geen regeleinde bevatten." }
-  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(mail.email)) return { error: "Het e-mailadres van de ondertekening is ongeldig." }
+  if (/[\n]/.test(mail.onderwerp + mail.kop + mail.knop + mail.label + mail.ctaKop)) return { error: "Onderwerp, kop, label, titel en knoptekst mogen geen regeleinde bevatten." }
+  if (!EMAIL_RE.test(mail.email)) return { error: "Het antwoordadres is ongeldig." }
+  const signers = parseSigners(mail.ondertekening)
+  if (signers.error) return { error: signers.error }
   return { mail }
+}
+
+const EMAIL_RE = /^[^\s@|]+@[^\s@|]+\.[a-z]{2,}$/i
+
+// The people under "Met vriendelijke groet": one per line, parts separated by
+// a vertical bar. Only the name is required.
+export function parseSigners(text: string): { signers: Signer[]; error?: string } {
+  const signers: Signer[] = []
+  for (const line of String(text ?? "").split("\n").map((l) => l.trim()).filter(Boolean)) {
+    const [naam = "", telefoon = "", email = "", ...rest] = line.split("|").map((x) => x.trim())
+    if (!naam) return { signers: [], error: "Ondertekening: op elke regel moet eerst een naam staan." }
+    if (rest.length) return { signers: [], error: `Ondertekening: de regel van ${naam} heeft te veel delen. Gebruik naam | telefoon | e-mailadres.` }
+    if (email && !EMAIL_RE.test(email)) return { signers: [], error: `Ondertekening: het e-mailadres van ${naam} is ongeldig.` }
+    signers.push({ naam, telefoon, email })
+  }
+  if (!signers.length) return { signers: [], error: "Ondertekening ontbreekt." }
+  if (signers.length > 6) return { signers: [], error: "Ondertekening: maximaal zes personen." }
+  return { signers }
 }
 
 // Does the text promise an attachment? Used to stop a send without one.
@@ -132,6 +166,21 @@ function blocks(text: string, vars: { voornaam: string; kantoor: string }, dark 
     .join("\n")
 }
 
+// The signers side by side where the mail client allows it (inline blocks),
+// below each other on a phone or in Outlook for Windows.
+function signersHtml(signers: Signer[]): string {
+  return signers
+    .map((p) => {
+      const lines = [
+        `<strong style="color:#1A1A2E;">${esc(p.naam)}</strong>`,
+        p.telefoon ? esc(p.telefoon).replace(/ /g, "&nbsp;") : "",
+        p.email ? `<a href="mailto:${esc(p.email)}" style="color:#2E2060;text-decoration:none;">${esc(p.email)}</a>` : "",
+      ].filter(Boolean)
+      return `<div style="display:inline-block;vertical-align:top;width:172px;margin:0 4px 12px 0;font-size:14px;line-height:21px;color:#1A1A2E;">${lines.join("<br>")}</div>`
+    })
+    .join("")
+}
+
 export function campaignSubject(mail: CampaignMail, vars: { voornaam: string; kantoor: string }): string {
   return fill(mail.onderwerp, vars)
 }
@@ -178,7 +227,7 @@ export function campaignMailHtml(opts: {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td style="vertical-align:middle;"><img class="logo" src="${esc(logoUrl)}" width="190" alt="Lange &amp; Partners Financieel Advies" style="width:190px;height:auto;"></td>
-        <td align="right" style="vertical-align:middle;padding-left:12px;font-size:12px;line-height:18px;color:#6B6B8A;text-transform:uppercase;letter-spacing:.08em;">LFA Update${mail.label ? `<br><span style="color:#2E2060;font-weight:600;">${esc(mail.label)}</span>` : ""}</td>
+        <td align="right" style="vertical-align:middle;padding-left:12px;font-size:12px;line-height:18px;color:#6B6B8A;text-transform:uppercase;letter-spacing:.08em;">Aanvragenportaal${mail.label ? `<br><span style="color:#2E2060;font-weight:600;">${esc(mail.label)}</span>` : ""}</td>
       </tr>
     </table>
   </td></tr>
@@ -208,15 +257,14 @@ export function campaignMailHtml(opts: {
   </td></tr>` : ""}
 
   <tr><td class="pad" style="padding:0 36px 28px 36px;">
-    <p style="margin:0;font-size:15px;line-height:24px;">Met vriendelijke groet,</p>
-    <p style="margin:10px 0 0 0;font-size:15px;line-height:22px;"><strong>${esc(mail.naam)}</strong><br>
-    <span style="color:#6B6B8A;">Lange Financieel Advies · Haarlem</span><br>
-    <a href="mailto:${esc(mail.email)}" style="color:#2E2060;text-decoration:none;">${esc(mail.email)}</a> · 023 517 3100 · <a href="https://www.nonbancaireleningen.nl" style="color:#2E2060;text-decoration:none;">nonbancaireleningen.nl</a></p>
+    <p style="margin:0 0 12px 0;font-size:15px;line-height:24px;">Met vriendelijke groet,</p>
+    ${signersHtml(parseSigners(mail.ondertekening).signers)}
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:22px;color:#6B6B8A;">Lange &amp; Partners · Haarlem · 023 517 3100 · <a href="https://www.nonbancaireleningen.nl" style="color:#2E2060;text-decoration:none;">nonbancaireleningen.nl</a></p>
   </td></tr>
 
   <tr><td class="pad" style="padding:18px 36px 22px 36px;background:#F4F4F8;border-top:1px solid #E2E2EC;font-size:11px;line-height:17px;color:#6B6B8A;">
-    <p style="margin:0 0 8px 0;">Lange &amp; Partners Financieel Advies B.V. (Wilhelminastraat 50, 2011 VN Haarlem) bemiddelt in financiering (AFM-vergunning bemiddeling). Aan deze e-mail kunnen geen rechten worden ontleend; iedere aanvraag wordt individueel beoordeeld.</p>
-    <p style="margin:0;">Je ontvangt deze e-mail omdat er voor jou een account voor het aanvragenportaal van Lange Financieel Advies is klaargezet. Niet verwacht? Dan kun je deze e-mail negeren.</p>
+    <p style="margin:0 0 8px 0;">Lange &amp; Partners is een handelsnaam van Lange Financieel Advies B.V., Wilhelminastraat 50, 2011 VN Haarlem, en bemiddelt in financiering (AFM-vergunning 12017043). Aan deze e-mail kunnen geen rechten worden ontleend; iedere aanvraag wordt individueel beoordeeld.</p>
+    <p style="margin:0;">Je ontvangt deze e-mail omdat er voor jou een account voor het aanvragenportaal van Lange &amp; Partners is klaargezet. Niet verwacht? Dan kun je deze e-mail negeren.</p>
   </td></tr>
 
 </table>

@@ -43,7 +43,7 @@ function parseSenderName(from: string): string {
   if (match) {
     return match[1].trim()
   }
-  return "Lange Financieel Advies"
+  return "Lange & Partners"
 }
 
 // Record each recipient of an email in `email_log`. Never throws - logging must

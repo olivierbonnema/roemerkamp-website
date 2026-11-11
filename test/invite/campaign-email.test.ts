@@ -5,7 +5,7 @@
 // rendered mail there (for a visual check).
 import { writeFileSync } from "fs"
 import {
-  ATTACHMENT_MAX_BYTES, DEFAULT_CAMPAIGN, campaignMailHtml, campaignSubject, firstNameOf, mentionsAttachment, sanitizeAttachment, sanitizeCampaign,
+  ATTACHMENT_MAX_BYTES, DEFAULT_CAMPAIGN, campaignMailHtml, campaignSubject, firstNameOf, mentionsAttachment, parseSigners, sanitizeAttachment, sanitizeCampaign,
 } from "../../lib/invite-campaign-email"
 
 let fails = 0
@@ -24,9 +24,16 @@ ok("button carries the personal link, escaped", html.includes('href="https://voo
 ok("link also shown as text for when the button fails", (html.match(/uitnodiging=abc_DEF-123/g) || []).length === 3)
 ok("validity stated", html.includes("14 dagen geldig"))
 ok("section labels from # lines", html.includes(">Het aanvragenportaal</td>") && html.includes(">Webinar gemist of nog even terugkijken?</td>") && !html.includes("# Het"))
-ok("signature and reply address", html.includes("<strong>Olivier Bonnema</strong>") && html.includes('href="mailto:olivier@langefa.nl"'))
+ok("three signers with phone and address", ["Olivier Bonnema", "Marco Lange", "Christian de Vries"].every((n) => html.includes(`>${n}</strong>`)) && ["olivier", "marco", "christian"].every((n) => html.includes(`href="mailto:${n}@langefa.nl"`)) && html.includes("06&nbsp;30&nbsp;50&nbsp;40&nbsp;84") && html.includes("06&nbsp;24&nbsp;24&nbsp;43&nbsp;75") && html.includes("06&nbsp;15&nbsp;25&nbsp;89&nbsp;21"))
+ok("signers in the order given", html.indexOf("Olivier Bonnema</strong>") < html.indexOf("Marco Lange</strong>") && html.indexOf("Marco Lange</strong>") < html.indexOf("Christian de Vries</strong>"))
+ok("company line under the signers", html.includes("Lange &amp; Partners · Haarlem · 023 517 3100"))
+// The company is called Lange & Partners; the statutory name appears once, in
+// the legal line of the footer, as on the website.
+ok("old company name only in the legal line", (html.match(/Lange Financieel Advies/g) || []).length === 1 && html.includes("Lange &amp; Partners is een handelsnaam van Lange Financieel Advies B.V."))
+ok("default text says Lange & Partners", DEFAULT_CAMPAIGN.intro.includes("Lange & Partners is nu officieel aangesloten") && !/Lange Financieel Advies|LFA/.test(JSON.stringify(DEFAULT_CAMPAIGN)))
+ok("no LFA in the mail", !/\bLFA\b/.test(html))
 ok("newsletter look: lilac page, purple heading, purple block", html.includes("background:#F4F4F8") && html.includes("color:#2E2060;\">Je account voor het aanvragenportaal</h1>") && html.includes("background:#2E2060;border-radius:8px"))
-ok("label at the top right", html.includes("LFA Update<br>") && html.includes(">November 2026</span>"))
+ok("label at the top right", html.includes("Aanvragenportaal<br>") && html.includes(">November 2026</span>"))
 ok("no dashes in the default text", !/[–—]/.test(JSON.stringify(DEFAULT_CAMPAIGN)))
 ok("subject", campaignSubject(DEFAULT_CAMPAIGN, { voornaam: "Jan", kantoor: "X" }) === "Webinar Financieringsgilde: je account voor het aanvragenportaal")
 
@@ -49,6 +56,18 @@ ok("missing button text refused", !!sanitizeCampaign({ ...DEFAULT_CAMPAIGN, knop
 ok("too long refused", (sanitizeCampaign({ ...DEFAULT_CAMPAIGN, intro: "x".repeat(5001) }).error || "").includes("te lang"))
 ok("line break in the subject refused", !!sanitizeCampaign({ ...DEFAULT_CAMPAIGN, onderwerp: "a\nb" }).error)
 ok("bad reply address refused", !!sanitizeCampaign({ ...DEFAULT_CAMPAIGN, email: "olivier" }).error)
+
+// signers
+const ps = parseSigners("Jan Voorbeeld | 06 12 34 56 78 | jan@voorbeeld.test\n\n  Anna Test  \nPiet Proef | | piet@voorbeeld.test")
+ok("signers parsed, only the name required", !ps.error && ps.signers.length === 3 && ps.signers[0].telefoon === "06 12 34 56 78" && ps.signers[1].naam === "Anna Test" && ps.signers[1].email === "" && ps.signers[2].telefoon === "" && ps.signers[2].email === "piet@voorbeeld.test")
+ok("signer without a name refused", !!parseSigners("| 06 12 34 56 78 | jan@voorbeeld.test").error)
+ok("signer with a bad address refused, by name", (parseSigners("Jan Voorbeeld | 06 | jan-at-voorbeeld").error || "").includes("Jan Voorbeeld"))
+ok("too many parts refused", !!parseSigners("Jan | 06 | jan@voorbeeld.test | extra").error)
+ok("no signers refused", !!parseSigners(" \n ").error && !!sanitizeCampaign({ ...DEFAULT_CAMPAIGN, ondertekening: "" }).error)
+ok("more than six signers refused", !!parseSigners(Array.from({ length: 7 }, (_, i) => `Persoon ${i}`).join("\n")).error)
+ok("bad signer blocks the whole mail", !!sanitizeCampaign({ ...DEFAULT_CAMPAIGN, ondertekening: "Jan | 06 | geen-adres" }).error)
+const h3 = campaignMailHtml({ mail: { ...DEFAULT_CAMPAIGN, ondertekening: "Anna <i>Test</i>" }, voornaam: "Jan", kantoor: "K", setupLink: LINK, logoUrl: "x" })
+ok("signer name escaped, no empty phone or address line", h3.includes("Anna &lt;i&gt;Test&lt;/i&gt;</strong></div>"))
 ok("optional fields may be empty", !sanitizeCampaign({ ...DEFAULT_CAMPAIGN, na: "", label: "", ctaTekst: "" }).error)
 ok("garbage refused", !!sanitizeCampaign(null).error && !!sanitizeCampaign({ onderwerp: 5 }).error)
 

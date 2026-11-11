@@ -55,7 +55,11 @@ const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
 // Time between two invite mails (see the note on Exchange Online above).
 const SEND_PAUSE_MS = 2500
 // Where the text of an own mail is kept in this browser, so a reload does not lose it.
-const DRAFT_KEY = "lfa-invite-campaign-v1"
+// v2 (2026-11-11): the signature became a list of signers and the company is
+// called Lange & Partners everywhere; a v1 draft is carried over once.
+const DRAFT_KEY = "lfa-invite-campaign-v2"
+const OLD_DRAFT_KEY = "lfa-invite-campaign-v1"
+const OLD_NAME = /Lange Financieel Advies/g
 
 const INPUT = "w-full h-[40px] px-4 text-sm font-sans bg-white border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
 const AREA = "w-full px-4 py-3 text-sm font-sans bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors leading-relaxed"
@@ -127,11 +131,23 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(DRAFT_KEY)
-      if (raw) {
-        const saved = JSON.parse(raw) as Partial<CampaignMail>
+      const old = raw ? null : window.localStorage.getItem(OLD_DRAFT_KEY)
+      if (raw || old) {
+        const saved = JSON.parse((raw || old) as string) as Record<string, unknown>
         setCamp((c) => {
           const next = { ...c }
-          for (const k of Object.keys(c) as (keyof CampaignMail)[]) if (typeof saved[k] === "string") next[k] = saved[k] as string
+          for (const k of Object.keys(c) as (keyof CampaignMail)[]) {
+            if (typeof saved[k] !== "string") continue
+            // From a v1 draft: keep the admin's own wording, with the company
+            // name corrected. The signers start from the new default.
+            next[k] = raw ? (saved[k] as string) : (saved[k] as string).replace(OLD_NAME, "Lange & Partners")
+          }
+          if (!raw) {
+            try {
+              window.localStorage.setItem(DRAFT_KEY, JSON.stringify(next))
+              window.localStorage.removeItem(OLD_DRAFT_KEY)
+            } catch { /* not essential */ }
+          }
           return next
         })
         return
@@ -139,8 +155,9 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
     } catch {
       /* no stored draft, or storage is blocked: start from the default text */
     }
+    // A fresh start: replies go to whoever is logged in.
     const u = auth.currentUser
-    if (u?.email && u.displayName) setCamp((c) => ({ ...c, naam: u.displayName as string, email: u.email as string }))
+    if (u?.email) setCamp((c) => ({ ...c, email: u.email as string }))
   }, [])
 
   function setField(key: keyof CampaignMail, value: string) {
@@ -153,7 +170,10 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
   }
 
   function resetCampaign() {
-    try { window.localStorage.removeItem(DRAFT_KEY) } catch { /* not essential */ }
+    try {
+      window.localStorage.removeItem(DRAFT_KEY)
+      window.localStorage.removeItem(OLD_DRAFT_KEY)
+    } catch { /* not essential */ }
     setCamp(DEFAULT_CAMPAIGN)
     setTestMsg("")
   }
@@ -436,15 +456,16 @@ export function PartnerImport({ pending, onChanged }: { pending: PendingInvite[]
                 <label className={LABEL}>Tekst onder de knop (optioneel)</label>
                 <textarea rows={6} value={camp.na} onChange={(e) => setField("na", e.target.value)} className={AREA} />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={LABEL}>Ondertekening: naam</label>
-                  <input type="text" value={camp.naam} onChange={(e) => setField("naam", e.target.value)} className={INPUT} />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className={LABEL}>Ondertekening (één persoon per regel: naam | telefoon | e-mailadres)</label>
+                  <textarea rows={4} value={camp.ondertekening} onChange={(e) => setField("ondertekening", e.target.value)} className={`${AREA} font-mono text-[12px]`} />
+                  <p className="text-[11px] text-gray-400 font-sans mt-1">Daaronder komt automatisch: Lange &amp; Partners · Haarlem · 023 517 3100 · nonbancaireleningen.nl</p>
                 </div>
                 <div>
-                  <label className={LABEL}>Ondertekening: e-mailadres</label>
+                  <label className={LABEL}>Antwoorden gaan naar</label>
                   <input type="email" value={camp.email} onChange={(e) => setField("email", e.target.value)} className={INPUT} />
-                  <p className="text-[11px] text-gray-400 font-sans mt-1">Antwoorden op de e-mail komen op dit adres binnen.</p>
+                  <p className="text-[11px] text-gray-400 font-sans mt-1">Wie op de e-mail antwoordt, schrijft naar dit adres.</p>
                 </div>
               </div>
               <div>

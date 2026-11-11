@@ -437,7 +437,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-sans text-gray-800 whitespace-pre-wrap">{b.message}</p>
                     <p className="text-xs font-sans text-gray-400 mt-1.5">
-                      {b.type === "admin_message" ? "Lange Financieel Advies" :
+                      {b.type === "admin_message" ? "Lange & Partners" :
                        b.type === "document_upload" ? "Documenten" : "Statuswijziging"}
                       {" - "}
                       {formatDateTime(b.createdAt)}
