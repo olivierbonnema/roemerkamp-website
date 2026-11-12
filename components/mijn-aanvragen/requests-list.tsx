@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { useAuth } from "@/contexts/auth-context"
 import { deleteDraft as deleteLocalDraft, draftPayload, isOwnDraft, listDrafts, loadDraft, localDocs, markDraftSynced } from "@/lib/concept-local"
 import { anyConceptBusy, liveConceptSync } from "@/lib/concept-sync"
+import { ContactPanel, Fact, FACT_GRID, Panel, PortalColumns, SectionTitle, ui } from "@/components/portaal/portal-ui"
 
 /* ── Types ── */
 interface Aanvraag {
@@ -70,12 +72,14 @@ const newestFirst = (a: Draft, b: Draft) => (b.savedAt || "").localeCompare(a.sa
 type Tab = "alles" | "ingediend" | "concept"
 
 /* ── Status config ── */
-const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  ingediend:        { label: "Ingediend",              color: "#1E3A5F", bg: "#EFF6FF" },
-  in_behandeling:   { label: "In behandeling",         color: "#92400E", bg: "#FFFBEB" },
-  aanvullend_nodig: { label: "Aanvullende info nodig", color: "#7C3AED", bg: "#F5F3FF" },
-  goedgekeurd:      { label: "Goedgekeurd",            color: "#065F46", bg: "#ECFDF5" },
-  afgewezen:        { label: "Afgewezen",              color: "#991B1B", bg: "#FEF2F2" },
+// Label and the colour of its marker. The marker is a small square, the shape
+// of the orange bar in the page head.
+const STATUS_LABELS: Record<string, { label: string; marker: string }> = {
+  ingediend:        { label: "Ingediend",              marker: "bg-[#1e3a5f]" },
+  in_behandeling:   { label: "In behandeling",         marker: "bg-[#f75d20]" },
+  aanvullend_nodig: { label: "Aanvullende info nodig", marker: "bg-[#311e86]" },
+  goedgekeurd:      { label: "Goedgekeurd",            marker: "bg-emerald-600" },
+  afgewezen:        { label: "Afgewezen",              marker: "bg-red-600" },
 }
 
 const STEP_LABELS = ["Aanvrager", "Object", "Financiering", "Documenten", "Overzicht"]
@@ -94,12 +98,10 @@ function formatCurrency(raw: string) {
 
 /* ── Sub-components ── */
 function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_LABELS[status] ?? { label: status, color: "#374151", bg: "#F3F4F6" }
+  const s = STATUS_LABELS[status] ?? { label: status, marker: "bg-gray-400" }
   return (
-    <span
-      className="px-3 py-1 rounded-full text-xs font-medium font-sans"
-      style={{ color: s.color, backgroundColor: s.bg }}
-    >
+    <span className="inline-flex items-center gap-2 text-sm font-medium text-[#1e3a5f] whitespace-nowrap">
+      <span aria-hidden="true" className={`w-2 h-2 shrink-0 ${s.marker}`} />
       {s.label}
     </span>
   )
@@ -115,6 +117,15 @@ interface DraftUploads {
   notKept: number
 }
 
+// One row of the list, between hairlines: the build of a case on /casussen.
+const ROW = "py-6 border-b border-gray-200"
+const ROW_TITLE = "text-[19px] md:text-xl font-semibold text-[#1e3a5f] leading-snug"
+const FACTS = `${FACT_GRID} gap-y-3 mt-4`
+// "Ja" on the question whether something may be removed.
+const DANGER_BUTTON =
+  "inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors " +
+  "cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+
 function DraftCard({ draft, uploads, onDiscard }: { draft: Draft; uploads?: DraftUploads; onDiscard: () => void }) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
@@ -127,72 +138,42 @@ function DraftCard({ draft, uploads, onDiscard }: { draft: Draft; uploads?: Draf
   const firstObject = draft.objects?.[0]
 
   return (
-    <div className="border border-dashed border-gray-300 rounded-2xl p-6 bg-white">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-        <div>
-          <p className="font-serif text-lg text-[#1E3A5F] font-normal">
-            {draftName(draft) || "Naamloos concept"}
-          </p>
-          <p className="text-xs text-gray-400 font-sans mt-0.5">
-            Laatst opgeslagen: {formatDate(draft.savedAt)}
-          </p>
-        </div>
-        <span className="self-start px-3 py-1 rounded-full text-xs font-medium font-sans bg-gray-100 text-gray-500">
+    <li className={ROW} data-concept={draft.id}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 mb-1.5">
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-[#5b6472]">
+          <span aria-hidden="true" className="w-2 h-2 shrink-0 border border-[#5b6472]" />
           Concept
         </span>
+        <span className="text-sm text-[#5b6472]">Laatst opgeslagen: {formatDate(draft.savedAt)}</span>
       </div>
+      <p className={ROW_TITLE}>{draftName(draft) || "Naamloos concept"}</p>
 
-      {/* Progress bar */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-[11px] text-gray-400 font-sans">
+      {/* Progress */}
+      <div className="mt-3 max-w-md">
+        <div className="flex justify-between items-baseline mb-1.5">
+          <span className="text-sm text-[#5b6472]">
             Stap {stepsDone} van {stepsTotal}: {STEP_LABELS[draft.step] ?? "Overzicht"}
           </span>
-          <span className="text-[11px] text-gray-400 font-sans">{pct}%</span>
+          <span className="text-sm text-[#5b6472]">{pct}%</span>
         </div>
-        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#311E86] rounded-full transition-all"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="h-1 w-full bg-gray-200 overflow-hidden">
+          <div className="h-full bg-[#311e86] transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
       {/* Summary of what's been filled in */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans mb-5">
-        {firstObject?.adres && (
-          <div>
-            <span className="text-gray-400 text-[12px]">Object</span>
-            <p className="text-gray-900 font-medium truncate">
-              {[firstObject.adres, firstObject.plaats].filter(Boolean).join(", ")}
-            </p>
-          </div>
-        )}
-        {draft.leningDoel && (
-          <div>
-            <span className="text-gray-400 text-[12px]">Doel financiering</span>
-            <p className="text-gray-900 font-medium">{draft.leningDoel}</p>
-          </div>
-        )}
-        {draft.leningBedrag && (
-          <div>
-            <span className="text-gray-400 text-[12px]">Leningbedrag</span>
-            <p className="text-gray-900 font-medium">{formatCurrency(draft.leningBedrag)}</p>
-          </div>
-        )}
-        {(keptCount > 0 || !!uploads?.saving || !!uploads?.notKept) && (
-          <div>
-            <span className="text-gray-400 text-[12px]">Documenten</span>
-            <p className="text-gray-900 font-medium">{keptCount} bewaard</p>
-          </div>
-        )}
-      </div>
+      <dl className={FACTS}>
+        {firstObject?.adres && <Fact label="Object" value={[firstObject.adres, firstObject.plaats].filter(Boolean).join(", ")} />}
+        <Fact label="Doel financiering" value={draft.leningDoel} />
+        {draft.leningBedrag && <Fact label="Leningbedrag" value={formatCurrency(draft.leningBedrag)} />}
+        {(keptCount > 0 || !!uploads?.saving || !!uploads?.notKept) && <Fact label="Documenten" value={`${keptCount} bewaard`} />}
+      </dl>
 
       {!!uploads?.saving && (
-        <div className="mb-5 px-4 py-3 rounded-xl bg-[#f0f4ff] border border-[#d9e2ff] font-sans flex items-start gap-3">
-          <span className="mt-0.5 w-4 h-4 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
-          <p className="text-[13px] text-[#1E3A5F]">
-            <span className="font-medium">
+        <div className={`${ui.noticeInfo} mt-4 flex items-start gap-3`}>
+          <span className={`${ui.spinner} mt-0.5 w-4 h-4 border-2`} />
+          <p className="text-[15px] leading-relaxed text-[#1e3a5f]">
+            <span className="font-semibold">
               {uploads.saving === 1 ? "Eén document wordt nog bewaard." : `${uploads.saving} documenten worden nog bewaard.`}
             </span>{" "}
             Sluit of ververs dit tabblad niet tot dat klaar is.
@@ -200,9 +181,9 @@ function DraftCard({ draft, uploads, onDiscard }: { draft: Draft; uploads?: Draf
         </div>
       )}
       {!uploads?.saving && !!uploads?.notKept && (
-        <div className="mb-5 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 font-sans">
-          <p className="text-[13px] text-amber-800">
-            <span className="font-medium">
+        <div className={`${ui.noticeWarn} mt-4`}>
+          <p className="text-[15px] leading-relaxed text-amber-900">
+            <span className="font-semibold">
               {uploads.notKept === 1 ? "Eén document is niet bewaard." : `${uploads.notKept} documenten zijn niet bewaard.`}
             </span>{" "}
             Open het concept om te zien om welk document het gaat.
@@ -210,39 +191,27 @@ function DraftCard({ draft, uploads, onDiscard }: { draft: Draft; uploads?: Draf
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-        <button
-          onClick={() => router.push(`/financieringsaanvraag?draft=${draft.id}`)}
-          className="px-6 py-2.5 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
-        >
-          Doorgaan →
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-5">
+        <button onClick={() => router.push(`/financieringsaanvraag?draft=${draft.id}`)} className={ui.buttonPrimary}>
+          Doorgaan
         </button>
         {!confirming ? (
-          <button
-            onClick={() => setConfirming(true)}
-            className="px-6 py-2.5 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
-          >
+          <button onClick={() => setConfirming(true)} className={ui.linkQuiet}>
             Verwijderen
           </button>
         ) : (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-sans text-gray-500">Uit uw overzicht verwijderen?</span>
-            <button
-              onClick={() => { setConfirming(false); onDiscard() }}
-              className="px-4 py-2 text-sm font-medium font-sans rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[15px] text-[#2a2f3a]">Uit uw overzicht verwijderen?</span>
+            <button onClick={() => { setConfirming(false); onDiscard() }} className={DANGER_BUTTON}>
               Ja
             </button>
-            <button
-              onClick={() => setConfirming(false)}
-              className="px-4 py-2 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-500 hover:border-gray-400 transition-colors"
-            >
+            <button onClick={() => setConfirming(false)} className={ui.buttonSmall}>
               Nee
             </button>
           </div>
         )}
       </div>
-    </div>
+    </li>
   )
 }
 
@@ -267,105 +236,73 @@ function AanvraagCard({ a, isAdmin, onDelete, showHerkomst }: { a: Aanvraag; isA
   }
 
   return (
-    <div
-      className="border border-gray-200 rounded-2xl p-6 bg-white hover:border-[#311E86]/30 transition-colors cursor-pointer"
+    <li
+      className={`${ROW} cursor-pointer group`}
+      data-aanvraag={a.id}
       onClick={() => router.push(`/mijn-aanvragen/${a.id}`)}
     >
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-        <div>
-          <p className="font-serif text-lg text-[#1E3A5F] font-normal">{a.naam || "-"}</p>
-          <p className="text-xs text-gray-400 font-sans mt-0.5">{formatDate(a.createdAt)}</p>
-          {/* Bij een hoofdaccount dat meerdere kantoren overziet: van welk kantoor,
-              en welke adviseur. Bij één kantoor zou dit op elke regel hetzelfde zijn. */}
-          {showHerkomst && (a.kantoor || a.userEmail) && (
-            <p className="text-xs text-gray-500 font-sans mt-1">
-              {a.kantoor && <span className="font-medium text-[#311E86]">{a.kantoor}</span>}
-              {a.kantoor && a.userEmail && <span className="text-gray-300"> · </span>}
-              {a.userEmail && <span>ingediend door {a.userEmail}</span>}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <StatusBadge status={a.status} />
-          {isAdmin && !confirming && (
-            <button
-              onClick={() => setConfirming(true)}
-              className="text-xs font-sans text-gray-400 hover:text-red-500 transition-colors px-2 py-1 rounded"
-            >
-              Verwijderen
-            </button>
-          )}
-          {isAdmin && confirming && (
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-sans text-gray-500">Zeker?</span>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="text-xs font-sans text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded transition-colors disabled:opacity-50"
-              >
-                {deleting ? "…" : "Ja"}
-              </button>
-              <button
-                onClick={() => setConfirming(false)}
-                className="text-xs font-sans text-gray-500 hover:text-gray-700 px-2 py-1 rounded transition-colors"
-              >
-                Nee
-              </button>
-            </div>
-          )}
-        </div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 mb-1.5">
+        <StatusBadge status={a.status} />
+        <span className="text-sm text-[#5b6472]">{formatDate(a.createdAt)}</span>
       </div>
+      <p className={`${ROW_TITLE} group-hover:text-[#311e86] group-hover:underline`}>{a.naam || "-"}</p>
+      {/* Bij een hoofdaccount dat meerdere kantoren overziet: van welk kantoor,
+          en welke adviseur. Bij één kantoor zou dit op elke regel hetzelfde zijn. */}
+      {showHerkomst && (a.kantoor || a.userEmail) && (
+        <p className="text-sm text-[#5b6472] mt-1">
+          {a.kantoor && <span className="font-medium text-[#311e86]">{a.kantoor}</span>}
+          {a.kantoor && a.userEmail && <span>, </span>}
+          {a.userEmail && <span>ingediend door {a.userEmail}</span>}
+        </p>
+      )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans">
-        <div>
-          <span className="text-gray-400 text-[12px]">Object</span>
-          <p className="text-gray-900 font-medium truncate">
-            {[a.objectAdres, a.objectPlaats].filter(Boolean).join(", ") || "-"}
-          </p>
-        </div>
-        <div>
-          <span className="text-gray-400 text-[12px]">Type vastgoed</span>
-          <p className="text-gray-900 font-medium">{a.objectType || "-"}</p>
-        </div>
-        <div>
-          <span className="text-gray-400 text-[12px]">Doel financiering</span>
-          <p className="text-gray-900 font-medium">{a.leningDoel || "-"}</p>
-        </div>
-        <div>
-          <span className="text-gray-400 text-[12px]">Leningbedrag</span>
-          <p className="text-gray-900 font-medium">
-            {a.leningBedrag ? formatCurrency(a.leningBedrag) : "-"}
-          </p>
-        </div>
-        <div>
-          <span className="text-gray-400 text-[12px]">Looptijd</span>
-          <p className="text-gray-900 font-medium">{a.looptijd || "-"}</p>
-        </div>
-        <div>
-          <span className="text-gray-400 text-[12px]">Documenten</span>
-          <p className="text-gray-900 font-medium">{a.aantalBestanden ?? 0} bestanden</p>
-        </div>
-      </div>
+      <dl className={FACTS}>
+        <Fact label="Object" value={[a.objectAdres, a.objectPlaats].filter(Boolean).join(", ") || "-"} />
+        <Fact label="Type vastgoed" value={a.objectType || "-"} />
+        <Fact label="Doel financiering" value={a.leningDoel || "-"} />
+        <Fact label="Leningbedrag" value={a.leningBedrag ? formatCurrency(a.leningBedrag) : "-"} />
+        <Fact label="Looptijd" value={a.looptijd || "-"} />
+        <Fact label="Documenten" value={`${a.aantalBestanden ?? 0} bestanden`} />
+      </dl>
 
-      {isAdmin && a.driveFolderUrl && (
-        <div className="mt-4 pt-4 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-5">
+        {/* A real link next to the click on the row: it also works from the
+            keyboard and can be opened in a new tab. */}
+        <Link href={`/mijn-aanvragen/${a.id}`} onClick={(e) => e.stopPropagation()} className={`${ui.link} text-sm`}>
+          Bekijk details
+        </Link>
+        {isAdmin && a.driveFolderUrl && (
           <a
             href={a.driveFolderUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-sans text-[#311E86] hover:underline"
+            onClick={(e) => e.stopPropagation()}
+            className={`${ui.link} text-sm`}
           >
-            Documenten bekijken in OneDrive →
+            Documenten bekijken in OneDrive
           </a>
-        </div>
-      )}
-
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <span className="text-xs font-sans text-[#311E86] font-medium">
-          Bekijk details →
-        </span>
+        )}
+        {isAdmin && (
+          <span className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            {!confirming ? (
+              <button onClick={() => setConfirming(true)} className={ui.linkQuiet}>
+                Verwijderen
+              </button>
+            ) : (
+              <>
+                <span className="text-[15px] text-[#2a2f3a]">Zeker?</span>
+                <button onClick={handleDelete} disabled={deleting} className={DANGER_BUTTON}>
+                  {deleting ? "…" : "Ja"}
+                </button>
+                <button onClick={() => setConfirming(false)} className={ui.buttonSmall}>
+                  Nee
+                </button>
+              </>
+            )}
+          </span>
+        )}
       </div>
-    </div>
+    </li>
   )
 }
 
@@ -531,29 +468,32 @@ export function RequestsList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PortalColumns>
+        <div className="flex items-center justify-center py-20">
+          <div className={`${ui.spinner} w-8 h-8 border-2`} />
+        </div>
+      </PortalColumns>
     )
   }
 
   if (error) {
-    return <p className="text-red-500 text-sm font-sans py-10">{error}</p>
+    return (
+      <PortalColumns aside={<ContactPanel />}>
+        <p className={ui.error} role="alert">{error}</p>
+      </PortalColumns>
+    )
   }
 
   const isEmpty = totalCount === 0
 
   if (isEmpty) {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-400 font-sans mb-6">U heeft nog geen financieringsaanvragen.</p>
-        <button
-          onClick={() => router.push("/financieringsaanvraag")}
-          className="px-8 py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
-        >
+      <PortalColumns aside={<ContactPanel />}>
+        <p className="text-lg md:text-[19px] leading-relaxed text-[#1e3a5f] mb-6">U heeft nog geen financieringsaanvragen.</p>
+        <button onClick={() => router.push("/financieringsaanvraag")} className={ui.buttonCta}>
           Aanvraag starten
         </button>
-      </div>
+      </PortalColumns>
     )
   }
 
@@ -561,77 +501,79 @@ export function RequestsList() {
   const showIngediend = aanvragen.length > 0 && (activeTab === "alles" || activeTab === "ingediend")
 
   return (
-    <div>
+    <PortalColumns
+      aside={
+        <>
+          {/* What an adviser comes here for most, next to the list. */}
+          <Panel accent title="Nieuwe aanvraag">
+            <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-4">
+              Dien een nieuwe financieringsaanvraag in via ons formulier.
+            </p>
+            <button onClick={() => router.push("/financieringsaanvraag")} className={`${ui.buttonCta} w-full`}>
+              Nieuwe aanvraag indienen
+            </button>
+          </Panel>
+          <ContactPanel />
+        </>
+      }
+    >
       {/* Tab bar */}
-      <div className="flex items-center gap-1 mb-6 border-b border-gray-100 pb-0">
+      <div className="flex items-center gap-7 border-b border-gray-200" role="group" aria-label="Aanvragen tonen">
         {tabs.map((t) => (
           <button
             key={t.id}
+            aria-pressed={activeTab === t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium font-sans rounded-t-lg transition-colors relative -mb-px ${
+            className={`pb-3 -mb-px text-[15px] font-medium border-b-[3px] transition-colors cursor-pointer ${
               activeTab === t.id
-                ? "text-[#311E86] border-b-2 border-[#311E86]"
-                : "text-gray-400 hover:text-gray-700"
+                ? "border-[#f75d20] text-[#1e3a5f]"
+                : "border-transparent text-[#5b6472] hover:text-[#1e3a5f]"
             }`}
           >
             {t.label}
-            {t.count > 0 && (
-              <span
-                className={`ml-2 text-[11px] px-1.5 py-0.5 rounded-full font-sans ${
-                  activeTab === t.id ? "bg-[#311E86]/10 text-[#311E86]" : "bg-gray-100 text-gray-400"
-                }`}
-              >
-                {t.count}
-              </span>
-            )}
+            {t.count > 0 && <span className="ml-1.5 font-normal text-[#5b6472]">{t.count}</span>}
           </button>
         ))}
       </div>
 
-      {discardError && <p className="text-sm text-red-500 font-sans mb-4">{discardError}</p>}
+      {discardError && <p className={`${ui.error} mt-4`} role="alert">{discardError}</p>}
 
-      <div className="space-y-4">
-        {/* Draft cards */}
-        {showDrafts && drafts.map(draft => (
-          <DraftCard key={draft.id} draft={draft} uploads={uploadsOf(draft.id)} onDiscard={() => discardDraft(draft)} />
-        ))}
+      {/* Draft rows. With both kinds in view each gets its heading. */}
+      {showDrafts && showIngediend && <SectionTitle className="mt-10">Concepten</SectionTitle>}
+      {showDrafts && (
+        <ul className="list-none m-0 p-0">
+          {drafts.map(draft => (
+            <DraftCard key={draft.id} draft={draft} uploads={uploadsOf(draft.id)} onDiscard={() => discardDraft(draft)} />
+          ))}
+        </ul>
+      )}
 
-        {/* Divider between drafts and submitted */}
-        {showDrafts && showIngediend && (
-          <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-[11px] text-gray-400 font-sans whitespace-nowrap">Ingediende aanvragen</span>
-            <div className="flex-1 h-px bg-gray-100" />
-          </div>
-        )}
+      {/* Heading between drafts and submitted */}
+      {showDrafts && showIngediend && (
+        <SectionTitle className="mt-12">Ingediende aanvragen</SectionTitle>
+      )}
 
-        {/* Submitted requests */}
-        {showIngediend && aanvragen.map((a) => (
-          <AanvraagCard
-            key={a.id}
-            a={a}
-            isAdmin={isAdmin}
-            showHerkomst={meerdereKantoren}
-            onDelete={() => setAanvragen(prev => prev.filter(x => x.id !== a.id))}
-          />
-        ))}
+      {/* Submitted requests */}
+      {showIngediend && (
+        <ul className="list-none m-0 p-0">
+          {aanvragen.map((a) => (
+            <AanvraagCard
+              key={a.id}
+              a={a}
+              isAdmin={isAdmin}
+              showHerkomst={meerdereKantoren}
+              onDelete={() => setAanvragen(prev => prev.filter(x => x.id !== a.id))}
+            />
+          ))}
+        </ul>
+      )}
 
-        {/* Empty state for filtered tab */}
-        {!showDrafts && !showIngediend && (
-          <p className="text-center text-gray-400 font-sans py-12 text-sm">
-            Geen {activeTab === "concept" ? "concepten" : "ingediende aanvragen"} gevonden.
-          </p>
-        )}
-      </div>
-
-      <div className="pt-6">
-        <button
-          onClick={() => router.push("/financieringsaanvraag")}
-          className="px-8 py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
-        >
-          Nieuwe aanvraag indienen
-        </button>
-      </div>
-    </div>
+      {/* Empty state for filtered tab */}
+      {!showDrafts && !showIngediend && (
+        <p className={`${ui.text} py-10`}>
+          Geen {activeTab === "concept" ? "concepten" : "ingediende aanvragen"} gevonden.
+        </p>
+      )}
+    </PortalColumns>
   )
 }

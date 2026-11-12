@@ -2,78 +2,42 @@
 
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
+import { ui } from "@/components/portaal/portal-ui"
 
+// The first screen of the portal: where do you want to go. An index with
+// hairlines, as the list of situations on the homepage, not a grid of tiles.
 export function PortalDashboard() {
   const { user, isAdmin } = useAuth()
   const firstName = user?.displayName?.split(" ")[0] || null
 
+  const rows = [
+    { title: "Mijn aanvragen", text: "Bekijk uw ingediende en opgeslagen aanvragen en volg hun status.", href: "/mijn-aanvragen", label: "Bekijken", main: false },
+    { title: "Nieuwe aanvraag indienen", text: "Dien een nieuwe financieringsaanvraag in via ons formulier.", href: "/financieringsaanvraag", label: "Starten", main: true },
+    { title: "Accountinstellingen", text: "Beheer uw accountgegevens en wijzig uw wachtwoord.", href: "/account", label: "Instellingen", main: false },
+    ...(isAdmin ? [{ title: "Beheer", text: "Beheer aanvragen en accounts als beheerder.", href: "/admin", label: "Beheer", main: false }] : []),
+  ]
+
   return (
-    <div className="space-y-10">
-      <div className="max-w-xl">
-        <p className="text-gray-700 leading-relaxed">
-          {firstName ? `Goedendag${firstName ? `, ${firstName}` : ""}. ` : ""}
-          Via dit portaal kunt u uw financieringsaanvragen beheren, nieuwe aanvragen indienen en uw accountgegevens inzien.
-          Kies hieronder wat u wilt doen.
-        </p>
-      </div>
+    <div>
+      <p className="text-lg md:text-[19px] leading-relaxed text-[#1e3a5f] max-w-xl">
+        {firstName ? `Goedendag, ${firstName}. ` : ""}
+        Via dit portaal kunt u uw financieringsaanvragen beheren, nieuwe aanvragen indienen en uw accountgegevens inzien.
+        Kies hieronder wat u wilt doen.
+      </p>
 
-      <div className="space-y-4">
-        <div className="flex items-start gap-6 py-5 border-t border-gray-100">
-          <div className="flex-1">
-            <p className="font-serif text-lg text-[#1E3A5F] mb-1">Mijn aanvragen</p>
-            <p className="text-sm text-gray-500 font-sans">Bekijk uw ingediende en opgeslagen aanvragen en volg hun status.</p>
-          </div>
-          <Link
-            href="/mijn-aanvragen"
-            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
-          >
-            Bekijken →
-          </Link>
-        </div>
-
-        <div className="flex items-start gap-6 py-5 border-t border-gray-100">
-          <div className="flex-1">
-            <p className="font-serif text-lg text-[#1E3A5F] mb-1">Nieuwe aanvraag indienen</p>
-            <p className="text-sm text-gray-500 font-sans">Dien een nieuwe financieringsaanvraag in via ons formulier.</p>
-          </div>
-          <Link
-            href="/financieringsaanvraag"
-            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
-          >
-            Starten →
-          </Link>
-        </div>
-
-        <div className="flex items-start gap-6 py-5 border-t border-gray-100">
-          <div className="flex-1">
-            <p className="font-serif text-lg text-[#1E3A5F] mb-1">Accountinstellingen</p>
-            <p className="text-sm text-gray-500 font-sans">Beheer uw accountgegevens en wijzig uw wachtwoord.</p>
-          </div>
-          <Link
-            href="/account"
-            className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
-          >
-            Instellingen →
-          </Link>
-        </div>
-
-        {isAdmin && (
-          <div className="flex items-start gap-6 py-5 border-t border-gray-100">
-            <div className="flex-1">
-              <p className="font-serif text-lg text-[#1E3A5F] mb-1">Beheer</p>
-              <p className="text-sm text-gray-500 font-sans">Beheer aanvragen en accounts als beheerder.</p>
+      <ul className="list-none m-0 p-0 mt-8 border-t border-gray-200">
+        {rows.map((row) => (
+          <li key={row.href} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 py-5 border-b border-gray-200">
+            <div className="flex-1 min-w-0">
+              <p className="text-[17px] font-semibold text-[#1e3a5f]">{row.title}</p>
+              <p className="text-[15px] text-gray-600 leading-relaxed mt-0.5">{row.text}</p>
             </div>
-            <Link
-              href="/admin"
-              className="flex-shrink-0 px-5 py-2 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 text-[#311e86] hover:bg-[#311e86]/10 transition-colors"
-            >
-              Beheer →
+            <Link href={row.href} className={`${row.main ? ui.buttonCta : ui.buttonSecondary} self-start sm:self-auto shrink-0 sm:min-w-[132px]`}>
+              {row.label}
             </Link>
-          </div>
-        )}
-
-        <div className="border-t border-gray-100" />
-      </div>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

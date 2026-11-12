@@ -4,7 +4,8 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { uploadFilesDirect } from "@/lib/upload-direct"
-import { ArrowLeft, Upload, X, CheckCircle2, Clock, FileText, Send } from "lucide-react"
+import { ArrowLeft, Upload, X, Check, Clock } from "lucide-react"
+import { ContactPanel, Fact, FACT_GRID, Panel, PortalColumns, SectionTitle, ui } from "@/components/portaal/portal-ui"
 
 interface AanvraagObject {
   type?: string
@@ -106,17 +107,17 @@ function formatDateStr(raw?: string) {
   return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
 }
 
-// One label/value cell. Renders nothing when the value is empty, so a group
-// never shows blank rows for fields the applicant left out.
-function Field({ label, value }: { label: string; value?: string | number | null }) {
-  const v = value === 0 ? "0" : (typeof value === "string" ? value.trim() : value)
-  if (v === undefined || v === null || v === "") return null
-  return (
-    <div>
-      <span className="text-gray-400 text-[12px]">{label}</span>
-      <p className="text-gray-900 font-medium break-words">{v}</p>
-    </div>
-  )
+// A group of facts under a small heading. Each fact renders nothing when its
+// value is empty (see Fact), so a group never shows blank rows for fields the
+// applicant left out.
+const FACTS = `${FACT_GRID} gap-y-4`
+const GROUP_TITLE = "text-lg font-semibold text-[#1e3a5f] mb-3"
+
+// Who a message is from, and the colour of its marker.
+const BERICHT_TYPES: Record<Bericht["type"], { label: string; marker: string }> = {
+  admin_message: { label: "Lange & Partners", marker: "bg-[#311e86]" },
+  document_upload: { label: "Documenten", marker: "bg-emerald-600" },
+  status_update: { label: "Statuswijziging", marker: "bg-[#1e3a5f]" },
 }
 
 async function getToken() {
@@ -235,20 +236,22 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PortalColumns>
+        <div className="flex items-center justify-center py-20">
+          <div className={`${ui.spinner} w-8 h-8 border-2`} />
+        </div>
+      </PortalColumns>
     )
   }
 
   if (error || !aanvraag) {
     return (
-      <div>
-        <button onClick={() => router.push("/mijn-aanvragen")} className="text-sm font-sans text-[#311E86] hover:underline mb-4 flex items-center gap-1">
-          <ArrowLeft size={14} /> Terug naar overzicht
+      <PortalColumns aside={<ContactPanel />}>
+        <button onClick={() => router.push("/mijn-aanvragen")} className={`${ui.link} text-sm inline-flex items-center gap-1.5 mb-5`}>
+          <ArrowLeft size={14} aria-hidden="true" /> Terug naar overzicht
         </button>
-        <p className="text-red-500 text-sm font-sans">{error || "Aanvraag niet gevonden."}</p>
-      </div>
+        <p className={ui.error} role="alert">{error || "Aanvraag niet gevonden."}</p>
+      </PortalColumns>
     )
   }
 
@@ -272,110 +275,115 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
       }]
   ).filter(hasObjectData)
 
+  // The status, as a list in the side column: where the aanvraag is now.
+  const statusPanel = (
+    <Panel accent title="Status">
+      <ol className="list-none m-0 p-0">
+        {STATUS_STEPS.map((step, i) => {
+          const isCompleted = i < currentStep
+          const isCurrent = i === currentStep
+          const isDecisionStep = i === 2
+          const decided = isCurrent && isDecisionStep && !!decision
+
+          let marker = "border border-gray-300 text-[#5b6472] bg-white"
+          let label = "text-[#5b6472]"
+          if (isCompleted) { marker = "bg-[#311e86] text-white"; label = "text-[#1e3a5f]" }
+          if (isCurrent) { marker = "bg-[#1e3a5f] text-white"; label = "font-semibold text-[#1e3a5f]" }
+          if (decided) {
+            marker = aanvraag.status === "goedgekeurd" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+            label = aanvraag.status === "goedgekeurd" ? "font-semibold text-emerald-800" : "font-semibold text-red-800"
+          }
+
+          return (
+            <li
+              key={step.key}
+              aria-current={isCurrent ? "step" : undefined}
+              className={`grid grid-cols-[28px_minmax(0,1fr)] items-center gap-3 py-2.5 ${i === STATUS_STEPS.length - 1 ? "" : "border-b border-gray-100"}`}
+            >
+              <span className={`w-7 h-7 flex items-center justify-center text-[13px] font-medium ${marker}`}>
+                {isCompleted || (isCurrent && isTerminal) ? (
+                  <Check size={15} aria-hidden="true" />
+                ) : isCurrent ? (
+                  <Clock size={15} aria-hidden="true" />
+                ) : (
+                  i + 1
+                )}
+              </span>
+              <span className={`text-[15px] leading-snug ${label}`}>
+                {isDecisionStep && decision ? decision : step.label}
+              </span>
+            </li>
+          )
+        })}
+      </ol>
+
+      {needsInfo && (
+        <div className={`${ui.noticeWarn} mt-4`}>
+          <p className="text-[15px] font-semibold text-amber-900">Aanvullende informatie nodig</p>
+          <p className="text-sm leading-relaxed text-amber-900 mt-1">
+            Wij hebben aanvullende documenten of informatie nodig om uw aanvraag te beoordelen. Bekijk de berichten of upload extra documenten.
+          </p>
+        </div>
+      )}
+    </Panel>
+  )
+
   return (
-    <div className="space-y-8">
+    <PortalColumns
+      aside={
+        <>
+          {/* On a wide screen the status stays in view next to the details. */}
+          <div className="hidden lg:block">{statusPanel}</div>
+          <ContactPanel />
+        </>
+      }
+    >
       {/* Back button */}
-      <button onClick={() => router.push("/mijn-aanvragen")} className="text-sm font-sans text-[#311E86] hover:underline flex items-center gap-1">
-        <ArrowLeft size={14} /> Terug naar overzicht
+      <button onClick={() => router.push("/mijn-aanvragen")} className={`${ui.link} text-sm inline-flex items-center gap-1.5`}>
+        <ArrowLeft size={14} aria-hidden="true" /> Terug naar overzicht
       </button>
 
-      {/* Status stepper */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <h2 className="font-serif text-xl text-[#1E3A5F] mb-6">Status</h2>
+      {/* On a phone the side column comes last, and the status must come first. */}
+      <div className="lg:hidden mt-6">{statusPanel}</div>
 
-        {needsInfo && (
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
-            <p className="text-sm font-sans text-purple-800 font-medium">Aanvullende informatie nodig</p>
-            <p className="text-sm font-sans text-purple-600 mt-1">
-              Wij hebben aanvullende documenten of informatie nodig om uw aanvraag te beoordelen. Bekijk de berichten hieronder of upload extra documenten.
-            </p>
-          </div>
-        )}
-
-        <div className="flex items-center gap-0">
-          {STATUS_STEPS.map((step, i) => {
-            const isCompleted = i < currentStep
-            const isCurrent = i === currentStep
-            const isDecisionStep = i === 2
-
-            let dotColor = "bg-gray-200"
-            let labelColor = "text-gray-400"
-            if (isCompleted) { dotColor = "bg-[#311E86]"; labelColor = "text-[#311E86]" }
-            if (isCurrent && !isDecisionStep) { dotColor = "bg-[#311E86]"; labelColor = "text-[#1E3A5F]" }
-            if (isCurrent && isDecisionStep && decision) {
-              dotColor = aanvraag.status === "goedgekeurd" ? "bg-emerald-600" : "bg-red-600"
-              labelColor = aanvraag.status === "goedgekeurd" ? "text-emerald-700" : "text-red-700"
-            }
-
-            return (
-              <div key={step.key} className="flex items-center flex-1 last:flex-none">
-                <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${dotColor}`}>
-                    {isCompleted ? (
-                      <CheckCircle2 size={18} className="text-white" />
-                    ) : isCurrent && isTerminal ? (
-                      <CheckCircle2 size={18} className="text-white" />
-                    ) : isCurrent ? (
-                      <Clock size={18} className="text-white" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <span className={`text-xs font-sans font-medium mt-2 whitespace-nowrap ${labelColor}`}>
-                    {isDecisionStep && decision ? decision : step.label}
-                  </span>
-                </div>
-                {i < STATUS_STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 mt-[-20px] ${i < currentStep ? "bg-[#311E86]" : "bg-gray-200"}`} />
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Full application overview — everything the applicant submitted. Admin-only
+      {/* Full application overview: everything the applicant submitted. Admin-only
           data (background checks, AI analysis, internal notes) is never sent to
           this view; the API strips it server-side for non-admins. */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
-        <h2 className="font-serif text-xl text-[#1E3A5F]">Aanvraag gegevens</h2>
+      <section className="mt-8">
+        <SectionTitle className="mb-5">Aanvraag gegevens</SectionTitle>
 
         {/* Aanvrager */}
         <div>
-          <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">Aanvrager</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
-            <Field label="Naam" value={aanvraag.naam} />
-            <Field label="Type aanvrager" value={aanvraag.aanvragerType} />
-            <Field label="Bedrijfsnaam" value={aanvraag.bedrijfsnaam} />
-            <Field label="KvK-nummer" value={aanvraag.kvkNummer} />
-            <Field label="Telefoon" value={aanvraag.telefoon} />
-            <Field label="Adres" value={aanvraag.adres} />
-            <Field label="Geboortedatum" value={formatDateStr(aanvraag.geboortedatum)} />
-            <Field label="Burgerlijke staat" value={aanvraag.burgerlijkStaat} />
-            <Field label="Medeaanvrager" value={aanvraag.medeNaam} />
-            <Field label="E-mail medeaanvrager" value={aanvraag.medeEmail} />
-            <Field label="Ingediend op" value={formatDate(aanvraag.createdAt)} />
-          </div>
+          <h3 className={GROUP_TITLE}>Aanvrager</h3>
+          <dl className={FACTS}>
+            <Fact label="Naam" value={aanvraag.naam} />
+            <Fact label="Type aanvrager" value={aanvraag.aanvragerType} />
+            <Fact label="Bedrijfsnaam" value={aanvraag.bedrijfsnaam} />
+            <Fact label="KvK-nummer" value={aanvraag.kvkNummer} />
+            <Fact label="Telefoon" value={aanvraag.telefoon} />
+            <Fact label="Adres" value={aanvraag.adres} />
+            <Fact label="Geboortedatum" value={formatDateStr(aanvraag.geboortedatum)} />
+            <Fact label="Burgerlijke staat" value={aanvraag.burgerlijkStaat} />
+            <Fact label="Medeaanvrager" value={aanvraag.medeNaam} />
+            <Fact label="E-mail medeaanvrager" value={aanvraag.medeEmail} />
+            <Fact label="Ingediend op" value={formatDate(aanvraag.createdAt)} />
+          </dl>
         </div>
 
         {/* Object(en) */}
         {objectList.length > 0 && (
-          <div className="pt-4 border-t border-gray-100">
-            <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">
-              {objectList.length > 1 ? "Objecten" : "Object"}
-            </h3>
-            <div className="space-y-4">
+          <div className="pt-6 mt-6 border-t border-gray-200">
+            <h3 className={GROUP_TITLE}>{objectList.length > 1 ? "Objecten" : "Object"}</h3>
+            <div className="space-y-5">
               {objectList.map((o, i) => (
                 <div key={i}>
-                  {objectList.length > 1 && (
-                    <p className="text-[12px] text-gray-400 font-sans mb-2">Object {i + 1}</p>
-                  )}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
-                    <Field label="Type vastgoed" value={o.type} />
-                    <Field label="Adres" value={[o.adres, o.postcode, o.plaats].filter(Boolean).join(", ")} />
-                    <Field label="Geschatte marktwaarde" value={formatCurrency(o.waarde)} />
-                    <Field label="Huurinkomsten (p/m)" value={formatCurrency(o.huurinkomsten)} />
-                  </div>
+                  {objectList.length > 1 && <p className={`${ui.note} mb-2`}>Object {i + 1}</p>}
+                  <dl className={FACTS}>
+                    <Fact label="Type vastgoed" value={o.type} />
+                    <Fact label="Adres" value={[o.adres, o.postcode, o.plaats].filter(Boolean).join(", ")} />
+                    <Fact label="Geschatte marktwaarde" value={formatCurrency(o.waarde)} />
+                    <Fact label="Huurinkomsten (p/m)" value={formatCurrency(o.huurinkomsten)} />
+                  </dl>
                 </div>
               ))}
             </div>
@@ -383,78 +391,61 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
         )}
 
         {/* Financiering */}
-        <div className="pt-4 border-t border-gray-100">
-          <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">Financiering</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
-            <Field label="Doel financiering" value={aanvraag.leningDoel} />
-            <Field label="Leningbedrag" value={formatCurrency(aanvraag.leningBedrag)} />
-            <Field label="Looptijd" value={aanvraag.looptijd} />
-            <Field label="Aflossingstype" value={aanvraag.aflossingstype} />
-            <Field label="Financiering nodig op" value={formatDateStr(aanvraag.wanneerNodig)} />
-            <Field label="Eigen inbreng" value={formatCurrency(aanvraag.eigenInbreng)} />
-            <Field label="Bestaande hypotheekschuld" value={formatCurrency(aanvraag.bestaandeSchulden)} />
-            <Field label="Exitstrategie" value={aanvraag.uitstrategie} />
-          </div>
+        <div className="pt-6 mt-6 border-t border-gray-200">
+          <h3 className={GROUP_TITLE}>Financiering</h3>
+          <dl className={FACTS}>
+            <Fact label="Doel financiering" value={aanvraag.leningDoel} />
+            <Fact label="Leningbedrag" value={formatCurrency(aanvraag.leningBedrag)} />
+            <Fact label="Looptijd" value={aanvraag.looptijd} />
+            <Fact label="Aflossingstype" value={aanvraag.aflossingstype} />
+            <Fact label="Financiering nodig op" value={formatDateStr(aanvraag.wanneerNodig)} />
+            <Fact label="Eigen inbreng" value={formatCurrency(aanvraag.eigenInbreng)} />
+            <Fact label="Bestaande hypotheekschuld" value={formatCurrency(aanvraag.bestaandeSchulden)} />
+            <Fact label="Exitstrategie" value={aanvraag.uitstrategie} />
+          </dl>
         </div>
 
         {/* Documenten */}
-        <div className="pt-4 border-t border-gray-100">
-          <h3 className="text-sm font-semibold text-[#311E86] font-sans mb-3">Documenten</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm font-sans">
-            <Field label="Aantal documenten" value={`${aanvraag.documentsUploaded ?? aanvraag.aantalBestanden ?? 0} bestanden`} />
-          </div>
+        <div className="pt-6 mt-6 border-t border-gray-200">
+          <h3 className={GROUP_TITLE}>Documenten</h3>
+          <dl className={FACTS}>
+            <Fact label="Aantal documenten" value={`${aanvraag.documentsUploaded ?? aanvraag.aantalBestanden ?? 0} bestanden`} />
+          </dl>
         </div>
-      </div>
+      </section>
 
       {/* Messages */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Berichten</h2>
+      <section className="pt-10 mt-10 border-t border-gray-200">
+        <SectionTitle className="mb-4">Berichten</SectionTitle>
 
         {berichten.length === 0 ? (
-          <p className="text-sm font-sans text-gray-400 py-4">Nog geen berichten.</p>
+          <p className={ui.text}>Nog geen berichten.</p>
         ) : (
-          <div className="space-y-3">
-            {berichten.map((b) => (
-              <div
-                key={b.id}
-                className={`rounded-xl p-4 ${
-                  b.type === "status_update"
-                    ? "bg-blue-50 border border-blue-100"
-                    : b.type === "document_upload"
-                    ? "bg-emerald-50 border border-emerald-100"
-                    : "bg-gray-50 border border-gray-100"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                    b.type === "status_update" ? "bg-blue-200" :
-                    b.type === "document_upload" ? "bg-emerald-200" : "bg-[#311E86]/10"
-                  }`}>
-                    {b.type === "status_update" ? <Clock size={14} className="text-blue-700" /> :
-                     b.type === "document_upload" ? <FileText size={14} className="text-emerald-700" /> :
-                     <Send size={14} className="text-[#311E86]" />}
+          <ul className="list-none m-0 p-0">
+            {berichten.map((b, i) => {
+              const from = BERICHT_TYPES[b.type] ?? BERICHT_TYPES.status_update
+              return (
+                <li key={b.id} className={`py-4 ${i === berichten.length - 1 ? "" : "border-b border-gray-100"}`}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 mb-1.5">
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-[#1e3a5f]">
+                      <span aria-hidden="true" className={`w-2 h-2 shrink-0 ${from.marker}`} />
+                      {from.label}
+                    </span>
+                    <span className="text-sm text-[#5b6472]">{formatDateTime(b.createdAt)}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-sans text-gray-800 whitespace-pre-wrap">{b.message}</p>
-                    <p className="text-xs font-sans text-gray-400 mt-1.5">
-                      {b.type === "admin_message" ? "Lange & Partners" :
-                       b.type === "document_upload" ? "Documenten" : "Statuswijziging"}
-                      {" - "}
-                      {formatDateTime(b.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                  <p className={`${ui.text} whitespace-pre-wrap`}>{b.message}</p>
+                </li>
+              )
+            })}
+          </ul>
         )}
-      </div>
+      </section>
 
       {/* Document upload */}
       {!isTerminal && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
-          <h2 className="font-serif text-xl text-[#1E3A5F] mb-2">Extra documenten uploaden</h2>
-          <p className="text-sm font-sans text-gray-400 mb-4">
+        <section className="pt-10 mt-10 border-t border-gray-200">
+          <SectionTitle className="mb-3">Extra documenten uploaden</SectionTitle>
+          <p className={`${ui.text} mb-5`}>
             Upload aanvullende documenten die bij uw aanvraag horen (PDF, afbeeldingen, Word, Excel).
           </p>
 
@@ -470,13 +461,13 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className={`w-full border border-dashed rounded-xl px-4 py-6 text-sm font-sans transition-colors flex items-center justify-center gap-2 ${
+            className={`w-full border px-5 py-6 text-[15px] transition-colors flex items-center justify-center gap-2.5 cursor-pointer ${
               selectedFiles.length > 0
-                ? "border-[#311E86] bg-[#311E86]/5 text-[#311E86]"
-                : "border-gray-300 text-gray-400 hover:border-[#311E86] hover:text-[#311E86]"
+                ? "border-[#311e86] bg-[#311e86]/5 text-[#311e86]"
+                : "border-gray-300 bg-gray-50 text-[#1e3a5f] hover:border-[#311e86] hover:text-[#311e86]"
             }`}
           >
-            <Upload size={18} />
+            <Upload size={18} aria-hidden="true" />
             {selectedFiles.length > 0
               ? `${selectedFiles.length} bestand${selectedFiles.length > 1 ? "en" : ""} geselecteerd, klik om meer toe te voegen`
               : "Klik om bestanden te selecteren"
@@ -484,42 +475,41 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
           </button>
 
           {selectedFiles.length > 0 && (
-            <div className="space-y-1.5 mt-3">
-              {selectedFiles.map((f, i) => (
-                <div key={i} className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-sans">
-                  <span className="text-gray-700 truncate">{f.name}</span>
-                  <button
-                    onClick={() => setSelectedFiles(prev => prev.filter((_, j) => j !== i))}
-                    className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+            <div className="mt-2">
+              <ul className="list-none m-0 p-0">
+                {selectedFiles.map((f, i) => (
+                  <li key={i} className="flex items-center justify-between gap-3 py-2.5 border-b border-gray-100 text-[15px]">
+                    <span className="text-[#2a2f3a] truncate">{f.name}</span>
+                    <button
+                      onClick={() => setSelectedFiles(prev => prev.filter((_, j) => j !== i))}
+                      aria-label={`${f.name} weghalen`}
+                      className="text-[#5b6472] hover:text-red-700 transition-colors flex-shrink-0 cursor-pointer"
+                    >
+                      <X size={16} aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
 
-              <button
-                onClick={handleUpload}
-                disabled={uploading}
-                className="mt-3 px-6 py-2.5 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-50"
-              >
+              <button onClick={handleUpload} disabled={uploading} className={`${ui.buttonPrimary} mt-5`}>
                 {uploading ? (uploadProgress || "Bezig met uploaden...") : "Documenten uploaden"}
               </button>
             </div>
           )}
 
           {uploadSuccess && (
-            <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
-              <p className="text-sm font-sans text-emerald-800">{uploadSuccess}</p>
+            <div className={`${ui.noticeOk} mt-4`} role="status">
+              <p className="text-[15px] text-emerald-900">{uploadSuccess}</p>
             </div>
           )}
 
           {uploadError && (
-            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-              <p className="text-sm font-sans text-red-800">{uploadError}</p>
+            <div className={`${ui.noticeError} mt-4`} role="alert">
+              <p className="text-[15px] text-red-900">{uploadError}</p>
             </div>
           )}
-        </div>
+        </section>
       )}
-    </div>
+    </PortalColumns>
   )
 }
