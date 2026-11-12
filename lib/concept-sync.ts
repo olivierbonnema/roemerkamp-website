@@ -44,7 +44,10 @@ export interface ConceptSyncOptions {
 const DEBOUNCE_MS = 1500
 // While someone keeps typing, still save at least this often.
 const MAX_WAIT_MS = 10_000
-const TOKEN_REUSE_MS = 45 * 60_000
+// When the tab is being hidden there is no time to ask for a session token.
+// One that was handed out less than this long ago is still valid for certain
+// (a token is refreshed when it has under five minutes left).
+const TOKEN_REUSE_MS = 4 * 60_000
 // A document on its way that makes no progress for this long is given up on
 // when a submission is waiting for it (one piece of 5 MB even over a very slow
 // line takes less).
