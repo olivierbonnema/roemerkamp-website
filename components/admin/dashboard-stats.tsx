@@ -83,6 +83,8 @@ const ACTION_LABELS: Record<string, string> = {
   login: "Ingelogd",
   aanvraag_submitted: "Aanvraag ingediend",
   document_uploaded: "Document geüpload",
+  concept_created: "Concept aangemaakt",
+  concept_removed: "Concept door adviseur verwijderd",
 }
 
 

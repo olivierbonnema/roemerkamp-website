@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse, after } from "next/server"
+import { createHash } from "crypto"
 import { SITE_URL } from "@/lib/site"
 import { sendEmail } from "@/lib/brevo"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
 import { isAdminEmail } from "@/lib/admin"
 import { confirmationRecipient } from "@/lib/submission-recipients"
-import { DIRECT_UPLOAD_MAX_FILE_SIZE } from "@/lib/onedrive-direct"
+import { DIRECT_UPLOAD_MAX_FILE_SIZE, adoptConceptFolder } from "@/lib/onedrive-direct"
 import { logActivity } from "@/lib/activity-log"
+import { CONCEPT_COLLECTION, conceptDocId, isValidDraftId } from "@/lib/concepten"
 
 const ALLOWED_FILE_TYPES = new Set([
   "application/pdf",
@@ -210,6 +212,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 })
   }
 
+  // A concept that is being submitted (see lib/concepten.ts). Optional: without
+  // `conceptId`, or when anything about the concept cannot be read, this is an
+  // ordinary submission exactly as before.
+  //   - Its documents were uploaded to the concept's own folder while the
+  //     adviser was working, so that folder becomes the folder of the aanvraag.
+  //   - A concept that was already submitted WITH THE SAME CONTENT answers
+  //     with the aanvraag it became. A retry after a lost connection can then
+  //     never make a second aanvraag or send the mails twice. Other content
+  //     under the id of a submitted concept is simply a new aanvraag: nothing
+  //     that is filled in may ever be swallowed.
+  const conceptDraftId = get("conceptId")
+  const submitHash = createHash("sha256")
+    .update(JSON.stringify([
+      naam, voornaam, achternaam, email, aanvragerType, bedrijfsnaam, kvkNummer, telefoon, adres, geboortedatum,
+      burgerlijkStaat, medeNaam, medeVoornaam, medeAchternaam, medeEmail, medeGeboortedatum, leningDoel, leningBedrag,
+      looptijd, eigenInbreng, bestaandeSchulden, wanneerNodig, aflossingstype, uitstrategie, objects,
+    ]))
+    .digest("hex")
+  let conceptRef: FirebaseFirestore.DocumentReference | null = null
+  let conceptFolder: { id: string; url: string } | null = null
+  if (isValidDraftId(conceptDraftId)) {
+    try {
+      const ref = adminDb.collection(CONCEPT_COLLECTION).doc(conceptDocId(userId, conceptDraftId))
+      const snap = await ref.get()
+      const concept = snap.data()
+      if (snap.exists && concept && concept.userId === userId) {
+        if (concept.status === "ingediend") {
+          const earlierId = typeof concept.aanvraagId === "string" ? concept.aanvraagId : ""
+          if (earlierId && concept.submitHash === submitHash) {
+            const earlier = await adminDb.collection("aanvragen").doc(earlierId).get()
+            if (earlier.exists && earlier.data()?.userId === userId) {
+              return NextResponse.json({ success: true, id: earlierId, alreadySubmitted: true })
+            }
+          }
+        } else {
+          conceptRef = ref
+          if (typeof concept.driveFolderId === "string" && concept.driveFolderId) {
+            conceptFolder = {
+              id: concept.driveFolderId,
+              url: typeof concept.driveFolderUrl === "string" ? concept.driveFolderUrl : "",
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[submit-aanvraag] concept niet leesbaar, gewone indiening:", err)
+    }
+  }
+
   // Collect files grouped by category
   const filesByCategory: Record<string, File[]> = {}
   for (const [key, value] of formData.entries()) {
@@ -358,7 +409,13 @@ export async function POST(req: NextRequest) {
   // background job). Failure here is non-fatal: upload-session self-heals.
   let preFolderId = ""
   let preFolderUrl = ""
-  if (metaMode) {
+  if (conceptFolder) {
+    // The documents are already in the concept's folder, so that folder is the
+    // folder of this aanvraag. It is moved to its usual place further down,
+    // once the aanvraag itself is saved.
+    preFolderId = conceptFolder.id
+    preFolderUrl = conceptFolder.url
+  } else if (metaMode) {
     try {
       const token = await getMsToken()
       const folder = await createOneDriveFolder(token, folderName)
@@ -421,6 +478,8 @@ export async function POST(req: NextRequest) {
       // stuck on "pending" means the upload was cut off.
       uploadStatus: totalDocCount > 0 ? "pending" : "ok",
       documentsUploaded: 0,
+      // Set only when this aanvraag started as a server concept.
+      ...(conceptRef ? { conceptId: conceptRef.id } : {}),
     })
   } catch (err) {
     console.error("Firestore save error:", err)
@@ -435,6 +494,29 @@ export async function POST(req: NextRequest) {
       { error: "Aanvraag opslaan is mislukt. Probeer het opnieuw." },
       { status: 500 }
     )
+  }
+
+  // The concept is an aanvraag from here on. It is kept, marked as submitted.
+  // Neither step below can fail the submission: the aanvraag is saved.
+  if (docRef && conceptRef) {
+    try {
+      await conceptRef.update({ status: "ingediend", aanvraagId: docRef.id, submitHash, submittedAt: new Date(), updatedAt: new Date() })
+    } catch (err) {
+      console.error("[submit-aanvraag] concept niet als ingediend gemarkeerd:", err)
+    }
+    if (conceptFolder) {
+      // Move the folder out of the concepts folder and give it the usual name. Only
+      // the place and the name change; everything else finds it by its id.
+      try {
+        const moved = await adoptConceptFolder(await getMsToken(), conceptFolder.id, folderName)
+        preFolderId = moved.id
+        if (moved.webUrl) preFolderUrl = moved.webUrl
+        await docRef.update({ driveFolderId: preFolderId, driveFolderUrl: preFolderUrl })
+        await conceptRef.update({ driveFolderId: preFolderId, driveFolderUrl: preFolderUrl }).catch(() => {})
+      } catch (err) {
+        console.error("[submit-aanvraag] conceptmap niet verplaatst (blijft in de conceptenmap):", err)
+      }
+    }
   }
 
   // Record a partner/client submission in the activity log (logged-in submitters only).

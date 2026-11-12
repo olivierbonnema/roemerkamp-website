@@ -18,11 +18,13 @@ import {
   Columns3,
   ShieldCheck,
   Receipt,
+  FilePen,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: FolderOpen },
+  { href: "/admin/concepten", label: "Concepten", icon: FilePen },
   { href: "/admin/checks", label: "Checks", icon: ShieldCheck },
   // { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 }, // hidden
   { href: "/admin/documenten", label: "Documenten", icon: FileText },

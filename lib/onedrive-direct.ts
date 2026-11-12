@@ -189,3 +189,121 @@ export async function deleteOneDriveItem(token: string, itemId: string): Promise
   })
   if (!res.ok && res.status !== 404) throw new Error(`OneDrive delete failed: ${res.status}`)
 }
+
+// ---- Concepts: documents of an application that has not been submitted yet ----
+//
+// They are uploaded the same way as the documents of a submitted application,
+// into a folder of their own under "<Portaal Aanvragen>/Concepten (nog niet
+// ingediend)", so the team never mistakes one for a submitted application. On
+// submission that folder is moved one level up and gets the usual name, so the
+// documents are uploaded only once (see app/api/submit-aanvraag).
+
+// No leading underscore or other special start: SharePoint has reserved and
+// hidden names of that kind, and this folder must simply be visible.
+export const CONCEPTS_FOLDER_NAME = "Concepten (nog niet ingediend)"
+
+const encodeDrivePath = (path: string) => path.replace(/^\//, "").split("/").map(encodeURIComponent).join("/")
+
+async function getItemByPath(token: string, path: string): Promise<{ id: string; webUrl: string } | null> {
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/root:/${encodeDrivePath(path)}?$select=id,webUrl`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`OneDrive path lookup failed (${res.status}) for "${path}": ${body.slice(0, 300)}`)
+  }
+  const data = await res.json()
+  if (!data.id) throw new Error(`OneDrive path lookup returned no id for "${path}"`)
+  return { id: String(data.id), webUrl: String(data.webUrl || "") }
+}
+
+/** The folder all submitted applications live in. */
+export async function getAanvragenFolderId(token: string): Promise<string> {
+  const item = await getItemByPath(token, AANVRAGEN_FOLDER_PATH)
+  if (!item) throw new Error(`OneDrive folder "${AANVRAGEN_FOLDER_PATH}" not found`)
+  return item.id
+}
+
+/** The concepts folder, made on first use. */
+export async function ensureConceptsFolder(token: string): Promise<string> {
+  const path = `${AANVRAGEN_FOLDER_PATH}/${CONCEPTS_FOLDER_NAME}`
+  const found = await getItemByPath(token, path)
+  if (found) return found.id
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/root:/${encodeDrivePath(AANVRAGEN_FOLDER_PATH)}:/children`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      // "fail": two first uploads at the same moment must not end up with
+      // two concepts folders. The loser reads the winner's folder.
+      body: JSON.stringify({ name: CONCEPTS_FOLDER_NAME, folder: {}, "@microsoft.graph.conflictBehavior": "fail" }),
+    }
+  )
+  if (res.ok) {
+    const data = await res.json()
+    if (data.id) return String(data.id)
+  }
+  const again = await getItemByPath(token, path)
+  if (again) return again.id
+  const body = await res.text().catch(() => "")
+  throw new Error(`OneDrive concepts folder create failed (${res.status}): ${body.slice(0, 300)}`)
+}
+
+/** A folder for one concept's documents, inside the concepts folder. */
+export async function createConceptFolder(token: string, folderName: string): Promise<{ id: string; webUrl: string }> {
+  const parentId = await ensureConceptsFolder(token)
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${parentId}/children`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: folderName, folder: {}, "@microsoft.graph.conflictBehavior": "rename" }),
+    }
+  )
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`OneDrive concept folder create failed (${res.status}) for "${folderName}": ${body.slice(0, 300)}`)
+  }
+  const data = await res.json()
+  if (!data.id) throw new Error(`OneDrive concept folder create returned no id for "${folderName}"`)
+  return { id: String(data.id), webUrl: String(data.webUrl || "") }
+}
+
+/**
+ * A concept is submitted: move its folder next to the other applications and
+ * give it the usual name. Returns the folder as it is afterwards. Moving within
+ * one library keeps the documents where they are, nothing is uploaded again.
+ * A second folder with the same name gets a number, as the usual folder
+ * create does.
+ */
+export async function adoptConceptFolder(token: string, folderId: string, folderName: string): Promise<{ id: string; webUrl: string }> {
+  const parentId = await getAanvragenFolderId(token)
+  let lastError = ""
+  for (const name of [folderName, `${folderName} 1`, `${folderName} 2`, `${folderName} 3`]) {
+    const res = await fetch(`https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${folderId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ parentReference: { id: parentId }, name }),
+    })
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      const id = String(data.id || folderId)
+      let webUrl = String(data.webUrl || "")
+      if (!webUrl) {
+        // The link is path based, so the old one no longer works after a move.
+        const item = await fetch(
+          `https://graph.microsoft.com/v1.0/drives/${SHAREPOINT_DRIVE_ID}/items/${id}?$select=id,webUrl`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        if (item.ok) webUrl = String((await item.json()).webUrl || "")
+      }
+      return { id, webUrl }
+    }
+    const body = await res.text().catch(() => "")
+    lastError = `OneDrive concept folder move failed (${res.status}) for "${name}": ${body.slice(0, 300)}`
+    if (res.status !== 409) break
+  }
+  throw new Error(lastError)
+}
