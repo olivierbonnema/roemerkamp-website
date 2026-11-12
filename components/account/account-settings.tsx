@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
+import { SectionTitle, ui } from "@/components/portaal/portal-ui"
 
 export function AccountSettings() {
   const { user } = useAuth()
@@ -29,40 +30,34 @@ export function AccountSettings() {
   }
 
   return (
-    <div className="max-w-md">
-      <div className="border border-gray-200 rounded-2xl p-6 bg-white">
-        <h2 className="font-serif text-xl text-[#1E3A5F] mb-1">Accountgegevens</h2>
-        <p className="text-sm text-gray-400 font-sans mb-6">Uw inloggegevens bij Lange &amp; Partners.</p>
+    <div>
+      <SectionTitle>Accountgegevens</SectionTitle>
+      <p className={`${ui.text} mt-3`}>Uw inloggegevens bij Lange &amp; Partners.</p>
 
-        <div className="mb-6">
-          <span className="block text-[12px] text-gray-400 font-sans mb-1">E-mailadres</span>
-          <span className="text-sm font-sans text-gray-800">{user?.email}</span>
+      <dl className="mt-6 border-t border-gray-200">
+        <div className="grid sm:grid-cols-[160px_minmax(0,1fr)] gap-x-4 py-3 border-b border-gray-200">
+          <dt className="text-[15px] leading-snug text-[#5b6472]">E-mailadres</dt>
+          <dd className="m-0 text-[15px] leading-snug font-medium text-[#1e3a5f] break-words">{user?.email}</dd>
         </div>
+      </dl>
 
-        <div className="border-t border-gray-100 pt-6">
-          <h3 className="text-sm font-medium text-gray-700 font-sans mb-1">Wachtwoord wijzigen</h3>
-          <p className="text-xs text-gray-400 font-sans mb-4">
-            We sturen een resetlink naar uw e-mailadres.
-          </p>
+      <section className="mt-12">
+        <SectionTitle>Wachtwoord wijzigen</SectionTitle>
+        <p className={`${ui.text} mt-3 mb-5`}>We sturen een resetlink naar uw e-mailadres.</p>
 
-          {sent ? (
-            <p className="text-sm text-green-600 font-sans">
-              Resetlink verzonden. Controleer uw inbox.
-            </p>
-          ) : (
-            <>
-              {error && <p className="text-sm text-red-500 font-sans mb-3">{error}</p>}
-              <button
-                onClick={handleReset}
-                disabled={loading}
-                className="px-6 py-2.5 text-sm font-medium font-sans rounded-full border border-[#311e86] text-[#311e86] hover:bg-[#311e86]/5 transition-colors disabled:opacity-50"
-              >
-                {loading ? "Versturen…" : "Stuur resetlink"}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+        {sent ? (
+          <div className={ui.noticeOk} role="status">
+            <p className="text-[15px] text-emerald-900">Resetlink verzonden. Controleer uw inbox.</p>
+          </div>
+        ) : (
+          <>
+            {error && <p className={`${ui.error} mb-3`} role="alert">{error}</p>}
+            <button onClick={handleReset} disabled={loading} className={ui.buttonSecondary}>
+              {loading ? "Versturen…" : "Stuur resetlink"}
+            </button>
+          </>
+        )}
+      </section>
     </div>
   )
 }

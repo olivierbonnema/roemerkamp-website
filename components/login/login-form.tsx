@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { ui } from "@/components/portaal/portal-ui"
 
 export function LoginForm() {
   const router = useRouter()
@@ -101,13 +102,13 @@ export function LoginForm() {
     return (
       <form onSubmit={handleMfaSubmit} className="space-y-5">
         <div>
-          <h2 className="font-serif text-2xl font-normal text-gray-900 mb-1">Verificatie</h2>
-          <p className="text-[13px] text-gray-500 font-sans">
+          <h2 className="font-serif font-semibold text-[#311e86] text-[22px] md:text-[26px] leading-snug mb-2">Verificatie</h2>
+          <p className="text-base leading-[1.65] text-[#2a2f3a]">
             Voer de 6-cijferige code in uit uw authenticator-app.
           </p>
         </div>
 
-        <div className="flex justify-center py-2">
+        <div className="flex py-2">
           <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus>
             <InputOTPGroup>
               <InputOTPSlot index={0} className="h-12 w-12 text-lg" />
@@ -124,13 +125,13 @@ export function LoginForm() {
         </div>
 
         {error && (
-          <p className="text-sm text-red-500 font-sans text-center">{error}</p>
+          <p className={ui.error} role="alert">{error}</p>
         )}
 
         <button
           type="submit"
           disabled={loading || otpCode.length !== 6}
-          className="w-full py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          className={`w-full ${ui.buttonPrimary}`}
         >
           {loading ? "Verifiëren…" : "Verifiëren"}
         </button>
@@ -138,9 +139,9 @@ export function LoginForm() {
         <button
           type="button"
           onClick={handleBackToLogin}
-          className="w-full text-[13px] text-gray-400 hover:text-gray-600 font-sans transition-colors"
+          className="w-full text-sm text-[#5b6472] underline underline-offset-2 hover:text-[#311e86] cursor-pointer"
         >
-          ← Terug naar inloggen
+          Terug naar inloggen
         </button>
       </form>
     )
@@ -149,7 +150,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">
+        <label className={ui.label}>
           E-mailadres <span className="text-[#F75D20]">*</span>
         </label>
         <input
@@ -157,12 +158,12 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="uw@emailadres.nl"
-          className="w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
+          className={`${ui.field} ${ui.fieldOk}`}
         />
       </div>
 
       <div>
-        <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">
+        <label className={ui.label}>
           Wachtwoord <span className="text-[#F75D20]">*</span>
         </label>
         <input
@@ -170,40 +171,40 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
-          className="w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
+          className={`${ui.field} ${ui.fieldOk}`}
         />
         <div className="mt-2 text-right">
           <button
             type="button"
             onClick={handleForgotPassword}
             disabled={resetLoading}
-            className="text-[12px] text-[#311e86] hover:underline font-sans disabled:opacity-50"
+            className="text-sm text-[#311e86] underline underline-offset-2 hover:text-[#1e3a5f] disabled:opacity-50 cursor-pointer"
           >
             {resetLoading ? "Versturen…" : "Wachtwoord vergeten?"}
           </button>
         </div>
         {resetSent && (
-          <p className="text-xs text-green-600 font-sans mt-1">
+          <p className="text-sm text-emerald-700 mt-1.5" role="status">
             Resetlink verzonden. Controleer uw inbox.
           </p>
         )}
       </div>
 
       {error && (
-        <p className="text-sm text-red-500 font-sans">{error}</p>
+        <p className={ui.error} role="alert">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className={`w-full ${ui.buttonPrimary}`}
       >
         {loading ? "Bezig met inloggen…" : "Inloggen"}
       </button>
 
       <div className="relative flex items-center gap-3 py-2">
         <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400 font-sans">of log in via</span>
+        <span className="text-sm text-[#5b6472]">of log in via</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
 
@@ -212,7 +213,7 @@ export function LoginForm() {
           href="https://www.geldvoorelkaar.nl/langefinancieeladvies/mijn-gegevens/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center w-full py-3 text-sm font-medium font-sans border border-gray-300 rounded-full text-gray-900 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors"
+          className="flex items-center justify-center w-full py-3 text-sm font-medium border border-gray-300 rounded-full text-[#1e3a5f] hover:border-[#311e86] hover:text-[#311e86] transition-colors"
         >
           Login bij Geld voor Elkaar
         </a>
@@ -220,7 +221,7 @@ export function LoginForm() {
           href="https://www.collincrowdfund.nl/mijn-collin/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center w-full py-3 text-sm font-medium font-sans border border-gray-300 rounded-full text-gray-900 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors"
+          className="flex items-center justify-center w-full py-3 text-sm font-medium border border-gray-300 rounded-full text-[#1e3a5f] hover:border-[#311e86] hover:text-[#311e86] transition-colors"
         >
           Login bij Collin Crowdfund
         </a>

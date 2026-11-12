@@ -8,6 +8,8 @@ import { uploadFilesDirect } from "@/lib/upload-direct"
 import { loadDraft, saveDraft, deleteDraft, localDocs } from "@/lib/concept-local"
 import { acquireConceptSync, type UploadInfo } from "@/lib/concept-sync"
 import type { ConceptDocument } from "@/lib/concepten"
+import { ContactPanel, Panel, PortalColumns, SectionTitle, ui } from "@/components/portaal/portal-ui"
+import { PartnerIntakeNote } from "./partner-intake-note"
 
 /* ── Constants ── */
 const STEPS = [
@@ -137,43 +139,96 @@ function formatCurrency(raw: string): string {
 }
 
 /* ── Sub-components ── */
+// The look follows the public site (see components/portaal/portal-ui.tsx):
+// pills for fields and buttons, square frames and hairlines for the rest.
 
+// The steps as a row of numbers. Shown on a phone and a tablet; on a wide
+// screen the steps are a list in the side column (StepList). A phone has no
+// room for five names next to each other, so there the row shows the numbers
+// and one line under it says which step this is.
 function StepIndicator({ current, onStepClick }: { current: number; onStepClick: (i: number) => void }) {
   return (
-    <div className="flex items-center mb-10 max-w-xl">
+    <div data-steps="row">
+      <ol className="list-none m-0 p-0 flex items-start">
+        {STEPS.map((s, i) => {
+          const done = i < current
+          const active = i === current
+          return (
+            <li key={s.id} className={`flex items-start ${i < STEPS.length - 1 ? "flex-1" : ""}`}>
+              <button
+                type="button"
+                className="flex flex-col items-center shrink-0 cursor-pointer group"
+                aria-current={active ? "step" : undefined}
+                aria-label={`Stap ${i + 1}: ${s.label}`}
+                onClick={() => onStepClick(i)}
+              >
+                <span
+                  className={`w-9 h-9 flex items-center justify-center text-sm font-medium transition-colors ${
+                    done ? "bg-[#311e86] text-white"
+                    : active ? "bg-[#1e3a5f] text-white"
+                    : "border border-gray-300 text-[#5b6472] bg-white group-hover:border-[#311e86] group-hover:text-[#311e86]"
+                  }`}
+                >
+                  {done ? "✓" : i + 1}
+                </span>
+                <span className={`hidden sm:block text-[13px] mt-1.5 whitespace-nowrap transition-colors ${
+                  active ? "text-[#1e3a5f] font-semibold"
+                  : done ? "text-[#1e3a5f]"
+                  : "text-[#5b6472]"
+                }`}>
+                  {s.label}
+                </span>
+              </button>
+              {i < STEPS.length - 1 && (
+                <span aria-hidden="true" className={`flex-1 h-px mt-[18px] mx-2 transition-colors ${done ? "bg-[#311e86]" : "bg-gray-200"}`} />
+              )}
+            </li>
+          )
+        })}
+      </ol>
+      <p className="sm:hidden mt-3 text-[15px] leading-snug text-[#1e3a5f]">
+        <span className="font-semibold">Stap {current + 1} van {STEPS.length}:</span> {STEPS[current].label}
+      </p>
+    </div>
+  )
+}
+
+// The same steps as a list, for the side column: built like "Op deze pagina"
+// on the product pages.
+function StepList({ current, onStepClick }: { current: number; onStepClick: (i: number) => void }) {
+  return (
+    <ol className="list-none m-0 p-0" data-steps="list">
       {STEPS.map((s, i) => {
         const done = i < current
         const active = i === current
         return (
-          <div key={s.id} className={`flex items-center ${i < STEPS.length - 1 ? "flex-1" : ""}`}>
-            <div
-              className="flex flex-col items-center min-w-[56px] cursor-pointer group"
+          <li key={s.id} className={i === STEPS.length - 1 ? "" : "border-b border-gray-100"}>
+            <button
+              type="button"
               onClick={() => onStepClick(i)}
+              aria-current={active ? "step" : undefined}
+              aria-label={`Stap ${i + 1}: ${s.label}`}
+              className="w-full grid grid-cols-[28px_minmax(0,1fr)] items-center gap-3 py-2 text-left cursor-pointer group"
             >
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-medium font-sans transition-all duration-300 ${
-                  done ? "bg-[#311E86] text-white group-hover:bg-[#26175e]"
-                  : active ? "bg-[#1E3A5F] text-white"
-                  : "border-[1.5px] border-gray-300 text-gray-400 group-hover:border-gray-400 group-hover:text-gray-600"
+              <span
+                className={`w-7 h-7 flex items-center justify-center text-[13px] font-medium transition-colors ${
+                  done ? "bg-[#311e86] text-white"
+                  : active ? "bg-[#1e3a5f] text-white"
+                  : "border border-gray-300 text-[#5b6472] bg-white group-hover:border-[#311e86] group-hover:text-[#311e86]"
                 }`}
               >
                 {done ? "✓" : i + 1}
-              </div>
-              <span className={`text-[11px] mt-1.5 whitespace-nowrap font-sans transition-colors ${
-                active ? "text-gray-900 font-semibold"
-                : done ? "text-gray-500 group-hover:text-gray-900"
-                : "text-gray-400 group-hover:text-gray-600"
+              </span>
+              <span className={`text-[15px] leading-snug transition-colors ${
+                active ? "font-semibold text-[#1e3a5f]" : done ? "text-[#1e3a5f] group-hover:underline" : "text-[#5b6472] group-hover:text-[#311e86] group-hover:underline"
               }`}>
                 {s.label}
               </span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-[1.5px] mx-1.5 mb-[18px] transition-colors duration-300 ${done ? "bg-[#311E86]" : "bg-gray-200"}`} />
-            )}
-          </div>
+            </button>
+          </li>
         )
       })}
-    </div>
+    </ol>
   )
 }
 
@@ -182,12 +237,12 @@ function Field({ label, required, hint, error, children }: {
 }) {
   return (
     <div className="mb-5">
-      <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">
-        {label}{required && <span className="text-[#F75D20] ml-1">*</span>}
+      <label className={ui.label}>
+        {label}{required && <span className="text-[#f75d20] ml-1">*</span>}
       </label>
       {children}
-      {error && <p className="text-xs text-red-500 mt-1.5 ml-2 font-sans">{error}</p>}
-      {hint && !error && <p className="text-xs text-gray-400 mt-1.5 ml-2 font-sans">{hint}</p>}
+      {error && <p className={`${ui.error} mt-1.5`}>{error}</p>}
+      {hint && !error && <p className={`${ui.note} mt-1.5`}>{hint}</p>}
     </div>
   )
 }
@@ -202,9 +257,7 @@ function Input({ value, onChange, placeholder, type = "text", error, onBlur }: {
       onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur}
       placeholder={placeholder}
-      className={`w-full h-[46px] px-5 py-3 text-sm font-sans bg-transparent border rounded-full text-gray-900 placeholder:text-gray-400 outline-none transition-colors ${
-        error ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-[#1E3A5F]"
-      }`}
+      className={`${ui.field} ${error ? ui.fieldError : ui.fieldOk}`}
     />
   )
 }
@@ -214,16 +267,14 @@ function CurrencyInput({ value, onChange, placeholder, error }: {
 }) {
   return (
     <div className="relative">
-      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none select-none">€</span>
+      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-base text-[#5b6472] pointer-events-none select-none">€</span>
       <input
         type="text"
         inputMode="numeric"
         value={formatCurrency(value)}
         onChange={(e) => onChange(e.target.value.replace(/\./g, "").replace(/[^\d]/g, ""))}
         placeholder={placeholder}
-        className={`w-full h-[46px] pl-9 pr-5 py-3 text-sm font-sans bg-transparent border rounded-full text-gray-900 placeholder:text-gray-400 outline-none transition-colors ${
-          error ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-[#1E3A5F]"
-        }`}
+        className={`${ui.fieldBare} pl-10 pr-5 ${error ? ui.fieldError : ui.fieldOk}`}
       />
     </div>
   )
@@ -236,13 +287,13 @@ function Select({ value, onChange, options, placeholder, error }: {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`w-full h-[46px] px-5 py-3 text-sm font-sans bg-white border rounded-full outline-none transition-colors appearance-none cursor-pointer pr-10 ${
-        value ? "text-gray-900" : "text-gray-400"
-      } ${error ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-[#1E3A5F]"}`}
+      className={`${ui.fieldBare} pl-5 pr-11 appearance-none cursor-pointer ${error ? ui.fieldError : ui.fieldOk}`}
       style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%236B6B6B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+        // Nothing chosen yet: the placeholder in the grey of the other placeholders.
+        color: value ? undefined : "#9ca3af",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%235b6472' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
         backgroundRepeat: "no-repeat",
-        backgroundPosition: "right 16px center",
+        backgroundPosition: "right 18px center",
       }}
     >
       <option value="">{placeholder}</option>
@@ -260,15 +311,26 @@ function Textarea({ value, onChange, placeholder, rows = 3 }: {
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full px-5 py-3 text-sm font-sans bg-transparent border border-gray-300 rounded-[20px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors resize-y leading-relaxed"
+      className="w-full px-5 py-3 text-base bg-white border border-gray-300 rounded-2xl text-[#2a2f3a] placeholder:text-gray-400 outline-none transition-colors resize-y leading-relaxed focus:border-[#311e86] focus:ring-2 focus:ring-[#311e86]/15"
     />
   )
 }
 
 function TwoCol({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+  return <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5">{children}</div>
 }
 
+// The heading of a step with its explanation.
+function StepHead({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-7">
+      <SectionTitle>{title}</SectionTitle>
+      <p className={`${ui.text} mt-2`}>{children}</p>
+    </div>
+  )
+}
+
+// One kind of document: a row between hairlines, with its files under it.
 function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSaved }: {
   cat: (typeof DOC_CATEGORIES)[0]; files: Record<string, File[]>
   // `saved`: kept with the concept. `uploads`: how far the selected files are.
@@ -283,21 +345,24 @@ function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSa
 
   return (
     <div
-      className={`border rounded-2xl p-4 px-5 mb-3 transition-colors ${isDragging ? "border-[#1E3A5F] bg-[#f0f4ff]" : "border-gray-200 bg-white"}`}
+      data-doc-card={cat.id}
+      className={`py-5 border-b border-gray-200 transition-colors ${isDragging ? "bg-[#311e86]/5 outline-2 outline-offset-4 outline-[#311e86]/40" : ""}`}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
       onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = Array.from(e.dataTransfer.files); if (f.length) onAdd(cat.id, f) }}
     >
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex-1">
-          <div className="text-sm font-medium text-gray-900 font-sans">
-            {cat.label}{cat.required && <span className="text-[11px] text-[#F75D20] ml-2 font-normal">verplicht</span>}
-          </div>
-          <div className="text-xs text-gray-400 mt-0.5 font-sans">{cat.desc}</div>
-          {isDragging && <p className="text-xs text-[#1E3A5F] mt-1.5 font-sans font-medium">Laat los om te uploaden</p>}
+      {/* On a phone the button comes under the text: a long name such as
+          "Financieringsmemorandum" needs the full width there. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="flex flex-wrap items-baseline gap-x-2 text-[17px] font-semibold text-[#1e3a5f] leading-snug">
+            <span className="min-w-0 break-words">{cat.label}</span>
+            {cat.required && <span className="text-sm text-[#cc4410] font-normal">verplicht</span>}
+          </p>
+          <p className="text-[15px] text-gray-600 leading-relaxed mt-0.5">{cat.desc}</p>
+          {isDragging && <p className="text-sm text-[#311e86] mt-1.5 font-medium">Laat los om te uploaden</p>}
         </div>
-        <button type="button" onClick={() => inputRef.current?.click()}
-          className="px-4 py-2 text-xs font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-900 cursor-pointer whitespace-nowrap hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors">
+        <button type="button" onClick={() => inputRef.current?.click()} className={`${ui.buttonSmall} self-start`}>
           + Uploaden
         </button>
         <input ref={inputRef} type="file" multiple hidden onChange={(e) => { onAdd(cat.id, Array.from(e.target.files || [])); e.target.value = "" }} />
@@ -305,10 +370,10 @@ function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSa
       {(catSaved.length > 0 || catFiles.length > 0) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {catSaved.map((d) => (
-            <div key={`saved-${d.id}`} title="Bewaard bij het concept" className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-emerald-50 text-gray-900 font-sans">
-              <span className="text-emerald-600 leading-none">✓</span>
-              <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{d.name}</span>
-              <span onClick={() => onRemoveSaved(d)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
+            <div key={`saved-${d.id}`} title="Bewaard bij het concept" className="inline-flex max-w-full items-center gap-1.5 px-3.5 py-1.5 text-sm rounded-full bg-emerald-50 text-[#2a2f3a]">
+              <span className="text-emerald-700 leading-none shrink-0">✓</span>
+              <span className="max-w-[220px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{d.name}</span>
+              <span onClick={() => onRemoveSaved(d)} className="cursor-pointer text-[#5b6472] text-base leading-none ml-0.5 hover:text-red-700 shrink-0">×</span>
             </div>
           ))}
           {catFiles.map((f, i) => {
@@ -321,12 +386,12 @@ function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSa
               : failed ? "niet bewaard" : "wacht op bewaren"
             return (
               <div key={`file-${i}`} title={failed ? info?.error || "Niet bewaard bij het concept" : "Wordt bij het concept bewaard"}
-                className={`inline-flex max-w-full items-center gap-1.5 px-3.5 py-1 text-xs rounded-full font-sans text-gray-900 ${failed ? "bg-amber-50" : "bg-[#FAF9F7]"}`}>
-                {uploading && <span className="w-3 h-3 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />}
+                className={`inline-flex max-w-full items-center gap-1.5 px-3.5 py-1.5 text-sm rounded-full text-[#2a2f3a] ${failed ? "bg-amber-50" : "bg-gray-100"}`}>
+                {uploading && <span className={`${ui.spinner} w-3 h-3 border-[1.5px]`} />}
                 {/* On a narrow screen the name gives way, the state stays readable. */}
-                <span className="max-w-[180px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
-                <span className={`text-[11px] whitespace-nowrap shrink-0 ${failed ? "text-amber-700" : "text-gray-500"}`}>{note}</span>
-                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70 shrink-0">×</span>
+                <span className="max-w-[220px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
+                <span className={`text-[13px] whitespace-nowrap shrink-0 ${failed ? "text-amber-800" : "text-[#5b6472]"}`}>{note}</span>
+                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer text-[#5b6472] text-base leading-none ml-0.5 hover:text-red-700 shrink-0">×</span>
               </div>
             )
           })}
@@ -339,9 +404,9 @@ function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSa
 function ReviewRow({ label, value }: { label: string; value?: string }) {
   if (!value) return null
   return (
-    <div className="flex justify-between py-2.5 border-b border-[#FAF9F7] text-sm font-sans">
-      <span className="text-gray-400">{label}</span>
-      <span className="text-gray-900 font-medium text-right max-w-[60%]">{value}</span>
+    <div className="grid sm:grid-cols-[200px_minmax(0,1fr)] gap-x-4 py-2.5 border-b border-gray-100">
+      <dt className="text-[15px] leading-snug text-[#5b6472]">{label}</dt>
+      <dd className="m-0 text-[15px] leading-snug font-medium text-[#1e3a5f] break-words">{value}</dd>
     </div>
   )
 }
@@ -349,8 +414,8 @@ function ReviewRow({ label, value }: { label: string; value?: string }) {
 function ReviewSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold text-[#311E86] font-serif mb-4 pb-2 border-b-2 border-[#FAF9F7]">{title}</h3>
-      {children}
+      <h3 className="text-lg font-semibold text-[#1e3a5f] pb-2 border-b border-gray-200">{title}</h3>
+      <dl className="m-0">{children}</dl>
     </div>
   )
 }
@@ -808,38 +873,36 @@ export function FinancingForm() {
   /* ── Success state ── */
   if (submitted) {
     return (
-      <div className="max-w-xl mx-auto text-center py-20">
-        <div className="w-16 h-16 rounded-full bg-[#1E3A5F] flex items-center justify-center mx-auto mb-6 text-3xl text-white">✓</div>
-        <div className="w-12 h-1 bg-[#F75D20] rounded-sm mb-4 mx-auto" />
-        <h2 className="font-serif text-3xl font-normal text-[#1E3A5F] mb-4">Aanvraag ontvangen</h2>
-        <p className="text-base text-gray-400 leading-relaxed mb-8 font-sans">
+      <PortalColumns aside={<ContactPanel />}>
+        {/* Done: the mark of a finished step, in green. */}
+        <span aria-hidden="true" className="w-9 h-9 flex items-center justify-center bg-emerald-600 text-white text-lg mb-4">✓</span>
+        <SectionTitle>Aanvraag ontvangen</SectionTitle>
+        <p className="text-lg md:text-[19px] leading-relaxed text-[#1e3a5f] mt-4 mb-8">
           Bedankt voor uw financieringsaanvraag. Uw documenten worden verwerkt en u ontvangt binnen twee werkdagen een eerste beoordeling van ons team.
         </p>
         {uploadWarnings.length > 0 && (
-          <div className="mb-8 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 text-left font-sans">
-            <p className="text-[13px] font-medium text-amber-800">
+          <div className={`${ui.noticeWarn} mb-8`} role="alert">
+            <p className="text-[15px] font-semibold text-amber-900">
               Let op: {uploadWarnings.length === 1 ? "één document kon" : `${uploadWarnings.length} documenten konden`} niet worden geüpload:
             </p>
-            <p className="text-[13px] text-amber-700 mt-1">{uploadWarnings.join(", ")}</p>
-            <p className="text-[13px] text-amber-700 mt-1">
+            <p className="text-[15px] leading-relaxed text-amber-900 mt-1">{uploadWarnings.join(", ")}</p>
+            <p className="text-[15px] leading-relaxed text-amber-900 mt-1">
               Uw aanvraag is wél ontvangen. U kunt {uploadWarnings.length === 1 ? "dit document" : "deze documenten"} alsnog toevoegen via &ldquo;Mijn aanvragen&rdquo;.
             </p>
           </div>
         )}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button onClick={() => router.push("/mijn-aanvragen")}
-            className="px-8 py-3 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <button onClick={() => router.push("/mijn-aanvragen")} className={ui.buttonPrimary}>
             Mijn aanvragen bekijken
           </button>
           {/* Hard navigation: a same-route router.push keeps this component
               instance (and submitted=true) alive, so the button did nothing.
               A full load guarantees a clean form with a fresh draft id. */}
-          <button onClick={() => window.location.assign("/financieringsaanvraag")}
-            className="px-8 py-3 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-900 cursor-pointer hover:border-[#1E3A5F] transition-colors">
+          <button onClick={() => window.location.assign("/financieringsaanvraag")} className={ui.buttonSecondary}>
             Nieuwe aanvraag
           </button>
         </div>
-      </div>
+      </PortalColumns>
     )
   }
 
@@ -848,8 +911,7 @@ export function FinancingForm() {
     switch (step) {
       case 0: return (
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Gegevens aanvrager</h2>
-          <p className="font-sans text-sm text-gray-400 mb-7">Vul de gegevens in van de persoon of entiteit die de financiering aanvraagt.</p>
+          <StepHead title="Gegevens aanvrager">Vul de gegevens in van de persoon of entiteit die de financiering aanvraagt.</StepHead>
 
           <Field label="Type aanvrager" required error={errors.aanvragerType}>
             <Select value={aanvragerType} onChange={(v) => { setAanvragerType(v); clearError("aanvragerType") }}
@@ -912,8 +974,8 @@ export function FinancingForm() {
           </TwoCol>
 
           {(burgerlijkStaat === "Gehuwd" || burgerlijkStaat === "Geregistreerd partnerschap") && (
-            <div className="mt-1 mb-5 border border-gray-200 rounded-2xl p-5">
-              <p className="text-[13px] font-semibold text-gray-700 font-sans mb-4">Medeaanvrager</p>
+            <div className="mt-1 mb-5 border border-gray-200 px-6 pt-5 pb-1">
+              <p className="text-lg font-semibold text-[#1e3a5f] mb-4">Medeaanvrager</p>
               <TwoCol>
                 <Field label="Voornaam">
                   <Input value={medeVoornaam} onChange={setMedeVoornaam} placeholder="Voornaam partner" />
@@ -937,15 +999,14 @@ export function FinancingForm() {
 
       case 1: return (
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Objectgegevens</h2>
-          <p className="font-sans text-sm text-gray-400 mb-7">Gegevens over het vastgoed waarvoor financiering wordt aangevraagd.</p>
+          <StepHead title="Objectgegevens">Gegevens over het vastgoed waarvoor financiering wordt aangevraagd.</StepHead>
 
           {objects.map((obj, idx) => (
-            <div key={idx} className={`mb-6 ${objects.length > 1 ? "border border-gray-200 rounded-2xl p-5" : ""}`}>
+            <div key={idx} className={`mb-6 ${objects.length > 1 ? "border border-gray-200 px-6 pt-5 pb-1" : ""}`}>
               {objects.length > 1 && (
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-gray-700 font-sans">Object {idx + 1}</span>
-                  <button onClick={() => removeObject(idx)} className="text-xs text-gray-400 hover:text-red-500 font-sans transition-colors cursor-pointer">Verwijderen</button>
+                  <span className="text-lg font-semibold text-[#1e3a5f]">Object {idx + 1}</span>
+                  <button onClick={() => removeObject(idx)} className={ui.linkQuiet}>Verwijderen</button>
                 </div>
               )}
               <Field label="Type vastgoed" required error={errors[`obj_${idx}_type`]}>
@@ -980,7 +1041,8 @@ export function FinancingForm() {
                   <button
                     type="button"
                     onClick={() => setObjects((prev) => prev.map((o, i) => (i === idx ? { ...o, verhuurd: !o.verhuurd, huurinkomsten: o.verhuurd ? "" : o.huurinkomsten } : o)))}
-                    className={`h-[46px] px-6 rounded-full text-sm font-sans border transition-colors cursor-pointer ${obj.verhuurd ? "bg-[#1E3A5F] text-white border-[#1E3A5F]" : "bg-white text-gray-600 border-gray-300 hover:border-[#1E3A5F]"}`}
+                    aria-pressed={obj.verhuurd}
+                    className={`h-12 px-6 rounded-full text-base border transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#311e86] ${obj.verhuurd ? "bg-[#1e3a5f] text-white border-[#1e3a5f]" : "bg-white text-[#2a2f3a] border-gray-300 hover:border-[#311e86]"}`}
                   >
                     {obj.verhuurd ? "Ja, verhuurd" : "Nee"}
                   </button>
@@ -994,8 +1056,7 @@ export function FinancingForm() {
             </div>
           ))}
 
-          <button onClick={addObject}
-            className="w-full py-3 text-sm font-medium font-sans border border-dashed border-gray-300 rounded-2xl text-gray-500 cursor-pointer hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors bg-transparent">
+          <button onClick={addObject} className={ui.buttonSecondary}>
             + Object toevoegen
           </button>
         </div>
@@ -1003,8 +1064,7 @@ export function FinancingForm() {
 
       case 2: return (
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Financieringsdetails</h2>
-          <p className="font-sans text-sm text-gray-400 mb-7">Geef aan wat voor financiering u zoekt en onder welke voorwaarden.</p>
+          <StepHead title="Financieringsdetails">Geef aan wat voor financiering u zoekt en onder welke voorwaarden.</StepHead>
 
           <Field label="Doel van de financiering" required error={errors.leningDoel}>
             <Select value={leningDoel} onChange={(v) => { setLeningDoel(v); clearError("leningDoel") }} options={LOAN_PURPOSES} placeholder="Selecteer financieringsdoel" error={!!errors.leningDoel} />
@@ -1057,41 +1117,42 @@ export function FinancingForm() {
 
       case 3: return (
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Documenten uploaden</h2>
-          <p className="font-sans text-sm text-gray-400 mb-7">
+          <StepHead title="Documenten uploaden">
             Upload de benodigde documenten. Verplichte documenten zijn gemarkeerd. U kunt bestanden slepen of op &ldquo;Uploaden&rdquo; klikken.
             Documenten worden direct bij uw concept bewaard. Dat duurt per document enkele seconden, bij grote bestanden langer.
             Een groen vinkje betekent dat het document veilig is opgeslagen.
-          </p>
+          </StepHead>
           {sync.busy && (
-            <div className="mb-5 px-5 py-4 rounded-xl bg-[#f0f4ff] border border-[#d9e2ff] font-sans flex items-start gap-3">
-              <span className="mt-0.5 w-4 h-4 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
+            <div className={`${ui.noticeInfo} mb-5 flex items-start gap-3`} role="status">
+              <span className={`${ui.spinner} mt-1 w-4 h-4 border-2`} />
               <div>
-                <p className="text-[13px] font-medium text-[#1E3A5F]">
+                <p className="text-[15px] font-semibold text-[#1e3a5f]">
                   {savingCount === 1 ? "Eén document wordt nu bewaard." : `${savingCount} documenten worden nu bewaard.`}
                 </p>
-                <p className="text-[13px] text-[#1E3A5F]/80 mt-1">
+                <p className="text-[15px] leading-relaxed text-[#2a2f3a] mt-1">
                   Sluit of ververs dit tabblad niet tot elk document een groen vinkje heeft. Verder invullen of naar een andere pagina van het portaal gaan kan gewoon.
                 </p>
               </div>
             </div>
           )}
           {lostFileNames.length > 0 && (
-            <div className="mb-5 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 font-sans">
-              <p className="text-[13px] font-medium text-amber-800">
+            <div className={`${ui.noticeWarn} mb-5`}>
+              <p className="text-[15px] font-semibold text-amber-900">
                 Let op: {lostFileNames.length === 1 ? "één eerder gekozen bestand was" : `${lostFileNames.length} eerder gekozen bestanden waren`} nog niet bewaard toen de pagina werd gesloten of ververst.
               </p>
-              <p className="text-[13px] text-amber-700 mt-1">
-                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe en wacht tot er een groen vinkje voor staat: <span className="font-medium">{lostFileNames.join(", ")}</span>.
+              <p className="text-[15px] leading-relaxed text-amber-900 mt-1">
+                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe en wacht tot er een groen vinkje voor staat: <span className="font-semibold">{lostFileNames.join(", ")}</span>.
               </p>
             </div>
           )}
-          {visibleDocs.map((cat) => (
-            <DocUploadCard key={cat.id} cat={cat} files={files} saved={savedDocs} uploads={sync.uploads}
-              onAdd={addFiles} onRemove={removeFile} onRemoveSaved={removeSavedDoc} />
-          ))}
-          {docRemoveError && <p className="mt-2 text-xs text-red-500 font-sans">{docRemoveError}</p>}
-          <div className="mt-4 px-5 py-3 rounded-xl bg-[#FAF9F7] text-[13px] text-gray-400 font-sans">
+          <div className="border-t border-gray-200">
+            {visibleDocs.map((cat) => (
+              <DocUploadCard key={cat.id} cat={cat} files={files} saved={savedDocs} uploads={sync.uploads}
+                onAdd={addFiles} onRemove={removeFile} onRemoveSaved={removeSavedDoc} />
+            ))}
+          </div>
+          {docRemoveError && <p className={`${ui.error} mt-3`} role="alert">{docRemoveError}</p>}
+          <div className={`${ui.note} mt-5`}>
             {totalFiles} {totalFiles === 1 ? "bestand" : "bestanden"} toegevoegd
             {savedDocs.length > 0 && pendingFiles === 0 && <>, {savedDocs.length === 1 ? "bewaard" : "alle bewaard"} bij uw concept</>}
             {savedDocs.length > 0 && pendingFiles > 0 && <>, waarvan {savedDocs.length} bewaard bij uw concept</>}
@@ -1105,8 +1166,7 @@ export function FinancingForm() {
 
       case 4: return (
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Overzicht aanvraag</h2>
-          <p className="font-sans text-sm text-gray-400 mb-7">Controleer de ingevulde gegevens voordat u de aanvraag indient.</p>
+          <StepHead title="Overzicht aanvraag">Controleer de ingevulde gegevens voordat u de aanvraag indient.</StepHead>
 
           <ReviewSection title="Aanvrager">
             <ReviewRow label="Type" value={fmt(aanvragerType)} />
@@ -1159,31 +1219,29 @@ export function FinancingForm() {
               return <ReviewRow key={catId} label={cat?.label || catId}
                 value={`${names.length} ${names.length === 1 ? "bestand" : "bestanden"} (${names.join(", ")})`} />
             })}
-            {totalFiles === 0 && <p className="text-sm text-gray-400 font-sans italic">Geen documenten geüpload</p>}
+            {totalFiles === 0 && <div className={`${ui.note} py-2.5`}>Geen documenten geüpload</div>}
           </ReviewSection>
 
-          <div className="px-5 py-4 rounded-xl bg-[#FAF9F7] text-[13px] text-gray-400 font-sans leading-relaxed mt-2">
+          <div className={`${ui.noticeInfo} ${ui.note} mt-2`}>
             Door op &ldquo;Aanvraag indienen&rdquo; te klikken, geeft u toestemming aan Lange Financieel Advies B.V. (Lange &amp; Partners) om uw gegevens te verwerken ten behoeve van de beoordeling van uw financieringsaanvraag. Uw documenten worden veilig opgeslagen in een beveiligde dataroom.
           </div>
 
-          {/* Feedback panel */}
-          <div className="mt-8 border border-gray-200 rounded-2xl p-6 bg-white">
-            <div className="w-8 h-0.5 bg-[#F75D20] rounded-sm mb-4" />
-            <h3 className="font-serif text-[17px] font-semibold text-[#1E3A5F] mb-2">Wij waarderen de samenwerking</h3>
-            <p className="text-sm text-gray-500 font-sans leading-relaxed mb-5">
+          {/* Feedback panel. Kept quiet: the button that matters here is "Aanvraag indienen". */}
+          <div className="mt-8 border border-gray-200 bg-white px-6 py-5">
+            <h3 className="text-lg font-semibold text-[#1e3a5f] mb-2">Wij waarderen de samenwerking</h3>
+            <p className="text-[15px] leading-relaxed text-[#2a2f3a] mb-5">
               Dit portaal is recent gelanceerd en wij werken continu aan het verbeteren van uw ervaring. Wij stellen het zeer op prijs als u ons laat weten hoe u het portaal heeft ervaren.
             </p>
             {feedbackSent ? (
-              <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-[#f0f4ff] text-sm text-[#1E3A5F] font-sans font-medium">
-                <span className="text-base">✓</span>Bedankt voor uw feedback, wij nemen dit ter harte.
+              <div className={ui.noticeOk} role="status">
+                <p className="text-[15px] font-medium text-emerald-900">Bedankt voor uw feedback, wij nemen dit ter harte.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
                 <Textarea value={feedbackText} onChange={setFeedbackText} placeholder="Uw ervaring, suggesties of opmerkingen..." rows={3} />
-                {feedbackError && <p className="text-xs text-red-500 font-sans">{feedbackError}</p>}
+                {feedbackError && <p className={ui.error} role="alert">{feedbackError}</p>}
                 <div className="flex justify-end">
-                  <button onClick={handleFeedback} disabled={feedbackSending || !feedbackText.trim()}
-                    className="px-6 py-2.5 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-900 cursor-pointer hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={handleFeedback} disabled={feedbackSending || !feedbackText.trim()} className={ui.buttonSecondary}>
                     {feedbackSending ? "Verzenden…" : "Feedback versturen"}
                   </button>
                 </div>
@@ -1198,76 +1256,101 @@ export function FinancingForm() {
   }
 
   /* ── Render ── */
+  const goToStep = (i: number) => { setErrors({}); setStep(i); scrollToTop() }
+  // What is being saved right now. While a document is on its way this stays
+  // in view on every step: the adviser can go on filling in, but the tab has
+  // to stay open.
+  const saveState = sync.busy ? (
+    <p className="flex items-center gap-2 text-sm text-[#311e86]" role="status">
+      <span className={`${ui.spinner} w-3 h-3 border-[1.5px]`} />
+      Documenten worden bewaard…
+    </p>
+  ) : (
+    <p className={`text-sm text-[#5b6472] transition-opacity duration-500 ${draftSaved ? "opacity-100" : "opacity-0"}`} aria-live="polite">
+      Concept opgeslagen
+    </p>
+  )
+
   return (
-    <div>
+    <PortalColumns
+      aside={
+        <>
+          {/* On a wide screen the steps stay in view next to the form. Kept
+              short on purpose: the side column stays put while the form
+              scrolls, so it has to fit a laptop screen. */}
+          <div className="hidden lg:block">
+            <Panel accent title="Stappen">
+              <StepList current={step} onStepClick={goToStep} />
+              <div className="mt-3 min-h-[1.25rem]">{saveState}</div>
+            </Panel>
+          </div>
+          <ContactPanel />
+        </>
+      }
+    >
+      <PartnerIntakeNote />
+      {/* After a step change the page scrolls to here: the steps and the
+          heading of the step, not the note above them. */}
       <div ref={topRef} />
-      <div className="relative">
-        <StepIndicator current={step} onStepClick={(i) => { setErrors({}); setStep(i); scrollToTop() }} />
-        {/* While a document is on its way this stays in view on every step:
-            the adviser can go on filling in, but the tab has to stay open.
-            Next to the steps where there is room, under them on a phone. */}
-        {sync.busy ? (
-          <div className="-mt-6 mb-6 md:m-0 md:absolute md:top-0 md:right-0 md:w-[124px] flex items-start gap-1.5 text-[11px] leading-snug font-sans text-[#311E86]">
-            <span className="mt-0.5 w-2.5 h-2.5 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
-            <span>Documenten worden bewaard…</span>
-          </div>
-        ) : (
-          <div className={`absolute top-0 right-0 text-[11px] font-sans text-gray-400 transition-opacity duration-500 ${draftSaved ? "opacity-100" : "opacity-0"}`}>
-            Concept opgeslagen
-          </div>
-        )}
+      {/* On a phone the side column comes last: the steps go above the form there. */}
+      <div className="lg:hidden">
+        <StepIndicator current={step} onStepClick={goToStep} />
+        <div className="mt-3 mb-8 min-h-[1.25rem]">{saveState}</div>
       </div>
+
       {/* Only when the server copy is NOT being kept, so nobody counts on it. */}
       {sync.state !== "ok" && (
-        <div className="-mt-4 mb-8 px-5 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800 font-sans">
-          {sync.closedStatus
-            ? "Dit concept is al ingediend of uit uw overzicht gehaald. Wat u nu invult, wordt alleen op dit apparaat bewaard."
-            : "Uw concept wordt op dit moment alleen op dit apparaat bewaard. Zodra de verbinding terug is, wordt het weer automatisch opgeslagen."}
+        <div className={`${ui.noticeWarn} mb-8`} role="status">
+          <p className="text-[15px] leading-relaxed text-amber-900">
+            {sync.closedStatus
+              ? "Dit concept is al ingediend of uit uw overzicht gehaald. Wat u nu invult, wordt alleen op dit apparaat bewaard."
+              : "Uw concept wordt op dit moment alleen op dit apparaat bewaard. Zodra de verbinding terug is, wordt het weer automatisch opgeslagen."}
+          </p>
         </div>
       )}
 
       {renderStep()}
 
-      <div className="flex justify-between items-center mt-10 pt-6 border-t border-[#FAF9F7]">
+      <div className="flex justify-between items-start gap-4 mt-10 pt-6 border-t border-gray-200">
         {step > 0 ? (
-          <button onClick={prev} className="px-7 py-3 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-900 cursor-pointer hover:border-[#1E3A5F] transition-colors">
-            ← Vorige
+          <button onClick={prev} className={ui.buttonSecondary}>
+            Vorige
           </button>
         ) : <div />}
 
         {step < STEPS.length - 1 ? (
           <div className="flex flex-col items-end gap-2">
             {step === 3 && docError && missingRequiredDocs.length > 0 && (
-              <p className="text-xs text-gray-400 font-sans text-right">
+              <p className="text-sm text-[#2a2f3a] text-right">
                 Upload verplichte documenten om verder te gaan:{" "}
-                <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
+                <span className="font-medium text-[#cc4410]">{missingRequiredDocs.join(", ")}</span>
               </p>
             )}
-            <button onClick={next} className="px-8 py-3 text-sm font-medium font-sans border-none rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors">
-              Volgende →
+            <button onClick={next} className={ui.buttonPrimary}>
+              Volgende
             </button>
           </div>
         ) : (
           <div className="flex flex-col items-end gap-2">
             {missingRequiredDocs.length > 0 && (
-              <p className="text-xs text-gray-400 font-sans text-right">
+              <p className="text-sm text-[#2a2f3a] text-right">
                 {lostFileNames.length > 0 && <>Eerder gekozen bestanden waren nog niet bewaard.{" "}</>}
                 Upload verplichte documenten om in te dienen:{" "}
-                <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
-                {" — "}
-                <button type="button" onClick={() => { setStep(3); scrollToTop() }} className="text-[#311E86] underline cursor-pointer">
-                  naar documenten
+                <span className="font-medium text-[#cc4410]">{missingRequiredDocs.join(", ")}</span>.{" "}
+                <button type="button" onClick={() => { setStep(3); scrollToTop() }} className={ui.link}>
+                  Naar documenten
                 </button>
               </p>
             )}
-            {submitError && <p className="text-sm text-red-500 font-sans">{submitError}</p>}
-            <button onClick={handleSubmit} disabled={submitting || missingRequiredDocs.length > 0}
-              className="px-8 py-3 text-sm font-medium font-sans border-none rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+            {submitError && <p className={ui.error} role="alert">{submitError}</p>}
+            {/* The one call to action of the site, with the same name and
+                colour as on the public pages. */}
+            <button onClick={handleSubmit} disabled={submitting || missingRequiredDocs.length > 0} className={ui.buttonCta}>
               {submitting ? (uploadProgress || "Bezig met verzenden…") : "Aanvraag indienen"}
             </button>
           </div>
         )}
       </div>
-    </div>
+    </PortalColumns>
   )
 }
