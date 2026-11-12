@@ -285,6 +285,14 @@ async function main() {
   fakeDb.failures[`get:${C}`] = 1
   r = await submit(submitReq("tok-A", [{ cat: "id_doc", name: "id.pdf", size: 10 }], { conceptId: D }))
   j = await r.json()
+  ok("reading the concept fails once: read again, concept taken along", r.status === 200 && !!j.id && fakeDb.read(C, `uidA_${D}`)!.status === "ingediend" && fakeDb.read(C, `uidA_${D}`)!.aanvraagId === j.id)
+  await runAfter()
+
+  resetAll()
+  await putConcept(req("PUT", `/api/concepten/${D}`, "tok-A", { data: FORM }), draft(D))
+  fakeDb.failures[`get:${C}`] = 2
+  r = await submit(submitReq("tok-A", [{ cat: "id_doc", name: "id.pdf", size: 10 }], { conceptId: D }))
+  j = await r.json()
   ok("concept unreadable at that moment: ordinary submission", r.status === 200 && !!j.id && fakeDrive.aanvraagFolders().length === 1 && fakeDb.read(C, `uidA_${D}`)!.status === "concept")
   await runAfter()
 

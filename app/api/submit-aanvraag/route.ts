@@ -235,7 +235,9 @@ export async function POST(req: NextRequest) {
   if (isValidDraftId(conceptDraftId)) {
     try {
       const ref = adminDb.collection(CONCEPT_COLLECTION).doc(conceptDocId(userId, conceptDraftId))
-      const snap = await ref.get()
+      // One more try when the read fails: without the concept its documents
+      // would stay behind in the concept's folder.
+      const snap = await ref.get().catch(() => ref.get())
       const concept = snap.data()
       if (snap.exists && concept && concept.userId === userId) {
         if (concept.status === "ingediend") {

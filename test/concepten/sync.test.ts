@@ -149,6 +149,15 @@ async function main() {
   const kept = sync.docs[0]
   ok("taking out fails: it is shown again, nothing is pretended", (await sync.removeDoc(kept)) === false && sync.docs.some((d) => d.id === kept.id) && server()!.documents.length === 2)
 
+  // taken out and submitted in the same breath
+  const wrong = file("verkeerd.pdf")
+  sync.enqueue("overig", wrong)
+  await until(() => sync.isSaved(wrong))
+  void sync.removeDoc(sync.docs.find((d) => d.name === "verkeerd.pdf")!)
+  await sync.pauseUploads()
+  ok("a document taken out just before submitting is gone before the submission goes", !fakeDrive.filesIn(server()!.driveFolderId).includes("verkeerd.pdf") && server()!.documents.length === 2 && sync.docs.length === 2)
+  sync.resumeUploads()
+
   // taken out while still waiting / while uploading
   fakeDrive.uploadDelayMs = 25
   const f4 = file("a.pdf", 12_000_000), f5 = file("b.pdf")

@@ -82,6 +82,7 @@ export class ConceptSync {
   private idleWaiters: (() => void)[] = []
   private current: File | null = null
   private lastProgress = 0
+  private removals = new Set<Promise<unknown>>()
 
   constructor(options: ConceptSyncOptions) {
     this.draftId = options.draftId
@@ -253,7 +254,12 @@ export class ConceptSync {
   /** A saved document is taken out of the concept (and out of its folder). */
   async removeDoc(doc: ConceptDocument): Promise<boolean> {
     this.setDocs(this.docs.filter((d) => d.id !== doc.id))
-    const documents = await this.deleteOnServer(doc.id)
+    const request = this.deleteOnServer(doc.id)
+    // A submission that starts right now waits for this (see pauseUploads):
+    // a document the adviser just took out must not travel along after all.
+    this.removals.add(request)
+    const documents = await request
+    this.removals.delete(request)
     if (documents) {
       this.setDocs(documents)
       return true
@@ -271,10 +277,18 @@ export class ConceptSync {
    * all for `stallMs` (a dead connection) is given up on: it counts as not
    * saved and goes along with the rest after submission.
    */
-  pauseUploads(stallMs = STALL_MS): Promise<void> {
+  async pauseUploads(stallMs = STALL_MS): Promise<void> {
     this.paused = true
-    if (!this.pumping) return Promise.resolve()
-    return new Promise((resolve) => {
+    // Documents that are being taken out at this moment: let that finish
+    // first (a few seconds at most), so the list that is submitted is right.
+    if (this.removals.size) {
+      await Promise.race([
+        Promise.allSettled([...this.removals]),
+        new Promise((resolve) => setTimeout(resolve, Math.min(10_000, stallMs))),
+      ])
+    }
+    if (!this.pumping) return
+    await new Promise<void>((resolve) => {
       let settled = false
       const finish = () => {
         if (settled) return
