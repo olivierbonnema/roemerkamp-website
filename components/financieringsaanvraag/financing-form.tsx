@@ -321,11 +321,12 @@ function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSa
               : failed ? "niet bewaard" : "wacht op bewaren"
             return (
               <div key={`file-${i}`} title={failed ? info?.error || "Niet bewaard bij het concept" : "Wordt bij het concept bewaard"}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full font-sans text-gray-900 ${failed ? "bg-amber-50" : "bg-[#FAF9F7]"}`}>
+                className={`inline-flex max-w-full items-center gap-1.5 px-3.5 py-1 text-xs rounded-full font-sans text-gray-900 ${failed ? "bg-amber-50" : "bg-[#FAF9F7]"}`}>
                 {uploading && <span className="w-3 h-3 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />}
-                <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
-                <span className={`text-[11px] whitespace-nowrap ${failed ? "text-amber-700" : "text-gray-500"}`}>{note}</span>
-                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
+                {/* On a narrow screen the name gives way, the state stays readable. */}
+                <span className="max-w-[180px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
+                <span className={`text-[11px] whitespace-nowrap shrink-0 ${failed ? "text-amber-700" : "text-gray-500"}`}>{note}</span>
+                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70 shrink-0">×</span>
               </div>
             )
           })}
@@ -1203,9 +1204,10 @@ export function FinancingForm() {
       <div className="relative">
         <StepIndicator current={step} onStepClick={(i) => { setErrors({}); setStep(i); scrollToTop() }} />
         {/* While a document is on its way this stays in view on every step:
-            the adviser can go on filling in, but the tab has to stay open. */}
+            the adviser can go on filling in, but the tab has to stay open.
+            Next to the steps where there is room, under them on a phone. */}
         {sync.busy ? (
-          <div className="absolute top-0 right-0 w-[124px] flex items-start gap-1.5 text-[11px] leading-snug font-sans text-[#311E86]">
+          <div className="-mt-6 mb-6 md:m-0 md:absolute md:top-0 md:right-0 md:w-[124px] flex items-start gap-1.5 text-[11px] leading-snug font-sans text-[#311E86]">
             <span className="mt-0.5 w-2.5 h-2.5 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
             <span>Documenten worden bewaard…</span>
           </div>
