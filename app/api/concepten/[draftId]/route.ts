@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
 import { MAX_CONCEPT_BYTES, conceptSummary, isValidDraftId, sanitizeConceptData } from "@/lib/concepten"
-import { conceptDocuments, conceptRef, toIso, verifyUser, writeConcept } from "@/lib/concept-server"
+import { conceptRef, recoverConceptUploads, toIso, verifyUser, writeConcept } from "@/lib/concept-server"
 
 // One concept of the signed-in account.
 //
@@ -29,13 +29,16 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     if (c.status !== "concept") {
       return NextResponse.json({ status: String(c.status || ""), aanvraagId: typeof c.aanvraagId === "string" ? c.aanvraagId : null })
     }
+    // An upload that was started and never reported (the page was closed or
+    // reloaded): what arrived in the folder is recorded now.
+    const { documents } = await recoverConceptUploads(conceptRef(decoded.uid, draftId), c)
     return NextResponse.json({
       status: "concept",
       draftId,
       rev: typeof c.rev === "number" ? c.rev : 0,
       step: typeof c.step === "number" ? c.step : 0,
       data: c.data && typeof c.data === "object" ? c.data : {},
-      documents: conceptDocuments(c),
+      documents,
       updatedAt: toIso(c.updatedAt),
       clientSavedAt: typeof c.clientSavedAt === "string" ? c.clientSavedAt : null,
     })

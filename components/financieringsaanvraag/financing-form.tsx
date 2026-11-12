@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { auth } from "@/lib/firebase"
 import { uploadFilesDirect } from "@/lib/upload-direct"
 import { loadDraft, saveDraft, deleteDraft, localDocs } from "@/lib/concept-local"
-import { ConceptSync, type UploadInfo } from "@/lib/concept-sync"
+import { acquireConceptSync, type UploadInfo } from "@/lib/concept-sync"
 import type { ConceptDocument } from "@/lib/concepten"
 
 /* ── Constants ── */
@@ -312,13 +312,21 @@ function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSa
             </div>
           ))}
           {catFiles.map((f, i) => {
+            // Not kept yet. Say so in words: a file name alone looks finished.
             const info = uploads.get(f)
-            const note = info?.phase === "uploading" ? `${info.pct}%` : info?.phase === "queued" ? "wacht" : ""
+            const uploading = info?.phase === "uploading"
+            const failed = !info || info.phase === "failed"
+            const note = uploading
+              ? `wordt bewaard…${info.pct > 0 && info.pct < 100 ? ` ${info.pct}%` : ""}`
+              : failed ? "niet bewaard" : "wacht op bewaren"
             return (
-              <div key={`file-${i}`} className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-[#FAF9F7] text-gray-900 font-sans">
-                <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
-                {note && <span className="text-[11px] text-gray-400">{note}</span>}
-                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
+              <div key={`file-${i}`} title={failed ? info?.error || "Niet bewaard bij het concept" : "Wordt bij het concept bewaard"}
+                className={`inline-flex max-w-full items-center gap-1.5 px-3.5 py-1 text-xs rounded-full font-sans text-gray-900 ${failed ? "bg-amber-50" : "bg-[#FAF9F7]"}`}>
+                {uploading && <span className="w-3 h-3 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />}
+                {/* On a narrow screen the name gives way, the state stays readable. */}
+                <span className="max-w-[180px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
+                <span className={`text-[11px] whitespace-nowrap shrink-0 ${failed ? "text-amber-700" : "text-gray-500"}`}>{note}</span>
+                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70 shrink-0">×</span>
               </div>
             )
           })}
@@ -479,43 +487,49 @@ export function FinancingForm() {
   }
 
   // Documenten
-  // `files`: selected in this visit and not (yet) kept with the concept.
   // `savedDocs`: kept with the concept on the server, so still there after the
-  // browser is closed or on another device. A file moves from the first to the
-  // second once its upload to the concept's folder is confirmed
-  // (lib/concept-sync.ts). If that never happens it simply stays in `files`
-  // and is uploaded at submission, as it always was.
-  const [files, setFiles] = useState<Record<string, File[]>>({})
+  // browser is closed or on another device.
+  // `files`: selected and not (yet) kept: waiting, on its way, or failed. A
+  // file moves from the second to the first once the server has recorded it
+  // (lib/concept-sync.ts). If that never happens it stays in `files` and is
+  // uploaded at submission, as it always was.
+  // Both live in the concept's sync object, not in this component: that object
+  // carries on when the adviser goes to another page of the portal, and is
+  // picked up again, with the files, when the form is opened again.
   const [, rerender] = useState(0)
-  const [sync] = useState(() => new ConceptSync({
+  // The account that opened the form (it is only shown to a signed-in user).
+  const [ownerUid] = useState(() => user?.uid ?? "")
+  // Never with another account's session. A document that is still on its way
+  // when someone else signs in on this page must not end up under their name.
+  const getToken = useCallback(async () => {
+    const current = auth.currentUser
+    return current && current.uid === ownerUid ? current.getIdToken() : null
+  }, [ownerUid])
+  const [sync] = useState(() => acquireConceptSync({
     draftId,
-    getToken: async () => auth.currentUser?.getIdToken(),
-    onChange: () => rerender((n) => n + 1),
-    onDocSaved: (cat, file) => setFiles((prev) => ({ ...prev, [cat]: (prev[cat] || []).filter((f) => f !== file) })),
+    getToken,
+    onChange: () => {},
     initialDocs: localDocs(draft),
-    ownerUid: user?.uid,
+    ownerUid,
   }))
   const savedDocs = sync.docs
+  const files = sync.pendingFiles()
   useEffect(() => {
+    sync.attach({ getToken, onChange: () => rerender((n) => n + 1) })
     sync.start()
     const onVisibility = () => { if (document.visibilityState === "hidden") sync.flushOnHide() }
     const onPageHide = () => sync.flushOnHide()
     document.addEventListener("visibilitychange", onVisibility)
     window.addEventListener("pagehide", onPageHide)
+    // What changed while the form was away (a document that was kept).
+    rerender((n) => n + 1)
     return () => {
       document.removeEventListener("visibilitychange", onVisibility)
       window.removeEventListener("pagehide", onPageHide)
-      sync.dispose()
+      // The documents that are on their way carry on, see lib/concept-sync.ts.
+      sync.detach()
     }
-  }, [sync])
-  // Closing the tab while a document is on its way would lose that document.
-  const savingDocs = sync.busy
-  useEffect(() => {
-    if (!savingDocs) return
-    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = "" }
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [savingDocs])
+  }, [sync, getToken])
   const [docRemoveError, setDocRemoveError] = useState("")
   const removeSavedDoc = async (doc: ConceptDocument) => {
     setDocRemoveError("")
@@ -524,12 +538,13 @@ export function FinancingForm() {
   }
 
   // Files that were selected in an earlier visit but never reached the concept
-  // (a concept from before documents were kept, or a browser closed while a
-  // document was still uploading). They have to be added again, so say so
-  // explicitly instead of silently blocking.
+  // (a concept from before documents were kept, or a tab closed or reloaded
+  // while a document was still on its way). They have to be added again, so
+  // say so explicitly instead of silently blocking. A document can be stored
+  // under another name than it was selected with ("scan (2).pdf"): `orig`.
   const draftFileNameList = Object.values(s<Record<string, string[]>>("fileNames", {})).flat()
   const presentNames = new Set([
-    ...savedDocs.map((d) => d.name.toLowerCase()),
+    ...savedDocs.flatMap((d) => [d.name.toLowerCase(), ...(d.orig ? [d.orig.toLowerCase()] : [])]),
     ...Object.values(files).flat().map((f) => f.name.toLowerCase()),
   ])
   const lostFileNames = draftFileNameList.filter((n) => !presentNames.has(n.toLowerCase()))
@@ -555,7 +570,7 @@ export function FinancingForm() {
       fileNames: Object.fromEntries(Object.entries(files).map(([id, fs]) => [id, fs.map((f) => f.name)])),
       // Bookkeeping for this browser only (lib/concept-local.ts).
       savedDocs: sync.docs,
-      ownerUid: user?.uid ?? "",
+      ownerUid,
     })
     // Send it to the server as well, a moment after the last change. A
     // finished step goes at once.
@@ -571,21 +586,19 @@ export function FinancingForm() {
       adresHuisnummer, adresPostcode, adresPlaats,
       geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail, medeGeboortedatum,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
-      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, files])
+      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, sync.filesVersion])
 
-  const addFiles = (catId: string, newFiles: File[]) => {
-    setFiles((prev) => ({ ...prev, [catId]: [...(prev[catId] || []), ...newFiles] }))
-    // Keep them with the concept straight away.
-    newFiles.forEach((f) => sync.enqueue(catId, f))
-  }
+  // Keep them with the concept straight away.
+  const addFiles = (catId: string, newFiles: File[]) => newFiles.forEach((f) => sync.enqueue(catId, f))
   const removeFile = (catId: string, idx: number) => {
     const file = (files[catId] || [])[idx]
     if (file) sync.cancel(file)
-    setFiles((prev) => ({ ...prev, [catId]: (prev[catId] || []).filter((f) => f !== file) }))
   }
 
   const pendingFiles = Object.values(files).flat().length
   const totalFiles = pendingFiles + savedDocs.length
+  // Documents that are waiting or on their way right now (not the failed ones).
+  const savingCount = [...sync.uploads.values()].filter((u) => u.phase !== "failed").length
 
   const visibleDocs = DOC_CATEGORIES.filter((cat) => {
     if (aanvragerType === "Particulier") return cat.particulier
@@ -685,9 +698,8 @@ export function FinancingForm() {
       await sync.pauseUploads()
       setUploadProgress("")
       const keptDocs = sync.docs
-      const openFiles = Object.entries(files).map(
-        ([catId, catFiles]) => [catId, catFiles.filter((f) => !sync.isSaved(f))] as const
-      )
+      // Read after the wait above: what was kept in the meantime is not in it.
+      const openFiles = Object.entries(sync.pendingFiles())
 
       const formData = new FormData()
       const fields: Record<string, string> = {
@@ -1048,15 +1060,29 @@ export function FinancingForm() {
           <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Documenten uploaden</h2>
           <p className="font-sans text-sm text-gray-400 mb-7">
             Upload de benodigde documenten. Verplichte documenten zijn gemarkeerd. U kunt bestanden slepen of op &ldquo;Uploaden&rdquo; klikken.
-            Documenten worden direct bij uw concept bewaard. Een vinkje betekent dat het document veilig is opgeslagen.
+            Documenten worden direct bij uw concept bewaard. Dat duurt per document enkele seconden, bij grote bestanden langer.
+            Een groen vinkje betekent dat het document veilig is opgeslagen.
           </p>
+          {sync.busy && (
+            <div className="mb-5 px-5 py-4 rounded-xl bg-[#f0f4ff] border border-[#d9e2ff] font-sans flex items-start gap-3">
+              <span className="mt-0.5 w-4 h-4 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
+              <div>
+                <p className="text-[13px] font-medium text-[#1E3A5F]">
+                  {savingCount === 1 ? "Eén document wordt nu bewaard." : `${savingCount} documenten worden nu bewaard.`}
+                </p>
+                <p className="text-[13px] text-[#1E3A5F]/80 mt-1">
+                  Sluit of ververs dit tabblad niet tot elk document een groen vinkje heeft. Verder invullen of naar een andere pagina van het portaal gaan kan gewoon.
+                </p>
+              </div>
+            </div>
+          )}
           {lostFileNames.length > 0 && (
             <div className="mb-5 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 font-sans">
               <p className="text-[13px] font-medium text-amber-800">
-                Let op: {lostFileNames.length === 1 ? "één eerder gekozen bestand is" : `${lostFileNames.length} eerder gekozen bestanden zijn`} niet bewaard.
+                Let op: {lostFileNames.length === 1 ? "één eerder gekozen bestand was" : `${lostFileNames.length} eerder gekozen bestanden waren`} nog niet bewaard toen de pagina werd gesloten of ververst.
               </p>
               <p className="text-[13px] text-amber-700 mt-1">
-                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe: <span className="font-medium">{lostFileNames.join(", ")}</span>.
+                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe en wacht tot er een groen vinkje voor staat: <span className="font-medium">{lostFileNames.join(", ")}</span>.
               </p>
             </div>
           )}
@@ -1067,10 +1093,11 @@ export function FinancingForm() {
           {docRemoveError && <p className="mt-2 text-xs text-red-500 font-sans">{docRemoveError}</p>}
           <div className="mt-4 px-5 py-3 rounded-xl bg-[#FAF9F7] text-[13px] text-gray-400 font-sans">
             {totalFiles} {totalFiles === 1 ? "bestand" : "bestanden"} toegevoegd
-            {savedDocs.length > 0 && <>, waarvan {savedDocs.length} bewaard bij uw concept</>}
+            {savedDocs.length > 0 && pendingFiles === 0 && <>, {savedDocs.length === 1 ? "bewaard" : "alle bewaard"} bij uw concept</>}
+            {savedDocs.length > 0 && pendingFiles > 0 && <>, waarvan {savedDocs.length} bewaard bij uw concept</>}
             {pendingFiles > 0 && sync.busy && <>. Bezig met bewaren…</>}
             {pendingFiles > 0 && !sync.busy && (
-              <>. {pendingFiles === 1 ? "Eén bestand is" : `${pendingFiles} bestanden zijn`} nog niet bewaard en {pendingFiles === 1 ? "wordt" : "worden"} bij het indienen geüpload. Sluit u deze pagina eerder, voeg {pendingFiles === 1 ? "het" : "ze"} dan later opnieuw toe.</>
+              <>. {pendingFiles === 1 ? "Eén bestand is" : `${pendingFiles} bestanden zijn`} niet bij uw concept bewaard en {pendingFiles === 1 ? "wordt" : "worden"} bij het indienen geüpload. Sluit u dit tabblad eerder, voeg {pendingFiles === 1 ? "het" : "ze"} dan later opnieuw toe.</>
             )}
           </div>
         </div>
@@ -1176,9 +1203,19 @@ export function FinancingForm() {
       <div ref={topRef} />
       <div className="relative">
         <StepIndicator current={step} onStepClick={(i) => { setErrors({}); setStep(i); scrollToTop() }} />
-        <div className={`absolute top-0 right-0 text-[11px] font-sans text-gray-400 transition-opacity duration-500 ${draftSaved ? "opacity-100" : "opacity-0"}`}>
-          Concept opgeslagen
-        </div>
+        {/* While a document is on its way this stays in view on every step:
+            the adviser can go on filling in, but the tab has to stay open.
+            Next to the steps where there is room, under them on a phone. */}
+        {sync.busy ? (
+          <div className="-mt-6 mb-6 md:m-0 md:absolute md:top-0 md:right-0 md:w-[124px] flex items-start gap-1.5 text-[11px] leading-snug font-sans text-[#311E86]">
+            <span className="mt-0.5 w-2.5 h-2.5 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
+            <span>Documenten worden bewaard…</span>
+          </div>
+        ) : (
+          <div className={`absolute top-0 right-0 text-[11px] font-sans text-gray-400 transition-opacity duration-500 ${draftSaved ? "opacity-100" : "opacity-0"}`}>
+            Concept opgeslagen
+          </div>
+        )}
       </div>
       {/* Only when the server copy is NOT being kept, so nobody counts on it. */}
       {sync.state !== "ok" && (
@@ -1214,7 +1251,7 @@ export function FinancingForm() {
           <div className="flex flex-col items-end gap-2">
             {missingRequiredDocs.length > 0 && (
               <p className="text-xs text-gray-400 font-sans text-right">
-                {lostFileNames.length > 0 && <>Eerder gekozen bestanden zijn niet bewaard.{" "}</>}
+                {lostFileNames.length > 0 && <>Eerder gekozen bestanden waren nog niet bewaard.{" "}</>}
                 Upload verplichte documenten om in te dienen:{" "}
                 <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
                 {" — "}

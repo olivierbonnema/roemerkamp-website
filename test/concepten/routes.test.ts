@@ -22,6 +22,7 @@ import { POST as submit } from "../../app/api/submit-aanvraag/route"
 import { POST as aanvraagSession } from "../../app/api/aanvragen/[id]/upload-session/route"
 import { POST as uploadComplete } from "../../app/api/aanvragen/[id]/upload-complete/route"
 import { CONCEPTS_FOLDER_NAME } from "../../lib/onedrive-direct"
+import { recoverConceptUploads, settleConceptUploads } from "../../lib/concept-server"
 
 let fails = 0
 const ok = (label: string, cond: boolean, extra = "") => {
@@ -388,6 +389,147 @@ async function main() {
   fakeDrive.failures.POST = 1
   ok("SharePoint failure: a clean error for the document", (await conceptSession(req("POST", `/api/concepten/${D}/upload-session`, "tok-A", { fileName: "paspoort.pdf", fileSize: 1000 }), draft(D))).status === 500)
   ok("  and the next try works", (await conceptSession(req("POST", `/api/concepten/${D}/upload-session`, "tok-A", { fileName: "paspoort.pdf", fileSize: 1000 }), draft(D))).status === 200)
+
+  // ================= documents on their way: nothing that arrived is lost =================
+  // The adviser adds documents and closes or reloads the page before the
+  // browser reported them (Olivier's first test on live, 2026-11-12).
+  resetAll()
+  const P = "draft_1762934400900"
+  const pdoc = () => fakeDb.read(C, `uidA_${P}`)!
+  const notes = () => (pdoc().pendingUploads || []) as { name: string; cat: string; at: string; orig?: string }[]
+  const session = async (fileName: string, cat?: string, fileSize = 1000) => {
+    const res = await conceptSession(req("POST", `/api/concepten/${P}/upload-session${cat ? `?cat=${cat}` : ""}`, "tok-A", { fileName, fileSize }), draft(P))
+    return { status: res.status, ...((await res.json()) as { uploadUrl: string; fileName: string }) }
+  }
+  const reopen = async () => (await (await getConcept(req("GET", `/api/concepten/${P}`, "tok-A"), draft(P))).json()) as { documents: { id: string; cat: string; name: string; orig?: string }[] }
+  const listings = () => fakeDrive.calls.filter((c) => c.startsWith("GET ") && c.endsWith("/children")).length
+  await putConcept(req("PUT", `/api/concepten/${P}`, "tok-A", { data: FORM }), draft(P))
+
+  let before = listings()
+  await reopen()
+  ok("reopening a concept without uploads on their way does not ask SharePoint anything", listings() === before)
+
+  // 1. reported as usual
+  let s1 = await session("paspoort.pdf", "id_doc")
+  ok("an upload that is about to start is noted on the concept, with its category", s1.status === 200 && notes().length === 1 && notes()[0].name === "paspoort.pdf" && notes()[0].cat === "id_doc" && !Number.isNaN(Date.parse(notes()[0].at)) && pdoc().documents.length === 0)
+  let item = await browserUpload(s1.uploadUrl)
+  r = await confirmDoc(req("POST", `/api/concepten/${P}/documents`, "tok-A", { cat: "id_doc", fileName: s1.fileName, itemId: item.id, originalName: "paspoort.pdf" }), draft(P))
+  ok("reported: recorded, and the note is gone", r.status === 200 && pdoc().documents.length === 1 && notes().length === 0 && !("orig" in pdoc().documents[0]))
+
+  // 2. the bytes arrived, the page was closed before the report
+  s1 = await session("memo.pdf", "financieringsmemorandum", 2000)
+  item = await browserUpload(s1.uploadUrl, 2000)
+  ok("arrived but not reported: not recorded yet", pdoc().documents.length === 1 && notes().length === 1)
+  before = listings()
+  let re = await reopen()
+  ok("reopening the concept finds it in the folder and records it, under its own heading", re.documents.length === 2 && re.documents[1].id === item.id && re.documents[1].cat === "financieringsmemorandum" && pdoc().documents.length === 2 && notes().length === 0 && listings() === before + 1)
+  r = await confirmDoc(req("POST", `/api/concepten/${P}/documents`, "tok-A", { cat: "financieringsmemorandum", fileName: "memo.pdf", itemId: item.id }), draft(P))
+  ok("a report that comes late after all changes nothing", r.status === 200 && pdoc().documents.length === 2)
+
+  // 3. the page was closed while the document was still on its way
+  fakeDrive.placeholders = true
+  s1 = await session("taxatie.pdf", "taxatie")
+  re = await reopen()
+  ok("not arrived (only an empty placeholder): not recorded, the note stays", re.documents.length === 2 && notes().length === 1 && notes()[0].name === "taxatie.pdf")
+  r = await adminList(req("GET", "/api/admin/concepten", "tok-admin"))
+  j = await r.json()
+  ok("the admins see that it did not arrive", j.concepten[0].documents.length === 2 && j.concepten[0].pending.length === 1 && j.concepten[0].pending[0].name === "taxatie.pdf" && j.concepten[0].pending[0].cat === "taxatie")
+  // the adviser adds it again
+  const again = await session("taxatie.pdf", "taxatie")
+  ok("added again: a new try, the note of the old one is replaced", again.fileName === "taxatie (2).pdf" && notes().length === 1 && notes()[0].name === "taxatie (2).pdf" && notes()[0].orig === "taxatie.pdf")
+  item = await browserUpload(again.uploadUrl)
+  r = await confirmDoc(req("POST", `/api/concepten/${P}/documents`, "tok-A", { cat: "taxatie", fileName: again.fileName, itemId: item.id, originalName: "taxatie.pdf" }), draft(P))
+  j = await r.json()
+  ok("kept under its new name, the name it was selected with is remembered", r.status === 200 && j.document.name === "taxatie (2).pdf" && j.document.orig === "taxatie.pdf" && pdoc().documents.length === 3 && notes().length === 0)
+  fakeDrive.placeholders = false
+
+  // 4. found by the next upload or the next report, without reopening
+  s1 = await session("jaarcijfers 2025.pdf", "jaarcijfers")
+  const lostReport = await browserUpload(s1.uploadUrl)
+  const s2 = await session("kvk.pdf", "kvk")
+  ok("the next upload session records an earlier one that was not reported", pdoc().documents.length === 4 && pdoc().documents[3].id === lostReport.id && pdoc().documents[3].cat === "jaarcijfers" && notes().length === 1 && notes()[0].name === "kvk.pdf")
+  const s3 = await session("schulden.pdf", "schulden")
+  const lost2 = await browserUpload(s3.uploadUrl)
+  item = await browserUpload(s2.uploadUrl)
+  r = await confirmDoc(req("POST", `/api/concepten/${P}/documents`, "tok-A", { cat: "kvk", fileName: "kvk.pdf", itemId: item.id }), draft(P))
+  j = await r.json()
+  ok("the next report records it too, and tells the browser", r.status === 200 && j.documents.length === 6 && j.documents.some((d: { id: string; cat: string }) => d.id === lost2.id && d.cat === "schulden") && notes().length === 0)
+
+  // 5. a browser that still runs the code from before (no ?cat=)
+  s1 = await session("oud.pdf")
+  item = await browserUpload(s1.uploadUrl)
+  re = await reopen()
+  ok("without a category the document is still recorded (under Overige)", re.documents.some((d) => d.id === item.id && d.cat === "overig"))
+  r = await confirmDoc(req("POST", `/api/concepten/${P}/documents`, "tok-A", { cat: "koopovereenkomst", fileName: "oud.pdf", itemId: item.id }), draft(P))
+  ok("and the report that follows puts it under the right heading", r.status === 200 && pdoc().documents.find((d: { id: string }) => d.id === item.id).cat === "koopovereenkomst" && pdoc().documents.length === 7)
+
+  // 6. a name SharePoint does not accept as it is
+  s1 = await session("scan: voor/achter.pdf", "overig")
+  item = await browserUpload(s1.uploadUrl)
+  re = await reopen()
+  ok("a document stored under a cleaned name remembers the selected name", s1.fileName === "scan voor achter.pdf" && re.documents.find((d) => d.id === item.id)?.orig === "scan: voor/achter.pdf")
+
+  // 7. never arrives
+  await session("nooit.pdf", "overig")
+  await fakeDb.collection(C).doc(`uidA_${P}`).update({ pendingUploads: notes().map((n) => ({ ...n, at: new Date(Date.now() - 25 * 3600_000).toISOString() })) })
+  re = await reopen()
+  ok("a note older than a day is given up on", notes().length === 0 && re.documents.length === 8)
+
+  // 8. SharePoint slow or failing: the concept still opens
+  await session("traag.pdf", "overig")
+  fakeDrive.failures.GET = 1
+  r = await getConcept(req("GET", `/api/concepten/${P}`, "tok-A"), draft(P))
+  j = await r.json()
+  ok("SharePoint failing while reopening: the concept opens with what is recorded", r.status === 200 && j.documents.length === 8 && notes().length === 1)
+  fakeDrive.graphDelayMs = 300
+  const t0 = Date.now()
+  const slow = await recoverConceptUploads(fakeDb.collection(C).doc(`uidA_${P}`) as never, pdoc(), 40)
+  ok("SharePoint slow: the answer does not wait for it", Date.now() - t0 < 250 && slow.documents.length === 8 && slow.pending.length === 1, `${Date.now() - t0} ms`)
+  fakeDrive.graphDelayMs = 0
+  await new Promise((resolve) => setTimeout(resolve, 700))
+  fakeDb.failures[`update:${C}`] = 1
+  s1 = await session("notitie.pdf", "overig")
+  ok("the note failing never refuses the upload itself", s1.status === 200 && !!s1.uploadUrl && !notes().some((n) => n.name === "notitie.pdf"))
+  fakeDb.failures = {}
+
+  // 9. the adviser never comes back: the admins still see what arrived
+  item = await browserUpload(s1.uploadUrl)
+  const P2 = "draft_1762934400901"
+  await putConcept(req("PUT", `/api/concepten/${P2}`, "tok-B", { data: { ...FORM, voornaam: "Bert" } }), draft(P2))
+  r = await conceptSession(req("POST", `/api/concepten/${P2}/upload-session?cat=id_doc`, "tok-B", { fileName: "id-bert.pdf", fileSize: 700 }), draft(P2))
+  const bert = await browserUpload((await r.json()).uploadUrl, 700)
+  r = await adminList(req("GET", "/api/admin/concepten", "tok-admin"))
+  j = await r.json()
+  const rowB = j.concepten.find((c: { id: string }) => c.id === `uidB_${P2}`)
+  ok("the admin list records a document that arrived without a report", r.status === 200 && rowB.documents.length === 1 && rowB.documents[0].id === bert.id && rowB.documents[0].cat === "id_doc" && rowB.pending.length === 0 && fakeDb.read(C, `uidB_${P2}`)!.documents.length === 1)
+  ok("and shows what did not arrive, by the name the adviser knows", j.concepten.find((c: { id: string }) => c.id === `uidA_${P}`).pending.some((p: { name: string }) => p.name === "traag.pdf"))
+  // many concepts with uploads on their way: the list stays quick
+  for (let i = 0; i < 8; i++) {
+    const id = `draft_17629344010${i}0`
+    await conceptSession(req("POST", `/api/concepten/${id}/upload-session?cat=overig`, "tok-B", { fileName: "x.pdf", fileSize: 10 }), draft(id))
+  }
+  before = listings()
+  r = await adminList(req("GET", "/api/admin/concepten", "tok-admin"))
+  ok("the admin list checks a few folders per request, not all of them", r.status === 200 && listings() - before === 5, `${listings() - before}`)
+  fakeDrive.failures.GET = 50
+  r = await adminList(req("GET", "/api/admin/concepten", "tok-admin"))
+  j = await r.json()
+  ok("SharePoint failing: the admin list still comes", r.status === 200 && j.concepten.length === 10)
+  fakeDrive.failures = {}
+
+  // 10. a concept that is closed is never written to
+  s1 = await session("laat.pdf", "overig")
+  item = await browserUpload(s1.uploadUrl)
+  r = await submit(submitReq("tok-A", [], { conceptId: P }))
+  const submittedId = (await r.json()).id
+  await runAfter()
+  const docsAtSubmit = pdoc().documents.length
+  const late = await settleConceptUploads(fakeDb.collection(C).doc(`uidA_${P}`) as never, [{ id: item.id, name: "laat.pdf", size: 1000 }], { confirm: { id: "zzz", cat: "overig", name: "zzz.pdf", size: 5 } })
+  ok("after submission nothing is recorded on the concept any more", r.status === 200 && !!submittedId && pdoc().status === "ingediend" && pdoc().documents.length === docsAtSubmit && late.documents.length === docsAtSubmit)
+  r = await adminList(req("GET", "/api/admin/concepten", "tok-admin"))
+  j = await r.json()
+  ok("and the admins are not shown notes of a submitted concept", j.concepten.find((c: { id: string }) => c.id === `uidA_${P}`).pending.length === 0)
+  ok("the document that arrived without a report is in the folder of the aanvraag all the same", fakeDrive.filesIn(fakeDb.read("aanvragen", submittedId)!.driveFolderId).includes("laat.pdf"))
 
   console.log(fails ? `\n${fails} FAILED` : "\nALL PASS")
   process.exit(fails ? 1 : 0)

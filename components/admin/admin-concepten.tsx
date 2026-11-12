@@ -16,6 +16,14 @@ interface ConceptDoc {
   uploadedAt?: string
 }
 
+// An upload the adviser started that has not arrived in the folder (yet):
+// still on its way, or the page was closed before it was done.
+interface PendingDoc {
+  name: string
+  cat: string
+  at: string
+}
+
 interface Concept {
   id: string
   status: string
@@ -34,6 +42,7 @@ interface Concept {
   objectPlaats: string
   data: Record<string, unknown>
   documents: ConceptDoc[]
+  pending?: PendingDoc[]
   driveFolderUrl: string
   aanvraagId: string
 }
@@ -119,6 +128,7 @@ function Details({ c }: { c: Concept }) {
   const text = (key: string) => (typeof c.data[key] === "string" ? (c.data[key] as string).trim() : "")
   const rows = FIELD_LABELS.map(([key, label]) => [label, MONEY_FIELDS.has(key) ? formatCurrency(text(key)) : text(key)] as const).filter(([, v]) => v)
   const objects = Array.isArray(c.data.objects) ? (c.data.objects as Record<string, unknown>[]) : []
+  const pending = Array.isArray(c.pending) ? c.pending : []
   const objectLines = objects
     .map((o) => {
       const s = (k: string) => (typeof o[k] === "string" ? (o[k] as string).trim() : "")
@@ -152,7 +162,7 @@ function Details({ c }: { c: Concept }) {
       </div>
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 font-sans mb-2">Documenten</p>
-        {c.documents.length === 0 && <p className="text-sm text-gray-400 font-sans">Nog geen documenten toegevoegd.</p>}
+        {c.documents.length === 0 && <p className="text-sm text-gray-400 font-sans">{pending.length > 0 ? "Nog geen documenten bewaard." : "Nog geen documenten toegevoegd."}</p>}
         <ul className="text-sm font-sans space-y-1.5">
           {c.documents.map((d) => (
             <li key={d.id} className="flex justify-between gap-4">
@@ -161,6 +171,24 @@ function Details({ c }: { c: Concept }) {
             </li>
           ))}
         </ul>
+        {pending.length > 0 && (
+          <div className="mt-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 font-sans">
+            <p className="text-[12px] font-medium text-amber-800">Nog niet aangekomen</p>
+            <ul className="text-[13px] text-amber-900 mt-1.5 space-y-1">
+              {pending.map((p, i) => (
+                <li key={`${p.name}-${i}`} className="flex justify-between gap-4">
+                  <span className="break-all">{p.name}</span>
+                  <span className="text-amber-700 whitespace-nowrap">{DOC_LABELS[p.cat] || p.cat} · gestart {formatDateTime(p.at)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-[12px] text-amber-700 mt-2 leading-relaxed">
+              De adviseur heeft {pending.length === 1 ? "dit document" : "deze documenten"} toegevoegd, maar het uploaden is nog niet afgerond.
+              Is de adviseur nog bezig, dan {pending.length === 1 ? "verschijnt het document" : "verschijnen de documenten"} hier vanzelf.
+              Is de pagina gesloten terwijl {pending.length === 1 ? "het document" : "een document"} nog onderweg was, dan krijgt de adviseur bij het openen van het concept de vraag om {pending.length === 1 ? "het" : "ze"} opnieuw toe te voegen.
+            </p>
+          </div>
+        )}
         {c.driveFolderUrl && (
           <a href={c.driveFolderUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-sans text-[#311E86] hover:underline">
             Map openen in SharePoint →
@@ -267,6 +295,11 @@ export function AdminConcepten() {
                     <span className="text-[12px] text-gray-400 font-sans whitespace-nowrap">
                       {c.documents.length} {c.documents.length === 1 ? "document" : "documenten"} · {formatDateTime(c.updatedAt)}
                     </span>
+                    {Array.isArray(c.pending) && c.pending.length > 0 && (
+                      <span className="text-[12px] text-amber-700 font-sans whitespace-nowrap">
+                        {c.pending.length} nog niet aangekomen
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
