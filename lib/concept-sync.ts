@@ -654,6 +654,10 @@ function watchPage() {
  * The form calls attach() when it is on screen and detach() when it goes.
  */
 export function acquireConceptSync(options: ConceptSyncOptions): ConceptSync {
+  // Only a page in a browser has concepts to continue. Anywhere else (the
+  // form is never drawn on the server, but should it ever be) nothing is
+  // shared: the list below would be one list for every visitor.
+  if (typeof window === "undefined") return new ConceptSync(options)
   watchPage()
   const existing = live.get(options.draftId)
   if (existing && !existing.isStopped && existing.ownerUid === (options.ownerUid ?? "")) {
