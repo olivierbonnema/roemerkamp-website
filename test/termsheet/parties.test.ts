@@ -10,6 +10,8 @@ import {
   kredietnemersText,
   spouseCondities,
   spouseConsentBepaling,
+  spouseConsentBepalingen,
+  spouses,
   termsheetSigners,
 } from "../../lib/generators/termsheet-parties"
 import type { TermsheetBorrower } from "../../lib/generators/termsheet-generator"
@@ -67,6 +69,22 @@ ok("signers: privé + hypotheekgever label, marker added once", signers[1].label
 ok("signers: spouse consent only", signers[3].label === "Voor toestemming ex artikel 1:88 BW" && signers[3].name === "mevrouw R. Testvrouw")
 ok("signers: spouse mede-eigenaar", signers[4].label === "Hypotheekgever en voor toestemming ex artikel 1:88 BW" && signers[4].name === "mevrouw H. Voorbeeldvrouw")
 ok("e-sign names in the same order", JSON.stringify(esignSignerNames(data)) === JSON.stringify(["Voorbeeldhaven B.V.", "G. Fictief", "A. Proefpersoon", "R. Testvrouw", "H. Voorbeeldvrouw"]), JSON.stringify(esignSignerNames(data)))
+
+// ---- partner who is herself kredietnemer (both spouses borrow and give the mortgage) ----
+const g2: TermsheetBorrower = { ...g, spouseName: "R. Testvrouw", spouseOwner: true }
+const r2: TermsheetBorrower = { type: "privepersoon", name: "Raana Testvrouw", salut: "mevrouw", isHypotheekgever: true, spouseName: "G. Fictief", spouseSalut: "de heer", spouseOwner: true }
+const both = { borrowers: [bv, g2, r2] }
+ok("co-borrower partner recognised by last name + initial", spouses(both.borrowers).every((sp) => sp.coBorrower))
+const mutual = spouseConsentBepalingen(both)
+ok("mutual consent, one clause", mutual.length === 1 && mutual[0] === "Toestemming echtgenoten: de heer G. Fictief en mevrouw R. Testvrouw, echtgenoten, verlenen elkaar over en weer door medeondertekening van deze termsheet en van de hypotheekakte toestemming als bedoeld in artikel 1:88 BW voor het aangaan van deze financiering, hun hoofdelijke verbondenheid en het vestigen van de hypotheekrechten.", mutual[0])
+ok("co-borrower: no extra signature block", termsheetSigners(both).length === 3 && termsheetSigners(both)[2].label === "Kredietnemer en Hypotheekgever" && termsheetSigners(both)[2].name === "mevrouw Raana Testvrouw (in privé)")
+ok("co-borrower: only the huwelijkse-voorwaarden conditie", spouseCondities(both.borrowers).length === 1 && spouseCondities(both.borrowers)[0].startsWith("Huwelijkse voorwaarden"))
+ok("kredietnemers row lists both", kredietnemersText(both) === "Voorbeeldhaven B.V., de heer G. Fictief (in privé) en mevrouw Raana Testvrouw (in privé), hoofdelijk verbonden", kredietnemersText(both))
+// mixed: one couple both borrow, one partner only consents
+const mixed = { borrowers: [bv, g2, r2, a] }
+const mixedClauses = spouseConsentBepalingen(mixed)
+ok("mixed: two clauses, mutual first", mixedClauses.length === 2 && mixedClauses[0].includes("over en weer") && mixedClauses[1].startsWith("Toestemming echtgenote: mevrouw H. Voorbeeldvrouw"), JSON.stringify(mixedClauses))
+ok("mixed: one extra signer (the non-borrowing partner)", termsheetSigners(mixed).length === 5 && termsheetSigners(mixed)[4].name === "mevrouw H. Voorbeeldvrouw")
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASS")
 process.exit(fails ? 1 : 0)

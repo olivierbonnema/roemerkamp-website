@@ -9,6 +9,11 @@
 // act (art. 1:89 BW). A spouse who co-owns the object is a hypotheekgever and
 // signs the hypotheekakte. The termsheet therefore names the spouses, carries
 // a consent bepaling, lists the stukken and gives each spouse a signature block.
+//
+// When the partner is herself a kredietnemer (entered as a separate privé
+// geldnemer, e.g. both spouses borrow and give the mortgage), the couple
+// consents "elkaar over en weer", she already signs as kredietnemer, and her
+// legitimatie is covered by "van de kredietnemers" (Goudenhaven, 2026-11-09).
 
 import type { TermsheetBorrower, TermsheetData } from "./termsheet-generator"
 import { fmtEuro } from "./docx-helpers"
@@ -91,17 +96,75 @@ export interface SpouseRef {
   salut: Salut
   name: string
   owner: boolean
+  // The partner is also listed as a kredietnemer: no extra signature block.
+  coBorrower: boolean
+}
+
+function sameName(a: string, b: string): boolean {
+  const n = (s: string) => cleanName(s).toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "")
+  if (!n(a) || !n(b)) return false
+  if (n(a) === n(b)) return true
+  // "R. Qamari" vs "Raana Qamari": same last name, same first initial
+  const la = n(getLastNamePart(a)), lb = n(getLastNamePart(b))
+  return !!la && la === lb && cleanName(a)[0].toLowerCase() === cleanName(b)[0].toLowerCase()
+}
+function getLastNamePart(s: string): string {
+  const parts = cleanName(s).split(/\s+/)
+  return parts.length ? parts[parts.length - 1] : s
+}
+
+// Couple key: last name + first initial of both, order-independent, so a
+// couple that lists each other as partner is counted once.
+function coupleKey(a: string, b: string): string {
+  const k = (s: string) => `${getLastNamePart(s).toLowerCase()}${(cleanName(s)[0] || "").toLowerCase()}`
+  return [k(a), k(b)].sort().join("|")
 }
 
 export function spouses(borrowers: TermsheetBorrower[]): SpouseRef[] {
-  return (borrowers || [])
-    .filter((b) => b.type !== "bv" && (b.spouseName || "").trim())
-    .map((b) => ({ borrower: b, salut: b.spouseSalut === "de heer" ? "de heer" : "mevrouw", name: (b.spouseName || "").trim(), owner: !!b.spouseOwner }))
+  const all = borrowers || []
+  const seen = new Set<string>()
+  const out: SpouseRef[] = []
+  for (const b of all) {
+    if (b.type === "bv" || !(b.spouseName || "").trim()) continue
+    const name = (b.spouseName || "").trim()
+    const coBorrower = all.some((o) => o !== b && o.type !== "bv" && sameName(o.name || "", name))
+    if (coBorrower) {
+      const key = coupleKey(b.name || "", name)
+      if (seen.has(key)) continue
+      seen.add(key)
+    }
+    out.push({ borrower: b, salut: b.spouseSalut === "de heer" ? "de heer" : "mevrouw", name, owner: !!b.spouseOwner, coBorrower })
+  }
+  return out
 }
 
-// The consent clause for the Bepalingen row. Null when no spouse is entered.
+// The consent clause(s) for the Bepalingen row, one per line; empty when no
+// spouse is entered. Couples who both borrow consent to each other ("over en
+// weer"); a partner who is not a kredietnemer consents to the borrower's
+// commitments.
+export function spouseConsentBepalingen(data: Pick<TermsheetData, "borrowers" | "hoofdelijk">): string[] {
+  const all = spouses(data.borrowers || [])
+  if (!all.length) return []
+  const parts: string[] = []
+  const mutual = all.filter((sp) => sp.coBorrower)
+  if (mutual.length) {
+    const couples = mutual.map((sp) => `${withSalut(sp.borrower.salut, cleanName(sp.borrower.name))} en ${sp.salut} ${sp.name}, echtgenoten`)
+    const subject = couples.length > 1 ? `${couples.slice(0, -1).join(", ")}, en ${couples[couples.length - 1]},` : `${couples[0]},`
+    const hoofdelijk = isHoofdelijk(data) ? ", hun hoofdelijke verbondenheid" : ""
+    parts.push(`Toestemming echtgenoten: ${subject} verlenen elkaar over en weer door medeondertekening van deze termsheet en van de hypotheekakte toestemming als bedoeld in artikel 1:88 BW voor het aangaan van deze financiering${hoofdelijk} en het vestigen van de hypotheekrechten.`)
+  }
+  const single = consentForNonBorrowers(data, all.filter((sp) => !sp.coBorrower))
+  if (single) parts.push(single)
+  return parts
+}
+
+// Convenience: the clauses as one string (null when there are none).
 export function spouseConsentBepaling(data: Pick<TermsheetData, "borrowers" | "hoofdelijk">): string | null {
-  const list = spouses(data.borrowers || [])
+  const parts = spouseConsentBepalingen(data)
+  return parts.length ? parts.join(" ") : null
+}
+
+function consentForNonBorrowers(data: Pick<TermsheetData, "borrowers" | "hoofdelijk">, list: SpouseRef[]): string | null {
   if (!list.length) return null
   const role = (sp: SpouseRef) => (sp.salut === "de heer" ? "echtgenoot" : "echtgenote")
   const parts = list.map((sp) => `${sp.salut} ${sp.name}, ${role(sp)} van ${withSalut(sp.borrower.salut, cleanName(sp.borrower.name))}`)
@@ -122,7 +185,9 @@ export function spouseCondities(borrowers: TermsheetBorrower[]): string[] {
   const out: string[] = []
   for (const sp of spouses(borrowers)) {
     out.push(`Huwelijkse voorwaarden of uittreksel huwelijksgoederenregister van ${withSalut(sp.borrower.salut, cleanName(sp.borrower.name))} en ${sp.salut} ${sp.name}`)
-    out.push(`Geldig legitimatiebewijs van ${sp.salut} ${sp.name}`)
+    // A partner who is herself kredietnemer is covered by the legitimatie
+    // conditie of the kredietnemers.
+    if (!sp.coBorrower) out.push(`Geldig legitimatiebewijs van ${sp.salut} ${sp.name}`)
   }
   return out
 }
@@ -164,6 +229,7 @@ export function termsheetSigners(data: Pick<TermsheetData, "borrowers">): Signer
     esignName: b.type === "bv" ? b.bvName || b.name || "" : cleanName(b.name),
   }))
   for (const sp of spouses(borrowers)) {
+    if (sp.coBorrower) continue // signs as kredietnemer already
     out.push({
       label: sp.owner ? "Hypotheekgever en voor toestemming ex artikel 1:88 BW" : "Voor toestemming ex artikel 1:88 BW",
       name: `${sp.salut} ${sp.name}`,
