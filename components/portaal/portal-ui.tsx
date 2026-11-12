@@ -19,7 +19,7 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
-/* ── Class names ── */
+/* Class names */
 
 // Never two classes for the same thing in one string (mt-1.5 next to mt-3):
 // which one wins is then decided by the stylesheet, not by the order here. So
@@ -77,7 +77,7 @@ export const ui = {
   spinner: "border-[#311e86] border-t-transparent rounded-full animate-spin shrink-0",
 }
 
-/* ── Page head ── */
+/* Page head */
 
 interface Crumb {
   label: string
@@ -89,7 +89,11 @@ interface PortalHeroProps {
   intro?: string
   /** The path below "Portaal". The last one is the page itself. */
   crumbs?: Crumb[]
-  /** A photo on the right, on wide screens only (a working screen stays short on a phone). */
+  /**
+   * A photo on the right, on wide screens only (a working screen stays short
+   * on a phone). Not marked as a priority image: a phone would then download
+   * a photo it never shows.
+   */
   image?: { src: string; alt: string; position?: string }
 }
 
@@ -131,7 +135,6 @@ export function PortalHero({ title, intro, crumbs = [], image }: PortalHeroProps
             sizes="40vw"
             className="object-cover"
             style={{ objectPosition: image.position ?? "center" }}
-            priority
           />
         </div>
       )}
@@ -139,7 +142,7 @@ export function PortalHero({ title, intro, crumbs = [], image }: PortalHeroProps
   )
 }
 
-/* ── Page body ── */
+/* Page body */
 
 /**
  * The content of a portal screen: a column of at most 720 px and, when given,
