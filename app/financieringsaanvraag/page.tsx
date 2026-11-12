@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { Header } from "@/components/header"
 import { PortalFooter } from "@/components/portal-footer"
-import { FinancingForm } from "@/components/financieringsaanvraag/financing-form"
+import { FinancingFormLoader } from "@/components/financieringsaanvraag/concept-loader"
 import { PartnerIntakeNote } from "@/components/financieringsaanvraag/partner-intake-note"
 import { AuthGuard } from "@/components/auth-guard"
 import type { Metadata } from 'next'
@@ -36,10 +36,11 @@ export default function FinancieringsaanvraagPage() {
         <section className="max-w-3xl mx-auto px-4 py-12 pb-20">
           <AuthGuard>
             <PartnerIntakeNote />
-            {/* Suspense is required because FinancingForm reads useSearchParams
-                (the ?draft= id) on a statically rendered page. */}
+            {/* Suspense is required because the form reads useSearchParams
+                (the ?draft= id) on a statically rendered page. The loader first
+                fetches the server copy of a concept that is being continued. */}
             <Suspense>
-              <FinancingForm />
+              <FinancingFormLoader />
             </Suspense>
           </AuthGuard>
         </section>
