@@ -13,13 +13,21 @@ export interface DirectUploadResult {
   // …and as the server sanitized/stored it (used for berichten/bookkeeping).
   fileName: string
   error?: string
+  // The SharePoint item as Microsoft reports it after the last chunk. Only
+  // there when that answer could be read; nothing may depend on it being set.
+  itemId?: string
+  storedName?: string
 }
 
+// `sessionPath`: the API route that hands out the upload session. Left out it
+// is the route of a submitted aanvraag, as it always was. A concept passes its
+// own route (see lib/concept-sync.ts); the upload itself is identical.
 export async function uploadFileDirect(
   aanvraagId: string,
   idToken: string,
   file: File,
-  onProgress?: (uploadedBytes: number, totalBytes: number) => void
+  onProgress?: (uploadedBytes: number, totalBytes: number) => void,
+  sessionPath?: string
 ): Promise<DirectUploadResult> {
   // 1. Ask our server for a pre-authenticated, single-file upload session.
   // Wrapped in try/catch: a network failure here must yield a per-file failure
@@ -29,7 +37,7 @@ export async function uploadFileDirect(
   let uploadUrl: string
   let fileName: string
   try {
-    const sessionRes = await fetch(`/api/aanvragen/${aanvraagId}/upload-session`, {
+    const sessionRes = await fetch(sessionPath ?? `/api/aanvragen/${aanvraagId}/upload-session`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
@@ -47,6 +55,7 @@ export async function uploadFileDirect(
 
   // 2. PUT the chunks straight to Microsoft. Each failed chunk gets one retry.
   let offset = 0
+  let lastRes: Response | null = null
   while (offset < file.size) {
     const end = Math.min(offset + CHUNK_SIZE, file.size)
     const chunk = file.slice(offset, end)
@@ -69,9 +78,26 @@ export async function uploadFileDirect(
       return { ok: false, originalName: file.name, fileName, error: `Upload van "${file.name}" is mislukt. Controleer uw verbinding en probeer het opnieuw.` }
     }
     offset = end
+    lastRes = res
     onProgress?.(offset, file.size)
   }
-  return { ok: true, originalName: file.name, fileName }
+  // The answer to the last chunk describes the stored file. Reading it is a
+  // bonus (a concept uses the id to find its document again); the upload has
+  // already succeeded, so a failure to read it changes nothing. Bounded to a
+  // few seconds so a stalled answer can never hold up the caller.
+  let itemId: string | undefined
+  let storedName: string | undefined
+  try {
+    if (lastRes && (lastRes.status === 200 || lastRes.status === 201)) {
+      const item = await Promise.race([
+        lastRes.json().catch(() => null),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+      ])
+      if (item && typeof item.id === "string") itemId = item.id
+      if (item && typeof item.name === "string") storedName = item.name
+    }
+  } catch { /* not readable: fine */ }
+  return { ok: true, originalName: file.name, fileName, ...(itemId ? { itemId } : {}), ...(storedName ? { storedName } : {}) }
 }
 
 // Upload a list of files sequentially; reports overall progress across the

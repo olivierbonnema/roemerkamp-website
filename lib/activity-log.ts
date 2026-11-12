@@ -37,13 +37,15 @@ export type ActivityAction =
   | "login"
   | "aanvraag_submitted"
   | "document_uploaded"
+  | "concept_created"
+  | "concept_removed"
 
 export interface LogEntry {
   action: ActivityAction
   userId: string
   userEmail: string
   targetId?: string
-  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check" | "invoice"
+  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check" | "invoice" | "concept"
   details?: Record<string, string | boolean>
 }
 

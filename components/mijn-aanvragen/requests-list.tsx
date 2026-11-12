@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { useAuth } from "@/contexts/auth-context"
+import { deleteDraft as deleteLocalDraft, draftPayload, isOwnDraft, listDrafts, loadDraft, localDocs, markDraftSynced } from "@/lib/concept-local"
 
 /* ── Types ── */
 interface Aanvraag {
@@ -41,6 +42,13 @@ interface Draft {
   leningBedrag: string
   looptijd: string
   objects: Array<{ type: string; adres: string; plaats: string }>
+  /** Documents kept with the concept on the server. */
+  documentCount?: number
+  /** Known on the server (so it is also there on another device). */
+  onServer?: boolean
+  /** Bookkeeping of the copy in this browser, see lib/concept-local.ts. */
+  dirty?: boolean
+  localSeq?: number
 }
 
 // Display name for a draft: composed naam, else voornaam/achternaam (drafts
@@ -49,8 +57,16 @@ function draftName(d: Draft): string {
   return d.naam || `${d.voornaam || ""} ${d.achternaam || ""}`.trim() || d.bedrijfsnaam || ""
 }
 
+// A concept is listed as soon as it holds something real. Checking only
+// naam/doel/adres hid concepts interrupted on the first step entirely, and the
+// user then had no way at all to resume them.
+function hasSomething(d: Draft): boolean {
+  return !!(draftName(d) || d.email || d.leningDoel || d.leningBedrag || d.objects?.[0]?.adres || d.objects?.[0]?.type || (d.documentCount ?? 0) > 0)
+}
+
+const newestFirst = (a: Draft, b: Draft) => (b.savedAt || "").localeCompare(a.savedAt || "")
+
 type Tab = "alles" | "ingediend" | "concept"
-const DRAFTS_KEY = "aanvraag_drafts"
 
 /* ── Status config ── */
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -90,6 +106,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }) {
   const router = useRouter()
+  const [confirming, setConfirming] = useState(false)
   const stepsTotal = STEP_LABELS.length
   // step is a 0-based index; being ON the first step means "Stap 1 van 5".
   const stepsDone = Math.min((draft.step ?? 0) + 1, stepsTotal)
@@ -150,21 +167,45 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
             <p className="text-gray-900 font-medium">{formatCurrency(draft.leningBedrag)}</p>
           </div>
         )}
+        {(draft.documentCount ?? 0) > 0 && (
+          <div>
+            <span className="text-gray-400 text-[12px]">Documenten</span>
+            <p className="text-gray-900 font-medium">{draft.documentCount} bewaard</p>
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+      <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
         <button
           onClick={() => router.push(`/financieringsaanvraag?draft=${draft.id}`)}
           className="px-6 py-2.5 text-sm font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
         >
           Doorgaan →
         </button>
-        <button
-          onClick={onDiscard}
-          className="px-6 py-2.5 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
-        >
-          Verwijderen
-        </button>
+        {!confirming ? (
+          <button
+            onClick={() => setConfirming(true)}
+            className="px-6 py-2.5 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
+          >
+            Verwijderen
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-sans text-gray-500">Uit uw overzicht verwijderen?</span>
+            <button
+              onClick={() => { setConfirming(false); onDiscard() }}
+              className="px-4 py-2 text-sm font-medium font-sans rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+            >
+              Ja
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="px-4 py-2 text-sm font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-500 hover:border-gray-400 transition-colors"
+            >
+              Nee
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -303,23 +344,71 @@ export function RequestsList() {
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState<Tab>("alles")
 
-  // Load all drafts from localStorage
+  // Concepts: the ones kept on the server (so also made on another device)
+  // together with the ones in this browser. The browser's own are shown at
+  // once, exactly as before; the server's are added when they arrive. If the
+  // server does not answer, the list is simply the browser's.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DRAFTS_KEY)
-      if (raw) {
-        const all = JSON.parse(raw) as Record<string, Omit<Draft, "id">>
-        const list = Object.entries(all)
-          .map(([id, data]) => ({ id, ...data } as Draft))
-          // Show any draft with real content. Checking only naam/doel/adres hid
-          // drafts interrupted on the first step entirely — the user then had no
-          // way at all to resume them.
-          .filter(d => draftName(d) || d.email || d.leningDoel || d.leningBedrag || d.objects?.[0]?.adres || d.objects?.[0]?.type)
-          .sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""))
-        setDrafts(list)
-      }
-    } catch {}
-  }, [])
+    if (!user) return
+    let cancelled = false
+    const uid = user.uid
+    // A concept made by another account in this same browser is not shown.
+    const readLocal = () =>
+      (listDrafts().filter((d) => isOwnDraft(d, uid)) as unknown as Draft[]).map((d) => ({
+        ...d,
+        documentCount: localDocs(d as unknown as Record<string, unknown>).length,
+      }))
+    const show = (list: Draft[]) => { if (!cancelled) setDrafts(list.filter(hasSomething).sort(newestFirst)) }
+    try { show(readLocal()) } catch {}
+
+    ;(async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken()
+        if (!token) return
+        const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+        const res = await fetch("/api/concepten", { headers })
+        if (!res.ok) return
+        const data = await res.json()
+        const fromServer: Draft[] = Array.isArray(data.concepten) ? data.concepten : []
+        // Submitted or removed on another device: the copy here is stale.
+        for (const closed of Array.isArray(data.gesloten) ? data.gesloten : []) {
+          if (closed && typeof closed.id === "string") deleteLocalDraft(closed.id)
+        }
+        const server = new Map(fromServer.map((c) => [c.id, c] as [string, Draft]))
+        const local = readLocal()
+        const merged = new Map<string, Draft>()
+        for (const c of fromServer) merged.set(c.id, { ...c, onServer: true })
+        for (const d of local) {
+          const onServer = server.get(d.id)
+          if (!onServer) merged.set(d.id, d)
+          // Changed here since the server last heard of it: show what is here.
+          else if (d.dirty === true) merged.set(d.id, { ...d, documentCount: onServer.documentCount, onServer: true })
+        }
+        show([...merged.values()])
+
+        // Concepts that so far only lived in this browser (made before concepts
+        // were kept on the server) are kept on the server from now on as well.
+        for (const d of local.filter((x) => !server.has(x.id) && hasSomething(x)).slice(0, 20)) {
+          if (cancelled) return
+          try {
+            const entry = loadDraft(d.id)
+            const put = await fetch(`/api/concepten/${d.id}`, {
+              method: "PUT",
+              headers,
+              body: JSON.stringify({ data: draftPayload(entry), clientSavedAt: entry.savedAt }),
+            })
+            if (!put.ok) continue
+            const body = await put.json().catch(() => null)
+            if (body?.stored && typeof body.rev === "number") {
+              markDraftSynced(d.id, body.rev, entry.localSeq, uid)
+              if (!cancelled) setDrafts((prev) => prev.map((x) => (x.id === d.id ? { ...x, onServer: true } : x)))
+            }
+          } catch {}
+        }
+      } catch {}
+    })()
+    return () => { cancelled = true }
+  }, [user])
 
   // Load submitted requests from API
   useEffect(() => {
@@ -345,13 +434,28 @@ export function RequestsList() {
   // het kantoor en de indiener; bij één kantoor zou dat op elke regel gelijk zijn.
   const meerdereKantoren = new Set(aanvragen.map((a) => a.kantoor).filter(Boolean)).size > 1
 
-  const discardDraft = (id: string) => {
+  // Takes a concept out of this overview. On the server nothing is erased: the
+  // concept and its documents stay and the admins still see it (Olivier,
+  // 2026-11-12: a concept is never thrown away).
+  const [discardError, setDiscardError] = useState("")
+  const discardDraft = async (draft: Draft) => {
+    setDiscardError("")
+    setDrafts(prev => prev.filter(d => d.id !== draft.id))
+    let ok = false
     try {
-      const all = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}")
-      delete all[id]
-      localStorage.setItem(DRAFTS_KEY, JSON.stringify(all))
+      const token = await auth.currentUser?.getIdToken()
+      const res = await fetch(`/api/concepten/${draft.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
+      // 400: an id the server never keeps, so there is nothing there to remove.
+      ok = res.ok || res.status === 400
     } catch {}
-    setDrafts(prev => prev.filter(d => d.id !== id))
+    // Not reached and never seen on the server: it only exists here, remove it
+    // here as before. Known on the server: it would only come back, so say so.
+    if (ok || !draft.onServer) {
+      deleteLocalDraft(draft.id)
+    } else {
+      setDrafts(prev => (prev.some(d => d.id === draft.id) ? prev : [...prev, draft].sort(newestFirst)))
+      setDiscardError("Het concept kon niet worden verwijderd. Probeer het opnieuw.")
+    }
   }
 
   const totalCount = aanvragen.length + drafts.length
@@ -421,10 +525,12 @@ export function RequestsList() {
         ))}
       </div>
 
+      {discardError && <p className="text-sm text-red-500 font-sans mb-4">{discardError}</p>}
+
       <div className="space-y-4">
         {/* Draft cards */}
         {showDrafts && drafts.map(draft => (
-          <DraftCard key={draft.id} draft={draft} onDiscard={() => discardDraft(draft.id)} />
+          <DraftCard key={draft.id} draft={draft} onDiscard={() => discardDraft(draft)} />
         ))}
 
         {/* Divider between drafts and submitted */}

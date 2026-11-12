@@ -40,6 +40,8 @@ const ACTION_LABELS: Record<string, string> = {
   aanvraag_deleted: "Aanvraag verwijderd",
   message_sent: "Bericht verzonden",
   document_accessed: "Documenten geopend",
+  concept_created: "Concept aangemaakt",
+  concept_removed: "Concept door adviseur verwijderd",
 }
 
 export default function ActiviteitPage() {

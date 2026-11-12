@@ -14,6 +14,11 @@ export function PartnerIntakeNote() {
         Vul hieronder de gegevens van de klant (de aanvrager) in. De aanvraag wordt automatisch aan uw
         organisatie gekoppeld, zodat u en uw collega&apos;s de status kunnen volgen.
       </p>
+      {/* Said out loud: what is typed here reaches us before "indienen". */}
+      <p className="text-[13px] text-gray-600 font-sans mt-2">
+        Wat u invult, wordt automatisch als concept bewaard, ook de documenten die u toevoegt. U kunt later
+        verdergaan via Mijn aanvragen, ook op een andere computer. Lange &amp; Partners kan concepten inzien.
+      </p>
     </div>
   )
 }

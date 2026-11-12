@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { auth } from "@/lib/firebase"
 import { uploadFilesDirect } from "@/lib/upload-direct"
+import { loadDraft, saveDraft, deleteDraft, localDocs } from "@/lib/concept-local"
+import { ConceptSync, type UploadInfo } from "@/lib/concept-sync"
+import type { ConceptDocument } from "@/lib/concepten"
 
 /* ── Constants ── */
 const STEPS = [
@@ -74,32 +77,9 @@ const DOC_CATEGORIES = [
   { id: "overig",                 label: "Overige documenten",             desc: "Verbouwingsplannen, huurovereenkomsten, etc.",          required: false, particulier: true,  zakelijk: true  },
 ]
 
-/* ── Draft storage (multiple drafts, each with a unique ID) ── */
-const DRAFTS_KEY = "aanvraag_drafts"
-
-function loadDraft(draftId: string): Record<string, unknown> {
-  if (typeof window === "undefined") return {}
-  try {
-    const all = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}")
-    return (all[draftId] as Record<string, unknown>) ?? {}
-  } catch { return {} }
-}
-
-function saveDraft(draftId: string, data: Record<string, unknown>) {
-  try {
-    const all = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}")
-    all[draftId] = { ...data, savedAt: new Date().toISOString() }
-    localStorage.setItem(DRAFTS_KEY, JSON.stringify(all))
-  } catch {}
-}
-
-function deleteDraft(draftId: string) {
-  try {
-    const all = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}")
-    delete all[draftId]
-    localStorage.setItem(DRAFTS_KEY, JSON.stringify(all))
-  } catch {}
-}
+/* ── Draft storage ──
+   The copy in this browser: lib/concept-local.ts (loadDraft / saveDraft /
+   deleteDraft). The copy on the server, and the documents: lib/concept-sync.ts. */
 
 /* ── Object type ── */
 interface ObjectData {
@@ -289,13 +269,17 @@ function TwoCol({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
 }
 
-function DocUploadCard({ cat, files, onAdd, onRemove }: {
+function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSaved }: {
   cat: (typeof DOC_CATEGORIES)[0]; files: Record<string, File[]>
+  // `saved`: kept with the concept. `uploads`: how far the selected files are.
+  saved: ConceptDocument[]; uploads: Map<File, UploadInfo>
   onAdd: (catId: string, newFiles: File[]) => void; onRemove: (catId: string, idx: number) => void
+  onRemoveSaved: (doc: ConceptDocument) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const catFiles = files[cat.id] || []
+  const catSaved = saved.filter((d) => d.cat === cat.id)
 
   return (
     <div
@@ -318,14 +302,26 @@ function DocUploadCard({ cat, files, onAdd, onRemove }: {
         </button>
         <input ref={inputRef} type="file" multiple hidden onChange={(e) => { onAdd(cat.id, Array.from(e.target.files || [])); e.target.value = "" }} />
       </div>
-      {catFiles.length > 0 && (
+      {(catSaved.length > 0 || catFiles.length > 0) && (
         <div className="mt-3 flex flex-wrap gap-2">
-          {catFiles.map((f, i) => (
-            <div key={i} className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-[#FAF9F7] text-gray-900 font-sans">
-              <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
-              <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
+          {catSaved.map((d) => (
+            <div key={`saved-${d.id}`} title="Bewaard bij het concept" className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-emerald-50 text-gray-900 font-sans">
+              <span className="text-emerald-600 leading-none">✓</span>
+              <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{d.name}</span>
+              <span onClick={() => onRemoveSaved(d)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
             </div>
           ))}
+          {catFiles.map((f, i) => {
+            const info = uploads.get(f)
+            const note = info?.phase === "uploading" ? `${info.pct}%` : info?.phase === "queued" ? "wacht" : ""
+            return (
+              <div key={`file-${i}`} className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-[#FAF9F7] text-gray-900 font-sans">
+                <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
+                {note && <span className="text-[11px] text-gray-400">{note}</span>}
+                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
@@ -483,12 +479,60 @@ export function FinancingForm() {
   }
 
   // Documenten
+  // `files`: selected in this visit and not (yet) kept with the concept.
+  // `savedDocs`: kept with the concept on the server, so still there after the
+  // browser is closed or on another device. A file moves from the first to the
+  // second once its upload to the concept's folder is confirmed
+  // (lib/concept-sync.ts). If that never happens it simply stays in `files`
+  // and is uploaded at submission, as it always was.
   const [files, setFiles] = useState<Record<string, File[]>>({})
-  // A resumed concept that had already reached the documents step: the selected
-  // FILES are not stored in a concept (only their names), so they must be
-  // re-added — tell the user explicitly instead of silently blocking.
-  const resumedPastDocs = "step" in draft && (draft.step as number) >= 3
+  const [, rerender] = useState(0)
+  const [sync] = useState(() => new ConceptSync({
+    draftId,
+    getToken: async () => auth.currentUser?.getIdToken(),
+    onChange: () => rerender((n) => n + 1),
+    onDocSaved: (cat, file) => setFiles((prev) => ({ ...prev, [cat]: (prev[cat] || []).filter((f) => f !== file) })),
+    initialDocs: localDocs(draft),
+    ownerUid: user?.uid,
+  }))
+  const savedDocs = sync.docs
+  useEffect(() => {
+    sync.start()
+    const onVisibility = () => { if (document.visibilityState === "hidden") sync.flushOnHide() }
+    const onPageHide = () => sync.flushOnHide()
+    document.addEventListener("visibilitychange", onVisibility)
+    window.addEventListener("pagehide", onPageHide)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility)
+      window.removeEventListener("pagehide", onPageHide)
+      sync.dispose()
+    }
+  }, [sync])
+  // Closing the tab while a document is on its way would lose that document.
+  const savingDocs = sync.busy
+  useEffect(() => {
+    if (!savingDocs) return
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = "" }
+    window.addEventListener("beforeunload", warn)
+    return () => window.removeEventListener("beforeunload", warn)
+  }, [savingDocs])
+  const [docRemoveError, setDocRemoveError] = useState("")
+  const removeSavedDoc = async (doc: ConceptDocument) => {
+    setDocRemoveError("")
+    const ok = await sync.removeDoc(doc)
+    if (!ok) setDocRemoveError(`"${doc.name}" kon niet worden verwijderd. Probeer het opnieuw.`)
+  }
+
+  // Files that were selected in an earlier visit but never reached the concept
+  // (a concept from before documents were kept, or a browser closed while a
+  // document was still uploading). They have to be added again, so say so
+  // explicitly instead of silently blocking.
   const draftFileNameList = Object.values(s<Record<string, string[]>>("fileNames", {})).flat()
+  const presentNames = new Set([
+    ...savedDocs.map((d) => d.name.toLowerCase()),
+    ...Object.values(files).flat().map((f) => f.name.toLowerCase()),
+  ])
+  const lostFileNames = draftFileNameList.filter((n) => !presentNames.has(n.toLowerCase()))
 
   const clearError = (key: string) =>
     setErrors((prev) => { const next = { ...prev }; delete next[key]; return next })
@@ -497,6 +541,7 @@ export function FinancingForm() {
   // junk empty draft on every visit, and on resume it immediately rewrote the
   // stored draft before the user changed anything.
   const draftDidMount = useRef(false)
+  const savedStep = useRef(step)
   useEffect(() => {
     if (!draftDidMount.current) { draftDidMount.current = true; return }
     saveDraft(draftId, {
@@ -508,7 +553,15 @@ export function FinancingForm() {
       // File objects cannot be stored in localStorage; keep the NAMES so a
       // resumed draft can show which documents were selected before.
       fileNames: Object.fromEntries(Object.entries(files).map(([id, fs]) => [id, fs.map((f) => f.name)])),
+      // Bookkeeping for this browser only (lib/concept-local.ts).
+      savedDocs: sync.docs,
+      ownerUid: user?.uid ?? "",
     })
+    // Send it to the server as well, a moment after the last change. A
+    // finished step goes at once.
+    const stepChanged = savedStep.current !== step
+    savedStep.current = step
+    sync.notifyChanged(stepChanged)
     clearTimeout(draftTimerRef.current)
     setDraftSaved(true)
     draftTimerRef.current = setTimeout(() => setDraftSaved(false), 2000)
@@ -520,12 +573,19 @@ export function FinancingForm() {
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
       wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, files])
 
-  const addFiles = (catId: string, newFiles: File[]) =>
+  const addFiles = (catId: string, newFiles: File[]) => {
     setFiles((prev) => ({ ...prev, [catId]: [...(prev[catId] || []), ...newFiles] }))
-  const removeFile = (catId: string, idx: number) =>
-    setFiles((prev) => ({ ...prev, [catId]: (prev[catId] || []).filter((_, i) => i !== idx) }))
+    // Keep them with the concept straight away.
+    newFiles.forEach((f) => sync.enqueue(catId, f))
+  }
+  const removeFile = (catId: string, idx: number) => {
+    const file = (files[catId] || [])[idx]
+    if (file) sync.cancel(file)
+    setFiles((prev) => ({ ...prev, [catId]: (prev[catId] || []).filter((f) => f !== file) }))
+  }
 
-  const totalFiles = Object.values(files).flat().length
+  const pendingFiles = Object.values(files).flat().length
+  const totalFiles = pendingFiles + savedDocs.length
 
   const visibleDocs = DOC_CATEGORIES.filter((cat) => {
     if (aanvragerType === "Particulier") return cat.particulier
@@ -533,7 +593,7 @@ export function FinancingForm() {
     return true
   })
   const missingRequiredDocs = visibleDocs
-    .filter((cat) => cat.required && !files[cat.id]?.length)
+    .filter((cat) => cat.required && !files[cat.id]?.length && !savedDocs.some((d) => d.cat === cat.id))
     .map((cat) => cat.label)
 
   const validateStep = (currentStep: number): boolean => {
@@ -617,7 +677,18 @@ export function FinancingForm() {
       if (!validateStep(i)) { setStep(i); scrollToTop(); return }
     }
     setSubmitError(""); setSubmitting(true)
+    let submittedOk = false
     try {
+      // A document that is being kept with the concept right now may finish.
+      // Whatever is not kept by then is uploaded after submission, as before.
+      if (sync.busy) setUploadProgress("Documenten worden bewaard…")
+      await sync.pauseUploads()
+      setUploadProgress("")
+      const keptDocs = sync.docs
+      const openFiles = Object.entries(files).map(
+        ([catId, catFiles]) => [catId, catFiles.filter((f) => !sync.isSaved(f))] as const
+      )
+
       const formData = new FormData()
       const fields: Record<string, string> = {
         aanvragerType, naam, voornaam, achternaam, bedrijfsnaam, kvkNummer, email, telefoon, adres: aanvragerFullAdres(),
@@ -638,21 +709,25 @@ export function FinancingForm() {
       formData.append("objects", JSON.stringify(submitObjects))
       const idToken = user ? await auth.currentUser?.getIdToken() : null
 
-      const allSelectedFiles = Object.values(files).flat()
+      const allSelectedFiles = openFiles.flatMap(([, catFiles]) => catFiles)
       if (idToken) {
         // Direct-upload mode: send only file METADATA with the submission; the
         // bytes go straight from the browser to OneDrive afterwards (chunked),
         // so the hosting platform's ±4.5MB request cap no longer limits the
         // documents.
         formData.append("idToken", idToken)
-        formData.append("fileMeta", JSON.stringify(
-          Object.entries(files).flatMap(([catId, catFiles]) =>
+        // The concept this aanvraag comes from. The documents kept with it are
+        // already in its folder; the server makes that the aanvraag's folder.
+        formData.append("conceptId", draftId)
+        formData.append("fileMeta", JSON.stringify([
+          ...keptDocs.map((d) => ({ cat: d.cat, name: d.name, size: d.size })),
+          ...openFiles.flatMap(([catId, catFiles]) =>
             catFiles.map((f) => ({ cat: catId, name: f.name, size: f.size }))
-          )
-        ))
+          ),
+        ]))
       } else {
         // No login (shouldn't happen behind AuthGuard): legacy embedded upload.
-        for (const [catId, catFiles] of Object.entries(files))
+        for (const [catId, catFiles] of openFiles)
           for (const file of catFiles)
             formData.append(`file::${catId}`, file, file.name)
       }
@@ -669,17 +744,21 @@ export function FinancingForm() {
       // A fresh token is fetched per file: a large dossier can take longer than
       // a token's lifetime. Upload failures never throw — the aanvraag is
       // already submitted, so they are reported on the success screen instead.
-      if (idToken && resData.id && allSelectedFiles.length > 0) {
-        const results = await uploadFilesDirect(
-          resData.id,
-          () => auth.currentUser?.getIdToken() ?? Promise.resolve(null),
-          allSelectedFiles,
-          (p) => setUploadProgress(`Documenten uploaden… bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
-        )
+      if (idToken && resData.id && (allSelectedFiles.length > 0 || keptDocs.length > 0)) {
+        const results = allSelectedFiles.length > 0
+          ? await uploadFilesDirect(
+              resData.id,
+              () => auth.currentUser?.getIdToken() ?? Promise.resolve(null),
+              allSelectedFiles,
+              (p) => setUploadProgress(`Documenten uploaden… bestand ${p.fileIndex} van ${p.fileCount} (${p.pct}%)`)
+            )
+          : []
         setUploadProgress("")
         const okNames = results.filter((r) => r.ok).map((r) => r.fileName)
         const failed = results.filter((r) => !r.ok)
-        if (okNames.length > 0) {
+        // Also when every document was already kept with the concept: this
+        // recount is what marks the dossier as complete.
+        if (okNames.length > 0 || keptDocs.length > 0) {
           // Retry once: without this ping the aanvraag stays on "pending" even
           // though every document arrived.
           for (let attempt = 0; attempt < 2; attempt++) {
@@ -700,9 +779,15 @@ export function FinancingForm() {
       }
 
       deleteDraft(draftId)
+      sync.stop()
+      submittedOk = true
       setSubmitted(true)
     } catch (err) { setSubmitError((err as Error).message || "Er is iets misgegaan. Probeer het opnieuw.") }
-    finally { setSubmitting(false); setUploadProgress("") }
+    finally {
+      setSubmitting(false); setUploadProgress("")
+      // Not submitted after all: carry on keeping documents with the concept.
+      if (!submittedOk) sync.resumeUploads()
+    }
   }
 
   const fmt = (v: string) => v || "-"
@@ -963,21 +1048,30 @@ export function FinancingForm() {
           <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Documenten uploaden</h2>
           <p className="font-sans text-sm text-gray-400 mb-7">
             Upload de benodigde documenten. Verplichte documenten zijn gemarkeerd. U kunt bestanden slepen of op &ldquo;Uploaden&rdquo; klikken.
+            Documenten worden direct bij uw concept bewaard. Een vinkje betekent dat het document veilig is opgeslagen.
           </p>
-          {resumedPastDocs && missingRequiredDocs.length > 0 && (
+          {lostFileNames.length > 0 && (
             <div className="mb-5 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 font-sans">
-              <p className="text-[13px] font-medium text-amber-800">Let op: bestanden worden niet bij een concept bewaard.</p>
+              <p className="text-[13px] font-medium text-amber-800">
+                Let op: {lostFileNames.length === 1 ? "één eerder gekozen bestand is" : `${lostFileNames.length} eerder gekozen bestanden zijn`} niet bewaard.
+              </p>
               <p className="text-[13px] text-amber-700 mt-1">
-                Voeg uw documenten opnieuw toe om verder te kunnen gaan.
-                {draftFileNameList.length > 0 && <> Eerder geselecteerd: <span className="font-medium">{draftFileNameList.join(", ")}</span>.</>}
+                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe: <span className="font-medium">{lostFileNames.join(", ")}</span>.
               </p>
             </div>
           )}
           {visibleDocs.map((cat) => (
-            <DocUploadCard key={cat.id} cat={cat} files={files} onAdd={addFiles} onRemove={removeFile} />
+            <DocUploadCard key={cat.id} cat={cat} files={files} saved={savedDocs} uploads={sync.uploads}
+              onAdd={addFiles} onRemove={removeFile} onRemoveSaved={removeSavedDoc} />
           ))}
+          {docRemoveError && <p className="mt-2 text-xs text-red-500 font-sans">{docRemoveError}</p>}
           <div className="mt-4 px-5 py-3 rounded-xl bg-[#FAF9F7] text-[13px] text-gray-400 font-sans">
-            {totalFiles} {totalFiles === 1 ? "bestand" : "bestanden"} geselecteerd voor upload
+            {totalFiles} {totalFiles === 1 ? "bestand" : "bestanden"} toegevoegd
+            {savedDocs.length > 0 && <>, waarvan {savedDocs.length} bewaard bij uw concept</>}
+            {pendingFiles > 0 && sync.busy && <>. Bezig met bewaren…</>}
+            {pendingFiles > 0 && !sync.busy && (
+              <>. {pendingFiles === 1 ? "Eén bestand is" : `${pendingFiles} bestanden zijn`} nog niet bewaard en {pendingFiles === 1 ? "wordt" : "worden"} bij het indienen geüpload. Sluit u deze pagina eerder, voeg {pendingFiles === 1 ? "het" : "ze"} dan later opnieuw toe.</>
+            )}
           </div>
         </div>
       )
@@ -1028,10 +1122,15 @@ export function FinancingForm() {
           </ReviewSection>
 
           <ReviewSection title="Documenten">
-            {Object.entries(files).filter(([, v]) => v.length > 0).map(([catId, catFiles]) => {
+            {[...new Set([...savedDocs.map((d) => d.cat), ...Object.keys(files)])].map((catId) => {
+              const names = [
+                ...savedDocs.filter((d) => d.cat === catId).map((d) => d.name),
+                ...(files[catId] || []).map((f) => f.name),
+              ]
+              if (names.length === 0) return null
               const cat = DOC_CATEGORIES.find((c) => c.id === catId)
               return <ReviewRow key={catId} label={cat?.label || catId}
-                value={`${catFiles.length} ${catFiles.length === 1 ? "bestand" : "bestanden"} (${catFiles.map(f => f.name).join(", ")})`} />
+                value={`${names.length} ${names.length === 1 ? "bestand" : "bestanden"} (${names.join(", ")})`} />
             })}
             {totalFiles === 0 && <p className="text-sm text-gray-400 font-sans italic">Geen documenten geüpload</p>}
           </ReviewSection>
@@ -1081,6 +1180,14 @@ export function FinancingForm() {
           Concept opgeslagen
         </div>
       </div>
+      {/* Only when the server copy is NOT being kept, so nobody counts on it. */}
+      {sync.state !== "ok" && (
+        <div className="-mt-4 mb-8 px-5 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800 font-sans">
+          {sync.closedStatus
+            ? "Dit concept is al ingediend of uit uw overzicht gehaald. Wat u nu invult, wordt alleen op dit apparaat bewaard."
+            : "Uw concept wordt op dit moment alleen op dit apparaat bewaard. Zodra de verbinding terug is, wordt het weer automatisch opgeslagen."}
+        </div>
+      )}
 
       {renderStep()}
 
@@ -1107,7 +1214,7 @@ export function FinancingForm() {
           <div className="flex flex-col items-end gap-2">
             {missingRequiredDocs.length > 0 && (
               <p className="text-xs text-gray-400 font-sans text-right">
-                {resumedPastDocs && <>Bestanden worden niet bij een concept bewaard.{" "}</>}
+                {lostFileNames.length > 0 && <>Eerder gekozen bestanden zijn niet bewaard.{" "}</>}
                 Upload verplichte documenten om in te dienen:{" "}
                 <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
                 {" — "}

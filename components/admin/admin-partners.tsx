@@ -44,6 +44,8 @@ const ACTION_LABELS: Record<string, string> = {
   login: "Ingelogd",
   aanvraag_submitted: "Aanvraag ingediend",
   document_uploaded: "Documenten geüpload",
+  concept_created: "Concept aangemaakt",
+  concept_removed: "Concept door adviseur verwijderd",
 }
 
 function formatDateTime(iso: string | null) {
