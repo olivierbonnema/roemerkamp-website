@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { useAuth } from "@/contexts/auth-context"
 import { deleteDraft as deleteLocalDraft, draftPayload, isOwnDraft, listDrafts, loadDraft, localDocs, markDraftSynced } from "@/lib/concept-local"
+import { anyConceptBusy, liveConceptSync } from "@/lib/concept-sync"
 
 /* ── Types ── */
 interface Aanvraag {
@@ -104,9 +105,21 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }) {
+// Documents of this concept that were added on this page a moment ago and are
+// not kept yet. They carry on after the form is left (lib/concept-sync.ts).
+interface DraftUploads {
+  kept: number
+  // waiting or on their way right now
+  saving: number
+  // could not be kept
+  notKept: number
+}
+
+function DraftCard({ draft, uploads, onDiscard }: { draft: Draft; uploads?: DraftUploads; onDiscard: () => void }) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
+  // The page that kept them knows it first, the list from the server may be older.
+  const keptCount = Math.max(uploads?.kept ?? 0, draft.documentCount ?? 0)
   const stepsTotal = STEP_LABELS.length
   // step is a 0-based index; being ON the first step means "Stap 1 van 5".
   const stepsDone = Math.min((draft.step ?? 0) + 1, stepsTotal)
@@ -167,13 +180,35 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
             <p className="text-gray-900 font-medium">{formatCurrency(draft.leningBedrag)}</p>
           </div>
         )}
-        {(draft.documentCount ?? 0) > 0 && (
+        {(keptCount > 0 || !!uploads?.saving || !!uploads?.notKept) && (
           <div>
             <span className="text-gray-400 text-[12px]">Documenten</span>
-            <p className="text-gray-900 font-medium">{draft.documentCount} bewaard</p>
+            <p className="text-gray-900 font-medium">{keptCount} bewaard</p>
           </div>
         )}
       </div>
+
+      {!!uploads?.saving && (
+        <div className="mb-5 px-4 py-3 rounded-xl bg-[#f0f4ff] border border-[#d9e2ff] font-sans flex items-start gap-3">
+          <span className="mt-0.5 w-4 h-4 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
+          <p className="text-[13px] text-[#1E3A5F]">
+            <span className="font-medium">
+              {uploads.saving === 1 ? "Eén document wordt nog bewaard." : `${uploads.saving} documenten worden nog bewaard.`}
+            </span>{" "}
+            Sluit of ververs dit tabblad niet tot dat klaar is.
+          </p>
+        </div>
+      )}
+      {!uploads?.saving && !!uploads?.notKept && (
+        <div className="mb-5 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 font-sans">
+          <p className="text-[13px] text-amber-800">
+            <span className="font-medium">
+              {uploads.notKept === 1 ? "Eén document is niet bewaard." : `${uploads.notKept} documenten zijn niet bewaard.`}
+            </span>{" "}
+            Open het concept om te zien om welk document het gaat.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
         <button
@@ -344,6 +379,25 @@ export function RequestsList() {
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState<Tab>("alles")
 
+  // Documents that were still on their way when the adviser came here keep
+  // going. Show how far they are for as long as that lasts.
+  const [, tick] = useState(0)
+  useEffect(() => {
+    if (!anyConceptBusy()) return
+    const timer = setInterval(() => {
+      tick((n) => n + 1)
+      if (!anyConceptBusy()) clearInterval(timer)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+  const uploadsOf = (draftId: string): DraftUploads | undefined => {
+    const sync = liveConceptSync(draftId)
+    if (!sync || !user || sync.ownerUid !== user.uid) return undefined
+    const states = [...sync.uploads.values()]
+    const notKept = states.filter((u) => u.phase === "failed").length
+    return { kept: sync.docs.length, saving: states.length - notKept, notKept }
+  }
+
   // Concepts: the ones kept on the server (so also made on another device)
   // together with the ones in this browser. The browser's own are shown at
   // once, exactly as before; the server's are added when they arrive. If the
@@ -358,7 +412,13 @@ export function RequestsList() {
         ...d,
         documentCount: localDocs(d as unknown as Record<string, unknown>).length,
       }))
-    const show = (list: Draft[]) => { if (!cancelled) setDrafts(list.filter(hasSomething).sort(newestFirst)) }
+    // Also a concept that so far only has documents, which are still on
+    // their way from this page (lib/concept-sync.ts).
+    const hasDocsOnTheirWay = (id: string) => {
+      const sync = liveConceptSync(id)
+      return !!sync && sync.ownerUid === uid && (sync.busy || sync.uploads.size > 0 || sync.docs.length > 0)
+    }
+    const show = (list: Draft[]) => { if (!cancelled) setDrafts(list.filter((d) => hasSomething(d) || hasDocsOnTheirWay(d.id)).sort(newestFirst)) }
     try { show(readLocal()) } catch {}
 
     ;(async () => {
@@ -452,6 +512,9 @@ export function RequestsList() {
     // here as before. Known on the server: it would only come back, so say so.
     if (ok || !draft.onServer) {
       deleteLocalDraft(draft.id)
+      // Documents of this concept that were still on their way stop here.
+      const sync = liveConceptSync(draft.id)
+      if (sync && sync.ownerUid === user?.uid) sync.stop()
     } else {
       setDrafts(prev => (prev.some(d => d.id === draft.id) ? prev : [...prev, draft].sort(newestFirst)))
       setDiscardError("Het concept kon niet worden verwijderd. Probeer het opnieuw.")
@@ -530,7 +593,7 @@ export function RequestsList() {
       <div className="space-y-4">
         {/* Draft cards */}
         {showDrafts && drafts.map(draft => (
-          <DraftCard key={draft.id} draft={draft} onDiscard={() => discardDraft(draft)} />
+          <DraftCard key={draft.id} draft={draft} uploads={uploadsOf(draft.id)} onDiscard={() => discardDraft(draft)} />
         ))}
 
         {/* Divider between drafts and submitted */}

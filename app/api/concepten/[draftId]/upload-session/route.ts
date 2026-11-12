@@ -4,8 +4,8 @@ import {
   getMsToken, createConceptFolder, createUploadSession, sanitizeDriveName, listFolderFiles,
   DIRECT_UPLOAD_MAX_FILE_SIZE, UPLOAD_ALLOWED_EXTENSIONS,
 } from "@/lib/onedrive-direct"
-import { MAX_CONCEPT_DOCS, conceptSummary, isValidDraftId, uniqueFileName } from "@/lib/concepten"
-import { conceptRef, verifyUser, writeConcept } from "@/lib/concept-server"
+import { MAX_CONCEPT_DOCS, SUMMARY_FILE_NAME, conceptSummary, isValidDraftId, originalName, sanitizeCat, uniqueFileName } from "@/lib/concepten"
+import { conceptRef, settleConceptUploads, verifyUser, writeConcept } from "@/lib/concept-server"
 
 // Hands the browser an upload session for ONE document of a concept, so the
 // document is kept as soon as it is added instead of only at submission.
@@ -17,7 +17,10 @@ import { conceptRef, verifyUser, writeConcept } from "@/lib/concept-server"
 // that is added.
 //
 // After the upload the browser reports it to ../documents, which checks the
-// folder before it believes it.
+// folder before it believes it. Should the page be closed before that report,
+// the document is not lost: the session is noted on the concept here
+// (`pendingUploads`, with the category from ?cat=) and the next time the
+// folder is read the document is recorded after all.
 
 export const maxDuration = 60
 
@@ -42,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ dra
   if (fileSize > DIRECT_UPLOAD_MAX_FILE_SIZE) {
     return NextResponse.json({ error: `Bestand te groot (max 250MB): ${fileName}` }, { status: 400 })
   }
-  if (fileName.toLowerCase() === "aanvraag-samenvatting.txt") {
+  if (fileName.toLowerCase() === SUMMARY_FILE_NAME) {
     return NextResponse.json({ error: "Deze bestandsnaam is gereserveerd." }, { status: 400 })
   }
 
@@ -78,7 +81,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ dra
     }
 
     const files = await listFolderFiles(token, folderId)
-    const delivered = files.filter((f) => f.size > 0 && f.name.toLowerCase() !== "aanvraag-samenvatting.txt")
+    const delivered = files.filter((f) => f.size > 0 && f.name.toLowerCase() !== SUMMARY_FILE_NAME)
     if (delivered.length >= MAX_CONCEPT_DOCS) {
       return NextResponse.json({ error: "Maximum aantal documenten voor deze aanvraag bereikt." }, { status: 400 })
     }
@@ -86,6 +89,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ dra
     // "scan.pdf" becomes "scan (2).pdf" here, not by a silent rename later.
     const storedName = uniqueFileName(fileName, new Set(files.map((f) => f.name.toLowerCase())))
     const uploadUrl = await createUploadSession(token, folderId, storedName)
+    // Note the upload that is about to start, and record anything that arrived
+    // earlier without being reported. Never a reason to refuse the upload.
+    try {
+      const cat = sanitizeCat(new URL(req.url).searchParams.get("cat"))
+      await settleConceptUploads(ref, files, {
+        add: { name: storedName, cat, at: new Date().toISOString(), ...originalName(rawName, storedName) },
+      })
+    } catch (err) {
+      console.error("[concepten] upload note failed (upload continues):", err)
+    }
     return NextResponse.json({ uploadUrl, fileName: storedName })
   } catch (err) {
     console.error("[concepten] upload session failed:", err)
