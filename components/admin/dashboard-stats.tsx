@@ -85,6 +85,7 @@ const ACTION_LABELS: Record<string, string> = {
   document_uploaded: "Document geüpload",
   concept_created: "Concept aangemaakt",
   concept_removed: "Concept door adviseur verwijderd",
+  mfa_reset: "Tweestapsverificatie gewist",
 }
 
 

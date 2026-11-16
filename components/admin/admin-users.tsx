@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
 import { InviteMailDialog, LoginBadge, type InviteAccount } from "./invite-mail-dialog"
+import { MfaDialog, type MfaAccount } from "./mfa-reset"
 
-interface UserRecord extends InviteAccount {
+interface UserRecord extends InviteAccount, MfaAccount {
   uid: string
   email: string
   displayName?: string
@@ -27,10 +28,14 @@ export function AdminUsers() {
   const [deletingUid, setDeletingUid] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState("")
   const [inviteFor, setInviteFor] = useState<UserRecord | null>(null)
+  // The account whose two-factor window is open. Kept by uid, so the window
+  // shows the account as the list has it after a change.
+  const [mfaUid, setMfaUid] = useState<string | null>(null)
   const [onlyNotLoggedIn, setOnlyNotLoggedIn] = useState(false)
   const neverLoggedIn = (u: UserRecord) => !!u.loginKnown && !u.authMissing && !u.lastSignInAt
   const notLoggedInCount = users.filter(neverLoggedIn).length
   const shown = onlyNotLoggedIn ? users.filter(neverLoggedIn) : users
+  const mfaFor = mfaUid ? users.find((u) => u.uid === mfaUid) : undefined
 
   useEffect(() => { loadUsers() }, [])
 
@@ -146,11 +151,17 @@ export function AdminUsers() {
                 <p className="text-sm text-gray-600 font-sans">{u.email}</p>
                 <div className="mt-1"><LoginBadge u={u} /></div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
                 {!u.authMissing && (
                   <button onClick={() => setInviteFor(u)}
                     className={`text-xs font-sans transition-colors hover:underline ${neverLoggedIn(u) ? "text-[#311E86] font-medium" : "text-gray-500"}`}>
                     {neverLoggedIn(u) ? "Uitnodiging opnieuw sturen" : "Uitnodiging"}
+                  </button>
+                )}
+                {!u.authMissing && (
+                  <button onClick={() => setMfaUid(u.uid)}
+                    className="text-xs text-gray-500 font-sans transition-colors hover:underline">
+                    Tweestapsverificatie
                   </button>
                 )}
                 <button onClick={() => deleteUser(u.uid)} disabled={deletingUid === u.uid}
@@ -169,6 +180,16 @@ export function AdminUsers() {
           account={inviteFor}
           onClose={() => setInviteFor(null)}
           onSent={(r) => setUsers((prev) => prev.map((x) => (x.uid === inviteFor.uid ? { ...x, ...r } : x)))}
+        />
+      )}
+
+      {/* Is 2FA set up, and clearing it for someone who lost the code. */}
+      {mfaFor && (
+        <MfaDialog
+          key={mfaFor.uid}
+          account={mfaFor}
+          onClose={() => setMfaUid(null)}
+          onChange={(change) => setUsers((prev) => prev.map((x) => (x.uid === mfaFor.uid ? { ...x, ...change } : x)))}
         />
       )}
     </div>

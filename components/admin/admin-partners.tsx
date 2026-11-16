@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
 import { InviteMailDialog, LoginBadge, type InviteAccount } from "./invite-mail-dialog"
 import { PartnerImport, type PendingInvite } from "./partner-import"
+import { MfaPanel, type MfaAccount } from "./mfa-reset"
 
 interface PartnerOrg {
   id: string
@@ -14,7 +15,7 @@ interface PartnerOrg {
   createdAt?: string
 }
 
-interface PartnerUser extends InviteAccount {
+interface PartnerUser extends InviteAccount, MfaAccount {
   uid: string
   email: string
   displayName?: string
@@ -522,6 +523,16 @@ export function AdminPartners() {
                     {superviseMsg && <span className="text-[12px] text-gray-600 font-sans">{superviseMsg}</span>}
                   </div>
                 </div>
+
+                {/* Is 2FA set up, and clearing it for an adviser who lost the code. */}
+                <MfaPanel
+                  key={detail.uid}
+                  account={detail}
+                  onChange={(change) => {
+                    setPartners((prev) => prev.map((x) => (x.uid === detail.uid ? { ...x, ...change } : x)))
+                    setDetail((d) => (d ? { ...d, ...change } : d))
+                  }}
+                />
 
                 <div>
                   <h4 className="text-sm font-semibold text-[#311E86] font-sans mb-2">Activiteit</h4>
