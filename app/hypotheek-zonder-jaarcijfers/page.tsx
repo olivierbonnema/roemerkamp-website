@@ -167,8 +167,7 @@ export default function HypotheekZonderJaarcijfersPage() {
           het derde boekjaar binnen de looptijd valt.
         </p>
         <p>
-          Vervroegd aflossen bij een bankherfinanciering is in de meeste gevallen mogelijk. De voorwaarden daarvoor staan
-          vooraf in de leningsovereenkomst.
+          Vervroegd aflossen bij een bankherfinanciering is in de meeste gevallen mogelijk.
         </p>
       </ArticleSection>
 

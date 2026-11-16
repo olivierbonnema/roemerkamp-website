@@ -40,31 +40,31 @@ const inhoud = [
 const stappen = [
   {
     title: 'De aanvraag',
-    text: 'U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen. Met die gegevens bij de hand is de aanvraag in een kwartier ingevuld.',
+    text: 'U legt uw casus aan ons voor, rechtstreeks of via uw adviseur. Wat wij nodig hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen.',
   },
   {
     title: 'De beoordeling',
-    text: 'Wij beoordelen de hele casus op drie punten, namelijk de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening eindigt). Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten en het insolventieregister.',
+    text: 'Wij beoordelen de hele casus op drie punten, namelijk de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening wordt afgelost). Daarnaast controleren wij de betrokkenen in de openbare registers, zoals de sanctielijsten en het insolventieregister.',
   },
   {
     title: 'De indicatie en uw akkoord',
-    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden, met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren wij de opstartvergoeding en stellen wij de termsheet op.',
+    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden, met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan stellen wij de termsheet op.',
   },
   {
     title: 'De termsheet',
-    text: 'Alle afspraken komen op papier. Dat zijn de hoofdsom, de rente, de looptijd, de aflossingsvorm, een eventueel rentedepot of bouwdepot, de zekerheden, de kosten en de voorwaarden die vóór het passeren vervuld moeten zijn, zoals de taxatie of de toestemming van een eerste hypotheekhouder. Wat in de termsheet staat, krijgt ook de investeerder te zien.',
+    text: 'Alle afspraken komen op papier. Dat zijn de hoofdsom, de rente, de looptijd, de aflossingsvorm, een eventueel rentedepot of bouwdepot, de zekerheden, de kosten en de voorwaarden die vóór het passeren vervuld moeten zijn, zoals een taxatie of de toestemming van een eerste hypotheekhouder. Wat in de termsheet staat, krijgt ook de investeerder te zien. Bij ondertekening betaalt u de opstartkosten.',
   },
   {
     title: 'De investeerder',
-    text: "Wij leggen de aanvraag voor aan onze investeerders, met de zekerheden, de loan-to-value, de exit en de risico's, benoemd zoals ze zijn. Een investeerder beslist op basis daarvan of hij de lening financiert.",
+    text: 'Wij koppelen uw lening aan een of meer particuliere investeerders.',
   },
   {
     title: 'De notaris',
-    text: 'De hypotheekakte wordt verleden en ingeschreven bij het Kadaster. De investeerder stort het geld bij de onafhankelijke Stichting. De notaris keert uit.',
+    text: 'De notaris doet de laatste controles en u tekent de hypotheekakte. Daarmee wordt het hypotheekrecht ingeschreven bij het Kadaster en wordt de lening uitbetaald.',
   },
   {
     title: 'De looptijd en het einde',
-    text: 'U betaalt rente via de Stichting, maandelijks of vooraf uit het rentedepot. Aan het einde lost u af uit de verkoop of de nieuwe hypotheek. Loopt het uit, dan bespreken wij met de investeerder een verlenging.',
+    text: 'U betaalt rente via de Stichting, maandelijks of vooraf uit het rentedepot. Aan het einde lost u af, bijvoorbeeld uit de verkoop, uit een nieuwe hypotheek of uit eigen middelen. Loopt het uit, dan bespreken wij met de investeerder een verlenging.',
   },
 ]
 
@@ -72,15 +72,11 @@ const faq = [
   FAQ_EIGEN_GELD,
   {
     vraag: 'Hoe verschilt dit van een bancaire hypotheek?',
-    antwoord: 'Een bancaire hypotheek is een langlopende lening van 10 tot 30 jaar waarbij uw inkomen centraal staat. Onze financiering is kortlopend, 6 tot 60 maanden, en wordt beoordeeld op betaalbaarheid, onderpand en exit in plaats van langs een vaste inkomensnorm. De doorlooptijd is doorgaans één tot drie weken in plaats van vier tot acht.',
+    antwoord: 'Een bancaire hypotheek is een langlopende lening van 10 tot 30 jaar waarbij uw inkomen centraal staat. Onze financiering is kortlopend, 6 tot 60 maanden, en wordt beoordeeld op betaalbaarheid, onderpand en exit in plaats van langs een vaste inkomensnorm. De doorlooptijd is doorgaans één tot drie weken, waar een bank vier tot acht weken of langer nodig heeft.',
   },
   FAQ_VEILIG,
   FAQ_TAXATIE,
   FAQ_AANSPREEKPUNT,
-  {
-    vraag: 'Wat zijn de bedragen en looptijden?',
-    antwoord: 'Leningen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag hangt af van de marktwaarde van het onderpand en de eventuele hypotheekschuld.',
-  },
 ]
 
 
@@ -97,39 +93,35 @@ export default function VastgoedfinancieringZonderBankPage() {
       lead={
         <>
           Wie vastgoed wil financieren en bij de bank vastloopt op inkomen, jaarcijfers of het type pand, kan terecht bij
-            Lange &amp; Partners. Wij bemiddelen leningen van particuliere investeerders, met uw vastgoed als zekerheid. Op
+            Lange &amp; Partners. Wij verstrekken leningen vanuit particulier kapitaal, met vastgoed als onderpand. Op
             deze pagina leest u voor wie dat werkt, wat de voorwaarden zijn, wat het kost en hoe een aanvraag verloopt.
         </>
       }
       faq={faq}
-      verwant={verwant('proces', 'kosten', 'ltv', 'exit', 'watIs', 'investeerders')}
+      verwant={verwant('casussen', 'proces', 'kosten', 'exit')}
     >
 
 
       <ArticleSection id="wat" title="Wat is vastgoedfinanciering zonder bank?">
         <p>
-          Een non-bancaire vastgoedfinanciering is een lening met een hypotheekrecht op onroerend goed, verstrekt door een
-          particuliere investeerder in plaats van een bank. De beoordeling draait om drie vragen. Kunt u de rente en de
+          Een non-bancaire vastgoedfinanciering is een lening met een hypotheekrecht op onroerend goed, gefinancierd met
+          particulier kapitaal in plaats van door een bank. De beoordeling draait om drie vragen. Kunt u de rente en de
           kosten dragen, wat is het onderpand waard en hoe wordt de lening aan het einde van de looptijd afgelost? Inkomen
           en jaarcijfers tellen dus mee, maar wij wegen ze anders dan een bank, niet langs een vaste norm maar in
           samenhang met het onderpand en de exit.
         </p>
         <p>
-          Lange &amp; Partners verstrekt de lening niet zelf. Wij beoordelen de aanvraag, stellen de voorwaarden op en
-          brengen de financiering onder bij een van onze investeerders. Het hypotheekrecht wordt door de notaris gevestigd
-          en bij het Kadaster ingeschreven, als 1e of 2e hypotheekrecht. Alle betalingen lopen via een onafhankelijke
-          Stichting. Er gaat nooit geld rechtstreeks tussen u en de investeerder. Uw aanspreekpunt blijft gedurende de
+          Het geld komt van particuliere investeerders. Wij beoordelen de aanvraag, stellen de voorwaarden op en
+          koppelen de lening aan een of meer van hen. Het hypotheekrecht wordt door de notaris gevestigd
+          en bij het Kadaster ingeschreven, als 1e of opvolgend hypotheekrecht. Alle betalingen lopen via een onafhankelijke
+          Stichting. Er gaat nooit geld rechtstreeks tussen u en de investeerder en uw aanspreekpunt blijft gedurende de
           hele looptijd Lange &amp; Partners.
-        </p>
-        <p>
-          De financiering is bedoeld als tijdelijke oplossing, met een looptijd van 6 tot 60 maanden en aflossing uit de
-          verkoop van het pand of uit een herfinanciering bij een bank zodra dat weer kan.
         </p>
       </ArticleSection>
 
       <ArticleSection id="situaties" title="Voor welke situaties">
         <p>
-          Het product is steeds hetzelfde. De situatie bepaalt wat er in de beoordeling anders is. Per situatie staat op
+          Het product is steeds hetzelfde, maar het is in veel verschillende situaties te gebruiken. Per situatie staat op
           een eigen pagina wat u kunt verwachten.
         </p>
         <RelatedList items={SITUATION_PAGES.map((p) => ({ href: p.href, title: p.label, text: p.description }))} />
@@ -137,9 +129,9 @@ export default function VastgoedfinancieringZonderBankPage() {
 
       <ArticleSection id="vastgoed" title="Welk vastgoed komt in aanmerking?">
         <p>
-          Wij financieren op vastgoed in Nederland. Doorslaggevend zijn de marktwaarde en de verkoopbaarheid van het
-          onderpand. Een taxatierapport van een onafhankelijke taxateur is altijd vereist voordat de hypotheekakte
-          passeert.
+          Wij financieren op elk type vastgoed in Nederland. Doorslaggevend zijn de marktwaarde en de verkoopbaarheid van
+          het onderpand. De waarde stellen wij doorgaans vast met een taxatierapport van een onafhankelijke taxateur. Bij
+          een lage loan-to-value kunnen wij ook financieren op de WOZ-waarde.
         </p>
         <DataTable
           head={['Type vastgoed', 'Voorbeelden', 'Waar wij op letten']}
@@ -170,9 +162,9 @@ export default function VastgoedfinancieringZonderBankPage() {
           rows={[
             ['Beoordeling', 'Inkomen en jaarcijfers langs vaste toetsingsnormen', 'Betaalbaarheid, onderpand en exit, in samenhang beoordeeld'],
             ['Looptijd', '10 tot 30 jaar', '6 tot 60 maanden'],
-            ['Doorlooptijd', '4 tot 8 weken', '1 tot 3 weken na een volledige aanvraag'],
+            ['Doorlooptijd', '4 tot 8 weken, regelmatig langer', '1 tot 3 weken na een volledige aanvraag'],
             ['Rente', 'Lager. Gefinancierd met spaargeld en kapitaalmarkt', 'Vanaf 7%. Gefinancierd met privaat kapitaal'],
-            ['Zekerheid', 'Hypotheekrecht via het Kadaster', 'Hypotheekrecht via het Kadaster, betalingen via een Stichting'],
+            ['Zekerheid', 'Hypothecaire inschrijving op vastgoed', 'Hypothecaire inschrijving op vastgoed'],
             ['Geschikt voor', 'Langdurige financiering bij een stabiel inkomen', 'Tijdelijke financiering, overbrugging, situaties buiten de banknormen'],
           ]}
         />
@@ -194,14 +186,14 @@ export default function VastgoedfinancieringZonderBankPage() {
             ['Gevraagde lening met 2e hypotheekrecht', <strong key="lening" className="font-medium text-[#1e3a5f]">€450.000</strong>],
             ['Loan-to-value na financiering', '66,7%'],
             ['Rente, in dit voorbeeld 8% per jaar', '€36.000 per jaar, €3.000 per maand'],
-            ['Opstartvergoeding, 1% van het leenbedrag', '€4.500 eenmalig'],
+            ['Behandelingskosten, 1% van het leenbedrag', '€4.500 eenmalig'],
             ['Looptijd en exit', '24 maanden, herfinanciering bij de bank'],
           ]}
         />
         <Note>
-          Fictief voorbeeld. De rente hangt af van de loan-to-value, het type vastgoed, een 1e of 2e hypotheekrecht en het
-          risicoprofiel. De opstartvergoeding is 1% van het leenbedrag met een minimum van €3.000. Taxatie en notaris
-          komen hier nog bij.
+          Fictief voorbeeld. De rente hangt af van de loan-to-value, het type vastgoed, een 1e of opvolgend hypotheekrecht en het
+          risicoprofiel. De behandelingskosten zijn 1% van het leenbedrag met een minimum van €3.000. De kosten van de
+          notaris komen hier nog bij.
         </Note>
       </ArticleSection>
 
@@ -213,8 +205,9 @@ export default function VastgoedfinancieringZonderBankPage() {
 
       <ArticleSection id="aanvraag" title="Zo verloopt de aanvraag">
         <p>
-          Vanaf een volledige casus rekenen wij op één tot drie weken tot het passeren. De stap die de doorlooptijd
-          bepaalt, is het vinden van een investeerder. Een heldere casus met een goede exit vindt er snel een.
+          Vanaf een volledige casus rekenen wij doorgaans op één tot drie weken tot het passeren. De doorlooptijd hangt
+          vooral af van hoe snel u het geld nodig heeft en van de tijd die nodig is om de hele casus te beoordelen en de
+          afspraken te maken. Het kan dus ook langer duren.
         </p>
         <Steps items={stappen} />
       </ArticleSection>
@@ -225,8 +218,9 @@ export default function VastgoedfinancieringZonderBankPage() {
           zekerheid. Consumptief krediet of een lening op basis van alleen inkomen verstrekken wij niet.
         </p>
         <p>
-          <Strong>Geen financiering zonder exit.</Strong> Als niet duidelijk is hoe de lening eindigt, kunnen wij hem
-          niet aan een investeerder uitleggen. Dan is er nog werk te doen voordat een aanvraag zin heeft.
+          <Strong>Geen financiering zonder exit.</Strong> Wij financieren uitsluitend kortlopend. Daarom moet
+          er zicht zijn op een exit. Is nog niet duidelijk hoe de lening wordt afgelost, dan is er nog werk te doen voordat
+          een aanvraag zin heeft.
         </p>
         <p>
           <Strong>Geen verrassingen na de termsheet.</Strong> Wat u tekent, is wat er gebeurt. Voorwaarden die het

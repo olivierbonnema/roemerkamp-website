@@ -152,7 +152,7 @@ export const STATIC_POSTS: StaticPost[] = [
     slug: "kosten-non-bancaire-hypotheek",
     title: "Wat kost een zakelijke hypotheek zonder bank?",
     excerpt:
-      "Een overzicht van rente, behandelingskosten, taxatie en notariskosten, en wanneer een hogere rente toch loont.",
+      "Een overzicht van rente, behandelingskosten en notariskosten, en wanneer een hogere rente toch loont.",
     image: "/images/nbl-villa.jpg",
     date: "2026-05-15",
   },

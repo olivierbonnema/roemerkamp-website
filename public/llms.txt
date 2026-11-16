@@ -17,14 +17,15 @@ Lange & Partners is voortgekomen uit ruim 50 jaar ervaring in de bancaire sector
 
 ## Het product
 
-Een tijdelijke lening met een 1e of 2e hypotheekrecht op vastgoed in Nederland als zekerheid.
+Een tijdelijke lening met een 1e of opvolgend hypotheekrecht op vastgoed in Nederland als zekerheid.
 
 - Leningbedragen: €200.000 tot €5.000.000
 - Looptijd: 6 tot 60 maanden
 - Rente voor leningnemers: vanaf 7% per jaar
 - Loan-to-value: doorgaans tot 70%, maximaal 75% van het totale onderpand, inclusief bestaande hypotheken
-- Behandelingskosten: opstartvergoeding van 1% van het leenbedrag, minimaal €3.000, gefactureerd na akkoord op de indicatie; daarnaast taxatie en notaris
-- Doorlooptijd: 1 tot 3 weken vanaf een volledige aanvraag; verloop: aanvraag, beoordeling, indicatie per e-mail, akkoord en factuur opstartvergoeding, termsheet, investeerder, notaris
+- Behandelingskosten: 1% van het leenbedrag, minimaal €3.000, te betalen bij het passeren; een deel daarvan (de opstartkosten) bij ondertekening van de termsheet; daarnaast de notaris
+- Doorlooptijd: doorgaans 1 tot 3 weken vanaf een volledige aanvraag, soms langer; verloop: aanvraag, beoordeling, indicatie per e-mail, akkoord, termsheet, investeerder, notaris
+- Taxatie: niet altijd vereist; bij een lage loan-to-value kan de WOZ-waarde volstaan
 - Geen minimum aantal jaarcijfers; eigen inbreng geen vereiste zolang de dekking voldoende is
 - Exit: herfinanciering bij een bank, verkoop of aflossing uit eigen middelen
 - Niet: consumptief krediet, leningen zonder vastgoed als zekerheid, financiering zonder exit
@@ -43,7 +44,7 @@ Een tijdelijke lening met een 1e of 2e hypotheekrecht op vastgoed in Nederland a
 ## Voor investeerders
 - Investeren in vastgoedleningen, per lening, met een dossier vooraf
 - Rendement vanaf 6,5% per jaar, vastgelegd in de termsheet
-- Zekerheid: 1e of 2e hypotheekrecht op vastgoed in Nederland, ingeschreven bij het Kadaster
+- Zekerheid: 1e of opvolgend hypotheekrecht op vastgoed in Nederland, ingeschreven bij het Kadaster
 - Betalingen via een onafhankelijke Stichting; rendement niet gegarandeerd
 
 ## Pagina's
