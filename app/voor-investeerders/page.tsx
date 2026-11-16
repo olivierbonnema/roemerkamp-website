@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
 
 const kerngegevens = [
   { label: 'Rendement', value: 'Vanaf 6,5% per jaar' },
-  { label: 'Zekerheid', value: '1e of 2e hypotheekrecht op vastgoed in Nederland' },
+  { label: 'Zekerheid', value: '1e of opvolgend hypotheekrecht op vastgoed in Nederland' },
   { label: 'Loan-to-value', value: 'Doorgaans tot 70%, maximaal 75%' },
   { label: 'Looptijd', value: '6 tot 60 maanden' },
   { label: 'Per lening', value: '€200.000 tot €5.000.000' },
@@ -34,15 +34,15 @@ const inhoud = [
 const zekerheid = [
   {
     term: 'Hypotheekrecht via de notaris en het Kadaster',
-    text: 'De lening wordt vastgelegd in een hypotheekakte die de notaris verlijdt en bij het Kadaster inschrijft, als 1e of 2e hypotheekrecht. Daarmee is uw lening gedekt door hetzelfde zakelijke recht op het onderpand als bij een bank. Bij een 2e hypotheekrecht staat een bankhypotheek vóór u. De loan-to-value berekenen wij daarom altijd over de totale schuld op het pand.',
+    text: 'De lening wordt vastgelegd in een hypotheekakte die de notaris opmaakt en bij het Kadaster inschrijft, als 1e of opvolgend hypotheekrecht. Daarmee is uw lening gedekt door hetzelfde zakelijke recht op het onderpand als bij een bank. Bij een opvolgend hypotheekrecht staat een andere hypotheek, meestal van een bank, vóór u. De loan-to-value berekenen wij daarom altijd over de totale schuld op het pand.',
   },
   {
     term: 'Loan-to-value doorgaans tot 70%',
     text: 'De totale schuld op het onderpand, inclusief een eventuele eerste hypotheek, blijft doorgaans binnen 70% van de getaxeerde marktwaarde en maximaal 75%. Die marge is de buffer bij een waardedaling of een gedwongen verkoop.',
   },
   {
-    term: 'Taxatie door een onafhankelijke taxateur',
-    text: 'Vóór de termsheet en het passeren is een taxatierapport van een onafhankelijke taxateur vereist. Een WOZ-waarde volstaat alleen voor een eerste indicatie.',
+    term: 'Waardebepaling van het onderpand',
+    text: 'De waarde van het onderpand stellen wij doorgaans vast met een taxatierapport van een onafhankelijke taxateur. Alleen bij een lage loan-to-value kan de WOZ-waarde volstaan.',
   },
   {
     term: 'Betalingen via een onafhankelijke Stichting',
@@ -80,7 +80,7 @@ const risicos = [
 const proces = [
   {
     title: 'Kennismaking',
-    text: 'Wij bespreken uw wensen, zoals het bedrag dat u beschikbaar heeft, de looptijd die u zoekt, het type vastgoed, of u een 1e of 2e hypotheekrecht wilt en of u investeert in privé of vanuit een vennootschap.',
+    text: 'Wij bespreken uw wensen, zoals het bedrag dat u beschikbaar heeft, de looptijd die u zoekt, het type vastgoed, of u een 1e of opvolgend hypotheekrecht wilt en of u investeert in privé of vanuit een vennootschap.',
   },
   {
     title: 'Een voorstel per lening',
@@ -92,7 +92,7 @@ const proces = [
   },
   {
     title: 'Passeren en storting',
-    text: 'U stort het bedrag bij de onafhankelijke Stichting. De notaris verlijdt de hypotheekakte, schrijft die in bij het Kadaster en keert uit aan de leningnemer.',
+    text: 'U stort het bedrag bij de onafhankelijke Stichting. De notaris laat de hypotheekakte tekenen, schrijft die in bij het Kadaster en keert uit aan de leningnemer.',
   },
   {
     title: 'De looptijd',
@@ -100,18 +100,18 @@ const proces = [
   },
   {
     title: 'Aflossing',
-    text: 'Aan het einde van de looptijd lost de leningnemer af uit verkoop of herfinanciering, via de Stichting. Daarna kunt u het bedrag opnieuw inzetten in een volgende lening.',
+    text: 'Aan het einde van de looptijd lost de leningnemer af, bijvoorbeeld uit verkoop, herfinanciering of eigen middelen, via de Stichting. Daarna kunt u het bedrag opnieuw inzetten in een volgende lening.',
   },
 ]
 
 const faq = [
   {
     vraag: 'Hoe hoog is het rendement?',
-    antwoord: 'Vanaf 6,5% per jaar. Het percentage per lening hangt af van de loan-to-value, een 1e of 2e hypotheekrecht, het type vastgoed en de looptijd. Het staat vooraf vast in de termsheet.',
+    antwoord: 'Vanaf 6,5% per jaar. Het percentage per lening hangt af van de loan-to-value, een 1e of opvolgend hypotheekrecht, het type vastgoed en de looptijd. Het staat vooraf vast in de termsheet.',
   },
   {
     vraag: 'Welke zekerheid heb ik als investeerder?',
-    antwoord: 'Een 1e of 2e hypotheekrecht op Nederlands vastgoed, ingeschreven bij het Kadaster. De totale schuld op het pand blijft doorgaans binnen 70% van de getaxeerde waarde, maximaal 75%. Alle betalingen lopen via een onafhankelijke Stichting.',
+    antwoord: 'Een 1e of opvolgend hypotheekrecht op Nederlands vastgoed, ingeschreven bij het Kadaster. De totale schuld op het pand blijft doorgaans binnen 70% van de getaxeerde waarde, maximaal 75%. Alle betalingen lopen via een onafhankelijke Stichting.',
   },
   {
     vraag: 'Wat gebeurt er als de leningnemer niet betaalt?',
@@ -173,7 +173,7 @@ export default function VoorInvesteerdersPage() {
           beoordeelt de aanvraag, legt de afspraken vast in een termsheet en legt de lening voor aan een investeerder.
         </p>
         <p>
-          U financiert de lening, de leningnemer betaalt rente en lost aan het einde van de looptijd af uit verkoop of
+          U financiert de lening, de leningnemer betaalt rente en lost aan het einde van de looptijd af, bijvoorbeeld uit verkoop of
           een herfinanciering bij een bank. Het hypotheekrecht op het vastgoed is ingeschreven bij het Kadaster en dekt uw
           lening. Lange &amp; Partners blijft gedurende de looptijd het aanspreekpunt voor de leningnemer en voor u.
         </p>

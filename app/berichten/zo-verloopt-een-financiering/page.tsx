@@ -13,7 +13,7 @@ import { pageMetadata } from '@/lib/seo'
 const URL = "https://www.nonbancaireleningen.nl/berichten/zo-verloopt-een-financiering"
 const TITEL = "Van aanvraag tot passering: zo verloopt een financiering bij Lange & Partners"
 const OMSCHRIJVING =
-  "De zes stappen van aanvraag tot passering bij de notaris, met wat wij van u nodig hebben, hoe de investeerder beslist en waar de tijd in gaat zitten."
+  "De zes stappen van aanvraag tot passering bij de notaris, met wat wij van u nodig hebben en waar de tijd in gaat zitten."
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten/zo-verloopt-een-financiering",
@@ -32,12 +32,12 @@ const faq = [
   {
     vraag: "Moet ik een taxatierapport hebben voordat ik een aanvraag doe?",
     antwoord:
-      "Voor een eerste indicatie niet. Een recente WOZ-waarde of een goede onderbouwing volstaat om te kunnen rekenen. Voor de termsheet en het passeren is een taxatierapport van een onafhankelijke taxateur wel vereist. Wie het rapport al heeft, wint daarmee tijd.",
+      "Nee. Voor de indicatie volstaat een recente WOZ-waarde of een goede onderbouwing van de waarde, naast uw gegevens over inkomen of kasstroom en de exit. Ook voor de financiering zelf is een taxatierapport niet altijd nodig. Bij een lage loan-to-value kunnen wij financieren op de WOZ-waarde.",
   },
   {
     vraag: "Kan een financiering na de termsheet nog afketsen?",
     antwoord:
-      "Ja. De termsheet bevat voorwaarden die vóór het passeren vervuld moeten zijn, zoals de taxatie, een opstalverzekering of de toestemming van een eerste hypotheekhouder. Wordt daar niet aan voldaan, dan gaat het niet door. Daarom benoemen wij die voorwaarden expliciet, zodat u vooraf weet waar het van afhangt.",
+      "Ja. De termsheet bevat voorwaarden die vóór het passeren vervuld moeten zijn, zoals een taxatie, een opstalverzekering of de toestemming van een eerste hypotheekhouder. Wordt daar niet aan voldaan, dan gaat het niet door. Daarom benoemen wij die voorwaarden expliciet, zodat u vooraf weet waar het van afhangt.",
   },
 ]
 
@@ -54,7 +54,7 @@ export default function ZoVerlooptEenFinancieringPage() {
         description={OMSCHRIJVING}
         url={URL}
         datePublished="2026-09-30"
-        dateModified="2026-09-30"
+        dateModified="2026-11-16"
         authorName="Marco Lange"
       />
       <Header />
@@ -76,10 +76,8 @@ export default function ZoVerlooptEenFinancieringPage() {
             hypothecaire zekerheid.
           </P>
           <P>
-            Dat heeft één belangrijk gevolg voor u. Wij beoordelen een aanvraag niet alleen op de vraag of wíj het zien
-            zitten. Wij moeten hem ook aan een investeerder kunnen uitleggen, eerlijk en volledig, inclusief de risico's.
-            Een aanvraag die wij niet kunnen uitleggen, kunnen wij niet financieren. Alles hieronder volgt uit dat ene
-            uitgangspunt.
+            Wij financieren uitsluitend kortlopend. Daarom moet er bij elke aanvraag zicht zijn op een exit, dus op de
+            manier waarop de lening wordt afgelost. Zonder exit kunnen wij niet financieren.
           </P>
           <P>
             De leningen die wij bemiddelen lopen van € 200.000 tot € 5.000.000, met looptijden van zes tot zestig
@@ -97,7 +95,7 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig
+                        U legt uw casus aan ons voor, rechtstreeks of via uw adviseur. Wat wij nodig
                         hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen
                         of kasstroom, het doel van de lening en hoe u hem denkt af te lossen. Documenten kunt u direct
                         meesturen.
@@ -123,8 +121,8 @@ export default function ZoVerlooptEenFinancieringPage() {
                       </p>
                       <p>
                         Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden,
-                        met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren
-                        wij de opstartvergoeding en stellen wij de termsheet op.
+                        met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan
+                        stellen wij de termsheet op.
                       </p>
                     </>
                   ),
@@ -136,7 +134,7 @@ export default function ZoVerlooptEenFinancieringPage() {
                       <p>
                         Alle afspraken komen op papier. Dat zijn de hoofdsom, de rente, de looptijd, de aflossingsvorm, een eventueel rentedepot
                         of bouwdepot, de zekerheden, de kosten en de voorwaarden die vóór het passeren vervuld moeten
-                        zijn. U tekent de termsheet. Daarmee ligt vast wat er gaat gebeuren.
+                        zijn. U tekent de termsheet. Daarmee ligt vast wat er gaat gebeuren. Bij ondertekening betaalt u de opstartkosten.
                       </p>
                       <p>
                         Wat in de termsheet staat, is ook wat de investeerder te zien krijgt. Er zit geen tweede versie
@@ -150,13 +148,7 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        Wij schrijven een pitch voor onze investeerders met de aanvraag, de zekerheden, de LTV, de exit en
-                        de risico's, benoemd zoals ze zijn. Een investeerder beslist op basis daarvan of hij de lening
-                        financiert.
-                      </p>
-                      <p>
-                        Dit is de stap die de doorlooptijd bepaalt. Een heldere aanvraag met een goede exit vindt snel
-                        een investeerder. Een aanvraag met open einden niet.
+                        Wij koppelen uw lening aan een of meer particuliere investeerders.
                       </p>
                     </>
                   ),
@@ -166,10 +158,8 @@ export default function ZoVerlooptEenFinancieringPage() {
                   tekst: (
                     <>
                       <p>
-                        De hypotheekakte wordt door de notaris verleden en ingeschreven bij het Kadaster, als 1e of 2e
-                        hypotheekrecht. De investeerder stort het geld niet aan u, maar bij de onafhankelijke Stichting
-                        die de geldstromen beheert. De notaris keert uit. Er loopt nooit geld rechtstreeks tussen geldnemer
-                        en investeerder.
+                        De notaris doet de laatste controles en u tekent de hypotheekakte. Daarmee wordt het hypotheekrecht
+                        ingeschreven bij het Kadaster, als 1e of opvolgend hypotheekrecht, en wordt de lening uitbetaald.
                       </p>
                     </>
                   ),
@@ -180,7 +170,7 @@ export default function ZoVerlooptEenFinancieringPage() {
                     <>
                       <p>
                         Tijdens de looptijd betaalt u rente, maandelijks of vooraf via het rentedepot, altijd via de
-                        Stichting. Aan het einde lost u af uit de verkoop of de nieuwe hypotheek. Loopt het uit, dan
+                        Stichting. Aan het einde lost u af, bijvoorbeeld uit de verkoop, uit een nieuwe hypotheek of uit eigen middelen. Loopt het uit, dan
                         kijken wij in overleg met de investeerder naar een verlenging. Uw aanspreekpunt blijft al die
                         tijd Lange &amp; Partners.
                       </p>
@@ -205,7 +195,7 @@ export default function ZoVerlooptEenFinancieringPage() {
               <div className="grid sm:grid-cols-3 gap-8">
                 {[
                   { kop: "Geen lening zonder vastgoed", tekst: "Elke financiering heeft een hypotheekrecht op onroerend goed als zekerheid. Consumptief krediet of een lening op basis van alleen inkomen verstrekken wij niet." },
-                  { kop: "Geen financiering zonder exit", tekst: "Als niet duidelijk is hoe de lening eindigt, kunnen wij hem niet aan een investeerder uitleggen. Dan is er nog werk te doen voordat een aanvraag zin heeft." },
+                  { kop: "Geen financiering zonder exit", tekst: "Wij financieren uitsluitend kortlopend. Daarom moet er zicht zijn op een exit. Is nog niet duidelijk hoe de lening wordt afgelost, dan is er nog werk te doen voordat een aanvraag zin heeft." },
                   { kop: "Geen verrassingen na de termsheet", tekst: "Wat u tekent, is wat er gebeurt. Voorwaarden die het passeren kunnen tegenhouden, staan erin. Kosten ook." },
                 ].map((u) => (
                   <div key={u.kop}>
@@ -220,11 +210,12 @@ export default function ZoVerlooptEenFinancieringPage() {
 
         <Sectie kop="Waar de tijd in gaat zitten">
           <P>
-            Eén tot drie weken is haalbaar, maar alleen bij een aanvraag die compleet is. In de praktijk gaat vertraging
-            bijna nooit zitten in onze beoordeling of in het vinden van een investeerder. Ze zit in wat ontbreekt.
+            Eén tot drie weken is haalbaar, maar alleen bij een aanvraag die compleet is. De doorlooptijd hangt vooral af
+            van hoe snel u het geld nodig heeft en van de tijd die nodig is om de hele casus te beoordelen en de afspraken
+            te maken. Het kan dus ook langer duren. Vertraging zit in de praktijk vaak in wat ontbreekt.
           </P>
           <P>
-            Het taxatierapport dat nog moet worden aangevraagd. Het saldo van de bestaande hypotheek dat "ongeveer drie
+            Een taxatierapport dat nog moet worden aangevraagd, als dat nodig is. Het saldo van de bestaande hypotheek dat "ongeveer drie
             ton" is, maar niet exact bekend. De toestemming van de eerste hypotheekhouder voor een tweede hypotheek, die
             bij sommige banken weken kost. En de agenda van de notaris, die in drukke maanden bepalend is voor de
             passeerdatum.
@@ -232,7 +223,7 @@ export default function ZoVerlooptEenFinancieringPage() {
           <UitDePraktijk>
             <p>
               De snelste dossiers die wij zien, komen van aanvragers die drie dingen bij de hand hebben op de dag dat
-              zij de aanvraag doen. Dat zijn een taxatie van niet ouder dan een half jaar, een saldo-opgave van hun bank van
+              zij de aanvraag doen. Dat zijn een recente waardebepaling, een saldo-opgave van hun bank van
               diezelfde week en een antwoord op de vraag hoe zij de lening gaan aflossen dat in twee zinnen past.
             </p>
           </UitDePraktijk>
@@ -242,7 +233,7 @@ export default function ZoVerlooptEenFinancieringPage() {
 
         <Vervolg
           kop="Een aanvraag indienen?"
-          tekst="Het portaal loopt u door dezelfde stappen als hierboven. Heeft u het saldo van uw huidige hypotheek en een recente waardebepaling bij de hand, dan is de aanvraag in een kwartier ingevuld."
+          tekst="Houd het saldo van uw huidige hypotheek en een recente waardebepaling bij de hand. Dan hebben wij direct wat wij nodig hebben voor de beoordeling."
           knop={{ href: "/financieringsaanvraag", label: "Aanvraag indienen" }}
           tweede={{ href: "/vastgoedfinanciering-zonder-bank", label: "Eerst meer lezen" }}
         />

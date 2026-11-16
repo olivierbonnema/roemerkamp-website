@@ -82,7 +82,7 @@ export default function OverbruggingsfinancieringPage() {
         <p>
           Overbruggingsfinanciering is een tijdelijke lening die het gat dicht tussen twee momenten. Denk aan de aankoop van nieuw
           vastgoed en de verkoop van het huidige, of de start van een verbouwing en de definitieve financiering erna. De
-          lening heeft een 1e of 2e hypotheekrecht op vastgoed als zekerheid.
+          lening heeft een 1e of opvolgend hypotheekrecht op vastgoed als zekerheid.
         </p>
         <p>
           Banken bieden ook overbruggingskrediet, maar zijn daarin traag en kieskeurig. Wij werken met particuliere
@@ -143,13 +143,13 @@ export default function OverbruggingsfinancieringPage() {
             ['Lening met 2e hypotheekrecht', '€250.000'],
             ['Waarvan bouwdepot', '€200.000'],
             ['Waarvan rentedepot, 12 maanden à 8%', '€20.000'],
-            ['Waarvan vrij beschikbaar, voor opstartvergoeding en onvoorzien', '€30.000'],
+            ['Waarvan vrij beschikbaar, voor behandelingskosten en onvoorzien', '€30.000'],
             ['Exit', 'Bankhypotheek na oplevering, op basis van de nieuwe waarde'],
           ]}
         />
         <Note>
-          Fictief voorbeeld met een indicatieve rente van 8%. De opstartvergoeding is 1% van het leenbedrag met een
-          minimum van €3.000. Taxatie en notaris komen hier nog bij. Wij rekenen de loan-to-value op de waarde nu. De
+          Fictief voorbeeld met een indicatieve rente van 8%. De behandelingskosten zijn 1% van het leenbedrag met een
+          minimum van €3.000. De kosten van de notaris komen hier nog bij. Wij rekenen de loan-to-value op de waarde nu. De
           waarde na oplevering is de basis voor de exit.
         </Note>
       </ArticleSection>

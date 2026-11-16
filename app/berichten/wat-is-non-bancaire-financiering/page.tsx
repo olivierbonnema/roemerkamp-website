@@ -186,7 +186,7 @@ export default function WatIsNonBancaireFinancieringPage() {
                   'De lening wordt notarieel vastgelegd via een hypotheekakte',
                   'Inschrijving bij het Kadaster geeft de geldverstrekker zakelijke zekerheid',
                   'Een onafhankelijke Stichting beheert alle geldstromen',
-                  'Er wordt altijd een taxatierapport opgesteld door een onafhankelijk taxateur',
+                  'De waarde van het onderpand wordt vastgesteld, doorgaans met een taxatierapport van een onafhankelijke taxateur',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#2596be] shrink-0" />
