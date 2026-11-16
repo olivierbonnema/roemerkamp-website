@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
+import { mfaStatus, type MfaStatus } from "@/lib/mfa-admin"
+import { isAdminEmail } from "@/lib/admin"
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
@@ -36,6 +38,13 @@ export async function GET(req: NextRequest) {
           loginKnown: !!logins,
           lastSignInAt: login?.lastSignInAt ?? null,
           authMissing: !!logins && !login,
+          // Also from Firebase Auth: whether the account has two-factor set up
+          // and since when. Only meaningful when `loginKnown`. Beheer shows it
+          // and can clear it (app/api/admin/reset-mfa), except for the accounts
+          // of admins, which `isAdmin` marks.
+          mfaEnrolled: login?.mfaEnrolled ?? false,
+          mfaEnrolledAt: login?.mfaEnrolledAt ?? null,
+          isAdmin: isAdminEmail(data.email as string | undefined),
         }
       })
       .sort((a, b) => {
@@ -49,17 +58,19 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Last sign-in per users doc, read from Firebase Auth in batches of 100 (the
-// getUsers limit). The doc ID is normally the Auth UID but can be stale (see
-// delete-user), so docs not found by UID are looked up by e-mail.
-async function loginInfo(docs: { uid: string; email?: string }[]): Promise<Map<string, { lastSignInAt: string | null }> | null> {
-  const out = new Map<string, { lastSignInAt: string | null }>()
+type AuthInfo = { lastSignInAt: string | null } & MfaStatus
+
+// Last sign-in and two-factor status per users doc, read from Firebase Auth in
+// batches of 100 (the getUsers limit). The doc ID is normally the Auth UID but
+// can be stale (see delete-user), so docs not found by UID are looked up by e-mail.
+async function loginInfo(docs: { uid: string; email?: string }[]): Promise<Map<string, AuthInfo> | null> {
+  const out = new Map<string, AuthInfo>()
   const toIso = (s?: string) => (s ? new Date(s).toISOString() : null)
   const chunk = <T,>(arr: T[]) => Array.from({ length: Math.ceil(arr.length / 100) }, (_, i) => arr.slice(i * 100, i * 100 + 100))
   try {
     for (const part of chunk(docs)) {
       const res = await adminAuth.getUsers(part.map((d) => ({ uid: d.uid })))
-      res.users.forEach((u) => out.set(u.uid, { lastSignInAt: toIso(u.metadata.lastSignInTime) }))
+      res.users.forEach((u) => out.set(u.uid, { lastSignInAt: toIso(u.metadata.lastSignInTime), ...mfaStatus(u) }))
     }
     const missing = docs.filter((d) => !out.has(d.uid) && d.email)
     for (const part of chunk(missing)) {
@@ -67,7 +78,7 @@ async function loginInfo(docs: { uid: string; email?: string }[]): Promise<Map<s
       const byEmail = new Map(res.users.map((u) => [(u.email || "").toLowerCase(), u]))
       part.forEach((d) => {
         const u = byEmail.get(d.email!.toLowerCase())
-        if (u) out.set(d.uid, { lastSignInAt: toIso(u.metadata.lastSignInTime) })
+        if (u) out.set(d.uid, { lastSignInAt: toIso(u.metadata.lastSignInTime), ...mfaStatus(u) })
       })
     }
   } catch (err) {

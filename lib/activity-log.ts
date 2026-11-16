@@ -39,6 +39,7 @@ export type ActivityAction =
   | "document_uploaded"
   | "concept_created"
   | "concept_removed"
+  | "mfa_reset"
 
 export interface LogEntry {
   action: ActivityAction

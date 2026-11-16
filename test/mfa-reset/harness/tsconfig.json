@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../../..",
+    "paths": {
+      "next/server": ["./test/concepten/harness/stubs/next-server.ts"],
+      "@/lib/firebase-admin": ["./test/mfa-reset/harness/firebase-admin.ts"],
+      "@/lib/activity-log": ["./test/concepten/harness/stubs/activity-log.ts"],
+      "@/*": ["./*"]
+    }
+  }
+}

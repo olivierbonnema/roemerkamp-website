@@ -42,6 +42,7 @@ const ACTION_LABELS: Record<string, string> = {
   document_accessed: "Documenten geopend",
   concept_created: "Concept aangemaakt",
   concept_removed: "Concept door adviseur verwijderd",
+  mfa_reset: "Tweestapsverificatie gewist",
 }
 
 export default function ActiviteitPage() {
