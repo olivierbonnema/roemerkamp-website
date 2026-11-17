@@ -11,18 +11,18 @@ export const metadata: Metadata = pageMetadata({
   path: "/berichten/kosten-non-bancaire-hypotheek",
   title: "Zakelijke hypotheek zonder bank: rente en kosten",
   brand: false,
-  description: "Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris.",
+  description: "Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, behandelingskosten van 1% (minimaal €3.000) en de kosten van de notaris.",
   type: "article",
 })
 
 const faq = [
   {
     vraag: 'Waarom is de rente hoger dan bij een bank?',
-    antwoord: 'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt tegen lage tarieven. Non-bancaire financiers werken met privaat kapitaal van investeerders die rendement verwachten. Daarnaast biedt non-bancaire financiering meer flexibiliteit, snellere doorlooptijden en toegankelijkheid voor situaties die banken niet bedienen. Die meerwaarde vertaalt zich in een hogere rente.',
+    antwoord: 'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt tegen lage tarieven. Non-bancaire financiers werken met privaat kapitaal van investeerders die een hoger rendement verwachten. Daarnaast biedt non-bancaire financiering meer flexibiliteit, snellere doorlooptijden en toegankelijkheid voor situaties die banken niet bedienen. Die meerwaarde vertaalt zich in een hogere rente.',
   },
   {
     vraag: 'Zijn er verborgen kosten bij een non-bancaire hypotheek?',
-    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf. Dat zijn de rente, de behandelingskosten, de taxatiekosten en de notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
+    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf. Dat zijn de rente, de behandelingskosten en de notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
   },
   {
     vraag: 'Kan ik de rente fiscaal aftrekken?',
@@ -44,7 +44,7 @@ export default function KostenNonBancaireHypotheekPage() {
       <FaqSchema items={faq} />
       <ArticleSchema
         headline="Wat kost een zakelijke hypotheek zonder bank?"
-        description="Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, een opstartvergoeding van 1% (minimaal €3.000), taxatie en notaris."
+        description="Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, behandelingskosten van 1% (minimaal €3.000) en de kosten van de notaris."
         url="https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek"
         datePublished="2026-05-15"
         dateModified="2026-11-03"
@@ -104,7 +104,7 @@ export default function KostenNonBancaireHypotheekPage() {
                   'Een kortere looptijd is doorgaans voordeliger',
                   'Woningen kennen vaak een lagere rente dan commercieel vastgoed',
                   'Een stabiele financiële positie van de aanvrager drukt de rente',
-                  'Een 1e hypotheekrecht is voordeliger dan een 2e hypotheekrecht',
+                  'Een 1e hypotheekrecht is voordeliger dan een opvolgend hypotheekrecht',
                 ].map((punt) => (
                   <div key={punt} className="flex items-start gap-3">
                     <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
@@ -125,8 +125,8 @@ export default function KostenNonBancaireHypotheekPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  'Behandelingskosten in de vorm van een opstartvergoeding van 1% van het leenbedrag, met een minimum van €3.000',
-                  'Taxatiekosten voor een onafhankelijk taxatierapport, dat altijd vereist is',
+                  'Behandelingskosten van 1% van het leenbedrag, met een minimum van €3.000, te betalen bij het passeren',
+                  'Opstartkosten, een deel van de behandelingskosten dat u betaalt bij ondertekening van de termsheet',
                   'Notariskosten voor het passeren van de hypotheekakte',
                   'Kadasterkosten voor de inschrijving van het hypotheekrecht',
                 ].map((punt) => (

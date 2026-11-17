@@ -65,7 +65,7 @@ export default function PreviewVoorLeningnemersPage() {
               {[
                 { value: "€200k – 5M", label: "Beschikbare leningsbedragen" },
                 { value: "6 – 60 mnd", label: "Looptijd" },
-                { value: "175+", label: "Gefinancierd in € miljoen" },
+                { value: "200+", label: "Gefinancierd in € miljoen" },
               ].map((s) => (
                 <div key={s.label} className="py-7 flex flex-col items-center text-center gap-1">
                   <span className="text-xl font-semibold text-[#311e86] font-serif">{s.value}</span>

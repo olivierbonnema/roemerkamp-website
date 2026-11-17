@@ -61,11 +61,11 @@ const verloop = [
   },
   {
     title: 'Beoordeling, indicatie en termsheet',
-    text: 'Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit. Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie met het leningbedrag, de rente, de looptijd van 6 tot 60 maanden en de zekerheden. Na uw akkoord factureren wij de opstartvergoeding, stellen wij de termsheet op met alle kosten en voorwaarden, en leggen wij de lening voor aan een investeerder.',
+    text: 'Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit. Kunnen wij iets met de casus, dan ontvangt u per e-mail een indicatie met het leningbedrag, de rente, de looptijd van 6 tot 60 maanden en de zekerheden. Na uw akkoord stellen wij de termsheet op met alle kosten en voorwaarden, en koppelen wij de lening aan een of meer investeerders.',
   },
   {
     title: 'Aflossing van de oude lening bij de notaris',
-    text: 'De investeerder stort het bedrag bij de onafhankelijke Stichting. De notaris lost de bestaande lening af uit de nieuwe, de oude hypotheek wordt doorgehaald en de nieuwe hypotheekakte wordt ingeschreven bij het Kadaster, doorgaans als 1e hypotheekrecht.',
+    text: 'De notaris lost de bestaande lening af uit de nieuwe. De oude hypotheek wordt doorgehaald en het nieuwe hypotheekrecht wordt ingeschreven bij het Kadaster, doorgaans als 1e hypotheekrecht.',
   },
   {
     title: 'Looptijd en exit',
@@ -130,8 +130,9 @@ export default function HerfinancieringVastgoedPage() {
       <ArticleSection id="vastgoed" title="Welk vastgoed herfinancieren wij?">
         <p>
           Woonpanden met overwaarde, verhuurde beleggingspanden, bedrijfspanden en gemengd vastgoed, in Nederland.
-          Doorslaggevend is de marktwaarde van het onderpand en de verkoopbaarheid. Een recent taxatierapport van een
-          onafhankelijke taxateur is vereist voordat de nieuwe hypotheekakte passeert.
+          Doorslaggevend is de marktwaarde van het onderpand en de verkoopbaarheid. De waarde stellen wij doorgaans vast met een
+          recent taxatierapport van een onafhankelijke taxateur. Bij een lage loan-to-value kunnen wij ook financieren op de
+          WOZ-waarde.
         </p>
       </ArticleSection>
 
@@ -154,8 +155,8 @@ export default function HerfinancieringVastgoedPage() {
           ]}
         />
         <Note>
-          Fictief voorbeeld met een indicatieve rente van 8%. Het rentedepot is afgerond. De opstartvergoeding is 1% van
-          het leenbedrag met een minimum van €3.000. Taxatie en notaris komen hier nog bij.
+          Fictief voorbeeld met een indicatieve rente van 8%. Het rentedepot is afgerond. De behandelingskosten zijn 1% van
+          het leenbedrag met een minimum van €3.000. De kosten van de notaris komen hier nog bij.
         </Note>
       </ArticleSection>
 

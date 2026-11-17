@@ -53,7 +53,7 @@ const watnu = [
   },
   {
     title: 'Leg de casus aan ons voor',
-    text: 'Via het portaal, telefonisch of via uw adviseur. Wij beoordelen de hele situatie en laten u weten of, en onder welke voorwaarden, een financiering mogelijk is.',
+    text: 'Rechtstreeks of via uw adviseur. Wij beoordelen de hele situatie en laten u weten of, en onder welke voorwaarden, een financiering mogelijk is.',
   },
 ]
 
@@ -139,8 +139,8 @@ export default function HypotheekOndernemerAfgewezenPage() {
           De beoordeling zelf is wat een indicatie mogelijk maakt. Wij kijken naar de betaalbaarheid van de rente en de
           kosten, naar de marktwaarde van het vastgoed en de totale schuld die erop komt te rusten, en naar de exit. Op
           basis daarvan laten wij u weten of een financiering haalbaar is en tegen welke voorwaarden. Kunnen wij iets met
-          uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden. Na uw akkoord daarop factureren wij
-          de opstartvergoeding en stellen wij de termsheet op.
+          uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden. Na uw akkoord daarop stellen wij
+          de termsheet op.
         </p>
         <Note>
           Onze financiering is er voor iedereen die door de bank is afgewezen en met Nederlands vastgoed voldoende

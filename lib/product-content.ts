@@ -5,7 +5,9 @@
  *
  * Bronnen: wiki Finance & Compliance/Rentemodel, Strategy/Pricing en de besluiten
  * van 21-10-2026 en 27-10-2026 (rente "vanaf 7%", LTV doorgaans tot 70% en
- * maximaal 75%, opstartvergoeding 1% met een minimum van EUR 3.000).
+ * maximaal 75%) en van 16-11-2026 (behandelingskosten 1% met een minimum van
+ * EUR 3.000, te betalen bij het passeren; de opstartkosten zijn daar een deel
+ * van en worden betaald bij ondertekening van de termsheet).
  */
 
 export interface KeyFact {
@@ -43,7 +45,7 @@ export function kerngegevens(overrides: Partial<Record<'Bedrag' | 'Looptijd' | '
     { label: 'Loan-to-value', value: LTV },
     { label: 'Rente', value: RENTE },
     { label: 'Doorlooptijd', value: DOORLOOPTIJD },
-    { label: 'Zekerheid', value: '1e of 2e hypotheekrecht op vastgoed in Nederland' },
+    { label: 'Zekerheid', value: '1e of opvolgend hypotheekrecht op vastgoed in Nederland' },
   ]
   return basis.map((f) => {
     const v = overrides[f.label as keyof typeof overrides]
@@ -56,10 +58,10 @@ export const VOORWAARDEN: Array<[string, string]> = [
   ['Leenbedrag', BEDRAG],
   ['Looptijd', LOOPTIJD],
   ['Loan-to-value', 'Doorgaans tot 70% van de marktwaarde, maximaal 75%. Een bestaande hypotheek telt mee in de totale schuld op het pand.'],
-  ['Rente', 'Vanaf 7% per jaar. Het tarief hangt af van de loan-to-value, het type vastgoed, een 1e of 2e hypotheekrecht en het risicoprofiel.'],
+  ['Rente', 'Vanaf 7% per jaar. Het tarief hangt af van de loan-to-value, het type vastgoed, een 1e of opvolgend hypotheekrecht en het risicoprofiel.'],
   ['Rentebetaling', 'Maandelijks, of vooraf via een rentedepot dat uit de lening wordt gevormd'],
-  ['Aflossing', 'Aan het einde van de looptijd, uit verkoop of herfinanciering. Vervroegd aflossen is in de meeste gevallen mogelijk. De voorwaarden staan vooraf in de leningsovereenkomst.'],
-  ['Zekerheid', '1e of 2e hypotheekrecht op het vastgoed, ingeschreven bij het Kadaster'],
+  ['Aflossing', 'Aan het einde van de looptijd. Vervroegd aflossen is in de meeste gevallen mogelijk.'],
+  ['Zekerheid', '1e of opvolgend hypotheekrecht op het vastgoed, ingeschreven bij het Kadaster'],
   ['Eigen inbreng', 'Geen vereiste. De dekking is bepalend. Blijft de totale schuld binnen de loan-to-value, dan kan de financiering zonder eigen geld. Ander vastgoed kan als extra zekerheid dienen.'],
   ['Betalingen', 'Via een onafhankelijke Stichting die de geldstromen beheert'],
 ]
@@ -77,13 +79,13 @@ export function voorwaarden(extra: Array<[string, string]> = []): Array<[string,
 /** Kostentabel (kop: Kostenpost, Hoogte, Wanneer). */
 export const KOSTEN: Array<[string, string, string]> = [
   ['Rente', 'Vanaf 7% per jaar', 'Maandelijks, of vooraf via een rentedepot'],
-  ['Behandelingskosten', 'Opstartvergoeding van 1% van het leenbedrag, minimaal €3.000', 'Gefactureerd na uw akkoord op de indicatie, vóór de termsheet'],
-  ['Taxatie', 'Tarief van de onafhankelijke taxateur', 'Vóór de termsheet, door u opgedragen'],
+  ['Behandelingskosten', '1% van het leenbedrag, minimaal €3.000', 'Bij het passeren van de lening'],
+  ['Opstartkosten', 'Een deel van de behandelingskosten, dat daarmee wordt verrekend', 'Bij ondertekening van de termsheet'],
   ['Notaris', 'Tarief van de notaris voor de hypotheekakte', 'Bij het passeren'],
 ]
 
 export const KOSTEN_INLEIDING =
-  'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een rendement verwachten. Daar staat tegenover dat wij de hele casus beoordelen in plaats van langs een vaste norm, dat de doorlooptijd weken is in plaats van maanden en dat er ruimte is voor situaties die een bank niet bedient. Alle kosten staan vooraf in de termsheet. Er komen geen opslagen achteraf bij.'
+  'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een hoger rendement verwachten. Daar staat tegenover dat wij het hele plaatje bekijken in plaats van langs een vaste norm te toetsen, dat de doorlooptijd weken is in plaats van maanden en dat er ruimte is voor situaties die een bank niet bedient. Alle kosten staan vooraf in de termsheet. Er komen geen opslagen achteraf bij.'
 
 export const KOSTEN_FISCAAL =
   'Rente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering. Zakelijke rentelasten zijn doorgaans aftrekbaar als bedrijfskosten. Bespreek dit met uw fiscalist.'
@@ -92,28 +94,28 @@ export const KOSTEN_FISCAAL =
 export const STAPPEN: Step[] = [
   {
     title: 'De aanvraag',
-    text: 'U legt uw casus aan ons voor via het portaal, rechtstreeks of via uw adviseur. Wat wij nodig hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen.',
+    text: 'U legt uw casus aan ons voor, rechtstreeks of via uw adviseur. Wat wij nodig hebben, zijn het object en een recente waardebepaling, het saldo van eventuele hypotheken, uw inkomen of kasstroom, het doel van de lening en hoe u hem denkt af te lossen.',
   },
   {
     title: 'De beoordeling',
-    text: 'Wij beoordelen de hele casus op drie punten, namelijk de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening eindigt). Daarnaast controleren wij de betrokkenen in de openbare registers.',
+    text: 'Wij beoordelen de hele casus op drie punten, namelijk de betaalbaarheid (kunt u de rente en de kosten dragen), het onderpand (de waarde en de totale schuld die erop komt te rusten) en de exit (hoe de lening wordt afgelost). Daarnaast controleren wij de betrokkenen in de openbare registers.',
   },
   {
     title: 'De indicatie en uw akkoord',
-    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden, met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan factureren wij de opstartvergoeding en stellen wij de termsheet op, met alle afspraken en de voorwaarden voor het passeren.',
+    text: 'Kunnen wij iets met uw casus, dan ontvangt u per e-mail een indicatie van de mogelijkheden, met het bedrag, de rente, de looptijd en de zekerheden die wij vragen. Gaat u daarmee akkoord, dan stellen wij de termsheet op, met alle afspraken en de voorwaarden voor het passeren. Bij ondertekening betaalt u de opstartkosten.',
   },
   {
     title: 'De investeerder',
-    text: "Wij leggen de aanvraag voor aan onze investeerders, met de zekerheden, de loan-to-value, de exit en de risico's benoemd zoals ze zijn. Deze stap bepaalt de doorlooptijd. Een heldere aanvraag met een goede exit vindt snel een investeerder.",
+    text: 'Wij koppelen uw lening aan een of meer particuliere investeerders.',
   },
   {
     title: 'De notaris en de looptijd',
-    text: 'De hypotheekakte passeert en wordt ingeschreven bij het Kadaster. De investeerder stort bij de onafhankelijke Stichting, de notaris keert uit. Tijdens de looptijd betaalt u rente via de Stichting. Aan het einde lost u af uit verkoop of herfinanciering. Uw aanspreekpunt blijft Lange & Partners.',
+    text: 'De notaris doet de laatste controles en u tekent de hypotheekakte. Daarmee wordt het hypotheekrecht ingeschreven bij het Kadaster en wordt de lening uitbetaald. Tijdens de looptijd betaalt u rente via de Stichting. Aan het einde lost u af, bijvoorbeeld uit verkoop, herfinanciering of eigen middelen. Uw aanspreekpunt blijft Lange & Partners.',
   },
 ]
 
 export const STAPPEN_INLEIDING =
-  'Vanaf een volledige casus rekenen wij op één tot drie weken tot het passeren bij de notaris. Een uitgebreide beschrijving van alle stappen staat in het bericht "Van aanvraag tot passering".'
+  'Vanaf een volledige casus rekenen wij doorgaans op één tot drie weken tot het passeren bij de notaris. Een uitgebreide beschrijving van alle stappen staat in het bericht "Van aanvraag tot passering".'
 
 /** Standaard-FAQ's die op meerdere pagina's passen. */
 export const FAQ_EIGEN_GELD: FaqItem = {
@@ -133,7 +135,7 @@ export const FAQ_AANSPREEKPUNT: FaqItem = {
 
 export const FAQ_TAXATIE: FaqItem = {
   vraag: 'Moet ik een taxatierapport hebben voordat ik een aanvraag doe?',
-  antwoord: 'Voor de indicatie niet. Een recente WOZ-waarde of een goede onderbouwing van de waarde volstaat dan, naast uw gegevens over inkomen of kasstroom en de exit. Voor de termsheet en het passeren is een rapport van een onafhankelijke taxateur wel vereist. Wie het al heeft, wint daarmee tijd.',
+  antwoord: 'Nee. Voor de indicatie volstaat een recente WOZ-waarde of een goede onderbouwing van de waarde, naast uw gegevens over inkomen of kasstroom en de exit. Ook voor de financiering zelf is een taxatierapport niet altijd nodig. Bij een lage loan-to-value kunnen wij financieren op de WOZ-waarde.',
 }
 
 export const FAQ_VERVROEGD: FaqItem = {
@@ -153,10 +155,11 @@ export const PAGINAS: Record<string, RelatedItem> = {
   overbrugging: { href: '/overbruggingsfinanciering-verbouwing', title: 'Overbruggingsfinanciering en verbouwing', text: 'Tijdelijke financiering bij aankoop, verbouwing of transformatie, met een bouwdepot.' },
   herfinanciering: { href: '/herfinanciering-vastgoed', title: 'Herfinanciering vastgoed', text: 'Een aflopende lening overbruggen tot verkoop of een nieuwe langlopende hypotheek.' },
   afgewezen: { href: '/hypotheek-ondernemer-afgewezen', title: 'Hypotheek afgewezen door de bank', text: 'Wat uw opties zijn na een afwijzing, en wanneer wij wel kunnen.' },
-  proces: { href: '/berichten/zo-verloopt-een-financiering', title: 'Van aanvraag tot passering', text: 'De zes stappen van een financiering, wat wij van u nodig hebben en waar de tijd in gaat zitten.' },
-  kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een zakelijke hypotheek zonder bank?', text: 'Een overzicht van alle kosten, van rente en behandelingskosten tot taxatie en notaris, en wat ze bepaalt.' },
+  proces: { href: '/berichten/zo-verloopt-een-financiering', title: 'Van aanvraag tot passering', text: 'De stappen van een financiering, van uw aanvraag tot de notaris, en wat wij van u nodig hebben.' },
+  kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een zakelijke hypotheek zonder bank?', text: 'De rente, de behandelingskosten en de kosten van de notaris, en wat de hoogte van de rente bepaalt.' },
   ltv: { href: '/berichten/tweede-hypotheek-en-ltv', title: 'Tweede hypotheek: waarom de LTV anders is dan u denkt', text: 'Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat.' },
-  exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.' },
+  exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Hoe een lening wordt afgelost, wanneer een exit haalbaar is en hoe het rentedepot werkt.' },
+  casussen: { href: '/casussen', title: 'Casussen uit de praktijk', text: 'Financieringen die wij hebben verzorgd, met per casus het bedrag, de loan-to-value, de looptijd en de exit.' },
   watIs: { href: '/berichten/wat-is-non-bancaire-financiering', title: 'Wat is non-bancaire financiering?', text: 'Uitleg, vormen en werking van financiering buiten de bank om.' },
   investeerders: { href: '/voor-investeerders', title: 'Investeren in vastgoedleningen', text: 'Voor vermogende particulieren die een hypothecair gedekt rendement zoeken.' },
 }

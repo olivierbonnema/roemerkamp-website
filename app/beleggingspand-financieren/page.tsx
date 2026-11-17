@@ -135,8 +135,8 @@ export default function BeleggingspandFinancierenPage() {
           ]}
         />
         <Note>
-          Fictief voorbeeld met een indicatieve rente van 8%. De opstartvergoeding is 1% van het leenbedrag met een
-          minimum van €3.000. Taxatie en notaris komen hier nog bij.
+          Fictief voorbeeld met een indicatieve rente van 8%. De behandelingskosten zijn 1% van het leenbedrag met een
+          minimum van €3.000. De kosten van de notaris komen hier nog bij.
         </Note>
       </ArticleSection>
     </SituationPage>

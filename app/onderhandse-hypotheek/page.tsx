@@ -15,11 +15,11 @@ export const metadata: Metadata = pageMetadata({
 const zekerheid = [
   {
     term: 'Hypotheekrecht via de notaris en het Kadaster',
-    text: 'De hypotheekakte wordt door de notaris verleden en ingeschreven bij het Kadaster, als 1e of 2e hypotheekrecht. De geldverstrekker krijgt daarmee hetzelfde zakelijke recht op het onderpand als een bank.',
+    text: 'De notaris legt de hypotheek vast in een akte en schrijft die in bij het Kadaster, als 1e of opvolgend hypotheekrecht. De geldverstrekker heeft daarmee dezelfde zekerheid als een bank.',
   },
   {
     term: 'Betalingen via een onafhankelijke Stichting',
-    text: 'De investeerder stort het geld niet aan u, maar bij de Stichting. De notaris keert uit. Rente en aflossing betaalt u aan de Stichting. Er loopt nooit geld rechtstreeks tussen geldnemer en investeerder.',
+    text: 'Rente en aflossing betaalt u aan de Stichting. Er gaat nooit geld rechtstreeks tussen u en de investeerder.',
   },
   {
     term: 'Beoordeling vooraf',
@@ -95,14 +95,14 @@ export default function OnderhandseHypotheekPage() {
         <p>
           Een onderhandse hypotheek is een lening waarbij het geld niet van een bank komt, maar van een particuliere
           investeerder die zijn vermogen wil beleggen in vastgoedleningen. De afspraken worden tussen
-          partijen gemaakt, maar de zekerheid wordt net als bij een bank formeel geregeld. De hypotheekakte wordt door de
-          notaris verleden en ingeschreven bij het Kadaster.
+          partijen gemaakt, maar de zekerheid wordt net als bij een bank formeel geregeld. De notaris legt de hypotheek vast
+          in een akte en schrijft die in bij het Kadaster.
         </p>
         <p>
           Lange &amp; Partners treedt op als bemiddelaar. Wij beoordelen de aanvraag, structureren de financiering,
           leggen de voorwaarden vast in een termsheet en brengen de lening onder bij een investeerder uit ons netwerk.
           Alle geldstromen lopen via een onafhankelijke Stichting. De looptijd is 6 tot 60 maanden. De lening is bedoeld
-          als tijdelijke financiering tot verkoop of herfinanciering.
+          als tijdelijke financiering.
         </p>
       </ArticleSection>
 
@@ -123,7 +123,7 @@ export default function OnderhandseHypotheekPage() {
             ['Beoordeling', 'Onderpand, betaalbaarheid en exit, plus controle in de openbare registers', 'Geen. Partijen bepalen zelf'],
             ['Vastlegging', 'Termsheet, leningsovereenkomst en hypotheekakte bij de notaris', 'Leningsovereenkomst. Een hypotheekrecht vereist ook hier een notariële akte'],
             ['Betalingen', 'Via een onafhankelijke Stichting', 'Rechtstreeks tussen partijen'],
-            ['Rente', 'Vanaf 7% per jaar, afhankelijk van LTV, type vastgoed en 1e of 2e hypotheekrecht', 'Vrij af te spreken. Voor de fiscus moet de rente zakelijk zijn'],
+            ['Rente', 'Vanaf 7% per jaar, afhankelijk van LTV, type vastgoed en 1e of opvolgend hypotheekrecht', 'Vrij af te spreken. Voor de fiscus moet de rente zakelijk zijn'],
             ['Aanspreekpunt', 'Lange & Partners, van aanvraag tot aflossing', 'De geldverstrekker zelf'],
           ]}
         />

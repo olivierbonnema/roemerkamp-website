@@ -8,19 +8,20 @@ import { pageMetadata } from '@/lib/seo'
 export const metadata: Metadata = pageMetadata({
   path: "/voor-investeerders",
   title: "Investeren in vastgoedleningen",
-  description: "Investeren in vastgoedleningen, hypothecair gedekt op Nederlands vastgoed. Rendement vanaf 6,5% per jaar, looptijd 6 tot 60 maanden. Inclusief de risico's.",
+  description: "Investeren in vastgoedleningen vanaf €100.000, hypothecair gedekt op Nederlands vastgoed. Rendement vanaf 6,5% per jaar. Inclusief de risico's.",
 })
 
 const kerngegevens = [
   { label: 'Rendement', value: 'Vanaf 6,5% per jaar' },
-  { label: 'Zekerheid', value: '1e of 2e hypotheekrecht op vastgoed in Nederland' },
+  { label: 'Zekerheid', value: '1e of opvolgend hypotheekrecht op vastgoed in Nederland' },
   { label: 'Loan-to-value', value: 'Doorgaans tot 70%, maximaal 75%' },
   { label: 'Looptijd', value: '6 tot 60 maanden' },
-  { label: 'Per lening', value: '€200.000 tot €5.000.000' },
-  { label: 'Betalingen', value: 'Via een onafhankelijke Stichting' },
+  { label: 'Inleg', value: 'Vanaf €100.000 per lening' },
+  { label: 'Rente', value: 'Maandelijks uitgekeerd, via een onafhankelijke Stichting' },
 ]
 
 const inhoud = [
+  { id: 'waarom', label: 'Waarom vastgoedleningen' },
   { id: 'hoe', label: 'Hoe het werkt' },
   { id: 'zekerheid', label: 'Wat de zekerheid inhoudt' },
   { id: 'rendement', label: 'Rendement en betaling' },
@@ -31,18 +32,45 @@ const inhoud = [
   { id: 'proces', label: 'Zo verloopt het' },
 ]
 
+const voordelen = [
+  {
+    term: 'Een vaste rente vanaf 6,5% per jaar',
+    text: 'U weet vooraf welke rente u ontvangt. Die wordt elke maand aan u uitgekeerd. Er is geen koers die meebeweegt met de beurs.',
+  },
+  {
+    term: 'Gedekt door vastgoed',
+    text: 'Elke lening heeft een hypotheekrecht op vastgoed in Nederland. De totale schuld blijft doorgaans binnen 70% van de waarde van het pand, zodat er een buffer onder uw lening zit.',
+  },
+  {
+    term: 'Beoordeeld vanuit meer dan 50 jaar bankervaring',
+    text: 'Lange & Partners is voortgekomen uit meer dan 50 jaar ervaring in de bancaire sector. Vanuit die ervaring beoordelen wij elke aanvraag op het onderpand, de betaalbaarheid en de exit. Alleen een lening die door die beoordeling komt, leggen wij aan u voor.',
+  },
+  {
+    term: 'U beslist per lening',
+    text: 'U krijgt elke aanvraag te zien en kiest zelf of u meedoet, geheel of samen met andere investeerders, vanaf €100.000. Er is geen fonds en geen verplichting.',
+  },
+  {
+    term: 'Geen werk en anoniem',
+    text: 'Lange & Partners en de Stichting regelen de administratie, de rentebetalingen en het contact met de leningnemer. Als investeerder blijft u anoniem.',
+  },
+  {
+    term: 'Meer dan 200 miljoen euro, nul euro afgeschreven',
+    text: 'Sinds acht jaar brengen wij leningen onder bij investeerders, inmiddels voor meer dan 200 miljoen euro. Daarvan is tot op heden nul euro afgeschreven.',
+  },
+]
+
 const zekerheid = [
   {
     term: 'Hypotheekrecht via de notaris en het Kadaster',
-    text: 'De lening wordt vastgelegd in een hypotheekakte die de notaris verlijdt en bij het Kadaster inschrijft, als 1e of 2e hypotheekrecht. Daarmee is uw lening gedekt door hetzelfde zakelijke recht op het onderpand als bij een bank. Bij een 2e hypotheekrecht staat een bankhypotheek vóór u. De loan-to-value berekenen wij daarom altijd over de totale schuld op het pand.',
+    text: 'De lening wordt vastgelegd in een hypotheekakte die de notaris opmaakt en bij het Kadaster inschrijft, als 1e of opvolgend hypotheekrecht. Uw lening is daarmee op dezelfde manier gedekt als een hypotheek van een bank. Betaalt de leningnemer niet, dan kan het pand worden verkocht en wordt de lening uit de opbrengst terugbetaald. Bij een opvolgend hypotheekrecht staat een andere hypotheek, meestal van een bank, vóór u. Die wordt bij een verkoop eerst afgelost. De loan-to-value berekenen wij daarom altijd over de totale schuld op het pand.',
   },
   {
-    term: 'Loan-to-value doorgaans tot 70%',
-    text: 'De totale schuld op het onderpand, inclusief een eventuele eerste hypotheek, blijft doorgaans binnen 70% van de getaxeerde marktwaarde en maximaal 75%. Die marge is de buffer bij een waardedaling of een gedwongen verkoop.',
+    term: 'Loan-to-value, de buffer onder uw lening',
+    text: 'De loan-to-value (LTV) is de totale schuld op een pand, gedeeld door de waarde van dat pand. Een voorbeeld. Is een pand €1.000.000 waard en is de totale schuld €700.000, dan is de loan-to-value 70%. De overige 30% is uw buffer. De waarde van het pand kan dan met 30% dalen voordat de opbrengst van een verkoop niet meer genoeg is om de schuld af te lossen. Bij ons blijft de totale schuld, inclusief een eventuele hypotheek die vóór u staat, doorgaans binnen 70% en maximaal 75%.',
   },
   {
-    term: 'Taxatie door een onafhankelijke taxateur',
-    text: 'Vóór de termsheet en het passeren is een taxatierapport van een onafhankelijke taxateur vereist. Een WOZ-waarde volstaat alleen voor een eerste indicatie.',
+    term: 'Waardebepaling van het onderpand',
+    text: 'De waarde van het onderpand stellen wij doorgaans vast met een taxatierapport van een onafhankelijke taxateur. Dat rapport nemen wij niet zomaar over. Wij beoordelen het zelf kritisch. Alleen bij een lage loan-to-value kan de WOZ-waarde volstaan.',
   },
   {
     term: 'Betalingen via een onafhankelijke Stichting',
@@ -50,18 +78,18 @@ const zekerheid = [
   },
   {
     term: 'Rentedepot',
-    text: 'Bij veel leningen wordt de rente voor de looptijd bij het passeren uit de lening apart gezet. De rentebetalingen zijn dan gedekt, ook als de leningnemer tijdens een verbouwing of in de verkoopperiode geen inkomsten uit het pand heeft.',
+    text: 'Bij sommige leningen wordt bij de start een rentedepot gevormd. Dat is een bedrag dat apart wordt gezet en waaruit uw rente elke maand wordt betaald. Het voordeel voor u is dat de rente dan al is gereserveerd voordat de lening begint. U ontvangt hem elke maand, ook als de leningnemer in die periode geen inkomsten heeft, bijvoorbeeld tijdens een verbouwing.',
   },
 ]
 
 const risicos = [
   {
     term: 'Waardedaling van het onderpand',
-    text: 'Daalt de waarde van het pand sterk, dan wordt de buffer kleiner. Daarom werken wij met een loan-to-value van doorgaans 70%, een onafhankelijke taxatie en een voorkeur voor courant vastgoed.',
+    text: 'Daalt de waarde van het pand sterk, dan wordt de buffer kleiner. Omdat de leningen kort lopen, speelt dit minder dan bij een langlopende lening. Daarnaast werken wij met een loan-to-value van doorgaans 70%, een zorgvuldige waardebepaling en een voorkeur voor courant vastgoed.',
   },
   {
     term: 'Uitloop van de looptijd',
-    text: 'Een verkoop of herfinanciering kan langer duren dan gepland. In overleg met u kan de lening worden verlengd. De rente loopt dan door. De exit toetsen wij vooraf op geloofwaardigheid.',
+    text: 'Een verkoop of herfinanciering kan langer duren dan gepland. In overleg met u kan de lening worden verlengd. De rente loopt dan door. Vooraf toetsen wij of de exit haalbaar en realistisch is.',
   },
   {
     term: 'Wanbetaling en uitwinning',
@@ -69,7 +97,7 @@ const risicos = [
   },
   {
     term: 'Concentratie en liquiditeit',
-    text: 'Eén lening is één leningnemer en één pand. De looptijd staat vast. U kunt niet tussentijds uitstappen, tenzij de leningnemer vervroegd aflost. Spreiding over meerdere leningen beperkt het concentratierisico.',
+    text: 'Uw inleg zit in de lening en de looptijd staat vast. U kunt niet tussentijds uitstappen, tenzij de leningnemer vervroegd aflost. Spreiding over meerdere leningen beperkt het risico dat aan één lening is verbonden.',
   },
   {
     term: 'Geen garantie',
@@ -80,55 +108,31 @@ const risicos = [
 const proces = [
   {
     title: 'Kennismaking',
-    text: 'Wij bespreken uw wensen, zoals het bedrag dat u beschikbaar heeft, de looptijd die u zoekt, het type vastgoed, of u een 1e of 2e hypotheekrecht wilt en of u investeert in privé of vanuit een vennootschap.',
+    text: 'Wij bespreken uw wensen, zoals het bedrag dat u beschikbaar heeft, de looptijd die u zoekt en of u investeert in privé of vanuit een vennootschap.',
   },
   {
-    title: 'Een voorstel per lening',
-    text: 'Past een aanvraag bij uw profiel, dan ontvangt u het dossier met het onderpand en de taxatie, de loan-to-value, de leningnemer en de uitstrategie, de rente, de looptijd en de risico\'s, benoemd zoals ze zijn. Wat u ziet, is dezelfde termsheet die de leningnemer heeft getekend.',
+    title: 'U ziet elke aanvraag',
+    text: 'U krijgt elke aanvraag te zien, met het onderpand en de waardebepaling, de loan-to-value, de leningnemer en de exit, de rente, de looptijd en de risico\'s, benoemd zoals ze zijn.',
   },
   {
     title: 'Uw beslissing',
-    text: 'U beslist per lening of u financiert. Geen fonds, geen verplichting om door te gaan. Wel de mogelijkheid om over meerdere leningen te spreiden.',
+    text: 'U kiest zelf of u meedoet, zolang er plek is in de lening. Geen fonds en geen verplichting. Wel de mogelijkheid om over meerdere leningen te spreiden.',
   },
   {
     title: 'Passeren en storting',
-    text: 'U stort het bedrag bij de onafhankelijke Stichting. De notaris verlijdt de hypotheekakte, schrijft die in bij het Kadaster en keert uit aan de leningnemer.',
+    text: 'U stort het bedrag bij de onafhankelijke Stichting. De notaris laat de hypotheekakte tekenen, schrijft die in bij het Kadaster en keert uit aan de leningnemer.',
   },
   {
     title: 'De looptijd',
-    text: 'U ontvangt de rente via de Stichting, maandelijks of uit het rentedepot. Lange & Partners is het aanspreekpunt voor de leningnemer en houdt u op de hoogte van de stand van de lening.',
+    text: 'U ontvangt de rente maandelijks via de Stichting. Lange & Partners is het aanspreekpunt voor de leningnemer en houdt u op de hoogte van de stand van de lening.',
   },
   {
     title: 'Aflossing',
-    text: 'Aan het einde van de looptijd lost de leningnemer af uit verkoop of herfinanciering, via de Stichting. Daarna kunt u het bedrag opnieuw inzetten in een volgende lening.',
+    text: 'Aan het einde van de looptijd lost de leningnemer af, via de Stichting. U ontvangt uw inleg terug. Daarna kunt u het bedrag opnieuw inzetten in een volgende lening.',
   },
 ]
 
 const faq = [
-  {
-    vraag: 'Hoe hoog is het rendement?',
-    antwoord: 'Vanaf 6,5% per jaar. Het percentage per lening hangt af van de loan-to-value, een 1e of 2e hypotheekrecht, het type vastgoed en de looptijd. Het staat vooraf vast in de termsheet.',
-  },
-  {
-    vraag: 'Welke zekerheid heb ik als investeerder?',
-    antwoord: 'Een 1e of 2e hypotheekrecht op Nederlands vastgoed, ingeschreven bij het Kadaster. De totale schuld op het pand blijft doorgaans binnen 70% van de getaxeerde waarde, maximaal 75%. Alle betalingen lopen via een onafhankelijke Stichting.',
-  },
-  {
-    vraag: 'Wat gebeurt er als de leningnemer niet betaalt?',
-    antwoord: 'Dan kan het onderpand via het hypotheekrecht worden uitgewonnen. Lange & Partners begeleidt dat traject en de Stichting beheert de geldstromen. Een uitwinning kost tijd en de opbrengst kan afwijken van de taxatiewaarde. De loan-to-value is de buffer daarvoor.',
-  },
-  {
-    vraag: 'Is het rendement gegarandeerd?',
-    antwoord: 'Nee. Het rendement hangt af van de betaling door de leningnemer en de waarde van het onderpand. Het is geen spaarproduct en valt niet onder het depositogarantiestelsel.',
-  },
-  {
-    vraag: 'Kan ik tussentijds uitstappen?',
-    antwoord: 'Nee, de looptijd staat vast. Lost de leningnemer vervroegd af, bijvoorbeeld omdat een bank de financiering overneemt, dan ontvangt u uw inleg eerder terug.',
-  },
-  {
-    vraag: 'Met welk bedrag kan ik investeren?',
-    antwoord: 'Leningen lopen van €200.000 tot €5.000.000. Welk bedrag en welke leningen bij u passen, bespreken wij in de kennismaking.',
-  },
   {
     vraag: 'Hoe zit het fiscaal?',
     antwoord: 'Voor een particuliere investeerder valt de lening doorgaans in box 3. Investeert u vanuit een vennootschap, dan is de rente winst van de vennootschap. Bespreek uw situatie met uw fiscalist.',
@@ -145,7 +149,7 @@ export default function VoorInvesteerdersPage() {
       href="/voor-investeerders"
       breadcrumb="Voor investeerders"
       title="Investeren in vastgoedleningen"
-      intro="Een rendement vanaf 6,5% per jaar, met een hypotheekrecht op Nederlands vastgoed als zekerheid. U financiert per lening, voor 6 tot 60 maanden, en alle betalingen lopen via een onafhankelijke Stichting."
+      intro="Een vaste rente vanaf 6,5% per jaar, maandelijks uitgekeerd en hypothecair gedekt op Nederlands vastgoed. Elke lening is vooraf door ons beoordeeld, vanuit meer dan 50 jaar bankervaring. U investeert vanaf €100.000 en beslist per lening."
       image={{ src: '/images/voor-investeerders-home.jpg', alt: 'Overleg op het kantoor van Lange & Partners in Haarlem', position: 'center 40%' }}
       primary={{ href: '#contact', label: 'Kennismaken' }}
       secondary={{ href: '/casussen', label: 'Bekijk casussen' }}
@@ -154,10 +158,10 @@ export default function VoorInvesteerdersPage() {
       inhoud={inhoud}
       lead={
         <>
-          Lange &amp; Partners brengt leningen van vermogende particulieren onder bij leningnemers die bij de bank
-          vastlopen, met vastgoed als zekerheid. Als investeerder financiert u één lening aan één leningnemer, op basis
-          van een dossier dat u vooraf ontvangt. Op deze pagina leest u hoe dat werkt, wat de zekerheid inhoudt, wat de
-          risico's zijn en hoe het proces verloopt.
+          Als investeerder financiert u een lening geheel of samen met andere investeerders, vanaf €100.000, met
+          vastgoed als zekerheid. U blijft daarbij anoniem. Lange &amp; Partners beoordeelt elke aanvraag
+          vooraf en legt u het dossier voor. Op deze pagina leest u waarom dat voor u
+          interessant is, wat de zekerheid inhoudt, wat de risico's zijn en hoe het verloopt.
         </>
       }
       faq={faq}
@@ -166,21 +170,23 @@ export default function VoorInvesteerdersPage() {
       contactTitel="Kennismaken"
       contactTekst="Wilt u weten of investeren in vastgoedleningen bij u past? Bel ons of laat uw gegevens achter. In een kennismakingsgesprek bespreken wij uw wensen en laten wij zien hoe een dossier eruitziet. Vanuit Haarlem werken wij voor investeerders in heel Nederland."
     >
+      <ArticleSection id="waarom" title="Waarom investeren in vastgoedleningen">
+        <DefinitionList items={voordelen} />
+      </ArticleSection>
+
       <ArticleSection id="hoe" title="Hoe het werkt">
         <p>
           Een ondernemer, belegger of DGA heeft een financiering nodig die de bank niet verstrekt, bijvoorbeeld omdat
           de jaarcijfers ontbreken of omdat het om een beleggingspand gaat. Het vastgoed is er wel. Lange &amp; Partners
-          beoordeelt de aanvraag, legt de afspraken vast in een termsheet en legt de lening voor aan een investeerder.
+          beoordeelt de aanvraag en legt hem voor aan de investeerders.
         </p>
         <p>
-          U financiert de lening, de leningnemer betaalt rente en lost aan het einde van de looptijd af uit verkoop of
-          een herfinanciering bij een bank. Het hypotheekrecht op het vastgoed is ingeschreven bij het Kadaster en dekt uw
+          U financiert de lening, geheel of samen met andere investeerders. De leningnemer betaalt rente en lost aan
+          het einde van de looptijd af. Het hypotheekrecht op het vastgoed is ingeschreven bij het Kadaster en dekt uw
           lening. Lange &amp; Partners blijft gedurende de looptijd het aanspreekpunt voor de leningnemer en voor u.
+          Als investeerder blijft u anoniem.
         </p>
-        <p>
-          Lange &amp; Partners is voortgekomen uit ruim vijftig jaar ervaring in de bancaire sector en brengt sinds
-          acht jaar non-bancaire leningen onder bij investeerders, inmiddels voor meer dan 175 miljoen euro.
-        </p>
+        
       </ArticleSection>
 
       <ArticleSection id="zekerheid" title="Wat de zekerheid inhoudt">
@@ -189,28 +195,24 @@ export default function VoorInvesteerdersPage() {
 
       <ArticleSection id="rendement" title="Rendement en betaling">
         <p>
-          Het rendement is de rente die de leningnemer betaalt, vanaf 6,5% per jaar. Het percentage verschilt per lening
-          en staat vooraf in de termsheet. Een lening met een 1e hypotheekrecht op een courante woning levert minder op
-          dan een lening met een 2e hypotheekrecht of op een bedrijfspand. Daar staat een groter risico tegenover.
+          Het rendement is de rente die de leningnemer betaalt, vanaf 6,5% per jaar. Het percentage verschilt per
+          lening. Hoe hoog het is, hangt af van het risico. Bij een lening met meer risico hoort een hoger rendement,
+          bij een lening met minder risico een lager rendement. U ziet per aanvraag welke rente erbij hoort en
+          beslist zelf of die verhouding u aanspreekt.
         </p>
-        <DataTable
-          head={['Wat bepaalt het rendement', 'Lager rendement', 'Hoger rendement']}
-          rows={[
-            ['Loan-to-value', 'Lage schuld tegenover de waarde', 'Schuld dichter bij de 70% tot 75%'],
-            ['Zekerheid', '1e hypotheekrecht', '2e hypotheekrecht achter een bank'],
-            ['Type vastgoed', 'Courante woning of verhuurd woonpand', 'Bedrijfspand, vastgoed in ontwikkeling'],
-            ['Looptijd en exit', 'Korte looptijd, zekere exit', 'Langere looptijd, exit afhankelijk van verkoop of oplevering'],
-          ]}
-        />
-        <p className="mt-4">
-          De rente wordt maandelijks via de Stichting aan u uitgekeerd, of is bij het passeren als rentedepot uit de
-          lening gevormd en wordt van daaruit betaald. Aan het einde van de looptijd ontvangt u de hoofdsom terug.
+        <p>
+          De rente wordt maandelijks via de Stichting aan u uitgekeerd. Heeft de lening een rentedepot, dan komt de
+          rente daaruit. Aan het einde van de looptijd ontvangt u de hoofdsom terug.
         </p>
       </ArticleSection>
 
       <ArticleSection id="beoordeling" title="Hoe wij een lening beoordelen">
         <p>
-          <Strong>Het onderpand.</Strong> De getaxeerde marktwaarde, het type vastgoed, de locatie en de verkoopbaarheid.
+          Voordat een lening bij u komt, hebben wij hem beoordeeld op drie punten. Daarbij gebruiken wij wat wij in meer
+          dan 50 jaar in de bancaire sector hebben geleerd.
+        </p>
+        <p>
+          <Strong>Het onderpand.</Strong> De marktwaarde, het type vastgoed, de locatie en de verkoopbaarheid.
           De totale schuld op het pand, inclusief hypotheken die vóór u staan, blijft doorgaans binnen 70% en maximaal
           75%.
         </p>
@@ -220,7 +222,7 @@ export default function VoorInvesteerdersPage() {
         </p>
         <p>
           <Strong>De exit.</Strong> Hoe wordt de lening aan het einde afgelost? Met herfinanciering bij een bank, verkoop of
-          eigen middelen. Zonder geloofwaardige exit nemen wij een aanvraag niet in behandeling. Daarnaast controleren
+          eigen middelen. Is de exit niet haalbaar en realistisch, dan nemen wij een aanvraag niet in behandeling. Daarnaast controleren
           wij de betrokkenen in de openbare registers, zoals de sanctielijsten en het insolventieregister.
         </p>
         <Note>
@@ -257,11 +259,9 @@ export default function VoorInvesteerdersPage() {
 
       <ArticleSection id="voorwie" title="Voor wie">
         <p>
-          Voor vermogende particulieren, familievermogens en vennootschappen die een deel van hun vermogen willen
-          inzetten in een belegging die niet met de beurs meebeweegt, gedekt is door tastbaar onderpand en een vooraf
-          vastgestelde rente oplevert. U moet het bedrag voor de looptijd kunnen missen en het risico van één lening op
-          één pand kunnen dragen. Onze investeerders zijn langetermijnpartners die meerdere leningen na elkaar
-          financieren.
+          Voor vermogende particulieren, familievermogens en vennootschappen die vanaf €100.000 per lening een deel van
+          hun vermogen willen inzetten in een belegging die niet met de beurs meebeweegt, gedekt is door tastbaar onderpand en een vooraf
+          vastgestelde rente oplevert. U moet het bedrag voor de looptijd kunnen missen en het risico van de lening kunnen dragen.
         </p>
       </ArticleSection>
 
