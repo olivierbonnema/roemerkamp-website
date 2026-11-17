@@ -7,6 +7,7 @@
 import type { TermsheetData } from "./termsheet-generator"
 import type { PitchData } from "./pitch-generator"
 import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
+import { cleanName, spouses } from "./termsheet-parties"
 import { PITCH_DEFAULTS } from "./form-defaults"
 import { loanPartsBaseTotal } from "./leningdelen"
 import { LEGAL_NAME } from "../company"
@@ -295,14 +296,24 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
 
   // Parties: termsheet borrowers to pitch geldnemers. For a B.V. the pitch name is the
   // company name and bvName holds the representative; for a person, just the name.
-  const geldnemers = (termsheet.borrowers || []).map((b) => {
+  // The partners entered on the termsheet (married or registered partner of a
+  // privé geldnemer). Each follows the geldnemer it belongs to, with its role:
+  // co-owner of the onderpand, or consent only. (Olivier, 17 November 2026: the
+  // partners were not in the pitch and have to be.)
+  const partners = spouses(termsheet.borrowers || [])
+  const geldnemers = (termsheet.borrowers || []).flatMap((b): NonNullable<PitchData["geldnemers"]> => {
     if (b.type === "bv") {
       const rep = b.vertegenwoordiger
         ? `${b.vertegenwoordigerSalut ? b.vertegenwoordigerSalut + " " : ""}${b.vertegenwoordiger}`
         : ""
-      return { name: b.bvName || b.name || "", type: "bv" as const, bvName: rep }
+      return [{ name: b.bvName || b.name || "", type: "bv" as const, bvName: rep }]
     }
-    return { name: b.name || "", type: "prive" as const, bvName: "" }
+    const rows: NonNullable<PitchData["geldnemers"]> = [{ name: b.name || "", type: "prive" as const, bvName: "" }]
+    const partner = partners.find((sp) => sp.borrower === b)
+    if (partner) {
+      rows.push({ name: partner.name, type: partner.owner ? "mede-eigenaar" : "toestemming", bvName: "", partnerVan: cleanName(b.name) })
+    }
+    return rows
   })
 
   // Collateral: termsheet objects to pitch zekerheden — full structured fields, so

@@ -60,8 +60,11 @@ interface Risk {
 
 interface Geldnemer {
   name: string // persoon- of B.V.-naam
-  type: "prive" | "bv"
+  // "mede-eigenaar" / "toestemming": the partner of a geldnemer, who signs along
+  // (see PitchGeldnemer in lib/generators/pitch-generator.ts).
+  type: "prive" | "bv" | "mede-eigenaar" | "toestemming"
   bvName: string // bij B.V.: naam van de vertegenwoordiger
+  partnerVan?: string // bij een partner: de naam van de geldnemer
 }
 
 export interface PitchFormHandle {
@@ -767,9 +770,14 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             <select value={g.type} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, type: e.target.value as Geldnemer["type"] } : gn)))} className="border rounded px-2 py-1.5 text-sm">
               <option value="prive">in privé</option>
               <option value="bv">B.V.</option>
+              <option value="mede-eigenaar">partner, mede-eigenaar onderpand</option>
+              <option value="toestemming">partner, alleen toestemming</option>
             </select>
             {g.type === "bv" && (
               <input placeholder="Naam vertegenwoordiger" value={g.bvName} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, bvName: e.target.value } : gn)))} className="w-[220px] border rounded px-2 py-1.5 text-sm" />
+            )}
+            {(g.type === "mede-eigenaar" || g.type === "toestemming") && (
+              <input placeholder="Partner van (naam geldnemer)" value={g.partnerVan || ""} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, partnerVan: e.target.value } : gn)))} className="w-[220px] border rounded px-2 py-1.5 text-sm" />
             )}
             <button type="button" onClick={() => setGeldnemers((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg">×</button>
           </div>

@@ -110,8 +110,26 @@ export interface PitchRisk {
 
 export interface PitchGeldnemer {
   name: string // persoon- of B.V.-naam
-  type: "prive" | "bv"
+  // "prive" and "bv" are geldnemers. "mede-eigenaar" and "toestemming" are the
+  // partner of a geldnemer: not a geldnemer, but someone who signs along, as
+  // co-owner of the onderpand (hypotheekgever) or for consent only (art. 1:88
+  // BW). They are in the same list so the reader sees every party, each with
+  // its role (geldnemerRegel).
+  type: "prive" | "bv" | "mede-eigenaar" | "toestemming"
   bvName: string // bij B.V.: naam van de vertegenwoordiger
+  partnerVan?: string // bij een partner: de naam van de geldnemer
+}
+
+// One line of the list "Geldnemers:" at the end of the pitch.
+export function geldnemerRegel(g: PitchGeldnemer): string {
+  const name = (g.name || "").trim()
+  if (g.type === "bv" && g.bvName) return `${name}, vertegenwoordigd door ${g.bvName}`
+  if (g.type === "mede-eigenaar" || g.type === "toestemming") {
+    const van = (g.partnerVan || "").trim()
+    const rol = g.type === "mede-eigenaar" ? "mede-eigenaar van het onderpand en hypotheekgever" : "geeft toestemming voor de financiering"
+    return `${name}${van ? `, partner van ${van}` : ""}, ${rol}`
+  }
+  return name
 }
 
 export interface PitchData {
@@ -471,12 +489,7 @@ export async function generatePitch(
   if (geldnemers.length) {
     ch.push(pitchSectionHead("Geldnemers:"))
     geldnemers.forEach((g) => {
-      // name = persoon- of B.V.-naam; bvName = naam vertegenwoordiger (bij B.V.).
-      let line = g.name || ""
-      if (g.type === "bv" && g.bvName) {
-        line = `${g.name}, vertegenwoordigd door ${g.bvName}`
-      }
-      ch.push(par([tx(line)]))
+      ch.push(par([tx(geldnemerRegel(g))]))
     })
   }
 
