@@ -53,7 +53,7 @@ const faq = [
   },
   {
     vraag: 'Wat gebeurt er als de overbrugging langer duurt dan verwacht?',
-    antwoord: 'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wij hanteren geen starre einddatum zonder eerst de situatie te beoordelen. Wel moet de exit geloofwaardig blijven.',
+    antwoord: 'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wij hanteren geen starre einddatum zonder eerst de situatie te beoordelen. Wel moet de exit haalbaar en realistisch blijven.',
   },
   {
     vraag: 'Hoe werkt het bouwdepot?',
@@ -72,8 +72,8 @@ export default function OverbruggingsfinancieringPage() {
       lead={
         <>
           Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Op deze pagina leest u voor welke
-          situaties overbruggingsfinanciering werkt, hoe het rentedepot en het bouwdepot werken, wat een geloofwaardige
-          exit is en wat de voorwaarden zijn.
+          situaties overbruggingsfinanciering werkt, hoe het rentedepot en het bouwdepot werken, wanneer een
+          exit haalbaar is en wat de voorwaarden zijn.
         </>
       }
       faq={faq}
@@ -118,12 +118,12 @@ export default function OverbruggingsfinancieringPage() {
         <p>
           Bij een overbrugging is de belangrijkste vraag niet hoeveel u leent, maar hoe de lening eindigt. De gangbare
           exits zijn de verkoop van het huidige of het verbouwde pand, of een bankhypotheek zodra de verbouwing is opgeleverd
-          en de nieuwe waarde is getaxeerd. Een geloofwaardige exit is er een met een datum, een onderbouwing en ruimte
-          in de planning.
+          en de nieuwe waarde is getaxeerd. Een haalbare en realistische exit heeft een datum, een onderbouwing en
+          ruimte in de planning.
         </p>
         <p>
           Loopt het uit, bijvoorbeeld omdat de verkoop langer duurt, dan bespreken wij met de investeerder een
-          verlenging. Dat gaat makkelijker als de exit nog steeds geloofwaardig is en de rente via het rentedepot is
+          verlenging. Dat gaat makkelijker als de exit nog steeds haalbaar en realistisch is en de rente via het rentedepot is
           gedekt. Een overbrugging zonder duidelijke exit nemen wij niet in behandeling.
         </p>
       </ArticleSection>

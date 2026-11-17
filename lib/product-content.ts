@@ -158,7 +158,7 @@ export const PAGINAS: Record<string, RelatedItem> = {
   proces: { href: '/berichten/zo-verloopt-een-financiering', title: 'Van aanvraag tot passering', text: 'De stappen van een financiering, van uw aanvraag tot de notaris, en wat wij van u nodig hebben.' },
   kosten: { href: '/berichten/kosten-non-bancaire-hypotheek', title: 'Wat kost een zakelijke hypotheek zonder bank?', text: 'De rente, de behandelingskosten en de kosten van de notaris, en wat de hoogte van de rente bepaalt.' },
   ltv: { href: '/berichten/tweede-hypotheek-en-ltv', title: 'Tweede hypotheek: waarom de LTV anders is dan u denkt', text: 'Bij een tweede hypotheek telt alles wat vóór u in het Kadaster staat.' },
-  exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Hoe een lening wordt afgelost, wat een geloofwaardige exit is en hoe het rentedepot werkt.' },
+  exit: { href: '/berichten/overbruggingsfinanciering-de-exit', title: 'Overbruggingsfinanciering: het draait om de exit', text: 'Hoe een lening wordt afgelost, wanneer een exit haalbaar is en hoe het rentedepot werkt.' },
   casussen: { href: '/casussen', title: 'Casussen uit de praktijk', text: 'Financieringen die wij hebben verzorgd, met per casus het bedrag, de loan-to-value, de looptijd en de exit.' },
   watIs: { href: '/berichten/wat-is-non-bancaire-financiering', title: 'Wat is non-bancaire financiering?', text: 'Uitleg, vormen en werking van financiering buiten de bank om.' },
   investeerders: { href: '/voor-investeerders', title: 'Investeren in vastgoedleningen', text: 'Voor vermogende particulieren die een hypothecair gedekt rendement zoeken.' },

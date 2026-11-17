@@ -15,7 +15,7 @@ export const metadata: Metadata = pageMetadata({
 const zekerheid = [
   {
     term: 'Hypotheekrecht via de notaris en het Kadaster',
-    text: 'De notaris legt de hypotheek vast in een akte en schrijft die in bij het Kadaster, als 1e of opvolgend hypotheekrecht. De geldverstrekker krijgt daarmee hetzelfde zakelijke recht op het onderpand als een bank.',
+    text: 'De notaris legt de hypotheek vast in een akte en schrijft die in bij het Kadaster, als 1e of opvolgend hypotheekrecht. De geldverstrekker heeft daarmee dezelfde zekerheid als een bank.',
   },
   {
     term: 'Betalingen via een onafhankelijke Stichting',

@@ -135,7 +135,7 @@ export const STATIC_POSTS: StaticPost[] = [
     slug: "overbruggingsfinanciering-de-exit",
     title: "Overbruggingsfinanciering: het draait om de exit",
     excerpt:
-      "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wat een geloofwaardige exit is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
+      "Een overbrugging wordt niet beoordeeld op de lening, maar op hoe hij eindigt. Wanneer een exit haalbaar en realistisch is, hoe het rentedepot werkt en wat er gebeurt als het uitloopt.",
     image: "/images/bericht-2-brug.jpg",
     imageStyle: { objectPosition: "center 55%" },
     date: "2026-09-30",
