@@ -45,7 +45,7 @@ const beoordeling = [
   },
   {
     term: 'Het doel en de exit',
-    text: 'Waarvoor is de financiering en hoe eindigt de lening? Dat kan met herfinanciering bij een bank zodra de cijfers er zijn, met verkoop of met aflossing uit eigen middelen. Zonder geloofwaardige exit nemen wij een aanvraag niet in behandeling.',
+    text: 'Waarvoor is de financiering en hoe eindigt de lening? Dat kan met herfinanciering bij een bank zodra de cijfers er zijn, met verkoop of met aflossing uit eigen middelen. Is de exit niet haalbaar en realistisch, dan nemen wij een aanvraag niet in behandeling.',
   },
 ]
 
@@ -60,7 +60,7 @@ const faq = [
   },
   {
     vraag: 'Kan ik ook een lening aanvragen als mijn bedrijf pas één jaar bestaat?',
-    antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de betaalbaarheid van de rente, de kwaliteit van het onderpand en een geloofwaardige exit.',
+    antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de betaalbaarheid van de rente, de kwaliteit van het onderpand en een haalbare en realistische exit.',
   },
   {
     vraag: "Kan ik als ZZP'er een hypotheek krijgen zonder drie jaar jaarcijfers?",

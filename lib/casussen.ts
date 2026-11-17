@@ -222,7 +222,7 @@ export const CASUSSEN: Casus[] = [
       },
     ],
     oplossing: ['Een aflossingsvrije lening van €275.000 met een 1e hypotheekrecht op de woning, voor 18 maanden.'],
-    les: 'Wie in het buitenland woont en werkt, krijgt bij een Nederlandse bank vaak geen hypotheek op dat inkomen. Met vastgoed in Nederland als zekerheid en een geloofwaardige exit kan het wel.',
+    les: 'Wie in het buitenland woont en werkt, krijgt bij een Nederlandse bank vaak geen hypotheek op dat inkomen. Met vastgoed in Nederland als zekerheid en een haalbare en realistische exit kan het wel.',
     image: '/images/molens-zonsondergang.jpg',
   },
   {

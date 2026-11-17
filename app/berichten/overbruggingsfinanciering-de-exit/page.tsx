@@ -12,7 +12,7 @@ import { pageMetadata } from '@/lib/seo'
 const URL = "https://www.nonbancaireleningen.nl/berichten/overbruggingsfinanciering-de-exit"
 const TITEL = "Overbruggingsfinanciering: het draait om de exit"
 const OMSCHRIJVING =
-  "Een overbrugging wordt beoordeeld op hoe hij eindigt, door verkoop of oversluiten. Wat een geloofwaardige exit is en hoe het rentedepot werkt."
+  "Een overbrugging wordt beoordeeld op hoe hij eindigt, door verkoop of oversluiten. Wanneer een exit haalbaar en realistisch is en hoe het rentedepot werkt."
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten/overbruggingsfinanciering-de-exit",
@@ -36,7 +36,7 @@ const faq = [
   {
     vraag: "Wat als ik nog geen koper heb en ook nog geen bank die wil oversluiten?",
     antwoord:
-      "Dan is er nog geen exit, en dan is een overbrugging niet het juiste middel. Wij kunnen wel meedenken over wat er nodig is om die exit alsnog geloofwaardig te maken, bijvoorbeeld een taxatie of een gesprek met de bank over de voorwaarden waaronder zij later wél financieren.",
+      "Dan is er nog geen exit, en dan is een overbrugging niet het juiste middel. Wij kunnen wel meedenken over wat er nodig is om die exit alsnog haalbaar te maken, bijvoorbeeld een taxatie of een gesprek met de bank over de voorwaarden waaronder zij later wél financieren.",
   },
 ]
 
@@ -85,7 +85,7 @@ export default function OverbruggingDeExitPage() {
           </P>
         </TekstMetFoto>
 
-        <Sectie kop="Wat een geloofwaardige exit is" grijs>
+        <Sectie kop="Wanneer een exit haalbaar en realistisch is" grijs>
           <P>
             Bij een <strong>verkoop-exit</strong> kijken wij naar het verschil tussen de vraagprijs en de taxatiewaarde.
             Een vraagprijs die ruim boven de taxatie ligt, is geen exit maar een hoop. We kijken ook naar de tijd. Een
