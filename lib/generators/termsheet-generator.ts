@@ -3,7 +3,7 @@
 import * as docx from "docx"
 import { fmtZegge } from "./number-to-words"
 import { buildZekerhedenText, depotZekerheden, type ZekerheidObject } from "./zekerheden"
-import { annuleringskostenLine, hypotheekgeversText, kredietnemersText, spouseConsentBepaling, termsheetSigners } from "./termsheet-parties"
+import { annuleringskostenLine, hypotheekgeversText, kredietnemersText, spouseConsentBepalingen, termsheetSigners } from "./termsheet-parties"
 import {
   MM, PAGE_W, PAGE_H, MARGIN_SIDE,
   C_BRAND, C_GREY, C_BLACK, C_HRULE,
@@ -536,10 +536,9 @@ export async function generateTermsheet(
   // Bepalingen (extra custom lines)
   // The adviser's bepalingen, plus the spouse consent clause when a privé
   // borrower is married (built at render time so it always matches the names).
-  const consent = spouseConsentBepaling(data)
   const extraBepalingen = [
     ...(((data as Record<string, unknown>).bepalingen as string[] | undefined) || []),
-    ...(consent ? [consent] : []),
+    ...spouseConsentBepalingen(data),
   ]
   const bepalingenPars = extraBepalingen.length > 0
     ? extraBepalingen.map((b) => par([tx(b, { size: SZ_SMALL })], { before: 20, after: 20 }))

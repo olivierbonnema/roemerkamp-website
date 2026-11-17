@@ -3,7 +3,7 @@
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer"
 import type { TermsheetData } from "./termsheet-generator"
-import { annuleringskostenLine, hypotheekgeversText, kredietnemersText, spouseConsentBepaling, termsheetSigners } from "./termsheet-parties"
+import { annuleringskostenLine, hypotheekgeversText, kredietnemersText, spouseConsentBepalingen, termsheetSigners } from "./termsheet-parties"
 import { numberToWords, fmtZegge } from "./number-to-words"
 import {
   type Leningdeel,
@@ -210,10 +210,9 @@ export function TermsheetPDF({ data, settings, forEsign }: Props) {
 
   const manualZekerheden = (data as Record<string, unknown>).zekerhedenText as string | undefined
   const rankWords: Record<string, string> = { "1e": "eerste", "2e": "tweede", "3e": "derde", "4e": "vierde" }
-  const consent = spouseConsentBepaling(data)
   const extraBepalingen = [
     ...(((data as Record<string, unknown>).bepalingen as string[] | undefined) || []),
-    ...(consent ? [consent] : []),
+    ...spouseConsentBepalingen(data),
   ]
 
   return (

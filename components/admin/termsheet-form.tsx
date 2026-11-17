@@ -493,7 +493,7 @@ const TermsheetForm = forwardRef<TermsheetFormHandle, Props>(({ initialData, set
                   Tevens hypotheekgever (eigenaar van het onderpand)
                 </label>
                 <div className="rounded border border-dashed border-gray-300 p-2 space-y-1.5">
-                  <p className="text-xs text-gray-500">Gehuwd of geregistreerd partner? Vul de partner in: de termsheet krijgt dan de toestemmingsbepaling (art. 1:88 BW), de benodigde stukken en een handtekeningblok.</p>
+                  <p className="text-xs text-gray-500">Gehuwd of geregistreerd partner? Vul de partner in: de termsheet krijgt dan de toestemmingsbepaling (art. 1:88 BW), de benodigde stukken en een handtekeningblok. Is de partner zelf ook kredietnemer, voeg hem of haar dan ook als geldnemer toe: de termsheet maakt dan de wederzijdse toestemming en geen dubbel handtekeningblok.</p>
                   <div className="flex flex-wrap gap-2 items-center">
                     <select value={b.spouseSalut || "mevrouw"} onChange={(e) => updateBorrower(i, { spouseSalut: e.target.value })} className="w-[110px] border rounded px-2 py-1.5 text-sm">
                       <option value="mevrouw">mevrouw</option>
