@@ -36,7 +36,14 @@ export interface ConceptDocument {
   name: string
   size: number
   uploadedAt?: string
+  // The name the adviser selected it under, only when that differs from `name`
+  // (a second "scan.pdf" is stored as "scan (2).pdf"). The form uses it to know
+  // that a file it remembers by its own name has been kept.
+  orig?: string
 }
+
+// Written into an aanvraag's folder at submission. Never a document.
+export const SUMMARY_FILE_NAME = "aanvraag-samenvatting.txt"
 
 export const MAX_CONCEPT_BYTES = 100_000
 export const MAX_CONCEPTS_PER_USER = 300
@@ -210,4 +217,85 @@ export function chooseDraftSource(local: LocalMark | null, server: ServerMark | 
   if (Number.isNaN(serverTime)) return "local"
   if (Number.isNaN(localTime)) return "server"
   return localTime >= serverTime ? "local" : "server"
+}
+
+// ---- documents on their way ----
+//
+// A document counts as kept once it is in `documents`. Between "the browser
+// got an upload session" and "the browser reported the upload" the page can be
+// closed. The bytes may have arrived all the same. So the session is noted on
+// the concept first (`pendingUploads`), and every time the folder is read
+// (the next upload, the next report, reopening the concept, the admin list)
+// the notes are checked against what is really in the folder. What arrived is
+// then recorded after all: a document that reached SharePoint is never lost
+// because the page went away.
+
+export interface PendingUpload {
+  // name as it will be stored in the folder
+  name: string
+  cat: string
+  // ISO time the upload session was handed out
+  at: string
+  // name as the adviser selected it
+  orig?: string
+}
+
+export const PENDING_UPLOAD_MAX_AGE_MS = 24 * 60 * 60 * 1000
+const MAX_NAME = 200
+
+// SharePoint names are case-insensitive.
+export const sameFileName = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
+const sameName = sameFileName
+
+// `orig` only when it says something `name` does not.
+export function originalName(orig: unknown, name: string): { orig?: string } {
+  const value = typeof orig === "string" ? orig.trim().slice(0, MAX_NAME) : ""
+  return value && !sameName(value, name) ? { orig: value } : {}
+}
+
+export function parsePendingUploads(raw: unknown): PendingUpload[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((p) => isRecord(p) && typeof p.name === "string" && !!p.name && typeof p.at === "string")
+    .map((p) => ({ name: String(p.name), cat: sanitizeCat(p.cat), at: String(p.at), ...originalName(p.orig, String(p.name)) }))
+    .slice(-MAX_CONCEPT_DOCS)
+}
+
+// Two notes are about the same attempt when they are for the same stored name,
+// or for the same selected file in the same category (the adviser added it
+// again after an upload that never arrived). The newer note replaces the older.
+export function sameUpload(a: PendingUpload, b: PendingUpload): boolean {
+  return sameName(a.name, b.name) || (a.cat === b.cat && sameName(a.orig ?? a.name, b.orig ?? b.name))
+}
+
+// Checks the notes against the folder. Returns the documents and the notes as
+// they should be stored now, and whether anything changed.
+//   - noted and in the folder (with content): recorded as a document
+//   - noted, not in the folder, younger than a day: still on its way, kept
+//   - noted, not in the folder, older: given up on
+export function settlePendingUploads(
+  pending: PendingUpload[],
+  documents: ConceptDocument[],
+  folderFiles: { id: string; name: string; size: number }[],
+  now: Date
+): { documents: ConceptDocument[]; pending: PendingUpload[]; changed: boolean } {
+  const docs = [...documents]
+  const left: PendingUpload[] = []
+  for (const p of pending) {
+    // An upload that was started and never finished can leave an empty
+    // placeholder behind: only a file with content has arrived.
+    const file = folderFiles.find((f) => sameName(f.name, p.name) && f.size > 0 && !sameName(f.name, SUMMARY_FILE_NAME))
+    if (file) {
+      if (!docs.some((d) => d.id === file.id)) {
+        docs.push({
+          id: file.id, cat: p.cat, name: file.name, size: file.size, uploadedAt: now.toISOString(),
+          ...originalName(p.orig, file.name),
+        })
+      }
+      continue
+    }
+    const age = now.getTime() - Date.parse(p.at)
+    if (!Number.isNaN(age) && age < PENDING_UPLOAD_MAX_AGE_MS) left.push(p)
+  }
+  return { documents: docs, pending: left, changed: docs.length !== documents.length || left.length !== pending.length }
 }
