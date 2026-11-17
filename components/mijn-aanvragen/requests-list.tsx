@@ -114,7 +114,7 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
   const firstObject = draft.objects?.[0]
 
   return (
-    <div className="border border-dashed border-gray-300 rounded-2xl p-6 bg-white">
+    <div className="border border-dashed border-gray-300 rounded-xl p-6 bg-white">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div>
           <p className="font-serif text-lg text-[#1E3A5F] font-normal">
@@ -146,7 +146,7 @@ function DraftCard({ draft, onDiscard }: { draft: Draft; onDiscard: () => void }
       </div>
 
       {/* Summary of what's been filled in */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans mb-5 break-words hyphens-auto">
         {firstObject?.adres && (
           <div>
             <span className="text-gray-400 text-[12px]">Object</span>
@@ -233,7 +233,7 @@ function AanvraagCard({ a, isAdmin, onDelete, showHerkomst }: { a: Aanvraag; isA
 
   return (
     <div
-      className="border border-gray-200 rounded-2xl p-6 bg-white hover:border-[#311E86]/30 transition-colors cursor-pointer"
+      className="border border-gray-200 rounded-xl p-6 bg-white hover:border-[#311E86]/30 transition-colors cursor-pointer"
       onClick={() => router.push(`/mijn-aanvragen/${a.id}`)}
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
@@ -281,7 +281,7 @@ function AanvraagCard({ a, isAdmin, onDelete, showHerkomst }: { a: Aanvraag; isA
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm font-sans break-words hyphens-auto">
         <div>
           <span className="text-gray-400 text-[12px]">Object</span>
           <p className="text-gray-900 font-medium truncate">
@@ -499,23 +499,23 @@ export function RequestsList() {
 
   return (
     <div>
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 mb-6 border-b border-gray-100 pb-0">
+      {/* Tab bar, drawn as the filter of a Beheer list (app/admin/documenten). */}
+      <div className="flex gap-1 mb-5 bg-white rounded-lg border border-gray-200 p-1 w-fit max-w-full">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium font-sans rounded-t-lg transition-colors relative -mb-px ${
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium font-sans transition-colors ${
               activeTab === t.id
-                ? "text-[#311E86] border-b-2 border-[#311E86]"
-                : "text-gray-400 hover:text-gray-700"
+                ? "bg-[#1E3A5F] text-white"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
             {t.label}
             {t.count > 0 && (
               <span
-                className={`ml-2 text-[11px] px-1.5 py-0.5 rounded-full font-sans ${
-                  activeTab === t.id ? "bg-[#311E86]/10 text-[#311E86]" : "bg-gray-100 text-gray-400"
+                className={`ml-1.5 text-xs font-sans ${
+                  activeTab === t.id ? "text-white/70" : "text-gray-400"
                 }`}
               >
                 {t.count}
@@ -536,9 +536,9 @@ export function RequestsList() {
         {/* Divider between drafts and submitted */}
         {showDrafts && showIngediend && (
           <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-[11px] text-gray-400 font-sans whitespace-nowrap">Ingediende aanvragen</span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-[11px] text-gray-500 font-sans whitespace-nowrap">Ingediende aanvragen</span>
+            <div className="flex-1 h-px bg-gray-200" />
           </div>
         )}
 

@@ -147,7 +147,7 @@ function StepIndicator({ current, onStepClick }: { current: number; onStepClick:
         return (
           <div key={s.id} className={`flex items-center ${i < STEPS.length - 1 ? "flex-1" : ""}`}>
             <div
-              className="flex flex-col items-center min-w-[56px] cursor-pointer group"
+              className="flex flex-col items-center min-w-[44px] sm:min-w-[56px] cursor-pointer group"
               onClick={() => onStepClick(i)}
             >
               <div
@@ -168,7 +168,7 @@ function StepIndicator({ current, onStepClick }: { current: number; onStepClick:
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-[1.5px] mx-1.5 mb-[18px] transition-colors duration-300 ${done ? "bg-[#311E86]" : "bg-gray-200"}`} />
+              <div className={`flex-1 h-[1.5px] mx-0.5 sm:mx-1.5 mb-[18px] transition-colors duration-300 ${done ? "bg-[#311E86]" : "bg-gray-200"}`} />
             )}
           </div>
         )
