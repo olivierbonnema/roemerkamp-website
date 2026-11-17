@@ -311,7 +311,7 @@ function readDrop(transfer: DataTransfer): { files: File[]; folders: string[] } 
 // lands just beside the box is added all the same, and the browser never
 // opens it in place of the form (that would end the uploads that are on
 // their way).
-function DocDropZone({ onAdd }: { onAdd: (files: File[], folders?: string[]) => void }) {
+function DocDropZone({ onAdd }: { onAdd: (files: File[], folders?: string[], unreadable?: boolean) => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const onAddRef = useRef(onAdd)
@@ -336,7 +336,10 @@ function DocDropZone({ onAdd }: { onAdd: (files: File[], folders?: string[]) => 
       clearTimeout(timer)
       setDragging(false)
       const { files, folders } = readDrop(e.dataTransfer)
-      if (files.length || folders.length) onAddRef.current(files, folders)
+      // Something was dropped that the browser cannot hand over as a file (a
+      // mail dragged straight out of a mail program, for one). Say so: a drop
+      // after which nothing happens looks broken.
+      onAddRef.current(files, folders, files.length === 0 && folders.length === 0)
     }
     window.addEventListener("dragenter", over)
     window.addEventListener("dragover", over)
@@ -720,8 +723,9 @@ export function FinancingForm() {
   // Keep them with the concept straight away. A file the server would refuse
   // is not taken (see DOC_EXTENSIONS), nor one that is in the list already:
   // dropping a whole folder's worth twice must not give every document twice.
-  const addFiles = (newFiles: File[], folders: string[] = []) => {
+  const addFiles = (newFiles: File[], folders: string[] = [], unreadable = false) => {
     const notTaken = folders.map((name) => ({ name, reason: "Een map kan niet worden toegevoegd. Open de map en sleep de bestanden zelf in het vak." }))
+    if (unreadable) notTaken.push({ name: "Wat u sleepte", reason: "Dit kan niet rechtstreeks worden toegevoegd. Sla het eerst op uw computer op en sleep dan het bestand in het vak." })
     const present = new Set([
       ...savedDocs.map((d) => `${(d.orig || d.name).toLowerCase()}|${d.size}`),
       ...pendingList.map((f) => `${f.name.toLowerCase()}|${f.size}`),
