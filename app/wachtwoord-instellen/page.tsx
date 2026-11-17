@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import { WachtwoordInstellenForm } from "@/components/auth/wachtwoord-instellen-form"
+import { ui } from "@/components/portaal/portal-ui"
 
 export const metadata = {
   title: "Wachtwoord instellen",
@@ -10,8 +11,8 @@ export default function WachtwoordInstellenPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className={`${ui.spinner} w-8 h-8 border-2`} />
         </div>
       }
     >

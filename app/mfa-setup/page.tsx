@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
 import { QRCodeSVG } from "qrcode.react"
 import { multiFactor, TotpMultiFactorGenerator, type TotpSecret } from "firebase/auth"
 import { useAuth } from "@/contexts/auth-context"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { EntryPage, ui } from "@/components/portaal/portal-ui"
 
 export default function MfaSetupPage() {
   const router = useRouter()
@@ -143,146 +142,134 @@ export default function MfaSetupPage() {
 
   if (authLoading || !user || mfaEnrolled) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className={`${ui.spinner} w-8 h-8 border-2`} />
       </div>
     )
   }
 
+  // Built like the login screen (EntryPage in components/portaal/portal-ui.tsx).
+  //
+  // From a tablet up, the sentence that says what to do and the field for the
+  // code stand on the left and the code to scan on the right, at the same
+  // height. The cursor starts in that field and a browser scrolls to where the
+  // cursor is. With everything under each other the field came so low that the
+  // screen opened scrolled down, with the code to scan half behind the site
+  // head. Side by side both are in view on a laptop screen, also after such a
+  // scroll. On a phone they stay under each other, as they were.
   return (
-    <div className="min-h-screen bg-[#f5f5f7] flex flex-col">
-      <div className="h-1 bg-gradient-to-r from-[#1E3A5F] via-[#2E2060] to-[#1E3A5F]" />
+    <EntryPage title="Tweestapsverificatie instellen" path="/mfa-setup" wide>
+      <div className="grid gap-x-10 gap-y-6 items-start sm:grid-cols-[minmax(0,1fr)_auto] sm:grid-rows-[auto_1fr]">
+        <p className={`${ui.text} max-w-md`}>
+          Scan de QR-code met een authenticator-app (bijv. Google Authenticator of Microsoft Authenticator)
+        </p>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[520px]">
-          <div className="text-center mb-10">
-            <Link href="/">
-              <Image
-                src="/images/lange-logo.svg"
-                alt="Lange & Partners"
-                width={400}
-                height={100}
-                className="h-[90px] w-auto mx-auto"
-                priority
-              />
-            </Link>
+        {generating ? (
+          <div className="max-w-md flex justify-center py-12 sm:col-start-1">
+            <div className={`${ui.spinner} w-8 h-8 border-2`} />
           </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-10 pt-10 pb-11">
-            <div className="mb-6">
-              <h1 className="font-serif text-3xl font-normal text-gray-900 mb-1">
-                Tweestapsverificatie instellen
-              </h1>
-              <p className="text-[14px] text-gray-400 font-sans">
-                Scan de QR-code met een authenticator-app (bijv. Google Authenticator of Microsoft Authenticator)
-              </p>
-            </div>
-
-            {generating ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin" />
+        ) : error && !totpSecret ? (
+          unverified ? (
+            <div className="max-w-md space-y-4 sm:col-start-1">
+              <div className={ui.noticeWarn} role="alert">
+                <p className="text-[15px] leading-relaxed text-amber-900">{error}</p>
               </div>
-            ) : error && !totpSecret ? (
-              unverified ? (
-                <div className="space-y-4">
-                  <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm">
-                    {error}
-                  </div>
-                  {!sent ? (
-                    <button
-                      onClick={sendVerification}
-                      disabled={sending}
-                      className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {sending ? "Versturen…" : "Verificatie-e-mail versturen"}
-                    </button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
-                        We hebben een verificatielink gestuurd naar <strong>{user?.email}</strong>. Open de
-                        e-mail, klik op de link en kom daarna hier terug.
-                      </div>
-                      <button
-                        onClick={retryAfterVerify}
-                        className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors"
-                      >
-                        Ik heb mijn e-mail geverifieerd, opnieuw proberen
-                      </button>
-                      <button
-                        onClick={sendVerification}
-                        disabled={sending}
-                        className="w-full text-[13px] text-gray-400 hover:text-gray-600 font-sans transition-colors disabled:opacity-60"
-                      >
-                        {sending ? "Versturen…" : "E-mail opnieuw versturen"}
-                      </button>
-                    </div>
-                  )}
-                </div>
+              {!sent ? (
+                <button
+                  onClick={sendVerification}
+                  disabled={sending}
+                  className={`w-full ${ui.buttonPrimary}`}
+                >
+                  {sending ? "Versturen…" : "Verificatie-e-mail versturen"}
+                </button>
               ) : (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )
-            ) : qrUri ? (
-              <form onSubmit={handleEnroll} className="space-y-6">
-                <div className="flex justify-center">
-                  <div className="bg-white p-4 rounded-lg border border-gray-100">
-                    <QRCodeSVG value={qrUri} size={200} />
-                  </div>
-                </div>
-
-                {totpSecret && (
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-400 mb-1 font-sans">Of voer deze code handmatig in:</p>
-                    <p className="font-mono text-sm tracking-wider text-gray-700 select-all">
-                      {totpSecret.secretKey}
+                <div className="space-y-3">
+                  <div className={ui.noticeOk} role="status">
+                    <p className="text-[15px] leading-relaxed text-emerald-900">
+                      We hebben een verificatielink gestuurd naar <strong>{user?.email}</strong>. Open de
+                      e-mail, klik op de link en kom daarna hier terug.
                     </p>
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-[14px] font-medium mb-3 text-gray-900 font-sans text-center">
-                    Voer de 6-cijferige code in uit uw app
-                  </label>
-                  <div className="flex justify-center">
-                    <InputOTP maxLength={6} value={code} onChange={setCode} autoFocus>
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} className="h-12 w-12 text-lg" />
-                        <InputOTPSlot index={1} className="h-12 w-12 text-lg" />
-                        <InputOTPSlot index={2} className="h-12 w-12 text-lg" />
-                      </InputOTPGroup>
-                      <div className="mx-2" />
-                      <InputOTPGroup>
-                        <InputOTPSlot index={3} className="h-12 w-12 text-lg" />
-                        <InputOTPSlot index={4} className="h-12 w-12 text-lg" />
-                        <InputOTPSlot index={5} className="h-12 w-12 text-lg" />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
+                  <button
+                    onClick={retryAfterVerify}
+                    className={`w-full ${ui.buttonPrimary}`}
+                  >
+                    Ik heb mijn e-mail geverifieerd, opnieuw proberen
+                  </button>
+                  <button
+                    onClick={sendVerification}
+                    disabled={sending}
+                    className="w-full text-sm text-[#5b6472] underline underline-offset-2 hover:text-[#311e86] cursor-pointer disabled:opacity-60"
+                  >
+                    {sending ? "Versturen…" : "E-mail opnieuw versturen"}
+                  </button>
                 </div>
+              )}
+            </div>
+          ) : (
+            <div className={`max-w-md sm:col-start-1 ${ui.noticeError}`} role="alert">
+              <p className="text-[15px] leading-relaxed text-red-900">{error}</p>
+            </div>
+          )
+        ) : qrUri ? (
+          <>
+            <div className="space-y-4 sm:col-start-2 sm:row-start-1 sm:row-span-2">
+              {/* A white edge around the code: a phone needs it to read the code. */}
+              <div className="w-fit border border-gray-200 bg-white p-4">
+                <QRCodeSVG value={qrUri} size={200} />
+              </div>
 
-                {error && (
-                  <p className="text-sm text-red-500 font-sans text-center">{error}</p>
-                )}
+              {totpSecret && (
+                <div className="bg-gray-50 px-5 py-4">
+                  <p className={ui.note}>Of voer deze code handmatig in:</p>
+                  {/* The font is named in full: the site's font-mono points at a
+                      font that is not loaded, so the code came out in a book face.
+                      No extra letter spacing: the 32 characters then fit on one
+                      line on a phone of 360 px wide. */}
+                  <p className="font-[ui-monospace,SFMono-Regular,Menlo,Consolas,monospace] text-sm text-[#2a2f3a] select-all break-all mt-1">
+                    {totpSecret.secretKey}
+                  </p>
+                </div>
+              )}
+            </div>
 
-                <button
-                  type="submit"
-                  disabled={loading || code.length !== 6}
-                  className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Activeren…" : "Tweestapsverificatie activeren"}
-                </button>
-              </form>
-            ) : null}
-          </div>
+            <form onSubmit={handleEnroll} className="space-y-6 sm:col-start-1 sm:row-start-2">
+              <div>
+                <label className={ui.label}>
+                  Voer de 6-cijferige code in uit uw app
+                </label>
+                <div className="flex py-1">
+                  <InputOTP maxLength={6} value={code} onChange={setCode} autoFocus>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} className="h-12 w-12 text-lg" />
+                      <InputOTPSlot index={1} className="h-12 w-12 text-lg" />
+                      <InputOTPSlot index={2} className="h-12 w-12 text-lg" />
+                    </InputOTPGroup>
+                    <div className="mx-2" />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={3} className="h-12 w-12 text-lg" />
+                      <InputOTPSlot index={4} className="h-12 w-12 text-lg" />
+                      <InputOTPSlot index={5} className="h-12 w-12 text-lg" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
 
-          <div className="text-center mt-8">
-            <Link href="/" className="text-[14px] text-gray-400 hover:text-gray-600 font-sans transition-colors">
-              ← Terug naar website
-            </Link>
-          </div>
-        </div>
+              {error && (
+                <p className={ui.error} role="alert">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || code.length !== 6}
+                className={`w-full ${ui.buttonPrimary}`}
+              >
+                {loading ? "Activeren…" : "Tweestapsverificatie activeren"}
+              </button>
+            </form>
+          </>
+        ) : null}
       </div>
-    </div>
+    </EntryPage>
   )
 }

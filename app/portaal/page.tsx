@@ -2,7 +2,7 @@ import { Header } from "@/components/header"
 import { PortalFooter } from "@/components/portal-footer"
 import { AuthGuard } from "@/components/auth-guard"
 import { PortalDashboard } from "@/components/portaal/portal-dashboard"
-import { ContactPanel, PortalColumns, PortalHero } from "@/components/portaal/portal-ui"
+import { ContactPanel, PORTAL_PHOTOS, PortalColumns, PortalHero } from "@/components/portaal/portal-ui"
 
 export const metadata = {
   title: "Mijn portaal",
@@ -14,12 +14,13 @@ export default function PortaalPage() {
     <>
       <Header />
       <main>
-        {/* The one portal screen with a photo: the hall of the office, where a
-            visitor comes in. The working screens keep a short head. */}
+        {/* The one screen inside the portal with a photo: the hall of the
+            office, where a visitor comes in. The working screens keep a short
+            head. */}
         <PortalHero
           title="Welkom"
           intro="Wat wilt u vandaag doen?"
-          image={{ src: "/images/kantoor-hal.jpg", alt: "De hal van het kantoor van Lange & Partners in Haarlem" }}
+          image={PORTAL_PHOTOS.hal}
         />
         <AuthGuard>
           <PortalColumns aside={<ContactPanel />}>

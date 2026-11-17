@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { EntryPage, SectionTitle, ui } from "@/components/portaal/portal-ui"
 
 // Branded "set a new password" page. Used by the invite mails and the
 // "wachtwoord vergeten" mails (see lib/auth-links.ts). It completes the reset
@@ -115,85 +115,70 @@ export function WachtwoordInstellenForm() {
     }
   }
 
+  // Built like the login screen (EntryPage in components/portaal/portal-ui.tsx).
+  // The page head names the screen and, once the link is checked, whose
+  // password it is. What the link turned out to be stands below it.
   return (
-    <div className="min-h-screen bg-[#f5f5f7] flex flex-col">
-      <div className="h-1 bg-gradient-to-r from-[#1E3A5F] via-[#2E2060] to-[#1E3A5F]" />
-
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[460px]">
-          <div className="text-center mb-10">
-            <Link href="/">
-              <Image src="/images/lange-logo.svg" alt="Lange & Partners" width={400} height={100} className="h-[90px] w-auto mx-auto" priority />
-            </Link>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-10 pt-10 pb-11">
-            {verifying ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : invalid ? (
-              <div>
-                <h1 className="font-serif text-3xl font-normal text-gray-900 mb-2">
-                  {inviteProblem === "used" ? "Account al geactiveerd" : inviteProblem === "expired" ? "Uitnodiging verlopen" : "Link ongeldig"}
-                </h1>
-                <p className="text-[14px] text-gray-500 font-sans">
-                  {inviteProblem === "used"
-                    ? "Via deze uitnodiging is al een wachtwoord ingesteld. U kunt inloggen. Weet u het wachtwoord niet meer, kies dan \u2018Wachtwoord vergeten\u2019 op de inlogpagina."
-                    : inviteProblem === "expired"
-                      ? "Deze uitnodiging is niet meer geldig. Kies \u2018Wachtwoord vergeten\u2019 op de inlogpagina en vul uw e-mailadres in; u ontvangt dan direct een nieuwe link."
-                      : "Deze link is verlopen of al gebruikt. Vraag een nieuwe aan via \u2018Wachtwoord vergeten\u2019 op de inlogpagina."}
-                </p>
-                <Link href="/login" className="inline-block mt-6 text-[14px] text-[#311e86] hover:underline font-sans">
-                  → Naar inloggen
-                </Link>
-              </div>
-            ) : done ? (
-              <div>
-                <h1 className="font-serif text-3xl font-normal text-gray-900 mb-2">Wachtwoord ingesteld</h1>
-                <p className="text-[14px] text-gray-500 font-sans mb-6">
-                  U kunt nu inloggen. De eerste keer stelt u eenmalig tweestapsverificatie in.
-                </p>
-                <Link href="/login" className="block w-full text-center py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors">
-                  Naar inloggen
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="mb-1">
-                  <h1 className="font-serif text-3xl font-normal text-gray-900 mb-1">Wachtwoord instellen</h1>
-                  <p className="text-[14px] text-gray-400 font-sans">Voor {email}</p>
-                </div>
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">Nieuw wachtwoord</label>
-                  <input
-                    type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Minimaal 8 tekens" autoFocus
-                    className="w-full h-[46px] px-5 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-900 font-sans">Herhaal wachtwoord</label>
-                  <input
-                    type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="Herhaal uw wachtwoord"
-                    className="w-full h-[46px] px-5 text-sm font-sans bg-transparent border border-gray-300 rounded-full text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#1E3A5F] transition-colors"
-                  />
-                </div>
-                {error && <p className="text-sm text-red-500 font-sans">{error}</p>}
-                <button
-                  type="submit" disabled={submitting || !pw || !pw2}
-                  className="w-full py-3.5 text-[15px] font-medium font-sans rounded-full bg-[#1E3A5F] text-white hover:bg-[#264a75] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "Bezig…" : "Wachtwoord instellen"}
-                </button>
-              </form>
-            )}
-          </div>
-
-          <div className="text-center mt-8">
-            <Link href="/" className="text-[14px] text-gray-400 hover:text-gray-600 font-sans transition-colors">← Terug naar website</Link>
-          </div>
+    <EntryPage
+      title="Wachtwoord instellen"
+      intro={!verifying && !invalid && !done ? `Voor ${email}` : undefined}
+      path="/wachtwoord-instellen"
+    >
+      {verifying ? (
+        <div className="flex justify-center py-12">
+          <div className={`${ui.spinner} w-8 h-8 border-2`} />
         </div>
-      </div>
-    </div>
+      ) : invalid ? (
+        <div>
+          <SectionTitle>
+            {inviteProblem === "used" ? "Account al geactiveerd" : inviteProblem === "expired" ? "Uitnodiging verlopen" : "Link ongeldig"}
+          </SectionTitle>
+          <p className={`${ui.text} mt-3`}>
+            {inviteProblem === "used"
+              ? "Via deze uitnodiging is al een wachtwoord ingesteld. U kunt inloggen. Weet u het wachtwoord niet meer, kies dan \u2018Wachtwoord vergeten\u2019 op de inlogpagina."
+              : inviteProblem === "expired"
+                ? "Deze uitnodiging is niet meer geldig. Kies \u2018Wachtwoord vergeten\u2019 op de inlogpagina en vul uw e-mailadres in; u ontvangt dan direct een nieuwe link."
+                : "Deze link is verlopen of al gebruikt. Vraag een nieuwe aan via \u2018Wachtwoord vergeten\u2019 op de inlogpagina."}
+          </p>
+          <Link href="/login" className={`${ui.link} inline-block mt-6`}>
+            Naar inloggen
+          </Link>
+        </div>
+      ) : done ? (
+        <div>
+          <SectionTitle>Wachtwoord ingesteld</SectionTitle>
+          <p className={`${ui.text} mt-3`}>
+            U kunt nu inloggen. De eerste keer stelt u eenmalig tweestapsverificatie in.
+          </p>
+          <Link href="/login" className={`${ui.buttonPrimary} w-full mt-6`}>
+            Naar inloggen
+          </Link>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className={ui.label}>Nieuw wachtwoord</label>
+            <input
+              type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Minimaal 8 tekens" autoFocus
+              className={`${ui.field} ${ui.fieldOk}`}
+            />
+          </div>
+          <div>
+            <label className={ui.label}>Herhaal wachtwoord</label>
+            <input
+              type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="Herhaal uw wachtwoord"
+              className={`${ui.field} ${ui.fieldOk}`}
+            />
+          </div>
+          {error && <p className={ui.error} role="alert">{error}</p>}
+          <button
+            type="submit" disabled={submitting || !pw || !pw2}
+            className={`w-full ${ui.buttonPrimary}`}
+          >
+            {submitting ? "Bezig…" : "Wachtwoord instellen"}
+          </button>
+        </form>
+      )}
+    </EntryPage>
   )
 }

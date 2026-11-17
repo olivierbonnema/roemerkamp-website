@@ -15,9 +15,12 @@
 //   - at most one <Panel accent> per screen, for what matters most there
 //   - text is 16 px in ink (#2a2f3a); notes are 14 px in slate (#5b6472)
 //   - frames are square, buttons and fields are pills
+//   - a screen before the portal (setting a password, two-step verification)
+//     is an <EntryPage>: built like the login screen
 import type { ReactNode } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { PortalFooter } from "@/components/portal-footer"
 
 /* Class names */
 
@@ -84,11 +87,33 @@ interface Crumb {
   href: string
 }
 
+/** Where the path in the page head starts on a portal screen. */
+const PORTAL_ROOT: Crumb = { label: "Portaal", href: "/portaal" }
+/** Where it starts on a screen before the portal: the website, as on its own pages. */
+export const SITE_ROOT: Crumb = { label: "Home", href: "/" }
+
+/**
+ * The two photos of the portal: the office seen from the street on the screens
+ * before the portal, and its hall on the portal home. First you stand in front
+ * of the door, then you are inside.
+ *
+ * Both are cut from a photo of the site (over-ons-section.jpg, kantoor-hal.jpg).
+ * Those have a small star in the bottom right corner, the mark of the image
+ * tool they went through, and in the page head it came into view on some
+ * screen widths. The copies end above it, so no width can show it.
+ */
+export const PORTAL_PHOTOS = {
+  kantoor: { src: "/images/portaal-kantoor.jpg", alt: "Het kantoor van Lange & Partners aan de Wilhelminastraat in Haarlem" },
+  hal: { src: "/images/portaal-hal.jpg", alt: "De hal van het kantoor van Lange & Partners in Haarlem" },
+}
+
 interface PortalHeroProps {
   title: string
   intro?: string
-  /** The path below "Portaal". The last one is the page itself. */
+  /** The path below the start. The last one is the page itself. */
   crumbs?: Crumb[]
+  /** Where the path starts. Left out: the portal. Before the portal: SITE_ROOT. */
+  root?: Crumb
   /**
    * A photo on the right, on wide screens only (a working screen stays short
    * on a phone). Not marked as a priority image: a phone would then download
@@ -98,16 +123,16 @@ interface PortalHeroProps {
 }
 
 /** The dark blue page head, built like the one on the product pages. */
-export function PortalHero({ title, intro, crumbs = [], image }: PortalHeroProps) {
+export function PortalHero({ title, intro, crumbs = [], root = PORTAL_ROOT, image }: PortalHeroProps) {
   return (
     <section className="relative overflow-hidden bg-[#1e3a5f] text-white">
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 md:px-10">
         <div className="max-w-[600px] py-10 md:py-14">
           <nav aria-label="Kruimelpad" className="text-[13px] text-[#c5cedb] mb-6">
             {crumbs.length === 0 ? (
-              <span>Portaal</span>
+              <span>{root.label}</span>
             ) : (
-              <Link href="/portaal" className="hover:text-white transition-colors">Portaal</Link>
+              <Link href={root.href} className="hover:text-white transition-colors">{root.label}</Link>
             )}
             {crumbs.map((c, i) => (
               <span key={c.href}>
@@ -122,7 +147,8 @@ export function PortalHero({ title, intro, crumbs = [], image }: PortalHeroProps
           </nav>
           <div className="w-14 h-[5px] bg-[#f75d20] mb-4" />
           <h1 className="font-serif font-normal text-white text-[30px] md:text-[42px] leading-[1.15]">{title}</h1>
-          {intro && <p className="text-[17px] md:text-lg leading-relaxed text-[#e6eaf0] mt-4 md:mt-5">{intro}</p>}
+          {/* break-words: an intro can hold an e-mail address ("Voor ..."), and a long one must not push a phone screen wide. */}
+          {intro && <p className="text-[17px] md:text-lg leading-relaxed text-[#e6eaf0] mt-4 md:mt-5 break-words">{intro}</p>}
         </div>
       </div>
       {image && (
@@ -233,5 +259,67 @@ export function ContactPanel() {
         <a href="mailto:info@langefa.nl" className={contact}>info@langefa.nl</a>, dan kijken wij met u mee.
       </p>
     </Panel>
+  )
+}
+
+/* Screens before the portal */
+
+/**
+ * The head of a screen before the portal: the logo and nothing else, as on the
+ * login screen (components/header.tsx draws that one, with the same classes).
+ * Not the head of the site itself: someone who is setting up an account has no
+ * use for its menu, and these screens never had one.
+ */
+export function PlainHead() {
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+      <div className="max-w-screen-2xl mx-auto px-4 py-6">
+        <Link href="/" className="flex w-fit items-center">
+          <Image
+            src="/images/lange-logo.svg"
+            alt="Lange & Partners"
+            width={340}
+            height={85}
+            className="h-[56px] md:h-[72px] w-auto md:-mt-4"
+            priority
+          />
+        </Link>
+      </div>
+    </header>
+  )
+}
+
+/**
+ * A screen before the portal (setting a password, setting up two-step
+ * verification), built like the login screen: the logo, the page head with the
+ * office in it, one narrow column for the form and the foot of the portal.
+ * `path` is the address of the screen itself, for the path in the page head.
+ * `wide`: room for two things side by side (the code to scan and the field
+ * for the code from the app); what stands alone keeps to max-w-md itself.
+ */
+export function EntryPage({ title, intro, path, wide = false, children }: {
+  title: string
+  intro?: string
+  path: string
+  wide?: boolean
+  children: ReactNode
+}) {
+  return (
+    <div className="min-h-screen flex flex-col bg-white">
+      <PlainHead />
+      <main className="flex-1">
+        <PortalHero
+          title={title}
+          intro={intro}
+          root={SITE_ROOT}
+          crumbs={[{ label: title, href: path }]}
+          image={PORTAL_PHOTOS.kantoor}
+        />
+        <section className="max-w-[1200px] mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-16 md:pb-24">
+          <div className={wide ? "max-w-[720px]" : "max-w-md"}>{children}</div>
+        </section>
+      </main>
+      <PortalFooter />
+    </div>
   )
 }
