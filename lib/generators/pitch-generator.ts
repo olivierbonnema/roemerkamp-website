@@ -1,5 +1,5 @@
 import * as docx from "docx"
-import { computeLtv, fmtPct } from "@/lib/generators/ltv"
+import { buildPitchLtvText, type WaardeType } from "@/lib/generators/pitch-waarde"
 import {
   MM,
   PAGE_W,
@@ -88,6 +88,10 @@ export interface PitchCollateralObject {
   address?: string
   hypotheekRank?: string
   priorLienholders?: PitchPriorLienholder[]
+  // The value of this onderpand and what it is based on. Only used when the
+  // pitch has several onderpanden and `waardePerObject` is set (pitch-waarde.ts).
+  waarde?: number
+  waardeType?: WaardeType
 }
 
 export interface PitchEersteInschrijving {
@@ -106,8 +110,26 @@ export interface PitchRisk {
 
 export interface PitchGeldnemer {
   name: string // persoon- of B.V.-naam
-  type: "prive" | "bv"
+  // "prive" and "bv" are geldnemers. "mede-eigenaar" and "toestemming" are the
+  // partner of a geldnemer: not a geldnemer, but someone who signs along, as
+  // co-owner of the onderpand (hypotheekgever) or for consent only (art. 1:88
+  // BW). They are in the same list so the reader sees every party, each with
+  // its role (geldnemerRegel).
+  type: "prive" | "bv" | "mede-eigenaar" | "toestemming"
   bvName: string // bij B.V.: naam van de vertegenwoordiger
+  partnerVan?: string // bij een partner: de naam van de geldnemer
+}
+
+// One line of the list "Geldnemers:" at the end of the pitch.
+export function geldnemerRegel(g: PitchGeldnemer): string {
+  const name = (g.name || "").trim()
+  if (g.type === "bv" && g.bvName) return `${name}, vertegenwoordigd door ${g.bvName}`
+  if (g.type === "mede-eigenaar" || g.type === "toestemming") {
+    const van = (g.partnerVan || "").trim()
+    const rol = g.type === "mede-eigenaar" ? "mede-eigenaar van het onderpand en hypotheekgever" : "geeft toestemming voor de financiering"
+    return `${name}${van ? `, partner van ${van}` : ""}, ${rol}`
+  }
+  return name
 }
 
 export interface PitchData {
@@ -141,8 +163,11 @@ export interface PitchData {
   verzoekText?: string
   zekerhedenText?: string
   zekerhedenExtra?: string[]
-  waardeType?: "woz" | "taxatie" | "geschat"
+  waardeType?: WaardeType
   waardeBedrag?: number
+  // Several onderpanden: true = a value per onderpand (collateralObjects[].waarde),
+  // otherwise one amount for all of them together (waardeBedrag). See pitch-waarde.ts.
+  waardePerObject?: boolean
   ltvText?: string
 }
 
@@ -174,27 +199,13 @@ function tabLine(label: string, valueRuns: docx.ParagraphChild[]) {
   })
 }
 
-// Loan-to-Value sentence from the chosen waarde-type + value (3 standard variants).
-// The LTV counts ALL debt on the collateral, including loans that rank ahead of
-// ours — see lib/generators/ltv.ts.
+// The sentence about value and Loan-to-Value under the zekerheden. Built in
+// lib/generators/pitch-waarde.ts: one amount, or a value per onderpand when
+// there are several. The LTV counts ALL debt on the collateral, including loans
+// that rank ahead of ours (lib/generators/ltv.ts).
 function buildLtvText(data: PitchData): string {
   if (data.ltvText && data.ltvText.trim()) return data.ltvText
-  const waarde = Number(data.waardeBedrag) || 0
-  if (!waarde) return ""
-  const ltv = computeLtv(Number(data.hoofdsom) || 0, waarde, data.collateralObjects || [])
-  const pct = ltv.pct !== null ? fmtPct(ltv.pct) : "0"
-  const wt = data.waardeType || "woz"
-  const lead =
-    wt === "taxatie" ? "De waarde van het onderpand op basis van het taxatierapport"
-    : wt === "geschat" ? "De geschatte waarde van het onderpand"
-    : "De WOZ-waarde van het onderpand"
-  const basis = wt === "taxatie" ? "taxatiewaarde" : wt === "geschat" ? "geschatte waarde" : "WOZ-waarde"
-  // Staat er al schuld vóór ons, dan moet de lezer zien dat die is meegeteld —
-  // anders leest een tweede-rangspositie als een eerste.
-  const inclusief = ltv.voorgaand > 0
-    ? `, inclusief de voorgaande hypothecaire financiering van ${fmtEuro(ltv.voorgaand)},`
-    : ""
-  return `${lead} bedraagt ${fmtEuro(waarde)}. De Loan-To-Value (LTV) op basis van de ${basis}${inclusief} bedraagt circa ${pct}% en biedt daarmee ruim voldoende zekerheid voor de financiering.`
+  return buildPitchLtvText(data)
 }
 
 // A numbered list item: a normal indented list INSIDE the text area (positive
@@ -478,12 +489,7 @@ export async function generatePitch(
   if (geldnemers.length) {
     ch.push(pitchSectionHead("Geldnemers:"))
     geldnemers.forEach((g) => {
-      // name = persoon- of B.V.-naam; bvName = naam vertegenwoordiger (bij B.V.).
-      let line = g.name || ""
-      if (g.type === "bv" && g.bvName) {
-        line = `${g.name}, vertegenwoordigd door ${g.bvName}`
-      }
-      ch.push(par([tx(line)]))
+      ch.push(par([tx(geldnemerRegel(g))]))
     })
   }
 
