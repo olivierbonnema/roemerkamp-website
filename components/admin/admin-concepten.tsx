@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { auth } from "@/lib/firebase"
+import { DOCUMENTS_CAT } from "@/lib/concepten"
 
 // Beheer > Concepten: every concept of every account, read only.
 // Olivier, 2026-11-12: "dat wij kunnen zien als iemand een concept heeft
@@ -87,7 +88,12 @@ const FIELD_LABELS: [string, string][] = [
 ]
 const MONEY_FIELDS = new Set(["leningBedrag", "eigenInbreng", "bestaandeSchulden"])
 
+// The kind of document, for concepts from before 17 November 2026, when each
+// kind had an upload card of its own. Since then the form has one box for all
+// documents (DOCUMENTS_CAT in lib/concepten.ts): those carry no kind, so
+// nothing is shown next to their name.
 const DOC_LABELS: Record<string, string> = {
+  [DOCUMENTS_CAT]: "",
   id_doc: "Identiteitsbewijs",
   financieringsmemorandum: "Financieringsmemorandum",
   werkgeversverklaring: "Werkgeversverklaring",
@@ -167,7 +173,7 @@ function Details({ c }: { c: Concept }) {
           {c.documents.map((d) => (
             <li key={d.id} className="flex justify-between gap-4">
               <span className="text-gray-900 break-all">{d.name}</span>
-              <span className="text-gray-400 whitespace-nowrap">{DOC_LABELS[d.cat] || d.cat}</span>
+              <span className="text-gray-400 whitespace-nowrap">{DOC_LABELS[d.cat] ?? d.cat}</span>
             </li>
           ))}
         </ul>
@@ -178,7 +184,7 @@ function Details({ c }: { c: Concept }) {
               {pending.map((p, i) => (
                 <li key={`${p.name}-${i}`} className="flex justify-between gap-4">
                   <span className="break-all">{p.name}</span>
-                  <span className="text-amber-700 whitespace-nowrap">{DOC_LABELS[p.cat] || p.cat} · gestart {formatDateTime(p.at)}</span>
+                  <span className="text-amber-700 whitespace-nowrap">{[DOC_LABELS[p.cat] ?? p.cat, `gestart ${formatDateTime(p.at)}`].filter(Boolean).join(" · ")}</span>
                 </li>
               ))}
             </ul>

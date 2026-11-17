@@ -30,7 +30,8 @@ export type ConceptStatus = "concept" | "ingediend" | "verwijderd"
 export interface ConceptDocument {
   // driveItem id in the shared library
   id: string
-  // category id of the upload card ("id_doc", "taxatie", ...)
+  // DOCUMENTS_CAT, or for a concept from before 17 November 2026 the id of
+  // the upload card it was added through ("id_doc", "taxatie", ...)
   cat: string
   // name as stored in SharePoint
   name: string
@@ -78,6 +79,14 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 export function sanitizeCat(cat: unknown): string {
   return typeof cat === "string" && /^[a-z0-9_]{1,40}$/.test(cat) ? cat : "overig"
 }
+
+// Since 17 November 2026 the form has one box for all documents (Olivier:
+// "niet alle documenten onder een verschillende noemer"). A document added
+// through that box carries this category: it no longer says what kind of
+// document it is. Documents of older concepts keep the id of the upload card
+// they were added through ("id_doc", "taxatie", ...); nothing reads a meaning
+// from the category, it is only shown (Beheer, the summary of an aanvraag).
+export const DOCUMENTS_CAT = "documenten"
 
 // Keeps what a form can contain and nothing else: short strings and booleans
 // under plain keys, the objects list and the names of selected files. The

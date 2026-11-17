@@ -2,7 +2,7 @@
 // Run from the repo root:  npx tsx test/concepten/concepten.test.ts
 // Fictitious names and addresses only.
 import {
-  chooseDraftSource, conceptDocId, conceptHasContent, conceptSummary, isValidDraftId,
+  DOCUMENTS_CAT, chooseDraftSource, conceptDocId, conceptHasContent, conceptSummary, isValidDraftId,
   originalName, parsePendingUploads, sameUpload, sanitizeCat, sanitizeConceptData, settlePendingUploads, uniqueFileName,
 } from "../../lib/concepten"
 
@@ -72,6 +72,11 @@ ok("summary of nothing", JSON.stringify(conceptSummary({})) === '{"naam":"","bed
 
 // ---- file names ----
 ok("category ids", sanitizeCat("id_doc") === "id_doc" && sanitizeCat("../x") === "overig" && sanitizeCat(5) === "overig" && sanitizeCat("") === "overig")
+// The one box of the form (17 November 2026) has a category of its own. The
+// server must take it as it is: turned into "overig" it would read as "other
+// documents" in Beheer and in the mail of an aanvraag.
+ok("the category of the one box for all documents is kept as it is", sanitizeCat(DOCUMENTS_CAT) === DOCUMENTS_CAT && DOCUMENTS_CAT === "documenten")
+ok("file names under the one box are kept", JSON.stringify(sanitizeConceptData({ fileNames: { [DOCUMENTS_CAT]: ["paspoort.pdf", "memo.pdf"] } }).data.fileNames) === '{"documenten":["paspoort.pdf","memo.pdf"]}')
 ok("unique name: free name unchanged", uniqueFileName("scan.pdf", new Set(["ander.pdf"])) === "scan.pdf")
 ok("unique name: second gets (2), case ignored", uniqueFileName("Scan.pdf", new Set(["scan.pdf"])) === "Scan (2).pdf")
 ok("unique name: counts on", uniqueFileName("scan.pdf", new Set(["scan.pdf", "scan (2).pdf"])) === "scan (3).pdf")
