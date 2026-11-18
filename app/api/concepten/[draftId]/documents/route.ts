@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { getMsToken, listFolderFiles, deleteOneDriveItem } from "@/lib/onedrive-direct"
-import { isValidDraftId, sanitizeCat, type ConceptDocument } from "@/lib/concepten"
-import { conceptDocuments, conceptRef, verifyUser } from "@/lib/concept-server"
+import { SUMMARY_FILE_NAME, isValidDraftId, originalName, sanitizeCat, type ConceptDocument } from "@/lib/concepten"
+import { conceptDocuments, conceptRef, settleConceptUploads, verifyUser } from "@/lib/concept-server"
 
 // The documents that belong to a concept.
 //
-//   POST    { cat, fileName, itemId? }  the browser finished an upload. The
-//           folder is read back and the document is only recorded when it is
-//           really there (never on the browser's word).
+//   POST    { cat, fileName, itemId?, originalName? }  the browser finished an
+//           upload. The folder is read back and the document is only recorded
+//           when it is really there (never on the browser's word).
 //   DELETE  ?id=  the adviser took a document out again before submitting, for
 //           example the wrong file. Only an id that is recorded on this
 //           concept can be removed. The file goes to the SharePoint recycle
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const found =
       (itemId && files.find((f) => f.id === itemId)) ||
       (fileName && files.find((f) => f.name.toLowerCase() === fileName))
-    if (!found || found.size <= 0 || found.name.toLowerCase() === "aanvraag-samenvatting.txt") {
+    if (!found || found.size <= 0 || found.name.toLowerCase() === SUMMARY_FILE_NAME) {
       return NextResponse.json({ error: "Het document is niet in de map gevonden." }, { status: 404 })
     }
 
@@ -65,15 +65,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       name: found.name,
       size: found.size,
       uploadedAt: new Date().toISOString(),
+      ...originalName(body.originalName, found.name),
     }
-    const documents = await adminDb.runTransaction(async (tx) => {
-      const snap = await tx.get(ref)
-      const current = conceptDocuments(snap.data())
-      if (current.some((d) => d.id === document.id)) return current
-      const next = [...current, document]
-      tx.update(ref, { documents: next, updatedAt: new Date() })
-      return next
-    })
+    // Records this document, and with the same reading of the folder any other
+    // one that arrived earlier without being reported.
+    const { documents } = await settleConceptUploads(ref, files, { confirm: document })
     return NextResponse.json({ document: documents.find((d) => d.id === document.id) ?? document, documents })
   } catch (err) {
     console.error("[concepten] document confirm failed:", err)

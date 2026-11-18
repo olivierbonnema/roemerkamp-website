@@ -6,8 +6,9 @@ import { useAuth } from "@/contexts/auth-context"
 import { auth } from "@/lib/firebase"
 import { uploadFilesDirect } from "@/lib/upload-direct"
 import { loadDraft, saveDraft, deleteDraft, localDocs } from "@/lib/concept-local"
-import { ConceptSync, type UploadInfo } from "@/lib/concept-sync"
-import type { ConceptDocument } from "@/lib/concepten"
+import { acquireConceptSync, type UploadInfo } from "@/lib/concept-sync"
+import { DOCUMENTS_CAT, type ConceptDocument } from "@/lib/concepten"
+import { Check, Upload, X } from "lucide-react"
 
 /* ── Constants ── */
 const STEPS = [
@@ -60,6 +61,11 @@ const UITSTRATEGIE_OPTIONS = [
   "Anders",
 ]
 
+// What Lange & Partners needs for an aanvraag. Until 17 November 2026 each of
+// these was an upload card of its own; Olivier: "niet alle documenten onder
+// een verschillende noemer". Now there is one box for all documents and this
+// list only NAMES what is needed (`required` = always needed). The form cannot
+// tell which file is which, so it asks for at least one document, no more.
 const DOC_CATEGORIES = [
   { id: "id_doc",                 label: "Identiteitsbewijs",              desc: "Paspoort of identiteitskaart van de bestuurder(s)",     required: true,  particulier: true,  zakelijk: true  },
   { id: "financieringsmemorandum",label: "Financieringsmemorandum",        desc: "Toelichting financiering",                              required: true,  particulier: true,  zakelijk: true  },
@@ -76,6 +82,13 @@ const DOC_CATEGORIES = [
   { id: "schulden",               label: "Overzicht bestaande schulden",   desc: "Hypotheekafschriften, leningovereenkomsten",            required: false, particulier: true,  zakelijk: true  },
   { id: "overig",                 label: "Overige documenten",             desc: "Verbouwingsplannen, huurovereenkomsten, etc.",          required: false, particulier: true,  zakelijk: true  },
 ]
+
+// What the server accepts as a document (lib/onedrive-direct.ts:
+// UPLOAD_ALLOWED_EXTENSIONS and DIRECT_UPLOAD_MAX_FILE_SIZE). Looked at here
+// first, so a file that would be refused is named at once and never sits in
+// the list as "niet bewaard". The server stays the one that decides.
+const DOC_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".docx", ".xlsx", ".doc", ".xls", ".txt", ".eml"]
+const DOC_MAX_BYTES = 250 * 1024 * 1024
 
 /* ── Draft storage ──
    The copy in this browser: lib/concept-local.ts (loadDraft / saveDraft /
@@ -136,6 +149,12 @@ function formatCurrency(raw: string): string {
   return isNaN(num) ? "" : num.toLocaleString("nl-NL")
 }
 
+function formatBytes(bytes: number): string {
+  if (!(bytes > 0)) return ""
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} kB`
+  return `${(bytes / (1024 * 1024)).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} MB`
+}
+
 /* ── Sub-components ── */
 
 function StepIndicator({ current, onStepClick }: { current: number; onStepClick: (i: number) => void }) {
@@ -147,7 +166,7 @@ function StepIndicator({ current, onStepClick }: { current: number; onStepClick:
         return (
           <div key={s.id} className={`flex items-center ${i < STEPS.length - 1 ? "flex-1" : ""}`}>
             <div
-              className="flex flex-col items-center min-w-[56px] cursor-pointer group"
+              className="flex flex-col items-center min-w-[44px] sm:min-w-[56px] cursor-pointer group"
               onClick={() => onStepClick(i)}
             >
               <div
@@ -168,7 +187,7 @@ function StepIndicator({ current, onStepClick }: { current: number; onStepClick:
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-[1.5px] mx-1.5 mb-[18px] transition-colors duration-300 ${done ? "bg-[#311E86]" : "bg-gray-200"}`} />
+              <div className={`flex-1 h-[1.5px] mx-0.5 sm:mx-1.5 mb-[18px] transition-colors duration-300 ${done ? "bg-[#311E86]" : "bg-gray-200"}`} />
             )}
           </div>
         )
@@ -269,61 +288,176 @@ function TwoCol({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
 }
 
-function DocUploadCard({ cat, files, saved, uploads, onAdd, onRemove, onRemoveSaved }: {
-  cat: (typeof DOC_CATEGORIES)[0]; files: Record<string, File[]>
-  // `saved`: kept with the concept. `uploads`: how far the selected files are.
-  saved: ConceptDocument[]; uploads: Map<File, UploadInfo>
-  onAdd: (catId: string, newFiles: File[]) => void; onRemove: (catId: string, idx: number) => void
-  onRemoveSaved: (doc: ConceptDocument) => void
-}) {
+// What was dropped: the files, and the names of folders. A folder cannot be
+// read as a file, so it is named in a message instead of failing as an upload.
+function readDrop(transfer: DataTransfer): { files: File[]; folders: string[] } {
+  const files: File[] = []
+  const folders: string[] = []
+  const items = transfer.items ? Array.from(transfer.items) : []
+  if (items.length === 0) return { files: Array.from(transfer.files || []), folders }
+  for (const item of items) {
+    if (item.kind !== "file") continue
+    const entry = typeof item.webkitGetAsEntry === "function" ? item.webkitGetAsEntry() : null
+    if (entry?.isDirectory) { folders.push(entry.name); continue }
+    const file = item.getAsFile()
+    if (file) files.push(file)
+  }
+  return { files, folders }
+}
+
+// The one box for all documents: drag them in, or choose them.
+//
+// While this step is open a drop counts anywhere on the page. A file that
+// lands just beside the box is added all the same, and the browser never
+// opens it in place of the form (that would end the uploads that are on
+// their way).
+function DocDropZone({ onAdd }: { onAdd: (files: File[], folders?: string[], unreadable?: boolean) => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const catFiles = files[cat.id] || []
-  const catSaved = saved.filter((d) => d.cat === cat.id)
+  const [dragging, setDragging] = useState(false)
+  const onAddRef = useRef(onAdd)
+  useEffect(() => { onAddRef.current = onAdd })
+
+  useEffect(() => {
+    const hasFiles = (e: DragEvent) => !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files")
+    // A browser says when a drag enters and keeps saying it is there, but not
+    // reliably when it leaves the window. So: lit while it keeps being said.
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const over = (e: DragEvent) => {
+      if (!hasFiles(e)) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy"
+      setDragging(true)
+      clearTimeout(timer)
+      timer = setTimeout(() => setDragging(false), 800)
+    }
+    const drop = (e: DragEvent) => {
+      if (!hasFiles(e) || !e.dataTransfer) return
+      e.preventDefault()
+      clearTimeout(timer)
+      setDragging(false)
+      const { files, folders } = readDrop(e.dataTransfer)
+      // Something was dropped that the browser cannot hand over as a file (a
+      // mail dragged straight out of a mail program, for one). Say so: a drop
+      // after which nothing happens looks broken.
+      onAddRef.current(files, folders, files.length === 0 && folders.length === 0)
+    }
+    window.addEventListener("dragenter", over)
+    window.addEventListener("dragover", over)
+    window.addEventListener("drop", drop)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("dragenter", over)
+      window.removeEventListener("dragover", over)
+      window.removeEventListener("drop", drop)
+    }
+  }, [])
 
   return (
     <div
-      className={`border rounded-2xl p-4 px-5 mb-3 transition-colors ${isDragging ? "border-[#1E3A5F] bg-[#f0f4ff]" : "border-gray-200 bg-white"}`}
-      onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
-      onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = Array.from(e.dataTransfer.files); if (f.length) onAdd(cat.id, f) }}
+      data-dropzone={dragging ? "active" : "idle"}
+      className={`rounded-xl border-2 border-dashed px-5 py-9 sm:py-10 text-center font-sans transition-colors ${
+        dragging ? "border-[#311E86] bg-[#311E86]/5" : "border-gray-300 bg-[#f8f8fa]"
+      }`}
     >
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex-1">
-          <div className="text-sm font-medium text-gray-900 font-sans">
-            {cat.label}{cat.required && <span className="text-[11px] text-[#F75D20] ml-2 font-normal">verplicht</span>}
-          </div>
-          <div className="text-xs text-gray-400 mt-0.5 font-sans">{cat.desc}</div>
-          {isDragging && <p className="text-xs text-[#1E3A5F] mt-1.5 font-sans font-medium">Laat los om te uploaden</p>}
-        </div>
-        <button type="button" onClick={() => inputRef.current?.click()}
-          className="px-4 py-2 text-xs font-medium font-sans border border-gray-300 rounded-full bg-transparent text-gray-900 cursor-pointer whitespace-nowrap hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors">
-          + Uploaden
-        </button>
-        <input ref={inputRef} type="file" multiple hidden onChange={(e) => { onAdd(cat.id, Array.from(e.target.files || [])); e.target.value = "" }} />
-      </div>
-      {(catSaved.length > 0 || catFiles.length > 0) && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {catSaved.map((d) => (
-            <div key={`saved-${d.id}`} title="Bewaard bij het concept" className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-emerald-50 text-gray-900 font-sans">
-              <span className="text-emerald-600 leading-none">✓</span>
-              <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{d.name}</span>
-              <span onClick={() => onRemoveSaved(d)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
-            </div>
-          ))}
-          {catFiles.map((f, i) => {
-            const info = uploads.get(f)
-            const note = info?.phase === "uploading" ? `${info.pct}%` : info?.phase === "queued" ? "wacht" : ""
-            return (
-              <div key={`file-${i}`} className="inline-flex items-center gap-1.5 px-3.5 py-1 text-xs rounded-full bg-[#FAF9F7] text-gray-900 font-sans">
-                <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</span>
-                {note && <span className="text-[11px] text-gray-400">{note}</span>}
-                <span onClick={() => onRemove(cat.id, i)} className="cursor-pointer opacity-40 text-base leading-none ml-0.5 hover:opacity-70">×</span>
-              </div>
-            )
-          })}
-        </div>
+      <Upload size={26} strokeWidth={1.5} className={`mx-auto ${dragging ? "text-[#311E86]" : "text-gray-400"}`} aria-hidden="true" />
+      {dragging ? (
+        <p className="mt-3 text-[15px] font-medium text-[#311E86]">Laat los om toe te voegen</p>
+      ) : (
+        <>
+          {/* Dragging needs a mouse: a phone gets the other line. */}
+          <p className="mt-3 text-[15px] font-medium text-gray-900 [@media(pointer:coarse)]:hidden">Sleep uw documenten hierheen</p>
+          <p className="mt-3 text-[15px] font-medium text-gray-900 hidden [@media(pointer:coarse)]:block">Voeg uw documenten toe</p>
+        </>
       )}
+      <p className="mt-1 text-[13px] text-gray-500">Alle documenten in één keer, de volgorde maakt niet uit.</p>
+      <button type="button" onClick={() => inputRef.current?.click()}
+        className="mt-5 px-6 py-2.5 text-sm font-medium font-sans rounded-full border border-[#311e86]/40 bg-white text-[#311e86] cursor-pointer hover:bg-[#311e86]/10 transition-colors">
+        Bestanden kiezen
+      </button>
+      <p className="mt-4 text-xs text-gray-400">PDF, Word, Excel, afbeelding, .txt of .eml. Maximaal 250 MB per bestand.</p>
+      <input ref={inputRef} type="file" multiple hidden accept={DOC_EXTENSIONS.join(",")}
+        onChange={(e) => { onAdd(Array.from(e.target.files || [])); e.target.value = "" }} />
+    </div>
+  )
+}
+
+// Every document of the aanvraag in one list: first the ones that are kept
+// with the concept, then the ones that are waiting, on their way or not kept.
+// A document is kept in the order it was added, so a row keeps its place when
+// it turns from "wordt bewaard" into "bewaard".
+function DocRows({ saved, pending, uploads, onRemove, onRemoveSaved }: {
+  // `saved`: kept with the concept. `uploads`: how far the selected files are.
+  saved: ConceptDocument[]; pending: File[]; uploads: Map<File, UploadInfo>
+  onRemove: (file: File) => void; onRemoveSaved: (doc: ConceptDocument) => void
+}) {
+  if (saved.length === 0 && pending.length === 0) return null
+  const row = "flex items-center gap-3 pl-4 pr-2.5 py-2.5"
+  const remove = "shrink-0 p-1.5 rounded-full text-gray-400 cursor-pointer hover:text-red-500 hover:bg-red-50 transition-colors"
+  return (
+    <ul data-doc-list className="mt-4 rounded-xl border border-gray-200 bg-white divide-y divide-gray-100 font-sans">
+      {saved.map((d) => (
+        <li key={`saved-${d.id}`} data-doc="saved" title="Bewaard bij het concept" className={row}>
+          <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <Check size={12} strokeWidth={3} aria-hidden="true" />
+          </span>
+          {/* On a narrow screen the name gives way, the state stays readable. */}
+          <span className="min-w-0 flex-1 text-sm text-gray-900 truncate">{d.name}</span>
+          <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap">{formatBytes(d.size)}</span>
+          <span className="text-xs text-emerald-700 whitespace-nowrap">bewaard</span>
+          <button type="button" onClick={() => onRemoveSaved(d)} aria-label={`${d.name} verwijderen`} className={remove}>
+            <X size={14} aria-hidden="true" />
+          </button>
+        </li>
+      ))}
+      {pending.map((f, i) => {
+        // Not kept yet. Say so in words: a file name alone looks finished.
+        const info = uploads.get(f)
+        const uploading = info?.phase === "uploading"
+        const failed = !info || info.phase === "failed"
+        const note = uploading
+          ? `wordt bewaard…${info.pct > 0 && info.pct < 100 ? ` ${info.pct}%` : ""}`
+          : failed ? "niet bewaard" : "wacht op bewaren"
+        return (
+          <li key={`file-${i}`} data-doc={failed ? "failed" : "pending"}
+            title={failed ? info?.error || "Niet bewaard bij het concept" : "Wordt bij het concept bewaard"}
+            className={`${row} ${failed ? "bg-amber-50/60" : ""}`}>
+            <span className="w-5 h-5 flex items-center justify-center shrink-0">
+              {uploading
+                ? <span className="w-3.5 h-3.5 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin" />
+                : <span className={`w-2 h-2 rounded-full ${failed ? "bg-amber-500" : "bg-gray-300"}`} />}
+            </span>
+            <span className="min-w-0 flex-1 text-sm text-gray-900 truncate">{f.name}</span>
+            <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap">{formatBytes(f.size)}</span>
+            <span className={`text-xs whitespace-nowrap ${failed ? "text-amber-700" : "text-gray-500"}`}>{note}</span>
+            <button type="button" onClick={() => onRemove(f)} aria-label={`${f.name} verwijderen`} className={remove}>
+              <X size={14} aria-hidden="true" />
+            </button>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+// What is needed, named once. It is a list to read, not a set of boxes: every
+// document goes into the one box above it.
+function DocNeeds({ docs }: { docs: typeof DOC_CATEGORIES }) {
+  return (
+    <div className="mt-9">
+      <h3 className="font-serif text-[17px] font-semibold text-[#1E3A5F] mb-1">Wat wij nodig hebben</h3>
+      <p className="text-[13px] text-gray-500 font-sans">
+        De documenten met &ldquo;altijd nodig&rdquo; hebben wij voor elke aanvraag nodig. De andere voegt u toe als ze van toepassing zijn.
+      </p>
+      <ul className="mt-4 grid sm:grid-cols-2 gap-x-8 gap-y-3.5 font-sans">
+        {docs.map((cat) => (
+          <li key={cat.id}>
+            <p className="text-sm text-gray-900">
+              {cat.label}{cat.required && <span className="text-[11px] text-[#F75D20] ml-2 whitespace-nowrap">altijd nodig</span>}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{cat.desc}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -479,43 +613,49 @@ export function FinancingForm() {
   }
 
   // Documenten
-  // `files`: selected in this visit and not (yet) kept with the concept.
   // `savedDocs`: kept with the concept on the server, so still there after the
-  // browser is closed or on another device. A file moves from the first to the
-  // second once its upload to the concept's folder is confirmed
-  // (lib/concept-sync.ts). If that never happens it simply stays in `files`
-  // and is uploaded at submission, as it always was.
-  const [files, setFiles] = useState<Record<string, File[]>>({})
+  // browser is closed or on another device.
+  // `files`: selected and not (yet) kept: waiting, on its way, or failed. A
+  // file moves from the second to the first once the server has recorded it
+  // (lib/concept-sync.ts). If that never happens it stays in `files` and is
+  // uploaded at submission, as it always was.
+  // Both live in the concept's sync object, not in this component: that object
+  // carries on when the adviser goes to another page of the portal, and is
+  // picked up again, with the files, when the form is opened again.
   const [, rerender] = useState(0)
-  const [sync] = useState(() => new ConceptSync({
+  // The account that opened the form (it is only shown to a signed-in user).
+  const [ownerUid] = useState(() => user?.uid ?? "")
+  // Never with another account's session. A document that is still on its way
+  // when someone else signs in on this page must not end up under their name.
+  const getToken = useCallback(async () => {
+    const current = auth.currentUser
+    return current && current.uid === ownerUid ? current.getIdToken() : null
+  }, [ownerUid])
+  const [sync] = useState(() => acquireConceptSync({
     draftId,
-    getToken: async () => auth.currentUser?.getIdToken(),
-    onChange: () => rerender((n) => n + 1),
-    onDocSaved: (cat, file) => setFiles((prev) => ({ ...prev, [cat]: (prev[cat] || []).filter((f) => f !== file) })),
+    getToken,
+    onChange: () => {},
     initialDocs: localDocs(draft),
-    ownerUid: user?.uid,
+    ownerUid,
   }))
   const savedDocs = sync.docs
+  const files = sync.pendingFiles()
   useEffect(() => {
+    sync.attach({ getToken, onChange: () => rerender((n) => n + 1) })
     sync.start()
     const onVisibility = () => { if (document.visibilityState === "hidden") sync.flushOnHide() }
     const onPageHide = () => sync.flushOnHide()
     document.addEventListener("visibilitychange", onVisibility)
     window.addEventListener("pagehide", onPageHide)
+    // What changed while the form was away (a document that was kept).
+    rerender((n) => n + 1)
     return () => {
       document.removeEventListener("visibilitychange", onVisibility)
       window.removeEventListener("pagehide", onPageHide)
-      sync.dispose()
+      // The documents that are on their way carry on, see lib/concept-sync.ts.
+      sync.detach()
     }
-  }, [sync])
-  // Closing the tab while a document is on its way would lose that document.
-  const savingDocs = sync.busy
-  useEffect(() => {
-    if (!savingDocs) return
-    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = "" }
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [savingDocs])
+  }, [sync, getToken])
   const [docRemoveError, setDocRemoveError] = useState("")
   const removeSavedDoc = async (doc: ConceptDocument) => {
     setDocRemoveError("")
@@ -524,12 +664,13 @@ export function FinancingForm() {
   }
 
   // Files that were selected in an earlier visit but never reached the concept
-  // (a concept from before documents were kept, or a browser closed while a
-  // document was still uploading). They have to be added again, so say so
-  // explicitly instead of silently blocking.
+  // (a concept from before documents were kept, or a tab closed or reloaded
+  // while a document was still on its way). They have to be added again, so
+  // say so explicitly instead of silently blocking. A document can be stored
+  // under another name than it was selected with ("scan (2).pdf"): `orig`.
   const draftFileNameList = Object.values(s<Record<string, string[]>>("fileNames", {})).flat()
   const presentNames = new Set([
-    ...savedDocs.map((d) => d.name.toLowerCase()),
+    ...savedDocs.flatMap((d) => [d.name.toLowerCase(), ...(d.orig ? [d.orig.toLowerCase()] : [])]),
     ...Object.values(files).flat().map((f) => f.name.toLowerCase()),
   ])
   const lostFileNames = draftFileNameList.filter((n) => !presentNames.has(n.toLowerCase()))
@@ -555,7 +696,7 @@ export function FinancingForm() {
       fileNames: Object.fromEntries(Object.entries(files).map(([id, fs]) => [id, fs.map((f) => f.name)])),
       // Bookkeeping for this browser only (lib/concept-local.ts).
       savedDocs: sync.docs,
-      ownerUid: user?.uid ?? "",
+      ownerUid,
     })
     // Send it to the server as well, a moment after the last change. A
     // finished step goes at once.
@@ -571,30 +712,51 @@ export function FinancingForm() {
       adresHuisnummer, adresPostcode, adresPlaats,
       geboortedatum, burgerlijkStaat, medeVoornaam, medeAchternaam, medeEmail, medeGeboortedatum,
       objects, leningDoel, leningDoelAnders, leningBedrag, looptijd, eigenInbreng, bestaandeSchulden,
-      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, files])
+      wanneerNodig, aflossingstype, uitstrategie, uitstrategieAnders, sync.filesVersion])
 
-  const addFiles = (catId: string, newFiles: File[]) => {
-    setFiles((prev) => ({ ...prev, [catId]: [...(prev[catId] || []), ...newFiles] }))
-    // Keep them with the concept straight away.
-    newFiles.forEach((f) => sync.enqueue(catId, f))
+  // Every selected file that is not kept yet, whatever card or box it came
+  // through (a concept from before the one box has them under several ids).
+  const pendingList = Object.values(files).flat()
+  // What was offered and not taken, with the reason. Shown under the box until
+  // the next time something is added.
+  const [refused, setRefused] = useState<{ name: string; reason: string }[]>([])
+  // Keep them with the concept straight away. A file the server would refuse
+  // is not taken (see DOC_EXTENSIONS), nor one that is in the list already:
+  // dropping a whole folder's worth twice must not give every document twice.
+  const addFiles = (newFiles: File[], folders: string[] = [], unreadable = false) => {
+    const notTaken = folders.map((name) => ({ name, reason: "Een map kan niet worden toegevoegd. Open de map en sleep de bestanden zelf in het vak." }))
+    if (unreadable) notTaken.push({ name: "Wat u sleepte", reason: "Dit kan niet rechtstreeks worden toegevoegd. Sla het eerst op uw computer op en sleep dan het bestand in het vak." })
+    const present = new Set([
+      ...savedDocs.map((d) => `${(d.orig || d.name).toLowerCase()}|${d.size}`),
+      ...pendingList.map((f) => `${f.name.toLowerCase()}|${f.size}`),
+    ])
+    for (const f of newFiles) {
+      const dot = f.name.lastIndexOf(".")
+      const ext = dot >= 0 ? f.name.slice(dot).toLowerCase() : ""
+      const key = `${f.name.toLowerCase()}|${f.size}`
+      if (!DOC_EXTENSIONS.includes(ext)) notTaken.push({ name: f.name, reason: "Dit bestandstype kan niet worden geüpload." })
+      else if (f.size === 0) notTaken.push({ name: f.name, reason: "Het bestand is leeg." })
+      else if (f.size > DOC_MAX_BYTES) notTaken.push({ name: f.name, reason: "Het bestand is groter dan 250 MB." })
+      else if (present.has(key)) notTaken.push({ name: f.name, reason: "Dit bestand staat er al in." })
+      else { present.add(key); sync.enqueue(DOCUMENTS_CAT, f) }
+    }
+    setRefused(notTaken)
   }
-  const removeFile = (catId: string, idx: number) => {
-    const file = (files[catId] || [])[idx]
-    if (file) sync.cancel(file)
-    setFiles((prev) => ({ ...prev, [catId]: (prev[catId] || []).filter((f) => f !== file) }))
-  }
+  const removeFile = (file: File) => sync.cancel(file)
 
-  const pendingFiles = Object.values(files).flat().length
+  const pendingFiles = pendingList.length
   const totalFiles = pendingFiles + savedDocs.length
+  // Documents that are waiting or on their way right now (not the failed ones).
+  const savingCount = [...sync.uploads.values()].filter((u) => u.phase !== "failed").length
 
   const visibleDocs = DOC_CATEGORIES.filter((cat) => {
     if (aanvragerType === "Particulier") return cat.particulier
     if (aanvragerType) return cat.zakelijk
     return true
   })
-  const missingRequiredDocs = visibleDocs
-    .filter((cat) => cat.required && !files[cat.id]?.length && !savedDocs.some((d) => d.cat === cat.id))
-    .map((cat) => cat.label)
+  // The form cannot see what kind of document a file is, so it does not ask
+  // for the two that are always needed by name: it asks for at least one.
+  const noDocuments = totalFiles === 0
 
   const validateStep = (currentStep: number): boolean => {
     const newErrors: Record<string, string> = {}
@@ -640,7 +802,7 @@ export function FinancingForm() {
 
   const next = () => {
     if (!validateStep(step)) { scrollToTop(); return }
-    if (step === 3 && missingRequiredDocs.length > 0) { setDocError(true); return }
+    if (step === 3 && noDocuments) { setDocError(true); return }
     setDocError(false); setErrors({})
     setStep((prev) => Math.min(prev + 1, STEPS.length - 1))
     scrollToTop()
@@ -685,9 +847,8 @@ export function FinancingForm() {
       await sync.pauseUploads()
       setUploadProgress("")
       const keptDocs = sync.docs
-      const openFiles = Object.entries(files).map(
-        ([catId, catFiles]) => [catId, catFiles.filter((f) => !sync.isSaved(f))] as const
-      )
+      // Read after the wait above: what was kept in the meantime is not in it.
+      const openFiles = Object.entries(sync.pendingFiles())
 
       const formData = new FormData()
       const fields: Record<string, string> = {
@@ -1047,32 +1208,70 @@ export function FinancingForm() {
         <div>
           <h2 className="font-serif text-[22px] font-semibold text-[#311E86] mb-2">Documenten uploaden</h2>
           <p className="font-sans text-sm text-gray-400 mb-7">
-            Upload de benodigde documenten. Verplichte documenten zijn gemarkeerd. U kunt bestanden slepen of op &ldquo;Uploaden&rdquo; klikken.
-            Documenten worden direct bij uw concept bewaard. Een vinkje betekent dat het document veilig is opgeslagen.
+            Voeg hier alle documenten voor deze aanvraag toe. U kunt ze in één keer in het vak slepen of op &ldquo;Bestanden kiezen&rdquo; klikken.
+            Documenten worden direct bij uw concept bewaard. Dat duurt per document enkele seconden, bij grote bestanden langer.
+            Een groen vinkje betekent dat het document veilig is opgeslagen.
           </p>
           {lostFileNames.length > 0 && (
             <div className="mb-5 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 font-sans">
               <p className="text-[13px] font-medium text-amber-800">
-                Let op: {lostFileNames.length === 1 ? "één eerder gekozen bestand is" : `${lostFileNames.length} eerder gekozen bestanden zijn`} niet bewaard.
+                Let op: {lostFileNames.length === 1 ? "één eerder gekozen bestand was" : `${lostFileNames.length} eerder gekozen bestanden waren`} nog niet bewaard toen de pagina werd gesloten of ververst.
               </p>
               <p className="text-[13px] text-amber-700 mt-1">
-                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe: <span className="font-medium">{lostFileNames.join(", ")}</span>.
+                Voeg {lostFileNames.length === 1 ? "dit bestand" : "deze bestanden"} opnieuw toe en wacht tot er een groen vinkje voor staat: <span className="font-medium">{lostFileNames.join(", ")}</span>.
               </p>
             </div>
           )}
-          {visibleDocs.map((cat) => (
-            <DocUploadCard key={cat.id} cat={cat} files={files} saved={savedDocs} uploads={sync.uploads}
-              onAdd={addFiles} onRemove={removeFile} onRemoveSaved={removeSavedDoc} />
-          ))}
+          <DocDropZone onAdd={addFiles} />
+          {refused.length > 0 && (
+            <div role="status" className="mt-3 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 font-sans">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-[13px] font-medium text-amber-800">
+                  {refused.length === 1 ? "Eén bestand is niet toegevoegd." : `${refused.length} bestanden zijn niet toegevoegd.`}
+                </p>
+                <button type="button" onClick={() => setRefused([])} aria-label="Melding sluiten"
+                  className="shrink-0 -mt-1 -mr-2 p-1.5 rounded-full text-amber-700 cursor-pointer hover:bg-amber-100 transition-colors">
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </div>
+              <ul className="mt-1.5 space-y-1.5 text-[13px]">
+                {refused.map((r, i) => (
+                  <li key={`${r.name}-${i}`} className="sm:flex sm:gap-3">
+                    <span className="block font-medium text-amber-800 break-all sm:w-2/5 sm:shrink-0">{r.name}</span>
+                    <span className="block text-amber-700">{r.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {/* Under the box, so the box stays where it is when the first document is dropped. */}
+          {sync.busy && (
+            <div className="mt-3 px-5 py-4 rounded-xl bg-[#f0f4ff] border border-[#d9e2ff] font-sans flex items-start gap-3">
+              <span className="mt-0.5 w-4 h-4 border-2 border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
+              <div>
+                <p className="text-[13px] font-medium text-[#1E3A5F]">
+                  {savingCount === 1 ? "Eén document wordt nu bewaard." : `${savingCount} documenten worden nu bewaard.`}
+                </p>
+                <p className="text-[13px] text-[#1E3A5F]/80 mt-1">
+                  Sluit of ververs dit tabblad niet tot elk document een groen vinkje heeft. Verder invullen of naar een andere pagina van het portaal gaan kan gewoon.
+                </p>
+              </div>
+            </div>
+          )}
+          <DocRows saved={savedDocs} pending={pendingList} uploads={sync.uploads} onRemove={removeFile} onRemoveSaved={removeSavedDoc} />
           {docRemoveError && <p className="mt-2 text-xs text-red-500 font-sans">{docRemoveError}</p>}
-          <div className="mt-4 px-5 py-3 rounded-xl bg-[#FAF9F7] text-[13px] text-gray-400 font-sans">
-            {totalFiles} {totalFiles === 1 ? "bestand" : "bestanden"} toegevoegd
-            {savedDocs.length > 0 && <>, waarvan {savedDocs.length} bewaard bij uw concept</>}
-            {pendingFiles > 0 && sync.busy && <>. Bezig met bewaren…</>}
-            {pendingFiles > 0 && !sync.busy && (
-              <>. {pendingFiles === 1 ? "Eén bestand is" : `${pendingFiles} bestanden zijn`} nog niet bewaard en {pendingFiles === 1 ? "wordt" : "worden"} bij het indienen geüpload. Sluit u deze pagina eerder, voeg {pendingFiles === 1 ? "het" : "ze"} dan later opnieuw toe.</>
-            )}
-          </div>
+          {totalFiles > 0 && (
+            <div className="mt-3 px-5 py-3 rounded-xl bg-[#FAF9F7] text-[13px] text-gray-400 font-sans">
+              {totalFiles} {totalFiles === 1 ? "bestand" : "bestanden"} toegevoegd
+              {savedDocs.length > 0 && pendingFiles === 0 && <>, {savedDocs.length === 1 ? "bewaard" : "alle bewaard"} bij uw concept</>}
+              {savedDocs.length > 0 && pendingFiles > 0 && <>, waarvan {savedDocs.length} bewaard bij uw concept</>}
+              {pendingFiles > 0 && sync.busy && <>. Bezig met bewaren…</>}
+              {pendingFiles > 0 && !sync.busy && (
+                <>. {pendingFiles === 1 ? "Eén bestand is" : `${pendingFiles} bestanden zijn`} niet bij uw concept bewaard en {pendingFiles === 1 ? "wordt" : "worden"} bij het indienen geüpload. Sluit u dit tabblad eerder, voeg {pendingFiles === 1 ? "het" : "ze"} dan later opnieuw toe.</>
+              )}
+            </div>
+          )}
+          <DocNeeds docs={visibleDocs} />
         </div>
       )
 
@@ -1122,16 +1321,11 @@ export function FinancingForm() {
           </ReviewSection>
 
           <ReviewSection title="Documenten">
-            {[...new Set([...savedDocs.map((d) => d.cat), ...Object.keys(files)])].map((catId) => {
-              const names = [
-                ...savedDocs.filter((d) => d.cat === catId).map((d) => d.name),
-                ...(files[catId] || []).map((f) => f.name),
-              ]
-              if (names.length === 0) return null
-              const cat = DOC_CATEGORIES.find((c) => c.id === catId)
-              return <ReviewRow key={catId} label={cat?.label || catId}
-                value={`${names.length} ${names.length === 1 ? "bestand" : "bestanden"} (${names.join(", ")})`} />
-            })}
+            {totalFiles > 0 && <ReviewRow label="Toegevoegd" value={`${totalFiles} ${totalFiles === 1 ? "bestand" : "bestanden"}`} />}
+            {/* One name per line: there is no kind of document to group them by. */}
+            {[...savedDocs.map((d) => d.name), ...pendingList.map((f) => f.name)].map((name, i) => (
+              <p key={`${name}-${i}`} className="py-2 border-b border-[#FAF9F7] text-sm text-gray-900 font-sans break-words">{name}</p>
+            ))}
             {totalFiles === 0 && <p className="text-sm text-gray-400 font-sans italic">Geen documenten geüpload</p>}
           </ReviewSection>
 
@@ -1176,9 +1370,21 @@ export function FinancingForm() {
       <div ref={topRef} />
       <div className="relative">
         <StepIndicator current={step} onStepClick={(i) => { setErrors({}); setStep(i); scrollToTop() }} />
-        <div className={`absolute top-0 right-0 text-[11px] font-sans text-gray-400 transition-opacity duration-500 ${draftSaved ? "opacity-100" : "opacity-0"}`}>
-          Concept opgeslagen
-        </div>
+        {/* While a document is on its way this stays in view on every step:
+            the adviser can go on filling in, but the tab has to stay open.
+            Next to the steps where there is room, under them on a phone. */}
+        {sync.busy ? (
+          <div className="-mt-6 mb-6 md:m-0 md:absolute md:top-0 md:right-0 md:w-[124px] flex items-start gap-1.5 text-[11px] leading-snug font-sans text-[#311E86]">
+            <span className="mt-0.5 w-2.5 h-2.5 border-[1.5px] border-[#311E86] border-t-transparent rounded-full animate-spin shrink-0" />
+            <span>Documenten worden bewaard…</span>
+          </div>
+        ) : (
+          // Under the steps on a phone (in the room below them), next to them
+          // where there is room: on a phone it lay over the last two steps.
+          <div className={`absolute right-0 top-full mt-1 md:top-0 md:mt-0 text-[11px] font-sans text-gray-400 transition-opacity duration-500 ${draftSaved ? "opacity-100" : "opacity-0"}`}>
+            Concept opgeslagen
+          </div>
+        )}
       </div>
       {/* Only when the server copy is NOT being kept, so nobody counts on it. */}
       {sync.state !== "ok" && (
@@ -1200,10 +1406,9 @@ export function FinancingForm() {
 
         {step < STEPS.length - 1 ? (
           <div className="flex flex-col items-end gap-2">
-            {step === 3 && docError && missingRequiredDocs.length > 0 && (
-              <p className="text-xs text-gray-400 font-sans text-right">
-                Upload verplichte documenten om verder te gaan:{" "}
-                <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
+            {step === 3 && docError && noDocuments && (
+              <p className="text-xs text-[#F75D20] font-sans text-right">
+                Voeg minstens één document toe om verder te gaan.
               </p>
             )}
             <button onClick={next} className="px-8 py-3 text-sm font-medium font-sans border-none rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors">
@@ -1212,19 +1417,17 @@ export function FinancingForm() {
           </div>
         ) : (
           <div className="flex flex-col items-end gap-2">
-            {missingRequiredDocs.length > 0 && (
+            {noDocuments && (
               <p className="text-xs text-gray-400 font-sans text-right">
-                {lostFileNames.length > 0 && <>Eerder gekozen bestanden zijn niet bewaard.{" "}</>}
-                Upload verplichte documenten om in te dienen:{" "}
-                <span className="text-[#F75D20]">{missingRequiredDocs.join(", ")}</span>
-                {" — "}
+                {lostFileNames.length > 0 && <>Eerder gekozen bestanden waren nog niet bewaard.{" "}</>}
+                <span className="text-[#F75D20]">Voeg minstens één document toe om in te dienen.</span>{" "}
                 <button type="button" onClick={() => { setStep(3); scrollToTop() }} className="text-[#311E86] underline cursor-pointer">
-                  naar documenten
+                  Naar documenten
                 </button>
               </p>
             )}
             {submitError && <p className="text-sm text-red-500 font-sans">{submitError}</p>}
-            <button onClick={handleSubmit} disabled={submitting || missingRequiredDocs.length > 0}
+            <button onClick={handleSubmit} disabled={submitting || noDocuments}
               className="px-8 py-3 text-sm font-medium font-sans border-none rounded-full bg-[#311E86] text-white cursor-pointer hover:bg-[#26175e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
               {submitting ? (uploadProgress || "Bezig met verzenden…") : "Aanvraag indienen"}
             </button>

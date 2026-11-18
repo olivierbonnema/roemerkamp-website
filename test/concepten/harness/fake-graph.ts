@@ -9,18 +9,25 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 export class FakeDrive {
   items = new Map<string, Item>()
-  sessions = new Map<string, { folderId: string; name: string }>()
+  sessions = new Map<string, { folderId: string; name: string; placeholderId?: string }>()
   calls: string[] = []
   // { "PATCH": 1 } makes the next PATCH answer 500.
   failures: Record<string, number> = {}
   // Each piece of an upload takes this long, so a test can act "while it uploads".
   uploadDelayMs = 0
+  // Every other call to Graph takes this long (a slow SharePoint).
+  graphDelayMs = 0
+  // true: an upload session shows up in the folder at once as an empty file,
+  // which becomes the document when the upload is finished and stays behind
+  // empty when it never is.
+  placeholders = false
   private seq = 0
 
   constructor() { this.reset() }
 
   reset() {
     this.items.clear(); this.sessions.clear(); this.calls = []; this.failures = {}; this.seq = 0; this.uploadDelayMs = 0
+    this.graphDelayMs = 0; this.placeholders = false
     this.items.set("root", { id: "root", name: "", parentId: null, folder: true, size: 0 })
     const oh = this.add("OH leningen", "root", true)
     this.add("Portaal Aanvragen", oh.id, true)
@@ -78,12 +85,15 @@ export class FakeDrive {
       if (!range) return json({ error: "no range" }, 400)
       const end = Number(range[2]), total = Number(range[3])
       if (end + 1 < total) return json({ nextExpectedRanges: [`${end + 1}-`] }, 202)
-      const item = this.add(this.freeName(session.folderId, session.name), session.folderId, false, total)
+      const placeholder = session.placeholderId ? this.items.get(session.placeholderId) : undefined
+      if (placeholder) placeholder.size = total
+      const item = placeholder ?? this.add(this.freeName(session.folderId, session.name), session.folderId, false, total)
       this.sessions.delete(u.pathname)
       return json(this.describe(item), 201)
     }
 
     if (u.host !== "graph.microsoft.com") return json({ error: `unexpected host ${u.host}` }, 500)
+    if (this.graphDelayMs) await new Promise((resolve) => setTimeout(resolve, this.graphDelayMs))
     const path = decodeURIComponent(u.pathname).replace(/^\/v1\.0\/drives\/[^/]+/, "")
     const body = init.body && typeof init.body === "string" ? JSON.parse(init.body) : {}
     let m: RegExpExecArray | null
@@ -103,7 +113,9 @@ export class FakeDrive {
     if ((m = /^\/items\/([^/:]+):\/(.+):\/createUploadSession$/.exec(path)) && method === "POST") {
       if (!this.items.get(m[1])?.folder) return json({ error: { code: "itemNotFound" } }, 404)
       const key = `/session/${++this.seq}`
-      this.sessions.set(key, { folderId: m[1], name: m[2] })
+      const name = this.freeName(m[1], m[2])
+      const placeholderId = this.placeholders ? this.add(name, m[1], false, 0).id : undefined
+      this.sessions.set(key, { folderId: m[1], name, placeholderId })
       return json({ uploadUrl: `https://upload.test${key}` })
     }
     // /items/{id}:/{name}:/content  (small upload through our own server)

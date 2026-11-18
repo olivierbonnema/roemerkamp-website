@@ -29,8 +29,8 @@ export function AccountSettings() {
   }
 
   return (
-    <div className="max-w-md">
-      <div className="border border-gray-200 rounded-2xl p-6 bg-white">
+    <div>
+      <div className="border border-gray-200 rounded-xl p-6 bg-white">
         <h2 className="font-serif text-xl text-[#1E3A5F] mb-1">Accountgegevens</h2>
         <p className="text-sm text-gray-400 font-sans mb-6">Uw inloggegevens bij Lange &amp; Partners.</p>
 

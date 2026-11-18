@@ -11,10 +11,11 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { isAdminEmail } from "@/lib/admin"
 import { resolvePartnerOrg } from "@/lib/partners"
 import { logActivity } from "@/lib/activity-log"
+import { getMsToken, listFolderFiles } from "@/lib/onedrive-direct"
 import {
   CONCEPT_COLLECTION, MAX_CONCEPTS_PER_USER,
-  conceptDocId, conceptHasContent, conceptSummary,
-  type ConceptDocument,
+  conceptDocId, conceptHasContent, conceptSummary, originalName, parsePendingUploads, sameUpload, settlePendingUploads,
+  type ConceptDocument, type PendingUpload,
 } from "@/lib/concepten"
 
 export async function verifyUser(req: NextRequest): Promise<DecodedIdToken | null> {
@@ -49,7 +50,93 @@ export function conceptDocuments(data: FirebaseFirestore.DocumentData | undefine
       name: String(d.name),
       size: typeof d.size === "number" ? d.size : 0,
       ...(typeof d.uploadedAt === "string" ? { uploadedAt: d.uploadedAt } : {}),
+      ...originalName(d.orig, String(d.name)),
     }))
+}
+
+export interface ConceptUploads {
+  // kept with the concept
+  documents: ConceptDocument[]
+  // started, and not (yet) found in the folder
+  pending: PendingUpload[]
+}
+
+// Bring the record of a concept's documents in line with what is really in its
+// folder (see settlePendingUploads in lib/concepten.ts). Called wherever the
+// folder has just been read.
+//   confirm: a document the browser just reported and that was found
+//   add:     a note for an upload that is about to start
+// Returns the documents and notes as they are stored afterwards. A concept
+// that was submitted or taken out of the overview in the meantime is left
+// exactly as it is.
+export async function settleConceptUploads(
+  ref: FirebaseFirestore.DocumentReference,
+  folderFiles: { id: string; name: string; size: number }[],
+  options: { confirm?: ConceptDocument; add?: PendingUpload } = {}
+): Promise<ConceptUploads> {
+  return adminDb.runTransaction(async (tx) => {
+    const snap = await tx.get(ref)
+    const data = snap.data()
+    const before = conceptDocuments(data)
+    const notes = parsePendingUploads(data?.pendingUploads)
+    if (!snap.exists || !data || data.status !== "concept") return { documents: before, pending: notes }
+
+    let documents = before
+    const confirm = options.confirm
+    if (confirm) {
+      const known = documents.find((d) => d.id === confirm.id)
+      if (!known) {
+        documents = [...documents, confirm]
+      } else if (known.cat !== confirm.cat || (!known.orig && confirm.orig)) {
+        // Recorded earlier from a note (the report came late). The browser
+        // knows best under which heading the adviser added it.
+        documents = documents.map((d) =>
+          d.id === confirm.id ? { ...d, cat: confirm.cat, ...(d.orig ? {} : originalName(confirm.orig, d.name)) } : d
+        )
+      }
+    }
+    const settled = settlePendingUploads(notes, documents, folderFiles, new Date())
+    const add = options.add
+    const pending = add ? [...settled.pending.filter((p) => !sameUpload(p, add)), add] : settled.pending
+
+    const documentsChanged = JSON.stringify(settled.documents) !== JSON.stringify(before)
+    if (documentsChanged || JSON.stringify(pending) !== JSON.stringify(notes)) {
+      tx.update(ref, {
+        documents: settled.documents,
+        pendingUploads: pending,
+        ...(documentsChanged ? { updatedAt: new Date() } : {}),
+      })
+    }
+    return { documents: settled.documents, pending }
+  })
+}
+
+// For the places that show a concept (reopening it, the admin list): when an
+// upload was started and never reported, look in the folder and record what
+// arrived. Only then, so showing a concept normally costs no call to
+// SharePoint. Bounded in time and never fails: the caller always gets the
+// documents to show.
+export async function recoverConceptUploads(
+  ref: FirebaseFirestore.DocumentReference,
+  data: FirebaseFirestore.DocumentData,
+  timeoutMs = 5000
+): Promise<ConceptUploads> {
+  const recorded: ConceptUploads = { documents: conceptDocuments(data), pending: parsePendingUploads(data.pendingUploads) }
+  const folderId = typeof data.driveFolderId === "string" ? data.driveFolderId : ""
+  if (data.status !== "concept" || !folderId || recorded.pending.length === 0) return recorded
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const work = (async () => settleConceptUploads(ref, await listFolderFiles(await getMsToken(), folderId)))()
+    // Too slow: answer with what is recorded. The check may still finish.
+    const late = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), timeoutMs) })
+    work.catch(() => {})
+    return (await Promise.race([work, late])) ?? recorded
+  } catch (err) {
+    console.error("[concepten] could not check the folder for unreported uploads:", err)
+    return recorded
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
 }
 
 export type ConceptWrite =

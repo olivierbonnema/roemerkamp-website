@@ -280,7 +280,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
       </button>
 
       {/* Status stepper */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
         <h2 className="font-serif text-xl text-[#1E3A5F] mb-6">Status</h2>
 
         {needsInfo && (
@@ -337,7 +337,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
       {/* Full application overview — everything the applicant submitted. Admin-only
           data (background checks, AI analysis, internal notes) is never sent to
           this view; the API strips it server-side for non-admins. */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
         <h2 className="font-serif text-xl text-[#1E3A5F]">Aanvraag gegevens</h2>
 
         {/* Aanvrager */}
@@ -407,7 +407,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
       </div>
 
       {/* Messages */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
         <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Berichten</h2>
 
         {berichten.length === 0 ? (
@@ -452,7 +452,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
 
       {/* Document upload */}
       {!isTerminal && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="font-serif text-xl text-[#1E3A5F] mb-2">Extra documenten uploaden</h2>
           <p className="text-sm font-sans text-gray-400 mb-4">
             Upload aanvullende documenten die bij uw aanvraag horen (PDF, afbeeldingen, Word, Excel).
