@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site"
  * Temporary - sends all email templates to test delivery + design.
  * DELETE after confirming all templates work.
  *
- * GET /api/test-email - sends all 7 templates to olivier@langefa.nl
+ * GET /api/test-email - sends all 6 templates to olivier@langefa.nl
  */
 export async function GET() {
   const to = "olivier@langefa.nl"
@@ -54,7 +54,7 @@ export async function GET() {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 1/7] Bedankt voor uw financieringsaanvraag",
+      subject: "[TEST 1/6] Bedankt voor uw financieringsaanvraag",
       html: wrap(`
         ${emailHeader("Bedankt voor uw aanvraag")}
         <div style="padding:36px 40px;">
@@ -82,7 +82,7 @@ export async function GET() {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 2/7] Nieuwe financieringsaanvraag: Jan de Vries",
+      subject: "[TEST 2/6] Nieuwe financieringsaanvraag: Jan de Vries",
       html: wrap(`
         ${emailHeader("Nieuwe financieringsaanvraag", "Jan de Vries &middot; 27 mei 2026")}
         <div style="padding:24px 40px 32px;">
@@ -111,39 +111,12 @@ export async function GET() {
     results["2_lfa_notification"] = String(err)
   }
 
-  // ── 3. Message notification (berichten) ──
+  // ── 3. Portal feedback (submit-feedback) ──
   try {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 3/7] Update over uw financieringsaanvraag - Lange & Partners",
-      html: wrap(`
-        ${emailHeader("Nieuw bericht over uw aanvraag")}
-        <div style="padding:36px 40px;">
-          <p style="font-size:13px;line-height:1.8;color:#374151;margin:0 0 16px;">
-            Er is een nieuw bericht geplaatst bij uw financieringsaanvraag voor <strong>Jan de Vries</strong>:
-          </p>
-          <div style="background:#f9fafb;border-left:3px solid #311E86;padding:16px;border-radius:0 4px 4px 0;margin:0 0 24px;">
-            <p style="color:#1f2937;font-size:13px;line-height:1.8;margin:0;white-space:pre-wrap;">Goedemiddag, wij hebben uw documenten ontvangen en nemen deze in behandeling. Verwacht binnen 2 werkdagen een reactie.</p>
-          </div>
-          <a href="${BASE_URL}/mijn-aanvragen/test123"
-             style="display:inline-block;background:#311E86;color:#fff;text-decoration:none;padding:10px 22px;border-radius:4px;font-size:13px;font-weight:500;">
-            Bekijk uw aanvraag →
-          </a>
-        </div>
-        ${emailFooter}`),
-    })
-    results["3_message_notification"] = "sent"
-  } catch (err) {
-    results["3_message_notification"] = String(err)
-  }
-
-  // ── 4. Portal feedback (submit-feedback) ──
-  try {
-    await sendEmail({
-      from: `Lange & Partners <${FROM_EMAIL}>`,
-      to,
-      subject: "[TEST 4/7] Portaal feedback ontvangen",
+      subject: "[TEST 3/6] Portaal feedback ontvangen",
       html: wrap(`
         ${emailHeader("Nieuwe portaal feedback")}
         <div style="padding:36px 40px;">
@@ -160,17 +133,17 @@ export async function GET() {
         </div>
         ${emailFooter}`),
     })
-    results["4_portal_feedback"] = "sent"
+    results["3_portal_feedback"] = "sent"
   } catch (err) {
-    results["4_portal_feedback"] = String(err)
+    results["3_portal_feedback"] = String(err)
   }
 
-  // ── 5. Admin feedback (admin/feedback) ──
+  // ── 4. Admin feedback (admin/feedback) ──
   try {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 5/7] Dashboard feedback: Upload knop werkt niet goed",
+      subject: "[TEST 4/6] Dashboard feedback: Upload knop werkt niet goed",
       html: wrap(`
         ${emailHeader("Dashboard Feedback")}
         <div style="padding:36px 40px;">
@@ -191,17 +164,17 @@ export async function GET() {
         </div>
         ${emailFooter}`, "600px"),
     })
-    results["5_admin_feedback"] = "sent"
+    results["4_admin_feedback"] = "sent"
   } catch (err) {
-    results["5_admin_feedback"] = String(err)
+    results["4_admin_feedback"] = String(err)
   }
 
-  // ── 6. AI analysis report (Railway style) ──
+  // ── 5. AI analysis report (Railway style) ──
   try {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 6/7] AI Analyse: Jan de Vries - ⚠️ BEOORDELEN",
+      subject: "[TEST 5/6] AI Analyse: Jan de Vries - ⚠️ BEOORDELEN",
       html: wrap(`
         ${emailHeader("AI Analyse Rapport")}
         <div style="padding:36px 40px;color:#2d3748;">
@@ -219,17 +192,17 @@ export async function GET() {
         </div>
         ${emailFooter}`, "700px"),
     })
-    results["6_ai_report"] = "sent"
+    results["5_ai_report"] = "sent"
   } catch (err) {
-    results["6_ai_report"] = String(err)
+    results["5_ai_report"] = String(err)
   }
 
-  // ── 7. Password reset ──
+  // ── 6. Password reset ──
   try {
     await sendEmail({
       from: `Lange & Partners <${FROM_EMAIL}>`,
       to,
-      subject: "[TEST 7/7] Wachtwoord herstellen - Lange & Partners",
+      subject: "[TEST 6/6] Wachtwoord herstellen - Lange & Partners",
       html: wrap(`
         ${emailHeader("Wachtwoord herstellen")}
         <div style="padding:36px 40px;">
@@ -249,9 +222,9 @@ export async function GET() {
         </div>
         ${emailFooter}`),
     })
-    results["7_password_reset"] = "sent"
+    results["6_password_reset"] = "sent"
   } catch (err) {
-    results["7_password_reset"] = String(err)
+    results["6_password_reset"] = String(err)
   }
 
   return NextResponse.json(results)
