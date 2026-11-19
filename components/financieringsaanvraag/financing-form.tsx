@@ -61,26 +61,18 @@ const UITSTRATEGIE_OPTIONS = [
   "Anders",
 ]
 
-// What Lange & Partners needs for an aanvraag. Until 17 November 2026 each of
-// these was an upload card of its own; Olivier: "niet alle documenten onder
-// een verschillende noemer". Now there is one box for all documents and this
-// list only NAMES what is needed (`required` = always needed). The form cannot
-// tell which file is which, so it asks for at least one document, no more.
-const DOC_CATEGORIES = [
-  { id: "id_doc",                 label: "Identiteitsbewijs",              desc: "Paspoort of identiteitskaart van de bestuurder(s)",     required: true,  particulier: true,  zakelijk: true  },
-  { id: "financieringsmemorandum",label: "Financieringsmemorandum",        desc: "Toelichting financiering",                              required: true,  particulier: true,  zakelijk: true  },
-  { id: "werkgeversverklaring",   label: "Werkgeversverklaring",           desc: "Verklaring van uw werkgever",                           required: false, particulier: true,  zakelijk: false },
-  { id: "arbeidsovereenkomst",    label: "Arbeidsovereenkomst",            desc: "Huidig arbeidscontract",                                required: false, particulier: true,  zakelijk: false },
-  { id: "loonstroken",            label: "Loonstroken",                    desc: "Loonstroken van de afgelopen drie maanden",             required: false, particulier: true,  zakelijk: false },
-  { id: "ib_aangifte",            label: "IB Aangifte",                    desc: "Inkomstenbelastingaangifte van de afgelopen drie jaar", required: false, particulier: true,  zakelijk: false },
-  { id: "kvk",                    label: "KvK-uittreksel",                 desc: "Inschrijving Kamer van Koophandel",                      required: false, particulier: false, zakelijk: true  },
-  { id: "jaarcijfers",            label: "Jaarcijfers",                    desc: "Jaarrekeningen van de afgelopen drie jaar",             required: false, particulier: false, zakelijk: true  },
-  { id: "entiteit",               label: "Financiële stukken entiteit",    desc: "Actuele balans en winst-/verliesrekening",              required: false, particulier: false, zakelijk: true  },
-  { id: "prognose",               label: "Prognose / Businessplan",        desc: "Financiële prognose of businessplan",                   required: false, particulier: false, zakelijk: true  },
-  { id: "taxatie",                label: "Taxatierapport",                 desc: "Taxatierapport of recente waardebepaling",              required: false, particulier: true,  zakelijk: true  },
-  { id: "koopovereenkomst",       label: "Koopovereenkomst",               desc: "Indien aankoopfinanciering",                            required: false, particulier: true,  zakelijk: true  },
-  { id: "schulden",               label: "Overzicht bestaande schulden",   desc: "Hypotheekafschriften, leningovereenkomsten",            required: false, particulier: true,  zakelijk: true  },
-  { id: "overig",                 label: "Overige documenten",             desc: "Verbouwingsplannen, huurovereenkomsten, etc.",          required: false, particulier: true,  zakelijk: true  },
+// What Lange & Partners needs for every aanvraag: these two documents and no
+// others. Until 19 November 2026 the list also named everything that may be
+// needed (loonstroken, jaarcijfers, taxatie and so on); Olivier: "uitsluitend
+// wat we bij elke casus nodig hebben [...] de rest van de stukken hangt af van
+// de casus". What depends on the case is asked for in a sentence under the
+// list (DocNeeds), not as a list of its own.
+// There is one box for all documents and this list only NAMES what is needed.
+// The form cannot tell which file is which, so it asks for at least one
+// document, no more.
+const DOCS_ALWAYS_NEEDED = [
+  { id: "id_doc",                  label: "Identiteitsbewijs",       desc: "Paspoort of identiteitskaart van de bestuurder(s)" },
+  { id: "financieringsmemorandum", label: "Financieringsmemorandum", desc: "Toelichting financiering" },
 ]
 
 // What the server accepts as a document (lib/onedrive-direct.ts:
@@ -441,23 +433,38 @@ function DocRows({ saved, pending, uploads, onRemove, onRemoveSaved }: {
 
 // What is needed, named once. It is a list to read, not a set of boxes: every
 // document goes into the one box above it.
-function DocNeeds({ docs }: { docs: typeof DOC_CATEGORIES }) {
+//
+// Two things have to be said at the same time (Olivier, 19 November 2026): only
+// two documents are needed for every aanvraag, and still the more of the other
+// documents of the case come along now, the better, because the aanvraag can
+// then be assessed in one go. So the list holds the two, and the rest is asked
+// for in plain sentences with a few examples, followed by what happens when
+// something is still missing afterwards.
+function DocNeeds() {
   return (
-    <div className="mt-9">
+    <div className="mt-9 font-sans">
       <h3 className="font-serif text-[17px] font-semibold text-[#1E3A5F] mb-1">Wat wij nodig hebben</h3>
-      <p className="text-[13px] text-gray-500 font-sans">
-        De documenten met &ldquo;altijd nodig&rdquo; hebben wij voor elke aanvraag nodig. De andere voegt u toe als ze van toepassing zijn.
-      </p>
-      <ul className="mt-4 grid sm:grid-cols-2 gap-x-8 gap-y-3.5 font-sans">
-        {docs.map((cat) => (
-          <li key={cat.id}>
-            <p className="text-sm text-gray-900">
-              {cat.label}{cat.required && <span className="text-[11px] text-[#F75D20] ml-2 whitespace-nowrap">altijd nodig</span>}
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">{cat.desc}</p>
+      <p className="text-[13px] text-gray-500">Bij elke aanvraag hebben wij deze twee documenten nodig.</p>
+      <ul data-doc-needs className="mt-4 grid sm:grid-cols-2 gap-x-8 gap-y-3.5">
+        {DOCS_ALWAYS_NEEDED.map((doc) => (
+          <li key={doc.id}>
+            <p className="text-sm text-gray-900">{doc.label}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{doc.desc}</p>
           </li>
         ))}
       </ul>
+      {/* The line runs the full width of the card; the text keeps a readable length. */}
+      <div data-doc-more className="mt-6 pt-5 border-t border-gray-100">
+        <p className="text-sm font-medium text-gray-900">Voeg ook de andere stukken van deze casus toe</p>
+        <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-gray-500">
+          Welke stukken wij verder nodig hebben, verschilt per aanvraag. Denk aan een taxatierapport, de koopovereenkomst, jaarcijfers,
+          inkomensgegevens, huurovereenkomsten of een overzicht van bestaande leningen. Voeg alles toe wat u al heeft. Met een volledig
+          dossier kunnen wij de aanvraag in één keer beoordelen.
+        </p>
+        <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-gray-500">
+          Missen wij daarna nog iets, dan vragen wij dat bij u op. U voegt het dan toe bij deze aanvraag onder Mijn aanvragen.
+        </p>
+      </div>
     </div>
   )
 }
@@ -749,11 +756,6 @@ export function FinancingForm() {
   // Documents that are waiting or on their way right now (not the failed ones).
   const savingCount = [...sync.uploads.values()].filter((u) => u.phase !== "failed").length
 
-  const visibleDocs = DOC_CATEGORIES.filter((cat) => {
-    if (aanvragerType === "Particulier") return cat.particulier
-    if (aanvragerType) return cat.zakelijk
-    return true
-  })
   // The form cannot see what kind of document a file is, so it does not ask
   // for the two that are always needed by name: it asks for at least one.
   const noDocuments = totalFiles === 0
@@ -1271,7 +1273,7 @@ export function FinancingForm() {
               )}
             </div>
           )}
-          <DocNeeds docs={visibleDocs} />
+          <DocNeeds />
         </div>
       )
 
