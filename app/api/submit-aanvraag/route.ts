@@ -5,7 +5,7 @@ import { sendEmail } from "@/lib/brevo"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { resolvePartnerOrg } from "@/lib/partners"
 import { isAdminEmail } from "@/lib/admin"
-import { confirmationRecipient } from "@/lib/submission-recipients"
+import { colleagueNotificationRecipients, confirmationRecipient } from "@/lib/submission-recipients"
 import { DIRECT_UPLOAD_MAX_FILE_SIZE, adoptConceptFolder } from "@/lib/onedrive-direct"
 import { logActivity } from "@/lib/activity-log"
 import { CONCEPT_COLLECTION, conceptDocId, isValidDraftId } from "@/lib/concepten"
@@ -667,8 +667,8 @@ export async function POST(req: NextRequest) {
   const isAdminSubmission = submittedByRole === "admin"
   // Per Olivier (2026-06-04): when a partner submits, the confirmation goes to the
   // partner, not the borrower. Direct-client submissions are unchanged.
-  // Wie de bevestiging krijgt — en of die überhaupt uitgaat — staat in
-  // confirmationRecipient. Bij een interne intake is dat niemand.
+  // Wie de bevestiging krijgt, en of die überhaupt uitgaat, staat in
+  // confirmationRecipient. Bij een interne intake is dat de collega die hem invoert.
   const confirmationTo = confirmationRecipient(submittedByRole, email, userEmail)
   // Partner en admin dienen allebei namens een klant in, dus krijgen allebei de
   // "namens uw klant"-tekst. De klant zelf is nooit de ontvanger in die gevallen,
@@ -747,9 +747,13 @@ export async function POST(req: NextRequest) {
       </div>
     </div>`
 
+  const notificationSubject = isAdminSubmission
+    ? `Aanvraag intern ingevoerd: ${naam || email}`
+    : `Nieuwe financieringsaanvraag: ${naam || email}`
+
   try {
     await Promise.all([
-      // Geen bevestiging bij een interne intake — zie hierboven.
+      // Geen bevestiging als het adres van de indiener ontbreekt, zie hierboven.
       ...(confirmationTo === null
         ? []
         : [
@@ -765,14 +769,32 @@ export async function POST(req: NextRequest) {
       sendEmail({
         from: `Lange & Partners <${FROM_EMAIL}>`,
         to: COMPANY_EMAIL,
-        subject: isAdminSubmission
-          ? `Aanvraag intern ingevoerd: ${naam || email}`
-          : `Nieuwe financieringsaanvraag: ${naam || email}`,
+        subject: notificationSubject,
         html: notificationHtml,
       }),
     ])
   } catch (err) {
     console.error("Email error:", err)
+  }
+
+  // The same notice to the colleagues who follow new aanvragen (see
+  // colleagueNotificationRecipients): one message of its own, sent after the
+  // answer has gone out. The submitter does not wait for it, and the submission
+  // and the two mails above cannot fail on it.
+  const notificationColleagues = colleagueNotificationRecipients(COMPANY_EMAIL)
+  if (notificationColleagues.length > 0) {
+    after(async () => {
+      try {
+        await sendEmail({
+          from: `Lange & Partners <${FROM_EMAIL}>`,
+          to: notificationColleagues,
+          subject: notificationSubject,
+          html: notificationHtml,
+        })
+      } catch (err) {
+        console.error("[submit-aanvraag] melding naar collega's niet verstuurd:", err)
+      }
+    })
   }
 
   // The id lets the client run its direct-to-OneDrive uploads for this aanvraag.
