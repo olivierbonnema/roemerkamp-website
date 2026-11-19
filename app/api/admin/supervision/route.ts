@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const user = userSnap.data() as Record<string, unknown>
 
     // Alleen partners: een admin ziet al alles, en een hoofdaccount moet zelf ook
-    // als intermediair kunnen werken (indienen, berichten, uploaden).
+    // als intermediair kunnen werken (indienen, uploaden).
     if (user.role !== PARTNER_ROLE) {
       return NextResponse.json({ error: "Alleen een partneraccount kan een hoofdaccount worden." }, { status: 400 })
     }

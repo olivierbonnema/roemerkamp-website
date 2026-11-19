@@ -1,8 +1,8 @@
 // Wie mag welke aanvraag zien en bewerken? Eén regel, voor alle routes.
 //
-// Voorheen stond deze controle los gekopieerd in de lijst, de berichten en de
-// twee upload-routes. Een nieuwe vorm van toegang (meekijken over kantoren) zou
-// dan op vier plekken apart moeten worden toegevoegd — en één vergeten plek
+// Voorheen stond deze controle los gekopieerd in de lijst en de twee
+// upload-routes. Een nieuwe vorm van toegang (meekijken over kantoren) zou dan
+// op elke plek apart moeten worden toegevoegd, en één vergeten plek
 // betekent óf een directeur die een aanvraag in zijn lijst ziet maar hem niet
 // kan openen, óf iemand die iets ziet wat hij niet mag zien.
 //

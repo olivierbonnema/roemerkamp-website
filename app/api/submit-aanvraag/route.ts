@@ -434,9 +434,9 @@ export async function POST(req: NextRequest) {
     docRef = await adminDb.collection("aanvragen").add({
       userId,
       // Het accountadres van de indiener, nooit het ingevulde klantadres: dit
-      // veld bepaalt later ook waar berichten over deze aanvraag heen gaan
-      // (zie aanvragen/[id]/berichten). Terugvallen op de klant zou betekenen
-      // dat hij post krijgt over een aanvraag die hij niet heeft ingediend.
+      // veld zegt wie de aanvraag heeft ingediend en dus met wie wij erover
+      // mailen. Terugvallen op de klant zou betekenen dat hij post krijgt over
+      // een aanvraag die hij niet heeft ingediend.
       userEmail: userEmail ?? null,
       submittedByRole,
       partnerOrgId,

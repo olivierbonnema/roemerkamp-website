@@ -7,7 +7,7 @@ import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
 import QuoteDialog, { fmtSavedAt, shortUser } from "./quote-dialog"
 import { quoteSummaryLine, type SavedQuote, type SavedQuoteInput } from "@/lib/generators/quote-generator"
-import { Upload, X, MessageSquare, Trash2, PlayCircle, StickyNote, Mail } from "lucide-react"
+import { Upload, X, Trash2, PlayCircle, StickyNote, Mail } from "lucide-react"
 
 interface Aanvraag {
   id: string
@@ -191,14 +191,14 @@ export function AdminAanvragen() {
   const [triggeringAnalysis, setTriggeringAnalysis] = useState<string | null>(null)
   const [retryingScan, setRetryingScan] = useState<string | null>(null)
   const [scanErrorModal, setScanErrorModal] = useState<{ title: string; message: string; link?: { url: string; label: string } } | null>(null)
-  const [messageModal, setMessageModal] = useState<string | null>(null)
-  const [messageText, setMessageText] = useState("")
-  const [sendingMessage, setSendingMessage] = useState(false)
   const [checksModal, setChecksModal] = useState<string | null>(null)
   const [selectedChecks, setSelectedChecks] = useState<Set<string>>(new Set())
   const [scanEditor, setScanEditor] = useState<{ aanvraagId: string; subjects: EditableSubject[] } | null>(null)
   const [deleteModal, setDeleteModal] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [quoteDeleteModal, setQuoteDeleteModal] = useState<string | null>(null)
+  const [deletingQuote, setDeletingQuote] = useState(false)
+  const [quoteDeleteFailed, setQuoteDeleteFailed] = useState(false)
   // Operational polish: filters, staff list, owner assignment, internal notes
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
@@ -209,6 +209,8 @@ export function AdminAanvragen() {
   const [noteText, setNoteText] = useState("")
   const [savingNote, setSavingNote] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Aanvragen for which a "somebody works on this" signal is under way (see touch).
+  const touching = useRef<Set<string>>(new Set())
 
   useEffect(() => { loadAanvragen(); loadOrgs(); loadStaff() }, [])
 
@@ -316,16 +318,53 @@ export function AdminAanvragen() {
     }
   }
 
+  // Every change answers with the status that now stands on the server. Shown on
+  // a card that still says "Ingediend" only, so a late answer can never replace
+  // a status that was chosen by hand in the meantime.
+  function showTaken(id: string, body: { status?: unknown } | null) {
+    const status = typeof body?.status === "string" ? body.status : ""
+    if (!status || status === "ingediend") return
+    setAanvragen(prev => prev.map(a => a.id === id && (!a.status || a.status === "ingediend") ? { ...a, status } : a))
+  }
+
+  // Working on an aanvraag that is still "Ingediend" takes it into treatment:
+  // opening the overview, the documents, a check, the quote-mail and so on moves
+  // it to "In behandeling". The server decides, and only moves an aanvraag that
+  // is still "Ingediend". The adviser gets no message and no e-mail about it.
+  // Not called from the status dropdown (a status chosen by hand stands) and not
+  // from "Verwijderen".
+  function touch(a: Aanvraag) {
+    if ((a.status && a.status !== "ingediend") || touching.current.has(a.id)) return
+    const id = a.id
+    touching.current.add(id)
+    void (async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`/api/admin/aanvragen/${id}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ touched: true }),
+        })
+        if (res.ok) showTaken(id, await res.json().catch(() => null))
+      } catch {
+        // Not stored: the status stays as it is and the next click tries again.
+      } finally {
+        touching.current.delete(id)
+      }
+    })()
+  }
+
   // Assign a behandelaar (admin email). "" = unassign. No email is sent to the applicant.
   async function assignOwner(id: string, assignedTo: string) {
     setAanvragen(prev => prev.map(a => a.id === id ? { ...a, assignedTo } : a))
     try {
       const token = await getToken()
-      await fetch(`/api/admin/aanvragen/${id}`, {
+      const res = await fetch(`/api/admin/aanvragen/${id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ assignedTo }),
       })
+      if (res.ok) showTaken(id, await res.json().catch(() => null))
     } catch {}
   }
 
@@ -342,6 +381,7 @@ export function AdminAanvragen() {
       })
       if (res.ok) {
         setAanvragen(prev => prev.map(a => a.id === id ? { ...a, internalNote } : a))
+        showTaken(id, await res.json().catch(() => null))
         setNoteModal(null)
         setNoteText("")
       }
@@ -364,9 +404,29 @@ export function AdminAanvragen() {
       const body = await res.json().catch(() => ({}))
       const stored: SavedQuote | null = body?.quote ?? null
       if (stored) setAanvragen(prev => prev.map(a => a.id === id ? { ...a, quote: stored } : a))
+      showTaken(id, body)
       return stored
     } catch {
       return null
+    }
+  }
+
+  // Remove the saved quote-mail from the aanvraag. True when it is gone.
+  async function deleteQuote(id: string): Promise<boolean> {
+    try {
+      const token = await getToken()
+      const res = await fetch(`/api/admin/aanvragen/${id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ quote: null }),
+      })
+      if (!res.ok) return false
+      const body = await res.json().catch(() => null)
+      setAanvragen(prev => prev.map(a => a.id === id ? { ...a, quote: null } : a))
+      showTaken(id, body)
+      return true
+    } catch {
+      return false
     }
   }
 
@@ -522,30 +582,6 @@ export function AdminAanvragen() {
     )
   }
 
-  async function sendMessage(aanvraagId: string) {
-    if (!messageText.trim()) return
-    setSendingMessage(true)
-    try {
-      const token = await getToken()
-      const res = await fetch(`/api/aanvragen/${aanvraagId}/berichten`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageText.trim() }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        alert(`Bericht verzenden mislukt: ${data.error || "onbekende fout"}`)
-        return
-      }
-      setMessageText("")
-      setMessageModal(null)
-    } catch {
-      alert("Bericht verzenden mislukt.")
-    } finally {
-      setSendingMessage(false)
-    }
-  }
-
   async function deleteAanvraag(id: string) {
     setDeleting(true)
     try {
@@ -691,7 +727,7 @@ export function AdminAanvragen() {
               <div>
                 <button
                   type="button"
-                  onClick={() => setOverviewId(a.id)}
+                  onClick={() => { touch(a); setOverviewId(a.id) }}
                   className="font-serif text-lg text-[#1E3A5F] font-normal text-left hover:underline decoration-[#311E86]/40 underline-offset-2 cursor-pointer"
                   title="Bekijk het overzicht van deze aanvraag"
                 >
@@ -766,20 +802,31 @@ export function AdminAanvragen() {
 
             {/* Saved quote-mail (admin-only): one line so a colleague sees a quote exists and at what terms */}
             {a.quote?.savedAt && (
-              <button
-                type="button"
-                onClick={() => setQuoteModal(a.id)}
-                title="Quote-mail openen"
-                className="w-full text-left bg-[#1E3A5F]/[0.04] border border-[#1E3A5F]/15 rounded-xl px-4 py-2.5 mb-4 flex items-start gap-2 hover:bg-[#1E3A5F]/[0.08] transition-colors"
-              >
-                <Mail size={13} className="text-[#1E3A5F] mt-0.5 flex-shrink-0" />
-                <p className="text-xs font-sans text-gray-600">
-                  <span className="font-medium text-[#1E3A5F]">Quote</span>
-                  {" · "}{fmtSavedAt(a.quote.savedAt)}
-                  {quoteSummaryLine(a.quote.data) ? ` · ${quoteSummaryLine(a.quote.data)}` : ""}
-                  {a.quote.savedBy ? ` · ${shortUser(a.quote.savedBy)}` : ""}
-                </p>
-              </button>
+              <div className="bg-[#1E3A5F]/[0.04] border border-[#1E3A5F]/15 rounded-xl mb-4 flex items-stretch overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => { touch(a); setQuoteModal(a.id) }}
+                  title="Quote-mail openen"
+                  className="flex-1 min-w-0 text-left px-4 py-2.5 flex items-start gap-2 hover:bg-[#1E3A5F]/[0.06] transition-colors"
+                >
+                  <Mail size={13} className="text-[#1E3A5F] mt-0.5 flex-shrink-0" />
+                  <p className="text-xs font-sans text-gray-600">
+                    <span className="font-medium text-[#1E3A5F]">Quote</span>
+                    {" · "}{fmtSavedAt(a.quote.savedAt)}
+                    {quoteSummaryLine(a.quote.data) ? ` · ${quoteSummaryLine(a.quote.data)}` : ""}
+                    {a.quote.savedBy ? ` · ${shortUser(a.quote.savedBy)}` : ""}
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setQuoteDeleteFailed(false); setQuoteDeleteModal(a.id) }}
+                  title="Quote-mail verwijderen"
+                  aria-label="Quote-mail verwijderen"
+                  className="flex-none px-3.5 flex items-center text-gray-400 hover:text-red-600 hover:bg-red-50 border-l border-[#1E3A5F]/10 transition-colors"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
             )}
 
             {/* AI analysis summary (if completed) */}
@@ -883,7 +930,7 @@ export function AdminAanvragen() {
                     <div className="flex items-center gap-2">
                       {a.analysisStatus === "completed" && (
                         <button
-                          onClick={() => setSelectedId(a.id)}
+                          onClick={() => { touch(a); setSelectedId(a.id) }}
                           className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
                         >
                           AI Analyse bekijken
@@ -891,7 +938,7 @@ export function AdminAanvragen() {
                       )}
                       {scan && (
                         <button
-                          onClick={() => setScanDetailId(a.id)}
+                          onClick={() => { touch(a); setScanDetailId(a.id) }}
                           className={`px-4 py-1.5 text-xs font-medium font-sans rounded-full transition-colors ${
                             scan.killSignal
                               ? "bg-red-600 text-white hover:bg-red-700"
@@ -909,6 +956,7 @@ export function AdminAanvragen() {
                       href={a.dossierUrl || a.driveFolderUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => touch(a)}
                       className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#311E86] text-white hover:bg-[#26175e] transition-colors"
                     >
                       Gegevensoverzicht openen
@@ -918,7 +966,7 @@ export function AdminAanvragen() {
                   {/* Show "Checks uitvoeren" if at least one check can be (re)started */}
                   {a.driveFolderId && (
                     <button
-                      onClick={() => { setChecksModal(a.id); setSelectedChecks(new Set()); setScanEditor({ aanvraagId: a.id, subjects: deriveEditableSubjects(a) }) }}
+                      onClick={() => { touch(a); setChecksModal(a.id); setSelectedChecks(new Set()); setScanEditor({ aanvraagId: a.id, subjects: deriveEditableSubjects(a) }) }}
                       className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-[#F75D20] text-white hover:bg-[#e04d15] transition-colors inline-flex items-center gap-1.5"
                     >
                       <PlayCircle size={13} />
@@ -935,7 +983,7 @@ export function AdminAanvragen() {
 
               {/* Create termsheet */}
               <button
-                onClick={() => setExtraTextModal(a.id)}
+                onClick={() => { touch(a); setExtraTextModal(a.id) }}
                 disabled={extracting === a.id}
                 className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors disabled:opacity-50"
               >
@@ -944,24 +992,15 @@ export function AdminAanvragen() {
 
               {/* Quote e-mail (short indication sent before the termsheet) */}
               <button
-                onClick={() => setQuoteModal(a.id)}
+                onClick={() => { touch(a); setQuoteModal(a.id) }}
                 className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors"
               >
                 {a.quote?.savedAt ? "Quote-mail bewerken" : "Quote-mail"}
               </button>
 
-              {/* Send message to applicant */}
-              <button
-                onClick={() => setMessageModal(a.id)}
-                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-[#311E86]/30 hover:text-[#311E86] transition-colors inline-flex items-center gap-1.5"
-              >
-                <MessageSquare size={12} />
-                Bericht sturen
-              </button>
-
               {/* Internal note (admin-only) */}
               <button
-                onClick={() => { setNoteModal(a.id); setNoteText(a.internalNote || "") }}
+                onClick={() => { touch(a); setNoteModal(a.id); setNoteText(a.internalNote || "") }}
                 className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-amber-300 hover:text-amber-600 transition-colors inline-flex items-center gap-1.5"
               >
                 <StickyNote size={12} />
@@ -976,6 +1015,7 @@ export function AdminAanvragen() {
                   rel="noopener noreferrer"
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-[#311E86]/30 hover:text-[#311E86] transition-colors"
                   onClick={() => {
+                    touch(a)
                     getToken().then(token => {
                       fetch("/api/admin/log-access", {
                         method: "POST",
@@ -1035,48 +1075,13 @@ export function AdminAanvragen() {
         </div>
       )}
 
-      {/* Message modal */}
-      {messageModal && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setMessageModal(null); setMessageText("") }}>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Bericht sturen naar aanvrager</h3>
-            <p className="text-sm text-gray-400 font-sans mb-5">
-              De aanvrager ontvangt een e-mail en ziet het bericht in het klantenportaal.
-            </p>
-            <textarea
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Typ hier uw bericht..."
-              rows={4}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-sans focus:outline-none focus:border-[#1E3A5F] transition-colors resize-none mb-5"
-              autoFocus
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => { setMessageModal(null); setMessageText("") }}
-                className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Annuleren
-              </button>
-              <button
-                onClick={() => sendMessage(messageModal)}
-                disabled={sendingMessage || !messageText.trim()}
-                className="px-5 py-2.5 text-sm font-medium font-sans bg-[#311E86] text-white rounded-lg hover:bg-[#26175e] transition-colors disabled:opacity-50"
-              >
-                {sendingMessage ? "Verzenden..." : "Verstuur bericht"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Internal note modal (admin-only - not emailed, not shown to applicant) */}
       {noteModal && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { setNoteModal(null); setNoteText("") }}>
           <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-serif text-xl text-[#1E3A5F] mb-1">Interne notitie</h3>
             <p className="text-sm text-gray-400 font-sans mb-5">
-              Alleen zichtbaar voor het LFA-team. De aanvrager ziet dit niet en krijgt geen e-mail.
+              Alleen zichtbaar voor het team van Lange &amp; Partners. De aanvrager ziet dit niet en krijgt geen e-mail.
             </p>
             <textarea
               value={noteText}
@@ -1256,7 +1261,7 @@ export function AdminAanvragen() {
                 <h4 className={sectionTitle}>Documenten</h4>
                 <OvRow label="Aantal bestanden" value={`${ov.aantalBestanden ?? 0}`} />
                 {ov.driveFolderUrl && (
-                  <a href={ov.driveFolderUrl} target="_blank" rel="noreferrer" className="inline-block mt-1 text-sm text-[#311E86] hover:underline font-sans">
+                  <a href={ov.driveFolderUrl} target="_blank" rel="noreferrer" onClick={() => touch(ov)} className="inline-block mt-1 text-sm text-[#311E86] hover:underline font-sans">
                     Documentenmap openen ↗
                   </a>
                 )}
@@ -1311,9 +1316,60 @@ export function AdminAanvragen() {
             aanvraag={qa}
             savedQuote={qa.quote ?? null}
             onSave={(input) => saveQuote(qa.id, input)}
+            onDelete={() => deleteQuote(qa.id)}
             onClose={() => setQuoteModal(null)}
           />
         ) : null
+      })()}
+
+      {/* Remove the saved quote-mail (the bin on the quote line of a card) */}
+      {quoteDeleteModal && (() => {
+        const qd = aanvragen.find(a => a.id === quoteDeleteModal)
+        if (!qd) return null
+        const close = () => { if (!deletingQuote) setQuoteDeleteModal(null) }
+        return (
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={close}>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-start gap-3 mb-4">
+                <span className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <Trash2 size={18} className="text-red-600" />
+                </span>
+                <div>
+                  <h3 className="font-serif text-lg text-[#1E3A5F]">Quote-mail verwijderen</h3>
+                  <p className="text-sm text-gray-600 font-sans mt-1">
+                    Weet u zeker dat u de opgeslagen quote-mail van <strong>{qd.naam || "deze aanvrager"}</strong> wilt verwijderen? Dit kan niet ongedaan worden gemaakt. De aanvraag zelf blijft staan.
+                  </p>
+                </div>
+              </div>
+              {quoteDeleteFailed && (
+                <p className="text-sm text-red-600 font-sans">Verwijderen mislukt. Probeer het opnieuw.</p>
+              )}
+              <div className="flex justify-end gap-2 mt-5">
+                <button
+                  onClick={close}
+                  disabled={deletingQuote}
+                  className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={async () => {
+                    setDeletingQuote(true)
+                    setQuoteDeleteFailed(false)
+                    const gone = await deleteQuote(qd.id)
+                    setDeletingQuote(false)
+                    if (gone) setQuoteDeleteModal(null)
+                    else setQuoteDeleteFailed(true)
+                  }}
+                  disabled={deletingQuote}
+                  className="px-5 py-2.5 text-sm font-medium font-sans bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deletingQuote ? "Verwijderen..." : "Ja, verwijderen"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
       })()}
 
       {/* Extra text modal */}

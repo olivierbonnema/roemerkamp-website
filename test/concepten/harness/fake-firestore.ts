@@ -6,12 +6,16 @@
 
 type Data = Record<string, any>
 
+// What FieldValue.delete() stands for: update() removes the field.
+export class FieldDelete {}
+
 class FakeTimestamp {
   constructor(private readonly date: Date) {}
   toDate() { return new Date(this.date.getTime()) }
 }
 
 function toStored(value: any): any {
+  if (value instanceof FieldDelete) return value
   if (value instanceof Date) return new Date(value.getTime())
   if (Array.isArray(value)) return value.map(toStored)
   if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, toStored(v)]))
@@ -53,7 +57,12 @@ export class FakeDocRef {
     this.db.failIfAsked("update", this.collectionPath)
     const current = this.bucket().get(this.id)
     if (current === undefined) throw new Error(`NOT_FOUND: ${this.path}`)
-    this.bucket().set(this.id, { ...current, ...toStored(data) })
+    const next = { ...current }
+    for (const [field, value] of Object.entries(toStored(data) as Data)) {
+      if (value instanceof FieldDelete) delete next[field]
+      else next[field] = value
+    }
+    this.bucket().set(this.id, next)
     this.db.writes.push({ op: "update", path: this.path, data: toStored(data) })
   }
   async delete() {

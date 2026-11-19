@@ -10,7 +10,7 @@ export interface DirectUploadResult {
   ok: boolean
   // The name as the user selected it (used to reconcile local UI state)…
   originalName: string
-  // …and as the server sanitized/stored it (used for berichten/bookkeeping).
+  // …and as the server sanitized/stored it (used for the bookkeeping).
   fileName: string
   error?: string
   // Set when our own server refused to hand out the upload session: its HTTP

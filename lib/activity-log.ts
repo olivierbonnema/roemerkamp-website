@@ -27,6 +27,7 @@ export type ActivityAction =
   | "aanvraag_assigned"
   | "aanvraag_deleted"
   | "quote_saved"
+  | "quote_deleted"
   | "invite_resent"
   | "invite_link_created"
   | "message_sent"

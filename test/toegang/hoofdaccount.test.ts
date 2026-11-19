@@ -2,7 +2,7 @@
 //
 // Twee kantoren (Amsterdam, Utrecht). Een directeur met een eigen kantoor (HQ)
 // die over Amsterdam meekijkt. Getest wordt de échte lijst-route, de échte
-// beheerroute en de gedeelde toegangsregel die berichten en uploads gebruiken.
+// beheerroute en de gedeelde toegangsregel die de uploads gebruiken.
 import { readFileSync } from "node:fs"
 
 process.env.ADMIN_DOMAIN = "langefa.nl"
@@ -102,7 +102,7 @@ async function main() {
 
   // Effect: meteen, zonder opnieuw inloggen.
   ok("directeur ziet nu Amsterdam + eigen", JSON.stringify(await namen("directeur")) === '["A1","A2","D1"]', JSON.stringify(await namen("directeur")))
-  ok("directeur mag Amsterdam openen (berichten/uploads)", await mag("directeur", "A1") && await mag("directeur", "A2"))
+  ok("directeur mag Amsterdam openen (uploads)", await mag("directeur", "A1") && await mag("directeur", "A2"))
   ok("directeur ziet Utrecht NIET", !(await namen("directeur")).includes("U1") && !(await mag("directeur", "U1")))
   ok("Alwin ziet de directeur NIET (geen omgekeerd recht)", !(await namen("alwin")).includes("D1") && !(await mag("alwin", "D1")))
 

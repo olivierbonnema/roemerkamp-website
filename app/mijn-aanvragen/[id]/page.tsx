@@ -4,7 +4,7 @@ import { AanvraagDetail } from "@/components/mijn-aanvragen/aanvraag-detail"
 
 export const metadata = {
   title: "Aanvraag details",
-  description: "Bekijk de status en berichten van uw financieringsaanvraag.",
+  description: "Bekijk de status van uw financieringsaanvraag.",
   robots: { index: false, follow: false },
 }
 
@@ -12,7 +12,7 @@ export default async function AanvraagDetailPage({ params }: { params: Promise<{
   const { id } = await params
 
   return (
-    <PortalPage title="Mijn aanvraag" intro="Volg de status van uw aanvraag en bekijk berichten.">
+    <PortalPage title="Mijn aanvraag" intro="Volg de status van uw aanvraag.">
       <AuthGuard>
         <AanvraagDetail aanvraagId={id} />
       </AuthGuard>

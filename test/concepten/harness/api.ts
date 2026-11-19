@@ -10,6 +10,8 @@ import { POST as submit } from "../../../app/api/submit-aanvraag/route"
 import { GET as listAanvragen } from "../../../app/api/aanvragen/route"
 import { POST as aanvraagSession } from "../../../app/api/aanvragen/[id]/upload-session/route"
 import { POST as uploadComplete } from "../../../app/api/aanvragen/[id]/upload-complete/route"
+import { GET as adminAanvragen } from "../../../app/api/admin/aanvragen/route"
+import { PATCH as patchAanvraag, DELETE as removeAanvraag } from "../../../app/api/admin/aanvragen/[id]/route"
 
 export const ORIGIN = "https://nonbancaireleningen.nl"
 
@@ -32,6 +34,9 @@ const ROUTES: [string, RegExp, Handler, string?][] = [
   ["GET", /^\/api\/aanvragen$/, listAanvragen as Handler],
   ["POST", /^\/api\/aanvragen\/([^/]+)\/upload-session$/, aanvraagSession as Handler, "id"],
   ["POST", /^\/api\/aanvragen\/([^/]+)\/upload-complete$/, uploadComplete as Handler, "id"],
+  ["GET", /^\/api\/admin\/aanvragen$/, adminAanvragen as Handler],
+  ["PATCH", /^\/api\/admin\/aanvragen\/([^/]+)$/, patchAanvraag as Handler, "id"],
+  ["DELETE", /^\/api\/admin\/aanvragen\/([^/]+)$/, removeAanvraag as Handler, "id"],
 ]
 
 export async function callApi(method: string, pathAndQuery: string, headers: Record<string, string> = {}, body?: BodyInit | null): Promise<Response> {

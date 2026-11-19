@@ -11,8 +11,8 @@ import { logActivity } from "@/lib/activity-log"
 //
 // context "submit": the initial submission → flips uploadStatus to "ok" once
 // everything expected arrived. context "extra": documents added later from the
-// detail page → also writes the berichten entry + activity log the old
-// multipart route used to write.
+// detail page → also writes the activity log. Nothing is posted in the portal:
+// there are no messages on the platform any more.
 
 export const maxDuration = 60
 
@@ -47,14 +47,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const body = await req.json().catch(() => ({}))
   const context: "submit" | "extra" = body.context === "extra" ? "extra" : "submit"
-  // Names are display-only (the counts come from the Graph recount below); cap
-  // count and per-name length so a hostile payload can't blow up the berichten
-  // document or the activity log.
+  // The names only say how many files this batch held, for the activity log
+  // (the stored counts come from the Graph recount below). Capped, so a hostile
+  // payload cannot make that number absurd.
   const fileNames: string[] = Array.isArray(body.fileNames)
     ? body.fileNames
         .filter((n: unknown) => typeof n === "string" && (n as string).trim())
         .slice(0, 100)
-        .map((n: string) => n.slice(0, 200))
     : []
 
   try {
@@ -68,12 +67,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         updatedAt: new Date(),
       })
       if (fileNames.length > 0) {
-        await ref.collection("berichten").add({
-          message: `${fileNames.length} ${fileNames.length === 1 ? "document" : "documenten"} toegevoegd: ${fileNames.join(", ")}`,
-          senderEmail: decoded.email,
-          type: "document_upload",
-          createdAt: new Date(),
-        })
         await logActivity({
           action: "document_uploaded",
           userId: decoded.uid,

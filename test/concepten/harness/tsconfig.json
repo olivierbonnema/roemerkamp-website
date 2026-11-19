@@ -5,6 +5,7 @@
     "paths": {
       "next/server": ["./test/concepten/harness/stubs/next-server.ts"],
       "@/lib/firebase-admin": ["./test/concepten/harness/stubs/firebase-admin.ts"],
+      "firebase-admin/firestore": ["./test/concepten/harness/stubs/firebase-admin-firestore.ts"],
       "@/lib/activity-log": ["./test/concepten/harness/stubs/activity-log.ts"],
       "@/lib/brevo": ["./test/concepten/harness/stubs/brevo.ts"],
       "@/*": ["./*"]
