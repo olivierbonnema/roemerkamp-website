@@ -143,6 +143,17 @@ export const FAQ_VERVROEGD: FaqItem = {
   antwoord: 'In de meeste gevallen wel, bijvoorbeeld zodra een bank de financiering overneemt. De voorwaarden voor vervroegd aflossen, en een eventuele vergoeding, staan vooraf in de leningsovereenkomst, zodat u daar niet door wordt verrast.',
 }
 
+// Used on the situation pages, where a FAQ holds only questions the page
+// itself does not answer.
+export const FAQ_DOCUMENTEN: FaqItem = {
+  vraag: 'Welke documenten heb ik nodig voor een aanvraag?',
+  antwoord: 'Een beschrijving van het vastgoed en de gewenste financiering, een actueel taxatierapport of een WOZ-beschikking, recente jaarrekeningen voor zover beschikbaar, het saldo van bestaande hypotheken en een toelichting op uw inkomen, uw vermogenspositie en de manier waarop u de lening aflost.',
+}
+
+/** What happens when the exit comes later than planned. The question differs per situation, the answer does not. */
+export const ANTWOORD_UITLOOP =
+  'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wel moet de exit haalbaar en realistisch blijven.'
+
 /** Verwante pagina's, per pad op te halen. */
 export const PAGINAS: Record<string, RelatedItem> = {
   hub: { href: '/vastgoedfinanciering-zonder-bank', title: 'Vastgoedfinanciering zonder bank', text: 'De productpagina met de voorwaarden, de kosten, een rekenvoorbeeld en de aanvraag.' },

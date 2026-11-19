@@ -53,15 +53,8 @@ const bank = [
   },
 ]
 
+// Only questions the page itself does not answer.
 const faq = [
-  {
-    vraag: 'Kan ik een tweede hypotheek krijgen als mijn inkomen schommelt?',
-    antwoord: 'Ja. Banken toetsen ondernemersinkomen op historische gemiddelden, wat bij wisselende inkomsten snel tot een afwijzing leidt. Wij beoordelen anders en kijken naar de betaalbaarheid uit uw inkomen en kasstroom zoals die nu zijn, de waarde van het onderpand en de exit. Een schommelend inkomen is op zichzelf geen uitsluitingsgrond.',
-  },
-  {
-    vraag: 'Wat is het maximale bedrag voor een tweede hypotheek?',
-    antwoord: 'Leningen van €200.000 tot €5.000.000. Het maximum volgt uit de loan-to-value. De bestaande hypotheek en de tweede hypotheek samen blijven doorgaans binnen 70% van de marktwaarde, maximaal 75%.',
-  },
   {
     vraag: 'Moet mijn bank toestemming geven voor een tweede hypotheek?',
     antwoord: 'Dat hangt af van de voorwaarden van uw eerste hypotheek. Veel hypotheekakten vereisen toestemming van de eerste hypotheekhouder voor een tweede inschrijving. Is dat bij u het geval, dan staat die toestemming als voorwaarde in de termsheet en moet zij vóór het passeren binnen zijn.',
@@ -69,10 +62,6 @@ const faq = [
   {
     vraag: 'Hoe snel kan een tweede hypotheek worden geregeld?',
     antwoord: 'Bij een volledige aanvraag en een duidelijk onderpand rekenen wij op één tot drie weken tot het passeren. Is toestemming van de eerste hypotheekhouder nodig, dan bepaalt de reactietijd van die bank mede de doorlooptijd.',
-  },
-  {
-    vraag: 'Kan een tweede hypotheek ook op een beleggingspand?',
-    antwoord: 'Ja. Wij financieren op privéwoningen, beleggingspanden, bedrijfspanden en gemengd gebruik. Doorslaggevend is de marktwaarde en de kwaliteit van het onderpand.',
   },
 ]
 

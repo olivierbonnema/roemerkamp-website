@@ -3,6 +3,7 @@ import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 import { pageMetadata } from '@/lib/seo'
+import { FAQ_DOCUMENTEN, FAQ_VERVROEGD } from '@/lib/product-content'
 
 export const metadata: Metadata = pageMetadata({
   path: "/dga-hypotheek",
@@ -48,24 +49,8 @@ const beoordeling = [
   },
 ]
 
-const faq = [
-  {
-    vraag: 'Waarom is een hypotheek aanvragen als DGA zo lastig bij een bank?',
-    antwoord: 'Banken toetsen het DGA-inkomen op uw salaris uit de BV en de winst van de onderneming, gemiddeld over drie jaar, en verlangen drie jaar volledige jaarrekeningen van de BV. DGA\'s die zichzelf het gebruikelijk loon toekennen om fiscaal optimaal te ondernemen, zien dat terug als een laag inkomen in de hypotheektoets. Het vermogen in de BV telt daarbij nauwelijks mee.',
-  },
-  {
-    vraag: 'Kan ik ook een hypotheek aanvragen als mijn BV pas kortgeleden is opgericht?',
-    antwoord: 'Ja. Wij beoordelen niet langs de norm van drie jaarrekeningen. Is de rente te dragen, is er voldoende onderpand en is het terugbetalingsperspectief realistisch, dan is een non-bancaire lening een oplossing voor de periode totdat u wel aan de bancaire jaarcijfereis voldoet.',
-  },
-  {
-    vraag: 'Wat is het verschil tussen lenen in privé en lenen via de BV?',
-    antwoord: 'In privé leent u als particulier, met uw eigen woning of een privé beleggingspand als onderpand. Dit is de meest gangbare route voor DGA\'s. Via de BV is de vennootschap de geldnemer en dient zakelijk vastgoed van de BV als onderpand. Dat is een ander traject met eigen fiscale, juridische en administratieve overwegingen, dat wij graag in een persoonlijk gesprek doornemen.',
-  },
-  {
-    vraag: 'Welke documenten heb ik nodig voor een aanvraag?',
-    antwoord: 'Een beschrijving van het vastgoed en de gewenste financiering, een actueel taxatierapport of een WOZ-beschikking, recente jaarrekeningen voor zover beschikbaar, het saldo van bestaande hypotheken en een toelichting op uw inkomen, uw vermogenspositie en de manier waarop u de lening aflost.',
-  },
-]
+// Only questions the page itself does not answer.
+const faq = [FAQ_DOCUMENTEN, FAQ_VERVROEGD]
 
 export default function DgaHypotheekPage() {
   return (
