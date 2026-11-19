@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
-import { ArticleSection, Note } from '@/components/product/article-layout'
+import { ArticleSection } from '@/components/product/article-layout'
 import { DataTable, DefinitionList } from '@/components/product/content-blocks'
 import { pageMetadata } from '@/lib/seo'
+import { ANTWOORD_UITLOOP, FAQ_DOCUMENTEN } from '@/lib/product-content'
 
 export const metadata: Metadata = pageMetadata({
   path: "/hypotheek-zonder-jaarcijfers",
@@ -17,8 +18,8 @@ const voorwie = [
     text: 'U kunt nog geen volledig historisch beeld overleggen. Uw bedrijf groeit, maar de bank wacht liever af tot het derde boekjaar is afgesloten.',
   },
   {
-    term: 'Recent overgestapt naar een BV of naar DGA',
-    text: 'U bent van werknemer DGA geworden, of heeft uw eenmanszaak omgezet in een BV. Banken vragen drie jaar jaarrekeningen van de BV, die heeft u nog niet.',
+    term: 'Sinds kort DGA van een eigen BV',
+    text: 'U heeft een BV opgericht of uw eenmanszaak omgezet in een BV, en bent daarmee directeur-grootaandeelhouder (DGA) geworden. Banken vragen drie jaarrekeningen van de BV. Die zijn er nog niet, ook als de onderneming zelf al langer bestaat.',
   },
   {
     term: 'Inkomen uit wisselende opdrachtgevers',
@@ -49,30 +50,12 @@ const beoordeling = [
   },
 ]
 
+// Only questions the page itself does not answer.
 const faq = [
+  FAQ_DOCUMENTEN,
   {
-    vraag: 'Waarom eist een bank drie jaar jaarcijfers?',
-    antwoord: 'Banken toetsen het inkomen van ondernemers langs vaste normen. Voor ondernemers rekenen zij met het gemiddelde inkomen van de afgelopen drie jaar. Zonder drie jaar jaarcijfers kunnen zij die berekening niet maken en wijzen zij de aanvraag doorgaans af.',
-  },
-  {
-    vraag: 'Hoe beoordeelt Lange & Partners een aanvraag zonder jaarcijfers?',
-    antwoord: 'Op dezelfde drie punten als elke casus, namelijk de betaalbaarheid (inkomen en kasstroom zoals die nu zijn, lopende opdrachten, een onderbouwde prognose), het onderpand (marktwaarde, type, locatie) en de exit (hoe de lening wordt afgelost). Inkomen telt dus mee, alleen niet als gemiddelde van drie jaar. Een realistisch en onderbouwd beeld is voor ons voldoende.',
-  },
-  {
-    vraag: 'Kan ik ook een lening aanvragen als mijn bedrijf pas één jaar bestaat?',
-    antwoord: 'Ja. Het aantal boekjaren is bij ons geen criterium. Doorslaggevend zijn de betaalbaarheid van de rente, de kwaliteit van het onderpand en een haalbare en realistische exit.',
-  },
-  {
-    vraag: "Kan ik als ZZP'er een hypotheek krijgen zonder drie jaar jaarcijfers?",
-    antwoord: 'Ja. Banken eisen doorgaans drie jaar jaarcijfers om het gemiddelde ondernemersinkomen te berekenen. Wij beoordelen op de betaalbaarheid van de rente, het onderpand en de exit, en wegen uw inkomen zoals het nu is in plaats van als gemiddelde van drie jaar. Een kortere ondernemersgeschiedenis of een wisselend inkomen is op zichzelf geen uitsluitingsgrond.',
-  },
-  {
-    vraag: 'Is dit een gewone woninghypotheek voor 30 jaar?',
-    antwoord: 'Nee. Onze financieringen lopen 6 tot 60 maanden en zijn bedoeld als tijdelijke oplossing, bijvoorbeeld tot de bank u na drie boekjaren wel kan financieren. Zoekt u een langlopende hypotheek voor de aankoop van uw eerste woning met weinig eigen vermogen, dan is een bank of een hypotheekverstrekker via een hypotheekadviseur de aangewezen route.',
-  },
-  {
-    vraag: 'Is een hypotheek zonder jaarcijfers een permanente oplossing?',
-    antwoord: 'Nee. Onze leningen hebben een looptijd van 6 tot 60 maanden. In de meeste gevallen is het de bedoeling dat u daarna herfinanciert bij een bank, zodra u wel aan de jaarcijfereis voldoet. Dat perspectief bespreken wij bij de beoordeling.',
+    vraag: 'Wat als de bank de lening aan het einde van de looptijd nog niet overneemt?',
+    antwoord: ANTWOORD_UITLOOP,
   },
 ]
 
@@ -113,26 +96,6 @@ export default function HypotheekZonderJaarcijfersPage() {
         <p>Wij kijken verder dan historische jaarcijfers, maar niet langs het inkomen heen. Onze beoordeling rust op vier pijlers.</p>
         <DefinitionList items={beoordeling} />
       </ArticleSection>
-
-      <ArticleSection id="jaren" title="Wat kan met nul, één of twee jaar cijfers?">
-        <p>
-          Het aantal afgesloten boekjaren verandert bij ons niets aan de beoordeling. Het bepaalt wel wat u kunt
-          aanleveren en hoe snel een bank de lening later kan overnemen.
-        </p>
-        <DataTable
-          head={['Situatie', 'Bij de bank', 'Via Lange & Partners']}
-          rows={[
-            ['Net gestart, nog geen afgesloten boekjaar', 'Geen inkomenstoets mogelijk, aanvraag wordt afgewezen', 'Beoordeling op betaalbaarheid (lopende opdrachten, vermogen), onderpand en exit'],
-            ['Eén afgesloten boekjaar', 'Meestal afwijzing. Soms een prognose met forse korting', 'Jaarcijfer en prognose tellen mee voor de betaalbaarheid. Onderpand en exit wegen even zwaar'],
-            ['Twee afgesloten boekjaren', 'Bij sommige banken mogelijk met prognose en lagere maximale hypotheek', 'Financiering voor de periode tot het derde boekjaar, met bankherfinanciering als exit'],
-          ]}
-        />
-        <Note>
-          Hoe de bank rekent verschilt per bank en per situatie. De kolom "Bij de bank" beschrijft het gangbare beeld,
-          geen toezegging van een bank.
-        </Note>
-      </ArticleSection>
-
 
       <ArticleSection id="zzp" title="Ook voor ZZP'ers en freelancers">
         <p>

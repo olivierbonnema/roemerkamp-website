@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
-import { STAPPEN_INLEIDING } from '@/lib/product-content'
+import { ANTWOORD_UITLOOP, FAQ_VERVROEGD, STAPPEN_INLEIDING } from '@/lib/product-content'
 import { pageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = pageMetadata({
@@ -73,27 +73,13 @@ const verloop = [
   },
 ]
 
+// Only questions the page itself does not answer.
 const faq = [
   {
-    vraag: 'Wanneer is herfinanciering van vastgoed nodig?',
-    antwoord: 'Wanneer uw huidige lening afloopt en de bank niet verlengt, wanneer u een dure of knellende lening wilt vervangen, of wanneer u bij de herfinanciering overwaarde wilt vrijmaken. Ook na een bankafwijzing op basis van gewijzigde inkomsten of verscherpte criteria is herfinanciering met vastgoed als zekerheid een oplossing.',
+    vraag: 'Wat als de verkoop of de nieuwe financiering aan het einde van de looptijd nog niet rond is?',
+    antwoord: ANTWOORD_UITLOOP,
   },
-  {
-    vraag: 'Hoe snel kan mijn vastgoed worden geherfinancierd?',
-    antwoord: 'Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren. Dat is belangrijk als de huidige lening op korte termijn afloopt. Een aflosnota van de huidige financier en een recent taxatierapport versnellen het proces.',
-  },
-  {
-    vraag: 'Welke bedragen en looptijden zijn mogelijk bij herfinanciering?',
-    antwoord: 'Van €200.000 tot €5.000.000, met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand. De totale schuld blijft doorgaans binnen 70%, maximaal 75%.',
-  },
-  {
-    vraag: 'Is herfinanciering buiten de bank om veilig?',
-    antwoord: 'Ja. Net als bij een bancaire hypotheek wordt het hypotheekrecht ingeschreven bij het Kadaster. Alle betalingen verlopen via een onafhankelijke Stichting, die de belangen van geldnemer en investeerder waarborgt.',
-  },
-  {
-    vraag: 'Kan ik herfinancieren als mijn bank al heeft afgewezen?',
-    antwoord: 'Zeker. Een groot deel van onze leningnemers komt bij ons na een bancaire afwijzing. Omdat wij anders beoordelen dan een bank, op de betaalbaarheid van de rente, het onderpand en de exit in samenhang in plaats van langs een vaste inkomensnorm, kunnen wij in veel gevallen herfinancieren waar de bank nee heeft gezegd.',
-  },
+  FAQ_VERVROEGD,
 ]
 
 export default function HerfinancieringVastgoedPage() {

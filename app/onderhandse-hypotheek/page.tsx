@@ -50,26 +50,15 @@ const situaties = [
   },
 ]
 
+// Only questions the page itself does not answer.
 const faq = [
   {
-    vraag: 'Wat is het verschil tussen een onderhandse en een bancaire hypotheek?',
-    antwoord: 'Bij een bancaire hypotheek is de bank zowel de geldverstrekker als de partij die de lening aan haar eigen normen toetst. Bij een onderhandse hypotheek is de geldverstrekker een particuliere investeerder. Lange & Partners beoordeelt de aanvraag en brengt geldnemer en investeerder bij elkaar. De hypothecaire zekerheid is in beide gevallen gelijkwaardig, want het hypotheekrecht wordt ingeschreven bij het Kadaster.',
+    vraag: 'Staat Lange & Partners onder toezicht?',
+    antwoord: 'Lange & Partners heeft een AFM-vergunning voor bemiddeling. De registraties staan op de pagina Nadere informatie.',
   },
   {
-    vraag: 'Hoe hoog kan een onderhandse hypotheek zijn?',
-    antwoord: 'Leningen van €200.000 tot €5.000.000. Het maximum volgt uit de marktwaarde van het onderpand. De totale schuld op het pand blijft doorgaans binnen 70%, maximaal 75%.',
-  },
-  {
-    vraag: 'Hoe is de veiligheid voor de geldnemer gewaarborgd?',
-    antwoord: 'Alle geldstromen lopen via een onafhankelijke Stichting. Uw betalingen gaan niet rechtstreeks naar een investeerder, maar via een neutrale partij die de afhandeling bewaakt. Daardoor is de structuur transparant en zijn de belangen van alle partijen beschermd.',
-  },
-  {
-    vraag: 'Kan ik een onderhandse hypotheek ook gebruiken voor een beleggingspand?',
-    antwoord: 'Ja. Een onderhandse hypotheek is toepasbaar op woonpanden, beleggingspanden, bedrijfspanden en vastgoed in ontwikkeling, in Nederland. Wij beoordelen elk object op zijn eigen merites.',
-  },
-  {
-    vraag: 'Kan ik via Lange & Partners een lening van familie laten vastleggen?',
-    antwoord: 'Nee. Wij bemiddelen alleen financieringen van investeerders uit ons eigen netwerk, na onze eigen beoordeling. Wilt u een lening van familie of bekenden met een hypotheekrecht vastleggen, dan kan dat rechtstreeks via een notaris.',
+    vraag: 'Kan ik een onderhandse hypotheek nemen naast mijn bestaande hypotheek?',
+    antwoord: 'Ja. De lening krijgt dan een 2e hypotheekrecht, dat bij het Kadaster wordt ingeschreven achter de hypotheek van uw bank. De bestaande hypotheek en de nieuwe lening samen blijven doorgaans binnen 70% van de marktwaarde, maximaal 75%. Veel hypotheekakten vereisen voor een tweede inschrijving toestemming van de bank.',
   },
 ]
 

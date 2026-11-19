@@ -53,6 +53,7 @@ const situaties = [
   },
 ]
 
+// Only questions the page itself does not answer.
 const faq = [
   {
     vraag: 'Kan mijn BV de lening aangaan?',
@@ -65,10 +66,6 @@ const faq = [
   {
     vraag: 'Kan ik meerdere panden als zekerheid inbrengen?',
     antwoord: 'Ja. Wij berekenen de loan-to-value over de totale waarde van alle ingebrachte panden, met aftrek van de bestaande hypotheken. Zo kan een pand met overwaarde de dekking leveren voor de aankoop van een ander pand.',
-  },
-  {
-    vraag: 'Hoe kijken jullie naar de huurinkomsten?',
-    antwoord: 'De huur moet de rente en de kosten kunnen dragen, met marge. Daarnaast kijken wij naar de kwaliteit en de resterende looptijd van de huurcontracten en naar de staat van onderhoud van het pand.',
   },
 ]
 
