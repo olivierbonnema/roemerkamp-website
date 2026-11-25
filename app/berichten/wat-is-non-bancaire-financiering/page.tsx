@@ -1,262 +1,184 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
-import { FaqSchema } from '@/components/faq-schema'
-import { ArticleSchema } from '@/components/article-schema'
-import { pageMetadata } from '@/lib/seo'
+import type { Metadata } from "next"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
+import { FaqSchema } from "@/components/faq-schema"
+import { ArticleSchema } from "@/components/article-schema"
+import {
+  ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, Faq, MeerBerichten, Vervolg, P, A,
+} from "@/components/berichten/artikel"
+import { BEDRAG, DOORLOOPTIJD, FAQ_VERVROEGD, LOOPTIJD, LTV, RENTE } from "@/lib/product-content"
+import { pageMetadata } from "@/lib/seo"
+
+const SLUG = "wat-is-non-bancaire-financiering"
+const TITEL = "Wat is non-bancaire financiering? Uitleg, vormen en werking"
+const OMSCHRIJVING =
+  "Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn, voor wie het geschikt is en hoe de zekerheden zijn geregeld."
 
 export const metadata: Metadata = pageMetadata({
-  path: "/berichten/wat-is-non-bancaire-financiering",
-  title: "Wat is non-bancaire financiering? Uitleg, vormen en werking",
+  path: `/berichten/${SLUG}`,
+  title: TITEL,
   brand: false,
-  description: "Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn, voor wie het geschikt is en hoe de zekerheden zijn geregeld.",
+  description: OMSCHRIJVING,
   type: "article",
 })
 
+// Only questions the article itself does not answer.
 const faq = [
   {
-    vraag: 'Is non-bancaire financiering hetzelfde als een particuliere lening?',
-    antwoord: 'Niet helemaal. Bij een particuliere lening leent u van één persoon, vaak zonder formele zekerheidsstructuur. Bij non-bancaire financiering via Lange & Partners wordt de lening hypothecair vastgelegd bij het Kadaster en verlopen alle betalingen via een onafhankelijke Stichting. De juridische structuur is vergelijkbaar met een bancaire hypotheek.',
+    vraag: "Waarom is de rente hoger dan bij een bank?",
+    antwoord:
+      "Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Een non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een hoger rendement verwachten. Wat u betaalt en wanneer, staat in het bericht over de kosten van een zakelijke hypotheek zonder bank.",
   },
-  {
-    vraag: 'Wordt non-bancaire financiering gereguleerd?',
-    antwoord: 'Lange & Partners heeft een AFM-vergunning voor bemiddeling. Wij brengen leningnemer en investeerder bij elkaar en de investeerder verstrekt de lening. Alle leningen worden notarieel vastgelegd en ingeschreven bij het Kadaster, en alle betalingen verlopen via een onafhankelijke Stichting.',
-  },
-  {
-    vraag: 'Kan ik non-bancaire financiering combineren met mijn bestaande hypotheek?',
-    antwoord: 'Ja, dat is mogelijk. In veel gevallen wordt de non-bancaire lening als tweede hypotheek ingeschreven. De voorwaarde is dat er voldoende overwaarde in het vastgoed zit om beide leningen te dekken. Wij beoordelen dit vooraf.',
-  },
-  {
-    vraag: 'Hoe verschilt de rente van een non-bancaire lening ten opzichte van de bank?',
-    antwoord: 'De rente bij non-bancaire financiering is hoger dan bij een bank. Dit komt doordat de financiering flexibeler is, sneller beschikbaar en toegankelijk voor situaties waar banken niet financieren. De exacte rente hangt af van het onderpand, de looptijd en het risicoprofiel.',
-  },
+  FAQ_VERVROEGD,
 ]
 
 export default function WatIsNonBancaireFinancieringPage() {
   return (
     <>
       <BreadcrumbSchema items={[
-        { name: 'Berichten', href: '/berichten' },
-        { name: 'Wat is non-bancaire financiering?', href: '/berichten/wat-is-non-bancaire-financiering' },
+        { name: "Berichten", href: "/berichten" },
+        { name: "Wat is non-bancaire financiering?", href: `/berichten/${SLUG}` },
       ]} />
       <FaqSchema items={faq} />
       <ArticleSchema
-        headline="Wat is non-bancaire financiering? Uitleg, vormen en werking"
-        description="Wat is non-bancaire financiering precies? Lees hoe het werkt, welke vormen er zijn en hoe de zekerheden zijn geregeld."
-        url="https://www.nonbancaireleningen.nl/berichten/wat-is-non-bancaire-financiering"
+        headline={TITEL}
+        description={OMSCHRIJVING}
+        url={`https://www.nonbancaireleningen.nl/berichten/${SLUG}`}
         datePublished="2026-05-15"
-        dateModified="2026-05-15"
+        dateModified="2026-11-25"
         authorName="Marco Lange"
       />
       <Header />
       <main>
+        <ArtikelHero
+          categorie="Uitleg"
+          titel="Wat is non-bancaire financiering?"
+          intro="Financiering buiten de bank, met vastgoed als zekerheid. Wat het is, hoe een aanvraag wordt beoordeeld, voor wie het bedoeld is en hoe de zekerheden zijn geregeld."
+          auteur="Marco Lange"
+          datumIso="2026-05-15"
+          datumTekst="15 mei 2026, bijgewerkt 25 november 2026"
+        />
 
-        {/* ── Hero ── */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-white/60 text-sm mb-6">
-                <Link href="/berichten" className="hover:text-white/80 transition-colors">Berichten</Link>
-                <span>/</span>
-                <span className="text-white/80">Wat is non-bancaire financiering?</span>
-              </div>
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Wat is non-bancaire financiering?
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Een groeiend alternatief voor ondernemers die buiten de bancaire criteria vallen, maar w&eacute;l beschikken over solide onderpand.
-              </p>
-              <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
-                <span>Marco Lange</span>
-                <span>·</span>
-                <time dateTime="2026-05-15">15 mei 2026</time>
-              </div>
-            </div>
-          </div>
-        </section>
+        <TekstMetFoto kop="Een lening die niet van een bank komt" foto="/images/nbl-kantoor.jpg" alt="Modern kantoorgebouw met een glazen gevel">
+          <P>
+            Non-bancaire financiering is een verzamelnaam voor leningen die niet door een bank worden verstrekt. Het
+            geld komt van particuliere investeerders, institutionele beleggers of gespecialiseerde fondsen. Bij Lange
+            &amp; Partners komt het van particuliere investeerders, en gaat het altijd om een lening met een
+            hypotheekrecht op vastgoed in Nederland.
+          </P>
+          <P>
+            Juridisch lijkt zo&apos;n lening op een hypotheek van de bank. Er is een hypotheekakte van de notaris en
+            het hypotheekrecht wordt ingeschreven bij het Kadaster. Het verschil zit in wie het geld verstrekt, in de
+            beoordeling en in de looptijd.
+          </P>
+          <P>
+            Een bank toetst langs vaste normen. Wij beoordelen anders en op andere punten. Inkomen en jaarcijfers
+            tellen mee, maar niet langs een vaste norm. En waar een bank voor dertig jaar financiert, is een
+            non-bancaire financiering tijdelijk. Zij loopt tot het moment waarop u verkoopt, bij een bank kunt
+            herfinancieren of uit eigen middelen aflost.
+          </P>
+        </TekstMetFoto>
 
-        {/* ── Article ── */}
-        <article className="py-16 bg-white">
-          <div className="max-w-screen-md mx-auto px-4 space-y-12">
+        <Sectie kop="Hoe een aanvraag wordt beoordeeld" grijs>
+          <P>
+            Drie dingen bepalen samen of een financiering kan. De betaalbaarheid, dus of u de rente en de kosten kunt
+            dragen uit inkomen, kasstroom, huur of een rentedepot. Het onderpand, dus de waarde van het vastgoed
+            tegenover de totale schuld die erop komt te rusten. En de exit, dus de manier waarop de lening aan het
+            einde wordt afgelost.
+          </P>
+          <P>
+            Die drie wegen wij in samenhang. Een sterk onderpand maakt een ontbrekende exit niet goed. Zonder zicht
+            op een exit kunnen wij niet financieren. Daarnaast controleren wij de betrokkenen in de openbare
+            registers.
+          </P>
+        </Sectie>
 
-            {/* Intro */}
-            <div className="space-y-4">
-              <p className="text-gray-700 leading-relaxed text-lg">
-                Steeds meer ondernemers, ZZP&apos;ers en DGA&apos;s komen in aanraking met de term &lsquo;non-bancaire financiering&rsquo;. Vaak nadat een hypotheekaanvraag bij de bank is afgewezen. Maar wat houdt het precies in? En hoe verschilt het van een gewone lening bij de bank?
-              </p>
-              <p className="text-gray-700 leading-relaxed">
-                In dit artikel leggen wij uit wat non-bancaire financiering is, hoe het werkt, voor wie het geschikt is en hoe de zekerheden zijn geregeld.
-              </p>
-            </div>
+        <Rekenvoorbeeld
+          kop="De kern in cijfers"
+          toelichting="De grenzen waarbinnen wij financieren. De volledige voorwaarden staan op de productpagina."
+        >
+          <Tabel
+            donker
+            tekst
+            kolommen={["", "Bij Lange & Partners"]}
+            rijen={[
+              ["Leenbedrag", BEDRAG],
+              ["Looptijd", LOOPTIJD],
+              ["Loan-to-value", LTV],
+              ["Rente", RENTE],
+              ["Zekerheid", "1e of opvolgend hypotheekrecht"],
+              ["Van volledige aanvraag tot notaris", DOORLOOPTIJD],
+            ]}
+          />
+          <DonkerTekst>
+            Een bestaande hypotheek telt mee in de totale schuld op het pand. De rente hangt af van de
+            loan-to-value, het type vastgoed, een 1e of opvolgend hypotheekrecht en het risicoprofiel.
+          </DonkerTekst>
+        </Rekenvoorbeeld>
 
-            {/* Definitie */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Financiering buiten de bank</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Non-bancaire financiering is een verzamelnaam voor leningen die niet door een bank worden verstrekt. Het kapitaal komt van particuliere investeerders, institutionele beleggers of gespecialiseerde fondsen. De lening wordt, net als bij een bank, hypothecair vastgelegd op vastgoed.
-              </p>
-              <p className="text-gray-700 leading-relaxed">
-                Het verschil zit niet in de juridische structuur, maar in de beoordeling. Waar banken zich richten op vaste inkomensnormen, kijken non-bancaire financiers primair naar de waarde van het onderpand en het totale financiële plaatje van de aanvrager.
-              </p>
-            </div>
+        <Sectie kop="Voor wie het bedoeld is">
+          <P>
+            Een non-bancaire financiering vervangt de bank niet. Zij is bedoeld voor situaties waarin een bank niet
+            kan of wil financieren, terwijl er vastgoed met voldoende dekking is en zicht op een exit.
+          </P>
+          <P>
+            Dat is bijvoorbeeld een ondernemer die{" "}
+            <A href="/hypotheek-zonder-jaarcijfers">nog geen drie jaar jaarcijfers</A> heeft, een{" "}
+            <A href="/dga-hypotheek">DGA</A> met een laag salaris uit de eigen BV, of iemand die na{" "}
+            <A href="/hypotheek-ondernemer-afgewezen">een afwijzing door de bank</A> een andere route zoekt. Het kan
+            ook gaan om overwaarde benutten met <A href="/tweede-hypotheek-ondernemer">een tweede hypotheek</A>, om{" "}
+            <A href="/overbruggingsfinanciering-verbouwing">een overbrugging of verbouwing</A>, om{" "}
+            <A href="/herfinanciering-vastgoed">een herfinanciering</A> of om de aankoop van{" "}
+            <A href="/beleggingspand-financieren">een beleggingspand of bedrijfspand</A>.
+          </P>
+          <P>
+            Het past niet bij iedereen. Koopt u uw eerste woning met weinig eigen geld en zoekt u een hypotheek voor
+            dertig jaar, dan is een bank de aangewezen route. Hetzelfde geldt voor bedragen onder €200.000 en voor
+            consumptief krediet.
+          </P>
+        </Sectie>
 
-            {/* Hoe werkt het */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Hoe werkt het in de praktijk?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Bij Lange &amp; Partners verloopt een non-bancaire financiering via een gestructureerd proces met dezelfde juridische waarborgen als een bancaire hypotheek.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'U dient een aanvraag in met gegevens over het vastgoed en uw financiële situatie',
-                  'Wij beoordelen het onderpand op marktwaarde en bestemming',
-                  'Bij akkoord wordt de lening notarieel vastgelegd en ingeschreven bij het Kadaster',
-                  'Alle betalingen verlopen via een onafhankelijke Stichting',
-                  'Na afloop van de looptijd wordt de lening afgelost of geherfinancierd',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                De doorlooptijd is aanzienlijk korter dan bij een bank, doorgaans &eacute;&eacute;n tot drie weken bij een volledige aanvraag.
-              </p>
-            </div>
+        <Sectie kop="Hoe de zekerheden zijn geregeld" grijs>
+          <P>
+            De lening wordt vastgelegd in een hypotheekakte bij de notaris. Het hypotheekrecht wordt ingeschreven
+            bij het Kadaster, als 1e of opvolgend hypotheekrecht. Alle betalingen lopen via een onafhankelijke
+            Stichting die de geldstromen beheert.
+          </P>
+          <P>
+            De waarde van het onderpand wordt vooraf vastgesteld, doorgaans met een taxatierapport van een
+            onafhankelijke taxateur. Bij een lage loan-to-value kan de WOZ-waarde volstaan.
+          </P>
+          <P>
+            Lange &amp; Partners heeft een AFM-vergunning voor bemiddeling. Wij brengen leningnemer en investeerder
+            bij elkaar en de investeerder verstrekt de lening. De registraties staan op de pagina{" "}
+            <A href="/nadere-informatie">Toezicht en registraties</A>.
+          </P>
+        </Sectie>
 
-            {/* Voor wie */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Voor wie is het geschikt?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Non-bancaire financiering is niet bedoeld als vervanging van de bank. Het is een oplossing voor situaties waarin de bank niet kan of wil financieren, terwijl de aanvrager w&eacute;l beschikt over vastgoed met voldoende overwaarde.
-              </p>
-              <p className="text-gray-700 leading-relaxed">Dit zijn typische situaties.</p>
-              <div className="space-y-3">
-                {[
-                  'ZZP\'ers zonder drie jaar jaarcijfers die een woning willen kopen',
-                  'DGA\'s met een laag fiscaal salaris maar een solide onderneming',
-                  'Ondernemers die snel kapitaal nodig hebben voor een vastgoedtransactie',
-                  'Vastgoedbeleggers die hun portefeuille willen uitbreiden',
-                  'Ondernemers na een investeringsjaar met tijdelijk lagere winst',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#2596be] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <Sectie kop="Van aanvraag tot notaris">
+          <P>
+            U legt uw casus aan ons voor, rechtstreeks of via uw adviseur. Kunnen wij er iets mee, dan ontvangt u een
+            indicatie van de mogelijkheden. Na uw akkoord volgt de termsheet met alle afspraken, en daarna de
+            notaris. Vanaf een volledige aanvraag rekenen wij op één tot drie weken tot het passeren.
+          </P>
+          <P>
+            De stappen staan in het bericht{" "}
+            <A href="/berichten/zo-verloopt-een-financiering">Van aanvraag tot passering</A>. Wat u betaalt, staat in
+            het bericht over <A href="/berichten/kosten-non-bancaire-hypotheek">de kosten</A>.
+          </P>
+        </Sectie>
 
-            {/* Vormen */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Welke vormen bestaan er?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Non-bancaire financiering is een breed begrip. Bij Lange &amp; Partners richten wij ons specifiek op hypothecaire leningen met vastgoed als onderpand. Dit kan verschillende vormen aannemen.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'Eerste hypotheek, wanneer er nog geen hypotheek op het vastgoed rust',
-                  'Tweede hypotheek, aanvullend op een bestaande bancaire hypotheek',
-                  'Overbruggingskrediet, tijdelijke financiering tot verkoop of herfinanciering',
-                  'Vastgoedfinanciering, voor aan- of verbouw van woon- of bedrijfspanden',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                De bedragen variëren van &euro;200.000 tot &euro;5.000.000, met looptijden van 6 tot 60 maanden.
-              </p>
-            </div>
+        <Faq items={faq} />
 
-            {/* Zekerheden */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Hoe zijn de zekerheden geregeld?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Een veelgestelde vraag is of non-bancaire financiering net zo veilig is als een bancaire lening. Het antwoord is dat de juridische structuur vergelijkbaar is.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'De lening wordt notarieel vastgelegd via een hypotheekakte',
-                  'Inschrijving bij het Kadaster geeft de geldverstrekker zakelijke zekerheid',
-                  'Een onafhankelijke Stichting beheert alle geldstromen',
-                  'De waarde van het onderpand wordt vastgesteld, doorgaans met een taxatierapport van een onafhankelijke taxateur',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#2596be] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                Deze structuur beschermt zowel de lener als de investeerder. Het is geen informele constructie, maar een professioneel gereguleerd proces.
-              </p>
-            </div>
+        <MeerBerichten huidig={SLUG} />
 
-            {/* Verwante paginas */}
-            <div className="border-t border-gray-200 pt-8 space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Meer informatie per situatie</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { href: '/vastgoedfinanciering-zonder-bank', titel: 'Vastgoedfinanciering zonder bank' },
-                  { href: '/tweede-hypotheek-ondernemer', titel: 'Tweede hypotheek voor ondernemer' },
-                  { href: '/vastgoedfinanciering-zonder-bank', titel: 'Vastgoedfinanciering zonder bank' },
-                  { href: '/hypotheek-zonder-jaarcijfers', titel: 'Geen drie jaar jaarcijfers' },
-                ].map((p) => (
-                  <Link
-                    key={p.href}
-                    href={p.href}
-                    className="block p-4 border border-gray-200 hover:border-[#311e86] transition-colors group"
-                  >
-                    <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                    <span className="text-[#f75d20] text-sm font-medium mt-2 inline-block">Meer lezen &rarr;</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* FAQ */}
-            <div className="border-t border-gray-200 pt-8 space-y-6">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Veelgestelde vragen</h2>
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="bg-gray-50 p-8 text-center space-y-4">
-              <h2 className="text-xl font-serif text-[#1e3a5f]">Wilt u weten of non-bancaire financiering bij uw situatie past?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Neem vrijblijvend contact op met &eacute;&eacute;n van onze specialisten. Bel (023) 517 31 00 of dien direct een aanvraag in.
-              </p>
-              <div className="flex gap-3 justify-center flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-gray-300 text-gray-700 px-6 py-3 text-sm font-medium rounded-full hover:border-[#311e86] hover:text-[#311e86] transition-colors"
-                >
-                  Contact opnemen
-                </Link>
-              </div>
-            </div>
-
-          </div>
-        </article>
-
+        <Vervolg
+          kop="Past dit bij uw situatie?"
+          tekst="Leg uw casus aan ons voor. Wij beoordelen de betaalbaarheid, het onderpand en de exit en laten u weten of, en onder welke voorwaarden, een financiering mogelijk is."
+          knop={{ href: "/financieringsaanvraag", label: "Aanvraag indienen" }}
+          tweede={{ href: "/vastgoedfinanciering-zonder-bank", label: "Alle voorwaarden" }}
+        />
       </main>
       <Footer />
     </>
