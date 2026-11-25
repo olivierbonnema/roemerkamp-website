@@ -107,7 +107,7 @@ export const SITUATION_PAGES: SitePage[] = [
 export const COMPANY_PAGES: SitePage[] = [
   { href: "/situaties", label: "Situaties", description: "Overzicht van situaties waarin wij financieren.", updated: "2026-11-02" },
   { href: "/casussen", label: "Casussen", description: "Financieringen uit de praktijk, geanonimiseerd.", updated: "2026-11-03" },
-  { href: "/over-ons", label: "Over ons", description: "Wie wij zijn.", updated: "2026-05-14" },
+  { href: "/over-ons", label: "Over ons", description: "Wie wij zijn.", updated: "2026-11-25" },
   { href: "/nadere-informatie", label: "Toezicht en registraties", description: "AFM-vergunning, Kifid en duurzaamheid.", updated: "2026-11-03" },
   { href: "/contact", label: "Contact", description: "Neem contact met ons op.", updated: "2026-05-15" },
   { href: "/financieringsaanvraag", label: "Financieringsaanvraag", description: "Dien uw aanvraag in.", updated: "2026-11-03" },
