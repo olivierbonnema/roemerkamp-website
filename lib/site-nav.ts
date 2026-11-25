@@ -8,7 +8,7 @@
 //
 // Used by: components/header.tsx (desktop dropdowns + mobile menu),
 // components/footer.tsx, components/home/financieringen-section.tsx,
-// app/situaties/page.tsx, components/berichten/articles-grid-section.tsx,
+// app/situaties/page.tsx, components/berichten/articles-section.tsx,
 // components/home/berichten-home-section.tsx, app/sitemap.ts and
 // public/llms.txt (manually kept in sync, see wiki Tech/Site Map).
 
@@ -21,6 +21,9 @@ export interface SitePage {
   updated: string
 }
 
+/** "Actueel" is an article about news, "Uitleg" explains a subject, "Werkwijze" is about how we work. */
+export type PostCategory = "Actueel" | "Uitleg" | "Werkwijze"
+
 export interface StaticPost {
   slug: string
   title: string
@@ -29,6 +32,7 @@ export interface StaticPost {
   imageStyle?: { objectPosition: string }
   /** ISO publication date. */
   date: string
+  category: PostCategory
 }
 
 /** The product page for borrowers: conditions, costs, process, FAQ. */
@@ -107,12 +111,22 @@ export const COMPANY_PAGES: SitePage[] = [
   { href: "/nadere-informatie", label: "Toezicht en registraties", description: "AFM-vergunning, Kifid en duurzaamheid.", updated: "2026-11-03" },
   { href: "/contact", label: "Contact", description: "Neem contact met ons op.", updated: "2026-05-15" },
   { href: "/financieringsaanvraag", label: "Financieringsaanvraag", description: "Dien uw aanvraag in.", updated: "2026-11-03" },
-  { href: "/berichten", label: "Berichten", description: "Inzichten en updates.", updated: "2026-10-27" },
+  { href: "/berichten", label: "Berichten", description: "Actueel nieuws en uitleg over vastgoedfinanciering.", updated: "2026-11-25" },
   { href: "/privacy", label: "Privacyverklaring", description: "Privacy.", updated: "2026-11-03" },
 ]
 
 /** Blog posts that live as code under app/berichten/<slug>/page.tsx, newest first. */
 export const STATIC_POSTS: StaticPost[] = [
+  {
+    slug: "rente-en-woningmarkt-najaar-2026",
+    title: "Hogere rente, rustiger woningmarkt: wat dat doet met uw exit",
+    excerpt:
+      "De ECB verhoogde de rente dit jaar twee keer en de woningmarkt koelt af. Wat de cijfers van dit najaar zeggen, en wat ze betekenen voor wie een lening aflost uit verkoop of herfinanciering.",
+    image: "/images/molens-zonsondergang.jpg",
+    imageStyle: { objectPosition: "center 36%" },
+    date: "2026-11-25",
+    category: "Actueel",
+  },
   {
     slug: "zo-verloopt-een-financiering",
     title: "Van aanvraag tot passering: zo verloopt een financiering",
@@ -121,6 +135,7 @@ export const STATIC_POSTS: StaticPost[] = [
     image: "/images/bericht-3-haarlem.jpg",
     imageStyle: { objectPosition: "center 45%" },
     date: "2026-09-30",
+    category: "Werkwijze",
   },
   {
     slug: "tweede-hypotheek-en-ltv",
@@ -130,6 +145,7 @@ export const STATIC_POSTS: StaticPost[] = [
     image: "/images/bericht-1-boom.jpg",
     imageStyle: { objectPosition: "center 55%" },
     date: "2026-09-30",
+    category: "Uitleg",
   },
   {
     slug: "overbruggingsfinanciering-de-exit",
@@ -139,6 +155,7 @@ export const STATIC_POSTS: StaticPost[] = [
     image: "/images/bericht-2-brug.jpg",
     imageStyle: { objectPosition: "center 55%" },
     date: "2026-09-30",
+    category: "Uitleg",
   },
   {
     slug: "wat-is-non-bancaire-financiering",
@@ -147,6 +164,7 @@ export const STATIC_POSTS: StaticPost[] = [
       "Hoe financiering buiten de bank werkt, welke vormen er zijn, voor wie het geschikt is en hoe de zekerheden zijn geregeld.",
     image: "/images/nbl-kantoor.jpg",
     date: "2026-05-15",
+    category: "Uitleg",
   },
   {
     slug: "kosten-non-bancaire-hypotheek",
@@ -155,6 +173,7 @@ export const STATIC_POSTS: StaticPost[] = [
       "Een overzicht van rente, behandelingskosten en notariskosten, en wanneer een hogere rente toch loont.",
     image: "/images/nbl-villa.jpg",
     date: "2026-05-15",
+    category: "Uitleg",
   },
 ]
 
