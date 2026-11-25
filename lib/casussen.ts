@@ -148,7 +148,7 @@ export const CASUSSEN: Casus[] = [
     slug: 'ouders-helpen-kind-huis-kopen',
     titel: 'Ouders helpen kind huis kopen tot het eigen geld vrijkomt',
     samenvatting:
-      'Een bedrijfsverkoop zou de woning van de dochter mee betalen, maar de verkoop liep uit. Een tijdelijke lening overbrugde de periode tot dat geld er was.',
+      'Ouders wilden hun dochter helpen een huis te kopen met geld uit een bedrijfsverkoop. Die liep vertraging op. Een tijdelijke lening overbrugde die periode.',
     situatie: '/overbruggingsfinanciering-verbouwing',
     situatieLabel: 'Overbrugging en verbouwing',
     perspectief: 'leningnemer',
