@@ -38,26 +38,16 @@ const situaties = [
   },
 ]
 
+// Only questions the page itself does not answer. The same two questions and
+// answers are in the article /berichten/overbruggingsfinanciering-de-exit.
 const faq = [
   {
-    vraag: 'Wat is het verschil tussen een overbruggingslening en een reguliere hypotheek?',
-    antwoord: 'Een reguliere hypotheek is een langlopende lening van doorgaans 10 tot 30 jaar, bedoeld als permanente financiering. Een overbruggingslening is tijdelijk, bij ons 6 tot 60 maanden, en bedoeld om het gat te dichten tussen twee momenten, zoals aankoop en verkoop of het begin en het einde van een project. De lening wordt afgelost zodra het vastgoed is verkocht of de definitieve financiering is geregeld.',
+    vraag: 'Kan ik eerder aflossen als de verkoop sneller gaat dan gepland?',
+    antwoord: 'Ja. Een overbrugging is bedoeld om te eindigen, en eerder is beter dan later. Of daar een vergoeding tegenover staat en hoe het niet-gebruikte deel van het rentedepot wordt verrekend, leggen wij vooraf vast in de termsheet, zodat u het weet voordat u tekent.',
   },
   {
-    vraag: 'Hoe snel kan een overbruggingslening worden verstrekt?',
-    antwoord: 'Bij een volledige aanvraag en een duidelijk onderpand rekenen wij op één tot drie weken tot het passeren. In urgente gevallen, zoals een veiling, proberen wij dit te versnellen. De agenda van de notaris en een eventuele toestemming van een eerste hypotheekhouder bepalen mede de doorlooptijd.',
-  },
-  {
-    vraag: 'Kan ik een overbrugging aanvragen als mijn huidige woning nog niet is verkocht?',
-    antwoord: 'Ja, dat is juist een veelvoorkomende situatie. Wij beoordelen de waarde van het huidige en het nieuwe onderpand. De overwaarde in de huidige woning kan als zekerheid dienen voor de overbrugging.',
-  },
-  {
-    vraag: 'Wat gebeurt er als de overbrugging langer duurt dan verwacht?',
-    antwoord: 'De looptijd spreken wij vooraf af, met ruimte in de planning. Loopt het toch uit, dan bespreken wij tijdig met de investeerder een verlenging. Wij hanteren geen starre einddatum zonder eerst de situatie te beoordelen. Wel moet de exit haalbaar en realistisch blijven.',
-  },
-  {
-    vraag: 'Hoe werkt het bouwdepot?',
-    antwoord: 'Een deel van de lening wordt in depot gehouden en in delen uitbetaald op basis van de voortgang van de verbouwing, bijvoorbeeld tegen facturen van de aannemer. Daarvoor hebben wij vooraf een begroting en een planning nodig.',
+    vraag: 'Hoe lang kan een overbrugging lopen?',
+    antwoord: 'Doorgaans zes tot vierentwintig maanden. Korter dan zes maanden is zelden zinvol vanwege de eenmalige kosten. Langer dan twee jaar is meestal geen overbrugging meer, maar een financiering die om een andere opzet vraagt.',
   },
 ]
 
