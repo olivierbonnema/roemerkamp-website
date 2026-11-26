@@ -5,7 +5,6 @@ import { HeroSection } from "@/components/home/hero-section"
 import { VoorVermogendeSection } from "@/components/home/voor-vermogende-section"
 import { WealthManagementSection } from "@/components/home/wealth-management-section"
 import { VermogensbeheerHomeSection } from "@/components/home/vermogensbeheer-home-section"
-import { PrivateMarketsHomeSection } from "@/components/home/private-markets-home-section"
 import { MeerWetenSection } from "@/components/home/meer-weten-section"
 import { pageMetadata } from '@/lib/seo'
 
@@ -58,7 +57,6 @@ export default function HomePage() {
         <VoorVermogendeSection />
         <WealthManagementSection />
         <VermogensbeheerHomeSection />
-        <PrivateMarketsHomeSection />
         <MeerWetenSection />
       </main>
       <Footer />
