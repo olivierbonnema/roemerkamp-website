@@ -6,6 +6,11 @@
 // from an aanvraag. After the notary the row goes to the archive. The rows live
 // in a collection of their own (`leningen`) and never change an aanvraag.
 //
+// Since 2026-11-26 (second round, Olivier): the overview is split in three
+// phases (termsheet afgegeven, quote verstuurd, recent ontvangen), only the
+// bruto rente is filled in and the other two rates follow from it, and the
+// passeerdatum is a real date the rows are sorted on.
+//
 // This file has no server imports: the page and the routes both use it.
 
 export const LENINGEN_COLLECTION = "leningen"
@@ -17,28 +22,32 @@ export interface LeningFields {
   hoofdsom: number
   // "Gefund" on the board: the investors have committed the money.
   gefund: boolean
+  // A quote-mail went out.
+  quote: boolean
   // The column "start" on the board: is there a termsheet, and is it paid.
   termsheet: boolean
   betaald: boolean
-  // Percent per year. null = not filled in.
+  // The rate of the quote, percent per year. null = not filled in. What the
+  // borrower pays and what the investor gets follow from it (renteLeningnemer,
+  // renteNetto).
   brutoRente: number | null
-  nettoRente: number | null
   duurMaanden: number | null
   // Free text, as on the board: "1e", "2e", "1e (2x)".
   zekerheid: string
   // Free text, as on the board: "50%", "<70%", "50-70%".
   ltv: string
-  investeerders: string
-  // Free text, as on the board: "01-12", "half dec", "kerst?".
-  passeerdatum: string
+  // "YYYY-MM-DD", or "" when not known yet.
+  passeerDatum: string
   opmerking: string
 }
 
 export interface Lening extends LeningFields {
   id: string
   status: LeningStatus
-  // Place in the list, lowest first.
-  volgorde: number
+  // Rows from before the passeerdatum was a date carry the text of the board
+  // ("half dec"). As long as such a row has not been saved with a date, the
+  // date above is an estimate from this text, and the text is shown with it.
+  passeerTekst: string
   // The aanvraag this row was made from, "" when added by hand.
   aanvraagId: string
   createdAt: string | null
@@ -49,7 +58,6 @@ export interface Lening extends LeningFields {
 export const LENING_LIMITS = {
   project: 120,
   short: 40,
-  investeerders: 300,
   opmerking: 1000,
   hoofdsom: 1_000_000_000,
   rente: 100,
@@ -60,29 +68,154 @@ export const EMPTY_LENING: LeningFields = {
   project: "",
   hoofdsom: 0,
   gefund: false,
+  quote: false,
   termsheet: false,
   betaald: false,
   brutoRente: null,
-  nettoRente: null,
   duurMaanden: null,
   zekerheid: "",
   ltv: "",
-  investeerders: "",
-  passeerdatum: "",
+  passeerDatum: "",
   opmerking: "",
 }
 
-const TEXT_LIMIT: Record<"project" | "zekerheid" | "ltv" | "investeerders" | "passeerdatum" | "opmerking", number> = {
+/* ---------- the three rates ---------- */
+
+// Olivier, 2026-11-26: "als wij een quote opmaken staat daar de bruto rente in
+// en daar komen 0,07% administratiekosten bovenop voor de leningnemer [...]
+// Van de bruto rente gaat er 0,08% per maand af voor de investeerder. Dat wordt
+// dan de netto rente". Both are percent per month. The same 0,07 is in the
+// quote-mail and the same 0,08 is the default beheervergoeding of the pitch.
+export const ADMINISTRATIEKOSTEN_PCT_PER_MAAND = 0.07
+export const BEHEERVERGOEDING_PCT_PER_MAAND = 0.08
+
+const round3 = (n: number) => Math.round(n * 1000) / 1000
+
+/** What the borrower pays per year: the bruto rente plus the administratiekosten. */
+export function renteLeningnemer(bruto: number | null): number | null {
+  return bruto === null ? null : round3(bruto + ADMINISTRATIEKOSTEN_PCT_PER_MAAND * 12)
+}
+
+/** What the investor gets per year: the bruto rente minus the beheervergoeding. */
+export function renteNetto(bruto: number | null): number | null {
+  return bruto === null ? null : round3(bruto - BEHEERVERGOEDING_PCT_PER_MAAND * 12)
+}
+
+/* ---------- the three phases ---------- */
+
+export type LeningFase = "termsheet" | "quote" | "ontvangen"
+
+export const LENING_FASEN: { id: LeningFase; label: string; leeg: string }[] = [
+  { id: "termsheet", label: "Termsheet afgegeven", leeg: "Nog geen lening met een termsheet." },
+  { id: "quote", label: "Quote verstuurd", leeg: "Geen lening waar alleen een quote voor is verstuurd." },
+  { id: "ontvangen", label: "Recent ontvangen", leeg: "Geen nieuwe leningen." },
+]
+
+/** The furthest step counts: a termsheet goes before a quote. */
+export function leningFase(l: Pick<LeningFields, "termsheet" | "quote">): LeningFase {
+  return l.termsheet ? "termsheet" : l.quote ? "quote" : "ontvangen"
+}
+
+/* ---------- the passeerdatum ---------- */
+
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
+
+/** "YYYY-MM-DD" that is a real day on the calendar. */
+export function isIsoDatum(v: unknown): v is string {
+  if (typeof v !== "string") return false
+  const m = v.match(ISO_DATE)
+  if (!m) return false
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  if (y < 2000 || y > 2100) return false
+  const date = new Date(Date.UTC(y, mo - 1, d))
+  return date.getUTCFullYear() === y && date.getUTCMonth() === mo - 1 && date.getUTCDate() === d
+}
+
+const MAANDEN = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
+const maandVan = (word: string) => {
+  const w = word.slice(0, 3)
+  return w === "maa" ? 2 : MAANDEN.indexOf(w)
+}
+const iso = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`
+const lastDay = (y: number, m: number) => new Date(Date.UTC(y, m + 1, 0)).getUTCDate()
+
+/**
+ * A date for the text the board had before the passeerdatum became a date.
+ * Olivier, 2026-11-26, chose estimates for the vague ones: "half dec" is the
+ * 15th, a month alone is its last day, "kerst" is 24 December. "01-12" and
+ * "30 nov" are read as they are. The year is the one of `createdIso` (when the
+ * row was made), or the next when that day lies more than half a year before
+ * it. Returns "" when the text is not understood.
+ */
+export function schatPasseerdatum(tekst: string, createdIso: string | null): string {
+  const t = tekst.toLowerCase().replace(/[?.]/g, " ").trim().replace(/\s+/g, " ")
+  if (!t) return ""
+  let month = -1
+  let day = 0 // 0 = the last day of the month
+  let m: RegExpMatchArray | null
+  if ((m = t.match(/^(\d{1,2})[-/](\d{1,2})$/))) { day = Number(m[1]); month = Number(m[2]) - 1 }
+  else if ((m = t.match(/^(\d{1,2}) ?([a-z]{3,})$/))) { day = Number(m[1]); month = maandVan(m[2]) }
+  else if ((m = t.match(/^half ([a-z]{3,})$/))) { day = 15; month = maandVan(m[1]) }
+  else if (/^kerst/.test(t)) { day = 24; month = 11 }
+  else if ((m = t.match(/^([a-z]{3,})$/))) { month = maandVan(m[1]) }
+  if (month < 0 || month > 11) return ""
+
+  const created = createdIso ? new Date(createdIso) : new Date()
+  const base = Number.isNaN(created.getTime()) ? new Date() : created
+  let year = base.getUTCFullYear()
+  const at = (y: number) => {
+    const d = day === 0 ? lastDay(y, month) : day
+    return d >= 1 && d <= lastDay(y, month) ? Date.UTC(y, month, d) : NaN
+  }
+  if (Number.isNaN(at(year))) return ""
+  if (at(year) < base.getTime() - 183 * 86_400_000) year += 1
+  const d = day === 0 ? lastDay(year, month) : day
+  return d <= lastDay(year, month) ? iso(year, month, d) : ""
+}
+
+/**
+ * Whether the date made from this text of the board is a guess: the text has a
+ * question mark or names no day ("half dec", "dec", "kerst?"). "01-12" and
+ * "30 nov" are exact.
+ */
+export function passeerIsSchatting(tekst: string): boolean {
+  const t = tekst.toLowerCase().trim()
+  if (!t) return false
+  return t.includes("?") || !/^\d{1,2}([-/]\d{1,2}| ?[a-z]{3,}\.?)$/.test(t)
+}
+
+/** "1 dec 2026" for "2026-12-01". */
+export function fmtDatum(isoDate: string): string {
+  const m = isoDate.match(ISO_DATE)
+  if (!m) return ""
+  return `${Number(m[3])} ${MAANDEN[Number(m[2]) - 1]} ${m[1]}`
+}
+
+/** Whole days from `today` ("YYYY-MM-DD") to `isoDate`. null when either is no date. */
+export function dagenTot(isoDate: string, today: string): number | null {
+  const a = isoDate.match(ISO_DATE)
+  const b = today.match(ISO_DATE)
+  if (!a || !b) return null
+  return Math.round((Date.UTC(+a[1], +a[2] - 1, +a[3]) - Date.UTC(+b[1], +b[2] - 1, +b[3])) / 86_400_000)
+}
+
+/** "over 5 dagen", "morgen", "vandaag", "3 dagen geleden". */
+export function fmtDagenTot(n: number | null): string {
+  if (n === null) return ""
+  if (n === 0) return "vandaag"
+  if (n === 1) return "morgen"
+  if (n === -1) return "gisteren"
+  return n > 0 ? `over ${n} dagen` : `${-n} dagen geleden`
+}
+
+const TEXT_LIMIT: Record<"project" | "zekerheid" | "ltv" | "opmerking", number> = {
   project: LENING_LIMITS.project,
   zekerheid: LENING_LIMITS.short,
   ltv: LENING_LIMITS.short,
-  investeerders: LENING_LIMITS.investeerders,
-  passeerdatum: LENING_LIMITS.short,
   opmerking: LENING_LIMITS.opmerking,
 }
 const TEXT_FIELDS = Object.keys(TEXT_LIMIT) as (keyof typeof TEXT_LIMIT)[]
-const BOOL_FIELDS = ["gefund", "termsheet", "betaald"] as const
-const PCT_FIELDS = ["brutoRente", "nettoRente"] as const
+const BOOL_FIELDS = ["gefund", "quote", "termsheet", "betaald"] as const
 
 /**
  * An amount as people write it: "450000", "€ 450.000,-", "300k", "1,1 mln",
@@ -119,7 +252,7 @@ export function parseBedrag(input: unknown): number | null {
   return euros >= 0 ? euros : null
 }
 
-/** A percentage as people write it: "6,5", "6.75%", 7. null when empty or not a number. */
+/** A percentage as people write it: "7,5", "7.75%", 8. null when empty or not a number. */
 export function parsePct(input: unknown): number | null {
   if (typeof input === "number") return Number.isFinite(input) ? input : null
   if (typeof input !== "string") return null
@@ -174,12 +307,19 @@ export function sanitizeLening(raw: unknown, opts: { requireProject: boolean }):
     fields.hoofdsom = n
   }
 
-  for (const key of PCT_FIELDS) {
-    if (r[key] === undefined) continue
-    if (r[key] === null || r[key] === "") { fields[key] = null; continue }
-    const n = parsePct(r[key])
-    if (n === null || n < 0 || n > LENING_LIMITS.rente) return { ok: false, error: `De ${LENING_LABELS[key].toLowerCase()} is geen geldig percentage.` }
-    fields[key] = Math.round(n * 1000) / 1000
+  if (r.brutoRente !== undefined) {
+    if (r.brutoRente === null || r.brutoRente === "") fields.brutoRente = null
+    else {
+      const n = parsePct(r.brutoRente)
+      if (n === null || n < 0 || n > LENING_LIMITS.rente) return { ok: false, error: "De bruto rente is geen geldig percentage." }
+      fields.brutoRente = round3(n)
+    }
+  }
+
+  if (r.passeerDatum !== undefined) {
+    if (r.passeerDatum === null || r.passeerDatum === "") fields.passeerDatum = ""
+    else if (isIsoDatum(r.passeerDatum)) fields.passeerDatum = r.passeerDatum
+    else return { ok: false, error: "De passeerdatum is geen geldige datum." }
   }
 
   if (r.duurMaanden !== undefined) {
@@ -198,49 +338,71 @@ export const LENING_LABELS: Record<keyof LeningFields, string> = {
   project: "Project",
   hoofdsom: "Hoofdsom",
   gefund: "Gefund",
+  quote: "Quote",
   termsheet: "Termsheet",
   betaald: "Betaald",
   brutoRente: "Bruto rente",
-  nettoRente: "Netto rente",
   duurMaanden: "Duur",
   zekerheid: "Zekerheid",
   ltv: "LTV",
-  investeerders: "Investeerders",
-  passeerdatum: "Passeerdatum",
+  passeerDatum: "Passeerdatum",
   opmerking: "Opmerking",
 }
 
-/** What is stored of a row, read back defensively (a field may be missing). */
+/**
+ * What is stored of a row, read back defensively (a field may be missing).
+ *
+ * Rows from the first version (2026-11-26, the 13 of the board) are read as
+ * they are, nothing is rewritten:
+ *   - they hold `nettoRente` and no bruto: the bruto is the netto plus the
+ *     beheervergoeding, so the netto on screen is the one of the board;
+ *   - they hold the passeerdatum as text (`passeerdatum`): the date is the
+ *     estimate of schatPasseerdatum, and the text comes along as `passeerTekst`.
+ * The first time such a row is saved from the form, the route stores the bruto
+ * and the date and drops the old fields.
+ */
 export function leningFromStored(id: string, d: Record<string, unknown>, toIso: (v: unknown) => string | null): Lening {
   const text = (v: unknown) => (typeof v === "string" ? v : "")
   const pct = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null)
+  const createdAt = toIso(d.createdAt)
+
+  const oldNetto = pct(d.nettoRente)
+  const brutoRente = pct(d.brutoRente) ?? (oldNetto === null ? null : round3(oldNetto + BEHEERVERGOEDING_PCT_PER_MAAND * 12))
+
+  const hasDate = typeof d.passeerDatum === "string"
+  const oldText = hasDate ? "" : text(d.passeerdatum).trim()
+  const passeerDatum = hasDate ? (isIsoDatum(d.passeerDatum) ? (d.passeerDatum as string) : "") : schatPasseerdatum(oldText, createdAt)
+
   return {
     id,
     project: text(d.project),
     hoofdsom: typeof d.hoofdsom === "number" && Number.isFinite(d.hoofdsom) ? d.hoofdsom : 0,
     gefund: d.gefund === true,
+    quote: d.quote === true,
     termsheet: d.termsheet === true,
     betaald: d.betaald === true,
-    brutoRente: pct(d.brutoRente),
-    nettoRente: pct(d.nettoRente),
+    brutoRente,
     duurMaanden: typeof d.duurMaanden === "number" && Number.isFinite(d.duurMaanden) ? d.duurMaanden : null,
     zekerheid: text(d.zekerheid),
     ltv: text(d.ltv),
-    investeerders: text(d.investeerders),
-    passeerdatum: text(d.passeerdatum),
+    passeerDatum,
+    passeerTekst: oldText,
     opmerking: text(d.opmerking),
     status: d.status === "archief" ? "archief" : "actief",
-    volgorde: typeof d.volgorde === "number" && Number.isFinite(d.volgorde) ? d.volgorde : 0,
     aanvraagId: text(d.aanvraagId),
-    createdAt: toIso(d.createdAt),
+    createdAt,
     updatedAt: toIso(d.updatedAt),
     archivedAt: toIso(d.archivedAt),
   }
 }
 
-/** The list as the board shows it: by place, then oldest first. */
-export function sortLeningen<T extends Pick<Lening, "volgorde" | "createdAt" | "id">>(rows: T[]): T[] {
-  return [...rows].sort((a, b) => a.volgorde - b.volgorde || String(a.createdAt || "").localeCompare(String(b.createdAt || "")) || a.id.localeCompare(b.id))
+/** The nearest passeerdatum first; rows without a date last, oldest first. */
+export function sortLeningen<T extends Pick<Lening, "passeerDatum" | "createdAt" | "id">>(rows: T[]): T[] {
+  return [...rows].sort((a, b) =>
+    (a.passeerDatum ? 0 : 1) - (b.passeerDatum ? 0 : 1)
+    || a.passeerDatum.localeCompare(b.passeerDatum)
+    || String(a.createdAt || "").localeCompare(String(b.createdAt || ""))
+    || a.id.localeCompare(b.id))
 }
 
 export interface LeningTotals {
@@ -310,8 +472,9 @@ export function fmtBedragKort(n: number): string {
   return `€ ${n.toLocaleString("nl-NL")}`
 }
 
+/** Two decimals, so the three rates line up in the list: "7,50%". */
 export function fmtPct(n: number | null): string {
-  return n === null ? "" : `${n.toLocaleString("nl-NL", { maximumFractionDigits: 3 })}%`
+  return n === null ? "" : `${n.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 3 })}%`
 }
 
 export function fmtDuur(n: number | null): string {

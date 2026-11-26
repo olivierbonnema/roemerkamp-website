@@ -10,9 +10,6 @@ import { EMPTY_LENING, LENINGEN_COLLECTION, leningFromAanvraag, leningFromStored
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
-// More rows than this at once is not an overview any more.
-const MAX_ORDER = 500
-
 async function verifyAdmin(req: NextRequest) {
   const auth = req.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) return null
@@ -92,17 +89,9 @@ export async function POST(req: NextRequest) {
       fields = { ...EMPTY_LENING, ...checked.fields }
     }
 
-    // A new row comes at the bottom of the list.
-    const active = await col.where("status", "==", "actief").get()
-    const last = active.docs.reduce((max, d) => {
-      const v = d.data()?.volgorde
-      return typeof v === "number" && Number.isFinite(v) ? Math.max(max, v) : max
-    }, 0)
-
     const ref = await col.add({
       ...fields,
       status: "actief",
-      volgorde: last + 1,
       aanvraagId,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
@@ -124,41 +113,5 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("[admin/leningen] create failed:", err)
     return NextResponse.json({ error: "Lening toevoegen mislukt." }, { status: 500 })
-  }
-}
-
-// The order of the list: `{ order: [id, id, ...] }`, the rows of the overview
-// from top to bottom. Rows in the archive and ids that do not exist are skipped.
-export async function PUT(req: NextRequest) {
-  const admin = await verifyAdmin(req)
-  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
-  let order: unknown
-  try {
-    order = (await req.json())?.order
-  } catch {
-    return NextResponse.json({ error: "Ongeldige invoer." }, { status: 400 })
-  }
-  if (!Array.isArray(order) || order.length === 0 || order.length > MAX_ORDER || order.some((id) => typeof id !== "string" || !id || id.includes("/")) || new Set(order).size !== order.length) {
-    return NextResponse.json({ error: "Ongeldige volgorde." }, { status: 400 })
-  }
-
-  try {
-    const col = adminDb.collection(LENINGEN_COLLECTION)
-    const active = await col.where("status", "==", "actief").get()
-    const known = new Map(active.docs.map((d) => [d.id, d]))
-    let place = 0
-    const updates: Promise<unknown>[] = []
-    for (const id of order as string[]) {
-      const doc = known.get(id)
-      if (!doc) continue
-      place += 1
-      if (doc.data()?.volgorde !== place) updates.push(doc.ref.update({ volgorde: place }))
-    }
-    await Promise.all(updates)
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error("[admin/leningen] order failed:", err)
-    return NextResponse.json({ error: "Volgorde opslaan mislukt." }, { status: 500 })
   }
 }

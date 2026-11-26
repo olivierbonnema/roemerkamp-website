@@ -1,31 +1,33 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Archive, ArrowDown, ArrowUp, Check, Pencil, Plus } from "lucide-react"
+import { Archive, Check, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { auth } from "@/lib/firebase"
 import {
-  EMPTY_LENING, fmtBedrag, fmtBedragKort, fmtDuur, fmtPct, leningTotals, sortLeningen,
-  type Lening, type LeningStatus,
+  ADMINISTRATIEKOSTEN_PCT_PER_MAAND, BEHEERVERGOEDING_PCT_PER_MAAND, EMPTY_LENING, LENING_FASEN,
+  dagenTot, fmtBedrag, fmtBedragKort, fmtDagenTot, fmtDatum, fmtDuur, fmtPct, leningFase, leningTotals, parsePct,
+  passeerIsSchatting, renteLeningnemer, renteNetto, sortLeningen,
+  type Lening, type LeningFase, type LeningStatus,
 } from "@/lib/leningen"
 
 // Beheer > Leningen: the whiteboard of the office on screen. One row per loan
-// that is being prepared, with the columns of the board. Data:
-// /api/admin/leningen. How it works: lib/leningen.ts.
+// that is being prepared, in three phases (termsheet afgegeven, quote verstuurd,
+// recent ontvangen), the nearest passeerdatum on top. Data: /api/admin/leningen.
+// How it works: lib/leningen.ts.
 
-// The form keeps everything as text, so "300k" and "6,5" can be typed as on
+// The form keeps everything as text, so "300k" and "7,5" can be typed as on
 // the board. The server reads and checks it (sanitizeLening).
 interface FormState {
   project: string
   hoofdsom: string
   brutoRente: string
-  nettoRente: string
   duurMaanden: string
   zekerheid: string
   ltv: string
-  investeerders: string
-  passeerdatum: string
+  passeerDatum: string
   opmerking: string
   gefund: boolean
+  quote: boolean
   termsheet: boolean
   betaald: boolean
 }
@@ -38,32 +40,65 @@ function formFrom(l: Lening | null): FormState {
     project: s.project,
     hoofdsom: s.hoofdsom > 0 ? String(s.hoofdsom) : "",
     brutoRente: nl(s.brutoRente),
-    nettoRente: nl(s.nettoRente),
     duurMaanden: s.duurMaanden === null ? "" : String(s.duurMaanden),
     zekerheid: s.zekerheid,
     ltv: s.ltv,
-    investeerders: s.investeerders,
-    passeerdatum: s.passeerdatum,
+    passeerDatum: s.passeerDatum,
     opmerking: s.opmerking,
     gefund: s.gefund,
+    quote: s.quote,
     termsheet: s.termsheet,
     betaald: s.betaald,
   }
 }
 
-type Tick = "gefund" | "termsheet" | "betaald"
+// In the order a loan goes through them.
+type Tick = "quote" | "termsheet" | "betaald" | "gefund"
 const TICKS: { key: Tick; label: string }[] = [
-  { key: "gefund", label: "Gefund" },
+  { key: "quote", label: "Quote" },
   { key: "termsheet", label: "Termsheet" },
   { key: "betaald", label: "Betaald" },
+  { key: "gefund", label: "Gefund" },
 ]
 
+const FASE_DOT: Record<LeningFase, string> = {
+  termsheet: "bg-[#1E3A5F]",
+  quote: "bg-[#F75D20]",
+  ontvangen: "bg-gray-300",
+}
+
 const INPUT = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-sans text-gray-900 focus:outline-none focus:border-[#1E3A5F]"
-const TH = "px-2 py-2.5 text-left text-[11px] leading-tight font-medium font-sans text-gray-500 whitespace-nowrap align-bottom"
+const TH = "px-2 py-2 text-left text-[11px] leading-tight font-medium font-sans text-gray-400 whitespace-nowrap align-bottom"
 const TD = "px-2 py-3 text-[13px] font-sans text-gray-800 align-top whitespace-nowrap"
-// The buttons of a row stay in view when the table is wider than the window.
-const STICKY = "sticky right-0 bg-white shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]"
 const ICON_BTN = "p-1.5 rounded-lg text-gray-400 hover:text-[#1E3A5F] hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
+const NONE = <span className="text-gray-300">-</span>
+
+// The same widths in every table, so the columns of the three phases line up.
+function Cols({ actions }: { actions: string }) {
+  return (
+    <colgroup>
+      <col />
+      <col className="w-[100px]" />
+      <col className="w-[50px]" />
+      <col className="w-[70px]" />
+      <col className="w-[58px]" />
+      <col className="w-[56px]" />
+      <col className="w-[82px]" />
+      <col className="w-[60px]" />
+      <col className="w-[60px]" />
+      <col className="w-[62px]" />
+      <col className="w-[74px]" />
+      <col className="w-[64px]" />
+      <col className="w-[122px]" />
+      <col className={actions} />
+    </colgroup>
+  )
+}
+
+function todayIso() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
 
 async function api(method: string, url: string, body?: unknown): Promise<Record<string, unknown>> {
   const token = await auth.currentUser?.getIdToken()
@@ -94,6 +129,28 @@ function Total({ label, value }: { label: string; value: string }) {
       <p className="text-[12px] font-sans text-gray-500">{label}</p>
       <p className="font-serif text-2xl text-[#1E3A5F] mt-1">{value}</p>
     </div>
+  )
+}
+
+function Passeerdatum({ l, today }: { l: Lening; today: string }) {
+  if (!l.passeerDatum) return l.passeerTekst ? <span className="text-gray-500">{l.passeerTekst}</span> : NONE
+  // A row of the first version whose date was read from a vague text on the board.
+  if (l.passeerTekst && passeerIsSchatting(l.passeerTekst)) {
+    return (
+      <>
+        <span>{fmtDatum(l.passeerDatum)}</span>
+        <span className="block text-[11px] text-gray-400 mt-0.5 !whitespace-normal">geschat, bord: {l.passeerTekst}</span>
+      </>
+    )
+  }
+  const days = dagenTot(l.passeerDatum, today)
+  return (
+    <>
+      <span>{fmtDatum(l.passeerDatum)}</span>
+      {l.status === "actief" && days !== null && (
+        <span className={`block text-[11px] mt-0.5 ${days < 0 ? "text-amber-600" : days <= 7 ? "text-[#F75D20]" : "text-gray-400"}`}>{fmtDagenTot(days)}</span>
+      )}
+    </>
   )
 }
 
@@ -143,11 +200,11 @@ export function AdminLeningen() {
   }
   if (loadError) return <p className="text-red-500 text-sm font-sans">{loadError}</p>
 
+  const today = todayIso()
   const active = sortLeningen(leningen.filter((l) => l.status === "actief"))
   const archive = leningen
     .filter((l) => l.status === "archief")
     .sort((a, b) => String(b.archivedAt || "").localeCompare(String(a.archivedAt || "")))
-  const shown = tab === "actief" ? active : archive
   const totals = leningTotals(active)
 
   function openForm(l: Lening | null) {
@@ -174,7 +231,8 @@ export function AdminLeningen() {
     }
   }
 
-  // A tick is shown at once and put back when saving fails.
+  // A tick is shown at once and put back when saving fails. Ticking Quote or
+  // Termsheet moves the row to the phase that goes with it.
   async function toggle(l: Lening, key: Tick) {
     const next = !l[key]
     setError("")
@@ -184,26 +242,6 @@ export function AdminLeningen() {
     } catch (e) {
       setLeningen((rows) => rows.map((r) => (r.id === l.id ? { ...r, [key]: !next } : r)))
       setError(e instanceof Error ? e.message : "Opslaan mislukt.")
-    }
-  }
-
-  async function move(l: Lening, direction: -1 | 1) {
-    const index = active.findIndex((r) => r.id === l.id)
-    const target = index + direction
-    if (index < 0 || target < 0 || target >= active.length || busy) return
-    const order = active.map((r) => r.id)
-    ;[order[index], order[target]] = [order[target], order[index]]
-    const before = leningen
-    setError("")
-    setBusy(l.id)
-    setLeningen((rows) => rows.map((r) => (order.includes(r.id) ? { ...r, volgorde: order.indexOf(r.id) + 1 } : r)))
-    try {
-      await api("PUT", "/api/admin/leningen", { order })
-    } catch (e) {
-      setLeningen(before)
-      setError(e instanceof Error ? e.message : "Volgorde opslaan mislukt.")
-    } finally {
-      setBusy(null)
     }
   }
 
@@ -222,7 +260,81 @@ export function AdminLeningen() {
     }
   }
 
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }))
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => { setFormError(""); setForm((f) => ({ ...f, [key]: value })) }
+
+  const head = (lastLabel: string) => (
+    <thead>
+      <tr className="border-b border-gray-100">
+        <th className={`${TH} pl-5`}>Project</th>
+        <th className={`${TH} text-right`}>Hoofdsom</th>
+        {TICKS.map((t) => <th key={t.key} className={`${TH} text-center`}>{t.label}</th>)}
+        <th className={`${TH} text-right`}>Rente<br />leningnemer</th>
+        <th className={`${TH} text-right`}>Bruto<br />rente</th>
+        <th className={`${TH} text-right`}>Netto<br />rente</th>
+        <th className={TH}>Duur</th>
+        <th className={TH}>Zekerheid</th>
+        <th className={TH}>LTV</th>
+        <th className={TH}>{lastLabel}</th>
+        <th className={`${TH} pr-4`} aria-label="Acties" />
+      </tr>
+    </thead>
+  )
+
+  const row = (l: Lening) => (
+    <tr key={l.id} data-lening={l.id} className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60 transition-colors ${busy === l.id ? "opacity-60" : ""}`}>
+      <td className={`${TD} pl-5 !whitespace-normal`}>
+        <span className="font-medium text-gray-900 break-words">{l.project}</span>
+        {l.opmerking && <span className="block text-[12px] text-gray-500 mt-0.5">{l.opmerking}</span>}
+        {l.aanvraagId && <span className="block text-[11px] text-gray-400 mt-0.5">uit aanvraag</span>}
+      </td>
+      <td className={`${TD} text-right tabular-nums font-medium text-[#1E3A5F]`}>{fmtBedrag(l.hoofdsom) || NONE}</td>
+      {TICKS.map((t) => (
+        <td key={t.key} className={`${TD} text-center`}>
+          {l.status === "actief" ? (
+            <input
+              type="checkbox"
+              checked={l[t.key]}
+              onChange={() => toggle(l, t.key)}
+              aria-label={`${t.label}: ${l.project}`}
+              className="w-4 h-4 accent-[#1E3A5F] cursor-pointer"
+            />
+          ) : l[t.key] ? (
+            <Check size={15} className="inline text-[#1E3A5F]" aria-label="Ja" />
+          ) : NONE}
+        </td>
+      ))}
+      <td className={`${TD} text-right tabular-nums`}>{fmtPct(renteLeningnemer(l.brutoRente)) || NONE}</td>
+      <td className={`${TD} text-right tabular-nums`}>{fmtPct(l.brutoRente) || NONE}</td>
+      <td className={`${TD} text-right tabular-nums`}>{fmtPct(renteNetto(l.brutoRente)) || NONE}</td>
+      <td className={TD}>{fmtDuur(l.duurMaanden) || NONE}</td>
+      <td className={`${TD} !whitespace-normal`}>{l.zekerheid || NONE}</td>
+      <td className={`${TD} !whitespace-normal`}>{l.ltv || NONE}</td>
+      <td className={TD}><Passeerdatum l={l} today={today} /></td>
+      <td className={`${TD} pr-4 text-right`}>
+        {l.status === "actief" ? (
+          <span className="inline-flex items-center gap-0.5">
+            <button onClick={() => openForm(l)} aria-label={`${l.project} bewerken`} title="Bewerken" className={ICON_BTN}>
+              <Pencil size={14} />
+            </button>
+            <button onClick={() => act(l, () => api("PATCH", `/api/admin/leningen/${l.id}`, { status: "archief" }))} disabled={!!busy} aria-label={`${l.project} is gepasseerd, naar het archief`} title="Gepasseerd, naar het archief" className={ICON_BTN}>
+              <Archive size={14} />
+            </button>
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-0.5">
+            <button onClick={() => act(l, () => api("PATCH", `/api/admin/leningen/${l.id}`, { status: "actief" }))} disabled={!!busy} aria-label={`${l.project} terug naar het overzicht`} title="Terug naar het overzicht" className={ICON_BTN}>
+              <RotateCcw size={14} />
+            </button>
+            <button onClick={() => setConfirmDelete(l.id)} disabled={!!busy} aria-label={`${l.project} verwijderen`} title="Verwijderen" className={`${ICON_BTN} hover:!text-red-600`}>
+              <Trash2 size={14} />
+            </button>
+          </span>
+        )}
+      </td>
+    </tr>
+  )
+
+  const brutoForm = parsePct(form.brutoRente)
 
   return (
     <div>
@@ -256,114 +368,73 @@ export function AdminLeningen() {
 
       {error && <p role="alert" className="text-red-600 text-sm font-sans mb-4">{error}</p>}
 
-      {shown.length === 0 ? (
-        <p className="text-gray-400 font-sans text-sm py-10">
-          {tab === "actief"
-            ? "Er staan nog geen leningen op het overzicht. Voeg er een toe, of zet een aanvraag op het overzicht vanuit Aanvragen."
-            : "Het archief is leeg. Een lening komt hier als hij bij de notaris is gepasseerd."}
-        </p>
-      ) : (
-        <div className="relative border border-gray-200 rounded-xl bg-white overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/60">
-                <th className={`${TH} w-8`}>#</th>
-                <th className={TH}>Project</th>
-                <th className={`${TH} text-right`}>Hoofdsom</th>
-                {TICKS.map((t) => <th key={t.key} className={`${TH} text-center`}>{t.label}</th>)}
-                <th className={`${TH} text-right`}>Bruto<br />rente</th>
-                <th className={`${TH} text-right`}>Netto<br />rente</th>
-                <th className={TH}>Duur</th>
-                <th className={TH}>Zekerheid</th>
-                <th className={TH}>LTV</th>
-                <th className={TH}>Investeerders</th>
-                <th className={TH}>{tab === "actief" ? "Passeerdatum" : "Gepasseerd"}</th>
-                <th className={`${TH} ${STICKY} !bg-gray-50`} aria-label="Acties" />
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((l, i) => (
-                <tr key={l.id} data-lening={l.id} className={`border-b border-gray-100 last:border-b-0 ${busy === l.id ? "opacity-60" : ""}`}>
-                  <td className={`${TD} text-gray-400`}>{i + 1}</td>
-                  <td className={`${TD} !whitespace-normal min-w-[170px] max-w-[300px]`}>
-                    <span className="font-medium text-gray-900">{l.project}</span>
-                    {l.opmerking && <span className="block text-[12px] text-gray-500 mt-0.5">{l.opmerking}</span>}
-                    {l.aanvraagId && <span className="block text-[11px] text-gray-400 mt-0.5">uit aanvraag</span>}
-                  </td>
-                  <td className={`${TD} text-right tabular-nums`}>{fmtBedrag(l.hoofdsom) || <span className="text-gray-300">-</span>}</td>
-                  {TICKS.map((t) => (
-                    <td key={t.key} className={`${TD} text-center`}>
-                      {tab === "actief" ? (
-                        <input
-                          type="checkbox"
-                          checked={l[t.key]}
-                          onChange={() => toggle(l, t.key)}
-                          aria-label={`${t.label}: ${l.project}`}
-                          className="w-4 h-4 accent-[#1E3A5F] cursor-pointer"
-                        />
-                      ) : l[t.key] ? (
-                        <Check size={15} className="inline text-[#1E3A5F]" aria-label="Ja" />
-                      ) : (
-                        <span className="text-gray-300">-</span>
-                      )}
-                    </td>
-                  ))}
-                  <td className={`${TD} text-right tabular-nums`}>{fmtPct(l.brutoRente) || <span className="text-gray-300">-</span>}</td>
-                  <td className={`${TD} text-right tabular-nums`}>{fmtPct(l.nettoRente) || <span className="text-gray-300">-</span>}</td>
-                  <td className={TD}>{fmtDuur(l.duurMaanden) || <span className="text-gray-300">-</span>}</td>
-                  <td className={TD}>{l.zekerheid || <span className="text-gray-300">-</span>}</td>
-                  <td className={TD}>{l.ltv || <span className="text-gray-300">-</span>}</td>
-                  <td className={`${TD} !whitespace-normal min-w-[110px] max-w-[220px]`}>{l.investeerders || <span className="text-gray-300">-</span>}</td>
-                  <td className={TD}>{l.passeerdatum || <span className="text-gray-300">-</span>}</td>
-                  <td className={`${TD} ${STICKY} text-right`}>
-                    {tab === "actief" ? (
-                      <span className="inline-flex items-center gap-0.5">
-                        <button onClick={() => move(l, -1)} disabled={i === 0 || !!busy} aria-label={`${l.project} omhoog`} title="Omhoog" className={ICON_BTN}>
-                          <ArrowUp size={14} />
-                        </button>
-                        <button onClick={() => move(l, 1)} disabled={i === shown.length - 1 || !!busy} aria-label={`${l.project} omlaag`} title="Omlaag" className={ICON_BTN}>
-                          <ArrowDown size={14} />
-                        </button>
-                        <button onClick={() => openForm(l)} aria-label={`${l.project} bewerken`} title="Bewerken" className={ICON_BTN}>
-                          <Pencil size={14} />
-                        </button>
-                        <button onClick={() => act(l, () => api("PATCH", `/api/admin/leningen/${l.id}`, { status: "archief" }))} disabled={!!busy} aria-label={`${l.project} is gepasseerd, naar het archief`} title="Gepasseerd, naar het archief" className={ICON_BTN}>
-                          <Archive size={14} />
-                        </button>
-                      </span>
-                    ) : confirmDelete === l.id ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="text-xs text-gray-600">Voorgoed verwijderen?</span>
-                        <button onClick={() => act(l, () => api("DELETE", `/api/admin/leningen/${l.id}`))} disabled={!!busy} className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
-                          Ja, verwijder
-                        </button>
-                        <button onClick={() => setConfirmDelete(null)} className="px-3 py-1.5 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-gray-400">
-                          Nee
-                        </button>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5">
-                        <button onClick={() => act(l, () => api("PATCH", `/api/admin/leningen/${l.id}`, { status: "actief" }))} disabled={!!busy} className="px-3 py-1.5 text-xs font-medium rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors disabled:opacity-50">
-                          Terug naar overzicht
-                        </button>
-                        <button onClick={() => setConfirmDelete(l.id)} className="px-3 py-1.5 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors">
-                          Verwijderen
-                        </button>
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {tab === "actief" && (
+        <div className="space-y-5">
+          {LENING_FASEN.map((fase) => {
+            const rows = active.filter((l) => leningFase(l) === fase.id)
+            const som = rows.reduce((sum, l) => sum + l.hoofdsom, 0)
+            return (
+              <section key={fase.id} data-fase={fase.id} aria-labelledby={`fase-${fase.id}`} className="relative border border-gray-200 rounded-xl bg-white overflow-x-auto">
+                <div className="flex items-center gap-2.5 px-5 pt-4 pb-3 min-w-[1100px]">
+                  <span className={`w-2 h-2 rounded-full ${FASE_DOT[fase.id]}`} aria-hidden="true" />
+                  <h2 id={`fase-${fase.id}`} className="font-serif text-lg text-[#1E3A5F]">{fase.label}</h2>
+                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[12px] font-medium font-sans">{rows.length}</span>
+                  {rows.length > 0 && <span className="ml-auto text-[13px] font-sans text-gray-500 tabular-nums">{fmtBedrag(som) || "€ 0"}</span>}
+                </div>
+                {rows.length === 0 ? (
+                  <p className="px-5 pb-4 text-[13px] font-sans text-gray-400">{fase.leeg}</p>
+                ) : (
+                  <table className="w-full min-w-[1100px] table-fixed border-collapse">
+                    <Cols actions="w-[72px]" />
+                    {head("Passeerdatum")}
+                    <tbody>{rows.map(row)}</tbody>
+                  </table>
+                )}
+              </section>
+            )
+          })}
+          <p className="text-[12px] text-gray-400 font-sans max-w-3xl leading-relaxed">
+            Een lening staat in de fase van de verste stap die is aangevinkt: Termsheet gaat voor Quote. Binnen een fase staat de eerste passeerdatum bovenaan.
+            Alleen de bruto rente wordt ingevuld. De leningnemer betaalt daar {nl(ADMINISTRATIEKOSTEN_PCT_PER_MAAND)}% administratiekosten per maand bovenop,
+            voor de investeerder gaat er {nl(BEHEERVERGOEDING_PCT_PER_MAAND)}% per maand af. Het potlood opent een regel, het archiefdoosje zet een gepasseerde lening in het archief.
+          </p>
         </div>
       )}
 
-      {tab === "actief" && shown.length > 0 && (
-        <p className="text-[12px] text-gray-400 font-sans mt-4 max-w-2xl leading-relaxed">
-          Vink Gefund, Termsheet en Betaald direct in de lijst aan. Het potlood opent de hele regel om aan te passen. Het archiefdoosje zet een lening in het archief zodra hij bij de notaris is gepasseerd.
-        </p>
+      {tab === "archief" && (
+        archive.length === 0 ? (
+          <p className="text-gray-400 font-sans text-sm py-10">Het archief is leeg. Een lening komt hier als hij bij de notaris is gepasseerd.</p>
+        ) : (
+          <div className="relative border border-gray-200 rounded-xl bg-white overflow-x-auto">
+            <table className="w-full min-w-[1100px] table-fixed border-collapse">
+              <Cols actions="w-[72px]" />
+              {head("Passeerdatum")}
+              <tbody>{archive.map(row)}</tbody>
+            </table>
+          </div>
+        )
       )}
+
+      {confirmDelete && (() => {
+        const l = leningen.find((r) => r.id === confirmDelete)
+        if (!l) return null
+        return (
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { if (!busy) setConfirmDelete(null) }}>
+            <div role="dialog" aria-modal="true" aria-labelledby="lening-delete-title" className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 id="lening-delete-title" className="font-serif text-xl text-[#1E3A5F] mb-2">Voorgoed verwijderen?</h3>
+              <p className="text-sm font-sans text-gray-600">{l.project} verdwijnt uit het archief. Dit kan niet ongedaan worden gemaakt.</p>
+              <div className="flex justify-end gap-2 mt-6">
+                <button onClick={() => setConfirmDelete(null)} disabled={!!busy} className="px-4 py-2 text-[13px] font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 disabled:opacity-50">
+                  Nee
+                </button>
+                <button onClick={() => act(l, () => api("DELETE", `/api/admin/leningen/${l.id}`))} disabled={!!busy} className="px-4 py-2 text-[13px] font-medium font-sans rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                  Ja, verwijder
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {editing && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { if (!saving) setEditing(null) }}>
@@ -380,31 +451,35 @@ export function AdminLeningen() {
                   <input value={form.hoofdsom} onChange={(e) => set("hoofdsom", e.target.value)} inputMode="decimal" className={INPUT} />
                 </Field>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <Field label="Bruto rente (%)">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Field label="Bruto rente (%)" hint="De rente uit de quote">
                   <input value={form.brutoRente} onChange={(e) => set("brutoRente", e.target.value)} inputMode="decimal" className={INPUT} />
                 </Field>
-                <Field label="Netto rente (%)">
-                  <input value={form.nettoRente} onChange={(e) => set("nettoRente", e.target.value)} inputMode="decimal" className={INPUT} />
-                </Field>
+                <div className="sm:col-span-2 rounded-lg bg-gray-50 px-4 py-3 text-[13px] font-sans text-gray-600 self-start sm:mt-[22px]" data-rentes>
+                  {brutoForm === null ? (
+                    "Vul de bruto rente in. De rente van de leningnemer en de netto rente worden uitgerekend."
+                  ) : (
+                    <>
+                      Leningnemer betaalt <strong className="text-[#1E3A5F]">{fmtPct(renteLeningnemer(brutoForm))}</strong>,
+                      de investeerder krijgt netto <strong className="text-[#1E3A5F]">{fmtPct(renteNetto(brutoForm))}</strong>.
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <Field label="Duur (maanden)">
                   <input value={form.duurMaanden} onChange={(e) => set("duurMaanden", e.target.value)} inputMode="numeric" className={INPUT} />
                 </Field>
                 <Field label="LTV">
                   <input value={form.ltv} onChange={(e) => set("ltv", e.target.value)} maxLength={40} className={INPUT} />
                 </Field>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Zekerheid" hint="Bijvoorbeeld 1e of 2e hypotheekrecht">
+                <Field label="Zekerheid">
                   <input value={form.zekerheid} onChange={(e) => set("zekerheid", e.target.value)} maxLength={40} className={INPUT} />
                 </Field>
-                <Field label="Passeerdatum" hint="Mag ook bij benadering, zoals half december">
-                  <input value={form.passeerdatum} onChange={(e) => set("passeerdatum", e.target.value)} maxLength={40} className={INPUT} />
+                <Field label="Passeerdatum">
+                  <input type="date" value={form.passeerDatum} onChange={(e) => set("passeerDatum", e.target.value)} min="2000-01-01" max="2100-12-31" className={INPUT} />
                 </Field>
               </div>
-              <Field label="Investeerders">
-                <input value={form.investeerders} onChange={(e) => set("investeerders", e.target.value)} maxLength={300} className={INPUT} />
-              </Field>
               <Field label="Opmerking">
                 <textarea value={form.opmerking} onChange={(e) => set("opmerking", e.target.value)} maxLength={1000} rows={2} className={INPUT} />
               </Field>
