@@ -4,10 +4,7 @@ import { Footer } from "@/components/footer"
 import { HeroSection } from "@/components/home/hero-section"
 import { VoorVermogendeSection } from "@/components/home/voor-vermogende-section"
 import { WealthManagementSection } from "@/components/home/wealth-management-section"
-import { FinancieringenSection } from "@/components/home/financieringen-section"
 import { VermogensbeheerHomeSection } from "@/components/home/vermogensbeheer-home-section"
-import { PrivateMarketsHomeSection } from "@/components/home/private-markets-home-section"
-import { BerichtenHomeSection } from "@/components/home/berichten-home-section"
 import { MeerWetenSection } from "@/components/home/meer-weten-section"
 import { pageMetadata } from '@/lib/seo'
 
@@ -59,10 +56,7 @@ export default function HomePage() {
         <HeroSection />
         <VoorVermogendeSection />
         <WealthManagementSection />
-        <FinancieringenSection />
         <VermogensbeheerHomeSection />
-        <PrivateMarketsHomeSection />
-        <BerichtenHomeSection />
         <MeerWetenSection />
       </main>
       <Footer />

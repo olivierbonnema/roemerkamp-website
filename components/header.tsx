@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { ShieldCheck, Menu, X, ChevronDown, LayoutDashboard, FolderOpen, FilePlus } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import { BORROWER_PAGE, INVESTOR_PAGE, SITUATION_PAGES } from "@/lib/site-nav"
+import { BORROWER_PAGE, INVESTOR_PAGE } from "@/lib/site-nav"
 
 interface DropdownItem {
   href: string
@@ -22,20 +22,12 @@ interface NavItem {
 
 const PORTAL_PATHS = ["/mijn-aanvragen", "/financieringsaanvraag", "/admin", "/account", "/portaal"]
 
-// Public navigation. One product, several situations (decision 2 November 2026):
-// the product pages are direct links, the situations sit in one dropdown.
+// Public navigation. The situation pages are not in the menu (Olivier, 26
+// November 2026); the footer and the product page link to them.
 // Page lists come from lib/site-nav.ts so menu, footer, homepage and sitemap stay in sync.
 const NAV_ITEMS: NavItem[] = [
   { href: BORROWER_PAGE.href, label: "Voor leningnemers" },
   { href: INVESTOR_PAGE.href, label: "Voor investeerders" },
-  {
-    href: "/situaties",
-    label: "Situaties",
-    dropdown: [
-      { href: "/situaties", label: "Alle situaties" },
-      ...SITUATION_PAGES.map((p) => ({ href: p.href, label: p.label })),
-    ],
-  },
   { href: "/casussen", label: "Casussen" },
   { href: "/berichten", label: "Berichten" },
   { href: "/over-ons", label: "Over ons" },
