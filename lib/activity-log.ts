@@ -40,13 +40,18 @@ export type ActivityAction =
   | "document_uploaded"
   | "concept_created"
   | "concept_removed"
+  | "lening_created"
+  | "lening_updated"
+  | "lening_archived"
+  | "lening_restored"
+  | "lening_deleted"
 
 export interface LogEntry {
   action: ActivityAction
   userId: string
   userEmail: string
   targetId?: string
-  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check" | "invoice" | "concept"
+  targetType?: "termsheet" | "pitch" | "aanvraag" | "user" | "settings" | "esign" | "check" | "invoice" | "concept" | "lening"
   details?: Record<string, string | boolean>
 }
 
