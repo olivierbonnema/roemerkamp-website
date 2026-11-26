@@ -44,6 +44,11 @@ const ACTION_LABELS: Record<string, string> = {
   document_accessed: "Documenten geopend",
   concept_created: "Concept aangemaakt",
   concept_removed: "Concept door adviseur verwijderd",
+  lening_created: "Lening op het overzicht gezet",
+  lening_updated: "Lening bijgewerkt",
+  lening_archived: "Lening naar het archief",
+  lening_restored: "Lening terug op het overzicht",
+  lening_deleted: "Lening verwijderd",
 }
 
 export default function ActiviteitPage() {

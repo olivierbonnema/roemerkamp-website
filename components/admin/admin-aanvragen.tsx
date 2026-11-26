@@ -7,7 +7,7 @@ import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
 import QuoteDialog, { fmtSavedAt, shortUser } from "./quote-dialog"
 import { quoteSummaryLine, type SavedQuote, type SavedQuoteInput } from "@/lib/generators/quote-generator"
-import { Upload, X, Trash2, PlayCircle, StickyNote, Mail } from "lucide-react"
+import { Upload, X, Trash2, PlayCircle, StickyNote, Mail, Landmark } from "lucide-react"
 
 interface Aanvraag {
   id: string
@@ -208,11 +208,60 @@ export function AdminAanvragen() {
   const [overviewId, setOverviewId] = useState<string | null>(null)
   const [noteText, setNoteText] = useState("")
   const [savingNote, setSavingNote] = useState(false)
+  // Aanvragen that have a row on Beheer > Leningen (lib/leningen.ts), and
+  // whether that row is on the overview or in its archive.
+  const [opOverzicht, setOpOverzicht] = useState<Record<string, "actief" | "archief">>({})
+  const [addingLening, setAddingLening] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   // Aanvragen for which a "somebody works on this" signal is under way (see touch).
   const touching = useRef<Set<string>>(new Set())
 
-  useEffect(() => { loadAanvragen(); loadOrgs(); loadStaff() }, [])
+  useEffect(() => { loadAanvragen(); loadOrgs(); loadStaff(); loadLeningen() }, [])
+
+  // Only decides which label the button "Zet op leningenoverzicht" gets. When
+  // this fails the aanvragen work as always; the server refuses a second row.
+  async function loadLeningen() {
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/leningen", { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) return
+      const data = await res.json()
+      const map: Record<string, "actief" | "archief"> = {}
+      for (const l of (Array.isArray(data.leningen) ? data.leningen : [])) {
+        if (typeof l?.aanvraagId !== "string" || !l.aanvraagId) continue
+        if (l.status === "actief" || !map[l.aanvraagId]) map[l.aanvraagId] = l.status === "archief" ? "archief" : "actief"
+      }
+      setOpOverzicht(map)
+    } catch {}
+  }
+
+  // Puts the aanvraag on Beheer > Leningen. The server fills the row from the
+  // saved quote-mail or from the aanvraag, and changes nothing on the aanvraag.
+  async function addToLeningen(a: Aanvraag) {
+    if (addingLening) return
+    setAddingLening(a.id)
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/leningen", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ aanvraagId: a.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setOpOverzicht(prev => ({ ...prev, [a.id]: "actief" }))
+      } else if (res.status === 409) {
+        // It was there already, put there in another window or by a colleague.
+        await loadLeningen()
+      } else {
+        setScanErrorModal({ title: "Niet op het leningenoverzicht gezet", message: typeof data.error === "string" ? data.error : "Er ging iets mis. Probeer het opnieuw." })
+      }
+    } catch {
+      setScanErrorModal({ title: "Niet op het leningenoverzicht gezet", message: "Er ging iets mis. Probeer het opnieuw." })
+    } finally {
+      setAddingLening(null)
+    }
+  }
 
   async function loadStaff() {
     try {
@@ -997,6 +1046,26 @@ export function AdminAanvragen() {
               >
                 {a.quote?.savedAt ? "Quote-mail bewerken" : "Quote-mail"}
               </button>
+
+              {/* Beheer > Leningen: the overview of loans that are being prepared */}
+              {opOverzicht[a.id] ? (
+                <a
+                  href="/admin/leningen"
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <Landmark size={12} />
+                  {opOverzicht[a.id] === "archief" ? "In archief leningen" : "Op leningenoverzicht"}
+                </a>
+              ) : (
+                <button
+                  onClick={() => { touch(a); addToLeningen(a) }}
+                  disabled={addingLening === a.id}
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+                >
+                  <Landmark size={12} />
+                  {addingLening === a.id ? "Bezig..." : "Zet op leningenoverzicht"}
+                </button>
+              )}
 
               {/* Internal note (admin-only) */}
               <button
