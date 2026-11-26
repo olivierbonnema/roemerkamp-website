@@ -9,7 +9,7 @@
 // Used by: components/header.tsx (desktop dropdowns + mobile menu),
 // components/footer.tsx,
 // app/situaties/page.tsx, components/berichten/articles-section.tsx,
-// components/home/berichten-home-section.tsx, app/sitemap.ts and
+// app/sitemap.ts and
 // public/llms.txt (manually kept in sync, see wiki Tech/Site Map).
 
 export interface SitePage {
