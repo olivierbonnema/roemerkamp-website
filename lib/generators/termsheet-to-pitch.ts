@@ -7,8 +7,9 @@
 import type { TermsheetData } from "./termsheet-generator"
 import type { PitchData } from "./pitch-generator"
 import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
+import { cleanName, spouses } from "./termsheet-parties"
 import { PITCH_DEFAULTS } from "./form-defaults"
-import { loanPartsBaseTotal } from "./leningdelen"
+import { loanPartsBaseTotal, type Leningdeel } from "./leningdelen"
 import { LEGAL_NAME } from "../company"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
@@ -36,6 +37,12 @@ function deriveLeenvorm(t: TermsheetData): string {
   return "Aflossingsvrij"
 }
 
+function leningdelenVoorPitch(t: TermsheetData): Leningdeel[] | undefined {
+  const delen = (t.leningdelen || []).filter((d) => d && Number(d.amount) > 0)
+  if (delen.length === 0) return undefined
+  return delen.map((d) => ({ amount: Number(d.amount), repaymentType: d.repaymentType || "annuïtair", ...(d.endDate ? { endDate: d.endDate } : {}) }))
+}
+
 function totalLoan(t: TermsheetData): number {
   // Prefer the structured breakdown so rente-/bouwdepot is never counted toward the
   // loan — even for termsheets whose stored loanAmount still includes the depots
@@ -58,6 +65,64 @@ function totalMarktwaarde(aanvraag?: Record<string, unknown>): number {
 
 function fmtEuro(n: number): string {
   return `€ ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(n || 0)},-`
+}
+
+/* ---------- the value of each onderpand, when there are several ---------- */
+
+// Two spellings of one address compare equal on street and number:
+// "Dorpsstraat 1, 1234 AB Plaats" and "Dorpsstraat 1 te Plaats" -> "dorpsstraat1".
+// Deliberately strict: number 1 is not number 12. No match means no value is
+// filled in, and the admin enters it.
+const normAdres = (s: unknown) => String(s || "").toLowerCase().replace(/[^a-z0-9à-ÿ]/g, "")
+const straatKey = (s: unknown) => normAdres(String(s || "").split(/,| te /i)[0])
+function zelfdeAdres(a: string, b: string): boolean {
+  const ka = straatKey(a)
+  const kb = straatKey(b)
+  return !!ka && !!kb && (ka === kb || normAdres(a) === normAdres(b))
+}
+
+interface WaardeBron { adres: string; waarde: number }
+
+// What is known about the value of each address, most reliable first: the
+// saved offerte (aanvraag.quote, where the adviser checked or corrected the
+// values), then the objects as the applicant entered them.
+function waardeBronnen(aanvraag?: Record<string, unknown>): WaardeBron[][] {
+  if (!aanvraag) return []
+  const rec = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {})
+  const adres = (straat: unknown, postcode: unknown, plaats: unknown) =>
+    [String(straat || "").trim(), [postcode, plaats].map((x) => String(x || "").trim()).filter(Boolean).join(" ")].filter(Boolean).join(", ")
+
+  const quoteObjects = rec(rec(aanvraag.quote).data).objects
+  const uitOfferte: WaardeBron[] = (Array.isArray(quoteObjects) ? quoteObjects : []).map((o) => ({
+    adres: String(rec(o).address || "").trim(),
+    waarde: toNumber(rec(o).waarde),
+  }))
+  const uitAanvraag: WaardeBron[] = (Array.isArray(aanvraag.objects) ? aanvraag.objects : []).map((o) => {
+    const r = rec(o)
+    return {
+      adres: adres(r.adres || r.objectAdres, r.postcode || r.objectPostcode, r.plaats || r.objectPlaats),
+      waarde: toNumber(r.waarde ?? r.objectWaarde),
+    }
+  })
+  // Older aanvragen only have the first object, as flat fields.
+  const plat: WaardeBron[] = [{
+    adres: adres(aanvraag.objectAdres, aanvraag.objectPostcode, aanvraag.objectPlaats),
+    waarde: toNumber(aanvraag.objectWaarde),
+  }]
+  return [uitOfferte, uitAanvraag, plat].map((bron) => bron.filter((b) => b.adres && b.waarde > 0))
+}
+
+// The value per termsheet object, 0 where nothing is known for that address.
+function waardePerOnderpand(adressen: string[], aanvraag?: Record<string, unknown>): number[] {
+  const bronnen = waardeBronnen(aanvraag)
+  return adressen.map((a) => {
+    if (!a.trim()) return 0
+    for (const bron of bronnen) {
+      const hit = bron.find((b) => zelfdeAdres(a, b.adres))
+      if (hit) return hit.waarde
+    }
+    return 0
+  })
 }
 
 // First-name → gender, to pick "de heer" / "mevrouw" (best-effort; falls back to the salutation).
@@ -107,6 +172,50 @@ function objectAddress(termsheet: TermsheetData): string {
   return ""
 }
 
+// What kind of building an onderpand is, read from its kadastrale omschrijving:
+// "... met betrekking tot HET WOONHUIS met ondergrond ..." gives "het woonhuis".
+// The word that comes first in the text wins, so "het kantoorgebouw met
+// bovenwoning" is a kantoorpand. "Perceel" only counts when no building is
+// named, because many houses are described as "een perceel grond met woning".
+// Empty when the text names nothing we know: the caller says "het pand" then.
+const BUILDING_NOUNS: [RegExp, string][] = [
+  [/appartement/, "het appartement"],
+  [/woonhuis/, "het woonhuis"],
+  [/woning/, "de woning"],
+  [/bedrijfs(pand|gebouw|ruimte|hal|complex)|loods/, "het bedrijfspand"],
+  [/winkel/, "het winkelpand"],
+  [/kantoor/, "het kantoorpand"],
+]
+export function objectNoun(description: string | undefined): string {
+  const t = (description || "").toLowerCase()
+  let best = ""
+  let at = Infinity
+  for (const [re, noun] of BUILDING_NOUNS) {
+    const i = t.search(re)
+    if (i >= 0 && i < at) { at = i; best = noun }
+  }
+  if (best) return best
+  return /perceel|bouwgrond|kavel/.test(t) ? "het perceel" : ""
+}
+
+// "A", "A en B", "A, B en C".
+function opsomming(items: string[]): string {
+  if (items.length <= 1) return items[0] || ""
+  return `${items.slice(0, -1).join(", ")} en ${items[items.length - 1]}`
+}
+
+// Several onderpanden: every one of them, by its kort adres, as
+// "het woonhuis aan de Dorpsstraat 1, 1234 AB Plaats en het woonhuis aan de ...".
+// An onderpand without a kort adres cannot be named and is left out, for the
+// admin to add. (Olivier, 17 November 2026: the sentence named one of two
+// onderpanden.)
+function onderpandenLijst(termsheet: TermsheetData): string {
+  const items = (termsheet.objects || [])
+    .filter((o) => (o.address || "").trim())
+    .map((o) => `${objectNoun(o.description) || "het pand"} aan de ${(o.address || "").trim()}`)
+  return opsomming(items)
+}
+
 // Personalized request sentence (like the termsheet opening), correct in every form
 // (one/two persons → heeft/hebben + de heer/mevrouw; BV → bedrijfsnaam + vertegenwoordiger).
 function buildVerzoek(termsheet: TermsheetData): string {
@@ -139,11 +248,19 @@ function buildVerzoek(termsheet: TermsheetData): string {
   const company = termsheet.kredietgever || LEGAL_NAME
 
   const doel = termsheet.doelFinanciering || "de gevraagde financiering"
-  const adres = objectAddress(termsheet)
-  const doelHeeftObject = /\bvan\b/.test(doel) // e.g. "de aankoop van een beleggingspand"
-  const doelTxt = adres
-    ? `${doel}${doelHeeftObject ? "" : " van het pand"} aan de ${adres}`
-    : doel
+  let doelTxt: string
+  if ((termsheet.objects || []).length > 1) {
+    // Several onderpanden: the purpose, then all of them as the collateral.
+    const lijst = onderpandenLijst(termsheet)
+    doelTxt = lijst ? `${doel} met als onderpand ${lijst}` : doel
+  } else {
+    // One onderpand: the sentence as it was.
+    const adres = objectAddress(termsheet)
+    const doelHeeftObject = /\bvan\b/.test(doel) // e.g. "de aankoop van een beleggingspand"
+    doelTxt = adres
+      ? `${doel}${doelHeeftObject ? "" : " van het pand"} aan de ${adres}`
+      : doel
+  }
 
   return `${lead}${priveTxt}${lastBvRep ? "," : ""} ${verb} ${company} verzocht om een financiering van ${fmtEuro(amount)} met als doel ${doelTxt}.`
 }
@@ -151,8 +268,19 @@ function buildVerzoek(termsheet: TermsheetData): string {
 export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<string, unknown>): Partial<PitchData> {
   const hoofdsom = totalLoan(termsheet)
   const looptijd = toNumber(termsheet.looptijd)
-  const marktwaarde = totalMarktwaarde(aanvraag)
   const eigenInbreng = toNumber(aanvraag?.eigenInbreng)
+
+  // Value of the collateral. One onderpand: the amount from the aanvraag, as it
+  // was. Several: a value per onderpand, for the addresses we know one for.
+  // An onderpand without one stays empty and the form asks for it; the one
+  // amount of the aanvraag is not used then, because it is the value of the
+  // first object only.
+  const tsObjects = termsheet.objects || []
+  const meerdere = tsObjects.length > 1
+  const waarden = meerdere ? waardePerOnderpand(tsObjects.map((o) => o.address || ""), aanvraag) : []
+  const allesBekend = meerdere && waarden.every((w) => w > 0)
+  const somWaarden = waarden.reduce((s, w) => s + w, 0)
+  const marktwaarde = allesBekend ? somWaarden : totalMarktwaarde(aanvraag)
 
   // Rente-/bouwdepot uit de leningdelen.
   const loanParts = termsheet.loanParts || []
@@ -174,23 +302,34 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
 
   // Parties: termsheet borrowers to pitch geldnemers. For a B.V. the pitch name is the
   // company name and bvName holds the representative; for a person, just the name.
-  const geldnemers = (termsheet.borrowers || []).map((b) => {
+  // The partners entered on the termsheet (married or registered partner of a
+  // privé geldnemer). Each follows the geldnemer it belongs to, with its role:
+  // co-owner of the onderpand, or consent only. (Olivier, 17 November 2026: the
+  // partners were not in the pitch and have to be.)
+  const partners = spouses(termsheet.borrowers || [])
+  const geldnemers = (termsheet.borrowers || []).flatMap((b): NonNullable<PitchData["geldnemers"]> => {
     if (b.type === "bv") {
       const rep = b.vertegenwoordiger
         ? `${b.vertegenwoordigerSalut ? b.vertegenwoordigerSalut + " " : ""}${b.vertegenwoordiger}`
         : ""
-      return { name: b.bvName || b.name || "", type: "bv" as const, bvName: rep }
+      return [{ name: b.bvName || b.name || "", type: "bv" as const, bvName: rep }]
     }
-    return { name: b.name || "", type: "prive" as const, bvName: "" }
+    const rows: NonNullable<PitchData["geldnemers"]> = [{ name: b.name || "", type: "prive" as const, bvName: "" }]
+    const partner = partners.find((sp) => sp.borrower === b)
+    if (partner) {
+      rows.push({ name: partner.name, type: partner.owner ? "mede-eigenaar" : "toestemming", bvName: "", partnerVan: cleanName(b.name) })
+    }
+    return rows
   })
 
   // Collateral: termsheet objects to pitch zekerheden — full structured fields, so
   // the pitch's Zekerheden section matches the termsheet 1:1 (same fields + text).
-  const collateralObjects = (termsheet.objects || []).map((o) => ({
+  const collateralObjects = tsObjects.map((o, i) => ({
     description: o.description || o.address || "",
     address: o.address || "",
     hypotheekRank: o.hypotheekRank || "1e",
     priorLienholders: o.priorLienholders || [],
+    ...(meerdere && waarden[i] > 0 ? { waarde: waarden[i], waardeType: "woz" as const } : {}),
   }))
 
   // Mortgage rank from the first object ("1e" to "1")
@@ -202,6 +341,9 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     collateralObjects: collateralObjects.length > 0 ? collateralObjects : undefined,
     hoofdsom: hoofdsom || undefined,
     hypotheekBedrag: hoofdsom || undefined,
+    // Loan parts of the termsheet go to the pitch as they are, without the
+    // monthly amounts: the pitch does not print those.
+    leningdelen: leningdelenVoorPitch(termsheet),
     hypotheekRang,
     loanDuration: looptijd || undefined,
     grossRate: typeof termsheet.rentePct === "number" ? termsheet.rentePct : undefined,
@@ -210,8 +352,9 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     zekerhedenText: buildPitchZekerheden((termsheet.objects || []) as ZekerheidObject[], hoofdsom, depotExtras) || undefined,
     zekerhedenExtra: depotExtras.length ? depotExtras : undefined,
     risks,
-    waardeType: marktwaarde > 0 ? "woz" : undefined,
-    waardeBedrag: marktwaarde || undefined,
+    waardeType: (meerdere ? somWaarden : marktwaarde) > 0 ? "woz" : undefined,
+    waardeBedrag: (meerdere ? (allesBekend ? somWaarden : 0) : marktwaarde) || undefined,
+    waardePerObject: meerdere ? true : undefined,
   }
 
   // Financieringsopzet - a few safe rows from what we reliably know

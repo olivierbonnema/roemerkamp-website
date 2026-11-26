@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo, useCallback } from "react"
 import { computeLtv, fmtPct } from "@/lib/generators/ltv"
+import { buildPitchLtvText, pitchWaarde, type WaardeType } from "@/lib/generators/pitch-waarde"
 import { fmtEuro } from "@/lib/generators/docx-helpers"
 import { PITCH_DEFAULTS as PD, buildErpText } from "@/lib/generators/form-defaults"
 import type { PitchData } from "@/lib/generators/pitch-generator"
 import { HYPOTHEEK_RANKS, RANK_LABELS, buildPitchZekerheden, type ZekerheidObject } from "@/lib/generators/zekerheden"
+import { leningdelenTotal, type Leningdeel, type RepaymentType } from "@/lib/generators/leningdelen"
+import { pitchLeenvormRegels, pitchLeningdelen, repaymentTypeFromLeenvorm } from "@/lib/generators/pitch-leningdelen"
 
 // Vaste extra-zekerheden (checkboxes); volgorde bepaalt de volgorde in de tekst.
 const STANDARD_EXTRAS = [
@@ -13,6 +16,24 @@ const STANDARD_EXTRAS = [
   "Verpanding van het rentedepot",
   "Verpanding van het bouwdepot",
 ]
+
+// An onderpand in the pitch form: the termsheet's fields, plus its own value
+// for a pitch with several onderpanden (lib/generators/pitch-waarde.ts).
+interface PitchObject extends ZekerheidObject {
+  waarde?: number
+  waardeType?: WaardeType
+}
+
+const WAARDE_TYPES: { value: WaardeType; label: string }[] = [
+  { value: "woz", label: "WOZ-waarde" },
+  { value: "taxatie", label: "Taxatierapport" },
+  { value: "geschat", label: "Geschatte waarde" },
+]
+
+const emptyObject = (): PitchObject => ({ description: "", address: "", hypotheekRank: "1e", priorLienholders: [], waarde: 0, waardeType: "woz" })
+
+// An object card counts as an onderpand once something is filled in.
+const isOnderpand = (o: PitchObject) => !!(o.description || o.address || (o.waarde || 0) > 0)
 
 interface FinRow {
   label: string
@@ -41,8 +62,11 @@ interface Risk {
 
 interface Geldnemer {
   name: string // persoon- of B.V.-naam
-  type: "prive" | "bv"
+  // "mede-eigenaar" / "toestemming": the partner of a geldnemer, who signs along
+  // (see PitchGeldnemer in lib/generators/pitch-generator.ts).
+  type: "prive" | "bv" | "mede-eigenaar" | "toestemming"
   bvName: string // bij B.V.: naam van de vertegenwoordiger
+  partnerVan?: string // bij een partner: de naam van de geldnemer
 }
 
 export interface PitchFormHandle {
@@ -90,8 +114,17 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [introParagraph, setIntroParagraph] = useState((d.introParagraph as string) || "")
   const [verzoekText, setVerzoekText] = useState((d.verzoekText as string) || "")
   const [zekerhedenText, setZekerhedenText] = useState((d.zekerhedenText as string) || "")
-  const [waardeType, setWaardeType] = useState<"woz" | "taxatie" | "geschat">((d.waardeType as "woz" | "taxatie" | "geschat") || "woz")
+  const [waardeType, setWaardeType] = useState<WaardeType>((d.waardeType as WaardeType) || "woz")
   const [waardeBedrag, setWaardeBedrag] = useState<number>((d.waardeBedrag as number) || 0)
+  // Several onderpanden: a value per onderpand (the default), or one amount for
+  // all of them. A pitch with several onderpanden that was saved before this
+  // choice existed has one amount and keeps it.
+  const [waardePerObject, setWaardePerObject] = useState<boolean>(() => {
+    if (typeof d.waardePerObject === "boolean") return d.waardePerObject
+    const raw = (d.collateralObjects as Partial<PitchObject>[]) || []
+    const oudTotaal = raw.length > 1 && Number(d.waardeBedrag) > 0 && !raw.some((o) => Number(o.waarde) > 0)
+    return !oudTotaal
+  })
 
   const [finRows, setFinRows] = useState<FinRow[]>((d.financieringsopzet as FinRow[]) || PD.finRows.map((r) => ({ ...r })))
 
@@ -103,15 +136,17 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [hypotheekBedrag, setHypotheekBedrag] = useState<number>((d.hypotheekBedrag as number) || 0)
   // Zekerheden: the same structured objects as the termsheet (kadastrale
   // omschrijving, kort adres, recht van hypotheek, eventuele bestaande hypotheken).
-  const [collateralObjects, setCollateralObjects] = useState<ZekerheidObject[]>(() => {
-    const raw = (d.collateralObjects as Partial<ZekerheidObject>[]) || []
+  const [collateralObjects, setCollateralObjects] = useState<PitchObject[]>(() => {
+    const raw = (d.collateralObjects as Partial<PitchObject>[]) || []
     const norm = raw.map((o) => ({
       description: o.description || "",
       address: o.address || "",
       hypotheekRank: o.hypotheekRank || "1e",
       priorLienholders: o.priorLienholders || [],
+      waarde: Number(o.waarde) || 0,
+      waardeType: o.waardeType || "woz",
     }))
-    return norm.length ? norm : [{ description: "", address: "", hypotheekRank: "1e", priorLienholders: [] }]
+    return norm.length ? norm : [emptyObject()]
   })
   // Extra, free-text zekerheden (e.g. verpanding huurpenningen / rentedepot).
   const [zekerhedenExtra, setZekerhedenExtra] = useState<string[]>((d.zekerhedenExtra as string[]) || [])
@@ -121,6 +156,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [leenvorm, setLeenvorm] = useState((d.leenvorm as string) || "Aflossingsvrij")
   const [annuiteitenTermijn, setAnnuiteitenTermijn] = useState<number>((d.annuiteitenTermijn as number) || 360)
   const [hoofdsom, setHoofdsom] = useState<number>((d.hoofdsom as number) || 0)
+  // Loan parts with their own repayment form, as on the termsheet. On: the
+  // hoofdsom is the total of the parts and the line "Leenvorm" lists them.
+  const [leningdelen, setLeningdelen] = useState<Leningdeel[]>(() => pitchLeningdelen(d as { leningdelen?: Leningdeel[] }))
+  const [splitMode, setSplitMode] = useState<boolean>(() => pitchLeningdelen(d as { leningdelen?: Leningdeel[] }).length > 0)
   const [loanDuration, setLoanDuration] = useState<number>((d.loanDuration as number) || 0)
   const [grossRate, setGrossRate] = useState<number>((d.grossRate as number) || 0)
   // Beheervergoeding is standaard 0,08% per maand.
@@ -178,11 +217,38 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
 
   // Zekerheden: per-object kadastrale omschrijving + per-object recht van hypotheek
   // (1e/2e/…) met voorliggende hypotheek/-en bij 2e+ rechten, plus extra zekerheden.
-  const updateObject = (idx: number, updates: Partial<ZekerheidObject>) =>
+  const updateObject = (idx: number, updates: Partial<PitchObject>) =>
     setCollateralObjects((prev) => prev.map((o, i) => (i === idx ? { ...o, ...updates } : o)))
-  const addObject = () =>
-    setCollateralObjects((prev) => [...prev, { description: "", address: "", hypotheekRank: "1e", priorLienholders: [] }])
-  const removeObject = (idx: number) => setCollateralObjects((prev) => prev.filter((_, i) => i !== idx))
+  // From one onderpand to two, and back. With one onderpand the value is the
+  // single amount; with several and "per onderpand" each has its own. So the
+  // amount moves with the onderpand it belongs to: on the way up it becomes the
+  // value of the first onderpand, on the way down the value of the one that is
+  // left becomes the amount. Otherwise the value of two houses would stay
+  // behind as the value of one.
+  const addObject = () => {
+    if (collateralObjects.length === 1 && waardePerObject && waardeBedrag > 0) {
+      setCollateralObjects([{ ...collateralObjects[0], waarde: waardeBedrag, waardeType }, emptyObject()])
+    } else {
+      setCollateralObjects((prev) => [...prev, emptyObject()])
+    }
+  }
+  const removeObject = (idx: number) => {
+    const rest = collateralObjects.filter((_, i) => i !== idx)
+    if (collateralObjects.length > 1 && rest.length === 1 && waardePerObject) {
+      setWaardeBedrag(rest[0].waarde || 0)
+      setWaardeType(rest[0].waardeType || "woz")
+    }
+    setCollateralObjects(rest)
+  }
+  // To "one amount for all": start from the total of the values that were
+  // filled in per onderpand, when they are complete.
+  const kiesEenBedrag = () => {
+    const objs = collateralObjects.filter(isOnderpand)
+    if (waardePerObject && objs.length > 1 && objs.every((o) => (o.waarde || 0) > 0)) {
+      setWaardeBedrag(objs.reduce((som, o) => som + (o.waarde || 0), 0))
+    }
+    setWaardePerObject(false)
+  }
   // Bij rang > 1e: maak (rang-1) voorliggende-hypotheek-slots aan (bestaande waarden behouden).
   const changeHypotheekRank = (objIdx: number, newRank: string) => {
     const numPriors = HYPOTHEEK_RANKS.indexOf(newRank)
@@ -218,6 +284,36 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   useEffect(() => {
     if (!zekerhedenManual && zekerhedenPreview) setZekerhedenText(zekerhedenPreview)
   }, [zekerhedenPreview, zekerhedenManual])
+
+  // Value of the collateral as it is saved and as the document reads it. One
+  // place, so the LTV line below, the preview of the sentence and the
+  // downloaded pitch always agree. With several onderpanden and "per onderpand"
+  // each has its own value; an object card with nothing in it is not an
+  // onderpand and is left out, as it always was.
+  const meerdereKaarten = collateralObjects.length > 1
+  const waardeData = useMemo(() => {
+    const objs = collateralObjects.filter(isOnderpand)
+    const perObject = meerdereKaarten && waardePerObject
+    if (objs.length > 1 && perObject) {
+      const types = new Set(objs.map((o) => o.waardeType || "woz"))
+      const compleet = objs.every((o) => (o.waarde || 0) > 0)
+      return {
+        waardePerObject: true as boolean | undefined,
+        waardeBedrag: compleet ? objs.reduce((s, o) => s + (o.waarde || 0), 0) : 0,
+        waardeType: types.size === 1 ? [...types][0] : waardeType,
+        collateralObjects: objs,
+      }
+    }
+    // One onderpand left while the form asked per onderpand: its own value counts.
+    const eigen = perObject && objs.length === 1
+    return {
+      waardePerObject: objs.length > 1 ? false : undefined,
+      waardeBedrag: eigen ? objs[0].waarde || 0 : waardeBedrag,
+      waardeType: eigen ? objs[0].waardeType || "woz" : waardeType,
+      // The single amount is what counts here: no value on the objects themselves.
+      collateralObjects: objs.map(({ waarde, waardeType: _type, ...rest }) => (objs.length > 1 && (waarde || 0) > 0 ? { ...rest, waarde, waardeType: _type } : rest)) as PitchObject[],
+    }
+  }, [collateralObjects, meerdereKaarten, waardePerObject, waardeBedrag, waardeType])
 
   // grossRate = bruto (geldnemer); netto (investeerder) = bruto - beheervergoeding * 12.
   const nettoRate = useMemo(() => parseFloat((grossRate - managementFee * 12).toFixed(3)), [grossRate, managementFee])
@@ -260,6 +356,41 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loanDuration])
 
+  // With loan parts the hoofdsom is their total. Everything that depends on the
+  // hoofdsom (zekerheden, LTV, financieringsopzet) follows from there.
+  useEffect(() => {
+    if (!splitMode) return
+    const totaal = leningdelenTotal(leningdelen)
+    if (totaal > 0) setHoofdsom(totaal)
+  }, [splitMode, leningdelen])
+
+  const toggleSplit = (aan: boolean) => {
+    setSplitMode(aan)
+    // Turned on for the first time: the loan as it stands becomes part 1.
+    if (aan && leningdelen.length === 0) {
+      setLeningdelen([
+        { amount: hoofdsom, repaymentType: repaymentTypeFromLeenvorm(leenvorm), endDate: "" },
+        { amount: 0, repaymentType: "aflossingsvrij", endDate: "" },
+      ])
+    }
+  }
+  const updateDeel = (idx: number, updates: Partial<Leningdeel>) =>
+    setLeningdelen((prev) => prev.map((dl, i) => (i === idx ? { ...dl, ...updates } : dl)))
+  const removeDeel = (idx: number) => setLeningdelen((prev) => prev.filter((_, i) => i !== idx))
+  const addDeel = () => setLeningdelen((prev) => [...prev, { amount: 0, repaymentType: "annuïtair", endDate: "" }])
+  // What is saved and printed: only parts with an amount, and none when the choice is off.
+  const delenVoorPitch = useMemo<Leningdeel[]>(
+    () =>
+      splitMode
+        ? pitchLeningdelen({ leningdelen }).map((dl) => ({
+            amount: Number(dl.amount),
+            repaymentType: dl.repaymentType || "annuïtair",
+            ...(dl.endDate ? { endDate: dl.endDate } : {}),
+          }))
+        : [],
+    [splitMode, leningdelen],
+  )
+
   // "Gewenste financiering" volgt standaard het leenbedrag (hoofdsom), maar blijft
   // aanpasbaar: alleen meebewegen zolang de waarde nog gelijk was aan het leenbedrag.
   const prevHoofdsomRef = useRef(hoofdsom)
@@ -286,17 +417,21 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         introParagraph,
         verzoekText,
         zekerhedenText,
-        waardeType,
-        waardeBedrag,
+        waardeType: waardeData.waardeType,
+        waardeBedrag: waardeData.waardeBedrag,
+        waardePerObject: waardeData.waardePerObject,
         financieringsopzet: finRows,
         ltvRows,
         hypotheekRang,
         hypotheekBedrag,
-        collateralObjects: collateralObjects.filter((o) => o.description || o.address),
+        collateralObjects: waardeData.collateralObjects,
         zekerhedenExtra,
         leenvorm,
         annuiteitenTermijn,
         hoofdsom,
+        // Always sent, also when empty: an empty list must replace parts that
+        // were saved before the choice was turned off.
+        leningdelen: delenVoorPitch,
         loanDuration,
         grossRate,
         managementFee,
@@ -410,6 +545,12 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
               <button type="button" onClick={() => removeObject(i)} className="ml-auto text-red-400 hover:text-red-600 text-lg">×</button>
             </div>
             <textarea placeholder="Volledige kadastrale omschrijving, bijv. een perceel grond met woning ..., plaatselijk bekend ..., kadastraal bekend gemeente ..., sectie ... nummer ..." value={o.description} onChange={(e) => updateObject(i, { description: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm min-h-[80px]" />
+            {meerdereKaarten && (
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Kort adres <span className="font-normal text-gray-400 text-[11px]">(staat in de zin over de waarde van dit onderpand)</span></label>
+                <input placeholder="Bijv. Meije 45 te Bodegraven" value={o.address} onChange={(e) => updateObject(i, { address: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" />
+              </div>
+            )}
             <div className="w-[230px]">
               <label className="text-xs font-medium text-gray-600 mb-1 block">Recht van hypotheek</label>
               <select value={o.hypotheekRank || "1e"} onChange={(e) => changeHypotheekRank(i, e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
@@ -462,62 +603,153 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
 
         <div className="pt-2 border-t border-gray-100 space-y-2">
           <label className="text-xs font-medium text-gray-600 block">Waarde onderpand &amp; LTV <span className="font-normal text-gray-400 text-[11px]">(verschijnt als zin direct ná de zekerheden)</span></label>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde op basis van</label>
-              <select value={waardeType} onChange={(e) => setWaardeType(e.target.value as "woz" | "taxatie" | "geschat")} className="w-full border rounded px-2 py-1.5 text-sm">
-                <option value="woz">WOZ-waarde</option>
-                <option value="taxatie">Taxatierapport</option>
-                <option value="geschat">Geschatte waarde</option>
-              </select>
+          {meerdereKaarten && (
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm" role="radiogroup" aria-label="Waarde invullen">
+              <span className="text-xs font-medium text-gray-600">Waarde invullen</span>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="waarde-wijze" checked={waardePerObject} onChange={() => setWaardePerObject(true)} />
+                Per onderpand
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="waarde-wijze" checked={!waardePerObject} onChange={kiesEenBedrag} />
+                Eén bedrag voor alle onderpanden samen
+              </label>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde onderpand (€)</label>
-              <input type="number" value={waardeBedrag || ""} onChange={(e) => setWaardeBedrag(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+          )}
+          {meerdereKaarten && waardePerObject ? (
+            <div className="space-y-2" data-waarde-per-object>
+              {collateralObjects.map((o, i) => (
+                <div key={i} className="grid grid-cols-[minmax(0,1fr)_150px_130px] gap-3 items-end">
+                  <div className="text-sm text-gray-700 pb-1.5 min-w-0 truncate" title={o.address || undefined}>
+                    <span className="font-medium">Object {i + 1}</span>
+                    {o.address ? <span className="text-gray-500"> {o.address}</span> : null}
+                  </div>
+                  <div>
+                    {i === 0 && <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde op basis van</label>}
+                    <select aria-label={`Waarde van object ${i + 1} op basis van`} value={o.waardeType || "woz"} onChange={(e) => updateObject(i, { waardeType: e.target.value as WaardeType })} className="w-full border rounded px-2 py-1.5 text-sm">
+                      {WAARDE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    {i === 0 && <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde (€)</label>}
+                    <input type="number" aria-label={`Waarde van object ${i + 1} in euro`} value={o.waarde || ""} onChange={(e) => updateObject(i, { waarde: parseFloat(e.target.value) || 0 })} className="w-full border rounded px-2 py-1.5 text-sm" />
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Waarde op basis van</label>
+                <select value={waardeType} onChange={(e) => setWaardeType(e.target.value as WaardeType)} className="w-full border rounded px-2 py-1.5 text-sm">
+                  {WAARDE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">{meerdereKaarten ? "Waarde van alle onderpanden samen (€)" : "Waarde onderpand (€)"}</label>
+                <input type="number" value={waardeBedrag || ""} onChange={(e) => setWaardeBedrag(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+              </div>
+            </div>
+          )}
           {(() => {
             // Zelfde berekening als in de gegenereerde pitch: alle schuld op het
             // onderpand, dus ook leningen met een hogere rang dan de onze.
-            const ltv = computeLtv(hoofdsom, waardeBedrag, collateralObjects)
+            const w = pitchWaarde(waardeData)
+            if (w.perObject && w.ontbreekt.length) {
+              // The numbers of the object cards that still miss a value.
+              const kaarten = collateralObjects.map((o, i) => (isOnderpand(o) && !((o.waarde || 0) > 0) ? i + 1 : 0)).filter((n) => n > 0)
+              return (
+                <div className="text-sm bg-amber-50 border border-amber-200 px-3 py-2 rounded text-amber-900" data-ltv-line>
+                  LTV: vul ook de waarde in van object {kaarten.join(" en ")}. Tot dan komt er geen zin over waarde en LTV in de pitch.
+                </div>
+              )
+            }
+            const ltv = computeLtv(hoofdsom, w.waarde, waardeData.collateralObjects)
             if (ltv.pct === null) {
-              return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">LTV: vul hoofdsom (Uitgangspunten) + waarde in</div>
+              return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600" data-ltv-line>LTV: vul hoofdsom (Uitgangspunten) + waarde in</div>
             }
             const teller = ltv.voorgaand > 0
               ? `(${fmtEuro(ltv.voorgaand)} voorgaand + ${fmtEuro(ltv.eigen)} onze lening)`
               : fmtEuro(ltv.eigen)
-            return <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600">LTV: {teller} / {fmtEuro(ltv.waarde)} = circa {fmtPct(ltv.pct)}%</div>
+            return (
+              <>
+                <div className="text-sm bg-gray-50 px-3 py-2 rounded text-gray-600" data-ltv-line>LTV: {teller} / {fmtEuro(ltv.waarde)} = circa {fmtPct(ltv.pct)}%</div>
+                {w.perObject && (
+                  <div className="text-sm text-gray-600" data-ltv-zin>
+                    <div className="text-xs font-medium text-gray-600 mb-1">Zo komt het in de pitch</div>
+                    {buildPitchLtvText({ ...waardeData, hoofdsom }).split("\n").map((regel, i) => <p key={i}>{regel}</p>)}
+                  </div>
+                )}
+              </>
+            )
           })()}
         </div>
       </PitchSection>
 
       {/* 6. Uitgangspunten */}
       <PitchSection id="uitgangspunten" title="Uitgangspunten van de Lening" isOpen={isSectionOpen("uitgangspunten")} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Leenvorm</label>
-            <select value={leenvorm} onChange={(e) => setLeenvorm(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-              <option>Aflossingsvrij</option>
-              <option>Annuiteiten</option>
-              <option>Lineair</option>
-              <option>Combinatie</option>
-            </select>
-          </div>
-          {leenvorm === "Annuiteiten" && (
+        <label className="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer">
+          <input type="checkbox" checked={splitMode} onChange={(e) => toggleSplit(e.target.checked)} data-split-toggle />
+          Gesplitste leningdelen (verschillende aflossingsvormen)
+        </label>
+
+        {!splitMode ? (
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Aflossingstermijn</label>
-              <select value={annuiteitenTermijn} onChange={(e) => setAnnuiteitenTermijn(parseInt(e.target.value))} className="w-full border rounded px-2 py-1.5 text-sm">
-                <option value={360}>360 maanden (30 jr)</option>
-                <option value={240}>240 maanden (20 jr)</option>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Leenvorm</label>
+              <select value={leenvorm} onChange={(e) => setLeenvorm(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+                <option>Aflossingsvrij</option>
+                <option>Annuiteiten</option>
+                <option>Lineair</option>
+                <option>Combinatie</option>
               </select>
             </div>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Hoofdsom (€)</label>
-            <input type="number" value={hoofdsom || ""} onChange={(e) => setHoofdsom(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+            {leenvorm === "Annuiteiten" && (
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Aflossingstermijn</label>
+                <select value={annuiteitenTermijn} onChange={(e) => setAnnuiteitenTermijn(parseInt(e.target.value))} className="w-full border rounded px-2 py-1.5 text-sm">
+                  <option value={360}>360 maanden (30 jr)</option>
+                  <option value={240}>240 maanden (20 jr)</option>
+                </select>
+              </div>
+            )}
           </div>
+        ) : (
+          <div className="space-y-2" data-leningdelen>
+            <div className="grid grid-cols-[1fr_1.1fr_1fr_auto] gap-2 text-[10px] font-medium text-gray-400 px-1">
+              <span>Bedrag</span><span>Aflossingsvorm</span><span>Einddatum aflossing</span><span></span>
+            </div>
+            {leningdelen.map((dl, i) => (
+              <div key={i} className="grid grid-cols-[1fr_1.1fr_1fr_auto] gap-2 items-center" data-leningdeel>
+                <input type="number" placeholder="Bedrag" aria-label={`Bedrag leningdeel ${i + 1}`} value={dl.amount || ""} onChange={(e) => updateDeel(i, { amount: parseFloat(e.target.value) || 0 })} className="border rounded px-2 py-1.5 text-sm" />
+                <select aria-label={`Aflossingsvorm leningdeel ${i + 1}`} value={dl.repaymentType} onChange={(e) => updateDeel(i, { repaymentType: e.target.value as RepaymentType })} className="border rounded px-2 py-1.5 text-sm">
+                  <option value="annuïtair">Annuïtair</option>
+                  <option value="aflossingsvrij">Aflossingsvrij</option>
+                  <option value="lineair">Lineair</option>
+                </select>
+                <input type="date" aria-label={`Einddatum aflossing leningdeel ${i + 1}`} value={dl.endDate || ""} onChange={(e) => updateDeel(i, { endDate: e.target.value })} className="border rounded px-2 py-1.5 text-sm" />
+                <button type="button" onClick={() => removeDeel(i)} aria-label={`Leningdeel ${i + 1} verwijderen`} className="text-red-400 hover:text-red-600 text-lg">×</button>
+              </div>
+            ))}
+            <button type="button" onClick={addDeel} className="text-sm text-[#2E2060] hover:underline">+ Leningdeel toevoegen</button>
+            <div className="text-[11px] text-gray-600 bg-gray-50 border rounded p-2 space-y-1" data-leningdelen-preview>
+              <div><span className="text-gray-400">Hoofdsom (totaal van de leningdelen):</span> {delenVoorPitch.length > 0 ? fmtEuro(leningdelenTotal(delenVoorPitch)) : "vul een bedrag in"}</div>
+              {delenVoorPitch.length > 0 && (
+                <div>
+                  <span className="text-gray-400">Zo komt het in de pitch:</span>
+                  {pitchLeenvormRegels({ leningdelen: delenVoorPitch }).map((regel, i) => <p key={i}>{i === 0 ? `Leenvorm: ${regel}` : regel}</p>)}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          {!splitMode && (
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Hoofdsom (€)</label>
+              <input type="number" value={hoofdsom || ""} onChange={(e) => setHoofdsom(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+          )}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Looptijd (maanden)</label>
             <input type="number" value={loanDuration || ""} onChange={(e) => setLoanDuration(parseInt(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
@@ -619,9 +851,14 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
             <select value={g.type} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, type: e.target.value as Geldnemer["type"] } : gn)))} className="border rounded px-2 py-1.5 text-sm">
               <option value="prive">in privé</option>
               <option value="bv">B.V.</option>
+              <option value="mede-eigenaar">partner, mede-eigenaar onderpand</option>
+              <option value="toestemming">partner, alleen toestemming</option>
             </select>
             {g.type === "bv" && (
               <input placeholder="Naam vertegenwoordiger" value={g.bvName} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, bvName: e.target.value } : gn)))} className="w-[220px] border rounded px-2 py-1.5 text-sm" />
+            )}
+            {(g.type === "mede-eigenaar" || g.type === "toestemming") && (
+              <input placeholder="Partner van (naam geldnemer)" value={g.partnerVan || ""} onChange={(e) => setGeldnemers((prev) => prev.map((gn, j) => (j === i ? { ...gn, partnerVan: e.target.value } : gn)))} className="w-[220px] border rounded px-2 py-1.5 text-sm" />
             )}
             <button type="button" onClick={() => setGeldnemers((prev) => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-lg">×</button>
           </div>
