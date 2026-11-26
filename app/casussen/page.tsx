@@ -26,6 +26,7 @@ export default function CasussenPage() {
           title="Casussen uit de praktijk"
           intro="Financieringen die wij hebben verzorgd, van aanleiding tot exit. Per casus ziet u het bedrag, de loan-to-value, de looptijd en waarom de bank afhaakte."
           breadcrumbs={[{ label: 'Casussen', href: '/casussen' }]}
+          hideBreadcrumbs
           image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voor leningnemers' }}
           secondary={{ href: INVESTOR_PAGE.href, label: 'Voor investeerders' }}
