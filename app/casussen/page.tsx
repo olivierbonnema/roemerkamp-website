@@ -35,7 +35,7 @@ export default function CasussenPage() {
 
         <div className="max-w-screen-2xl mx-auto px-5 md:px-4 pt-10 md:pt-14 pb-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-x-14 items-start">
-            <div className="artikel max-w-[720px] min-w-0">
+            <div className="artikel max-w-[840px] min-w-0">
               <ol className="list-none m-0 p-0">
                 {CASUSSEN.map((c, i) => (
                   <li key={c.slug} className={`py-6 ${i === CASUSSEN.length - 1 ? '' : 'border-b border-gray-100'}`}>
