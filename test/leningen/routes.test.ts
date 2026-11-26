@@ -42,7 +42,8 @@ const del = (id: string, token: string | undefined) => removeLening(req("DELETE"
 
 const stored = (id: string) => fakeDb.read("leningen", id)
 const rows = () => fakeDb.all("leningen")
-const logged = (action: string) => activity.filter((a) => a.action === action)
+type Logged = Record<string, unknown> & { details: Record<string, unknown> }
+const logged = (action: string): Logged[] => activity.filter((a) => a.action === action).map((a) => ({ ...a, details: (a.details ?? {}) as Record<string, unknown> }))
 const listed = async () => ((await (await get(ADMIN)).json()).leningen as Record<string, unknown>[])
 
 function seedAanvraag(id: string, extra: Record<string, unknown> = {}) {
