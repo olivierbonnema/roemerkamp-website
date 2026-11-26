@@ -3,6 +3,7 @@ import { SituationPage } from '@/components/product/situation-page'
 import { ArticleSection, Note } from '@/components/product/article-layout'
 import { DataTable, DefinitionList, Steps } from '@/components/product/content-blocks'
 import { pageMetadata } from '@/lib/seo'
+import { RENTE } from '@/lib/product-content'
 
 export const metadata: Metadata = pageMetadata({
   path: "/hypotheek-ondernemer-afgewezen",
@@ -40,12 +41,12 @@ const redenen = [
 
 const watnu = [
   {
-    title: 'Vraag de reden van de afwijzing',
-    text: 'Vraag de bank schriftelijk waarop de afwijzing is gebaseerd. Gaat het om het inkomen, het aantal boekjaren, de structuur of het pand? Dat bepaalt welke alternatieven zinvol zijn.',
+    title: 'Kijk eerst bij andere banken',
+    text: 'Banken verschillen onderling in wat zij accepteren. Wat de ene bank afwijst, kan bij een andere bank wel passen. Uw adviseur kan de aanvraag bij andere banken voorleggen.',
   },
   {
-    title: 'Bekijk of wachten of een andere bank zin heeft',
-    text: 'Ligt het aan een ontbrekend boekjaar dat binnenkort wordt afgesloten, dan kan wachten de beste optie zijn. Banken verschillen ook onderling in acceptatie. Een andere bank kan anders oordelen.',
+    title: 'Zoek daarna een alternatieve financier',
+    text: 'Komt het bij geen enkele bank rond, dan kan een alternatieve financier uw casus mogelijk wel financieren. Een alternatieve financier, ook wel non-bancaire financier genoemd, is geen bank en toetst niet langs de vaste normen van een bank. Lange & Partners verzorgt zulke financieringen, met het geld van particuliere investeerders en met vastgoed in Nederland als zekerheid.',
   },
   {
     title: 'Zet uw casus op een rij',
@@ -57,22 +58,12 @@ const watnu = [
   },
 ]
 
+// Only questions the page itself does not answer. The general questions
+// (eigen geld, veiligheid, taxatie, aanspreekpunt) are on the product page.
 const faq = [
   {
-    vraag: 'Waarom wordt mijn hypotheek afgewezen?',
-    antwoord: 'Banken beoordelen een aanvraag langs vaste normen voor inkomen en zekerheid en eisen van ondernemers doorgaans drie volledige boekjaren. Fluctuerende jaarcijfers, een kortere ondernemersgeschiedenis, een complexe structuur, een bijzonder pand of een gewijzigde persoonlijke situatie leiden regelmatig tot een afwijzing, ook als uw vermogenspositie solide is.',
-  },
-  {
-    vraag: 'Hoe kan Lange & Partners alsnog financieren na een bankafwijzing?',
-    antwoord: 'Omdat wij anders naar een casus kijken en op andere criteria beoordelen dan een bank. Inkomen en jaarcijfers tellen ook bij ons mee, maar niet langs een vaste norm. Wij beoordelen de betaalbaarheid van de rente, de waarde van het onderpand en de exit in samenhang. Daardoor kunnen wij in veel gevallen financieren waar de bank nee heeft gezegd.',
-  },
-  {
-    vraag: 'Kan ik ook als startende ondernemer een financiering krijgen?',
-    antwoord: 'Ja. Wij stellen geen eis van drie boekjaren. Biedt uw vastgoed voldoende hypothecaire dekking, zijn de rente en de kosten te dragen (of mee te financieren in een rentedepot) en is duidelijk hoe de lening eindigt, dan kunnen wij ook een startende ondernemer financieren.',
-  },
-  {
-    vraag: 'Welke bedragen en looptijden zijn mogelijk?',
-    antwoord: 'Financieringen van €200.000 tot €5.000.000 met een looptijd van 6 tot 60 maanden. Het maximale bedrag volgt uit de marktwaarde van het onderpand en de eventuele hypotheekschuld. De looptijd stemmen wij af op uw exit.',
+    vraag: 'Is de rente hoger dan bij een bank?',
+    antwoord: `Ja. Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt. Onze financieringen worden betaald met privaat kapitaal van investeerders die een hoger rendement verwachten. De rente is ${RENTE.toLowerCase()}. Het tarief hangt af van de loan-to-value, het type vastgoed, een 1e of opvolgend hypotheekrecht en het risicoprofiel.`,
   },
   {
     vraag: 'Wat als ik later alsnog een bancaire hypotheek kan krijgen?',
@@ -107,7 +98,10 @@ export default function HypotheekOndernemerAfgewezenPage() {
       </ArticleSection>
 
       <ArticleSection id="watnu" title="Wat u na een afwijzing kunt doen">
-        <p>Niet elke afwijzing vraagt om dezelfde oplossing. Vier stappen om te bepalen wat voor u zinvol is.</p>
+        <p>
+          Een afwijzing van één bank betekent niet dat uw financiering niet kan. Dit kunt u daarna doen, in deze
+          volgorde.
+        </p>
         <Steps items={watnu} />
       </ArticleSection>
 

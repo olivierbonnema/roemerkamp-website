@@ -8,30 +8,30 @@ export const metadata = {
   robots: { index: false, follow: false },
 }
 
+// Drawn as the other screens before the portal and as the login of Beheer
+// (app/admin-login, app/wachtwoord-instellen, app/mfa-setup): the logo above
+// one white card in the middle of a light grey page. The head and the foot of
+// the site stay, so every link they had on this page is still there.
 export default function LoginPage() {
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-[#f5f5f7]">
       <Header />
-      <main>
-        {/* Hero */}
-        <section className="relative bg-[#1E3A5F] overflow-hidden">
-          <div className="max-w-screen-2xl mx-auto px-4 pt-24 pb-12">
-            <div className="w-12 h-1 bg-[#F75D20] rounded-sm mb-4" />
-            <h1 className="font-serif text-4xl md:text-5xl font-normal text-white mb-3 leading-tight max-w-2xl">
-              Inloggen
-            </h1>
-            <p className="font-sans text-base text-white/70 max-w-lg">
-              Log in op uw account om uw financieringsaanvraag in te dienen.
-            </p>
+      <main className="flex-1 flex items-center justify-center px-4 py-12 md:py-16">
+        <div className="w-full max-w-[480px]">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 pt-8 pb-9 sm:px-10 sm:pt-10 sm:pb-11">
+            <div className="mb-8">
+              <h1 className="font-serif text-3xl font-normal text-gray-900 mb-1">
+                Inloggen
+              </h1>
+              <p className="text-[14px] text-gray-400 font-sans">
+                Log in op uw account om uw financieringsaanvraag in te dienen.
+              </p>
+            </div>
+            <LoginForm />
           </div>
-        </section>
-
-        {/* Form */}
-        <section className="max-w-md mx-auto px-4 py-16 pb-24">
-          <LoginForm />
-        </section>
+        </div>
       </main>
       <Footer />
-    </>
+    </div>
   )
 }

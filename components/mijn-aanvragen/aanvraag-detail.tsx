@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { uploadFilesDirect } from "@/lib/upload-direct"
-import { ArrowLeft, Upload, X, CheckCircle2, Clock, FileText, Send } from "lucide-react"
+import { ArrowLeft, Upload, X, CheckCircle2, Clock } from "lucide-react"
 
 interface AanvraagObject {
   type?: string
@@ -48,13 +48,6 @@ interface Aanvraag {
   documentsUploaded?: number
 }
 
-interface Bericht {
-  id: string
-  message: string
-  type: "admin_message" | "status_update" | "document_upload"
-  createdAt: string | null
-}
-
 const STATUS_STEPS = [
   { key: "ingediend", label: "Ingediend" },
   { key: "in_behandeling", label: "In behandeling" },
@@ -82,13 +75,6 @@ const ALLOWED_EXTENSIONS = new Set([
 function formatDate(iso: string | null) {
   if (!iso) return "-"
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
-}
-
-function formatDateTime(iso: string | null) {
-  if (!iso) return "-"
-  return new Date(iso).toLocaleDateString("nl-NL", {
-    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
-  })
 }
 
 function formatCurrency(raw?: string) {
@@ -126,7 +112,6 @@ async function getToken() {
 export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
   const router = useRouter()
   const [aanvraag, setAanvraag] = useState<Aanvraag | null>(null)
-  const [berichten, setBerichten] = useState<Bericht[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -146,12 +131,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
     setError("")
     try {
       const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
-
-      const [aanvraagRes, berichtenRes] = await Promise.all([
-        fetch("/api/aanvragen", { headers }),
-        fetch(`/api/aanvragen/${aanvraagId}/berichten`, { headers }),
-      ])
+      const aanvraagRes = await fetch("/api/aanvragen", { headers: { Authorization: `Bearer ${token}` } })
 
       if (!aanvraagRes.ok) throw new Error()
       const aanvraagData = await aanvraagRes.json()
@@ -162,11 +142,6 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
         return
       }
       setAanvraag(found)
-
-      if (berichtenRes.ok) {
-        const berichtenData = await berichtenRes.json()
-        setBerichten(berichtenData.berichten || [])
-      }
     } catch {
       setError("Gegevens konden niet worden geladen.")
     } finally {
@@ -280,14 +255,14 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
       </button>
 
       {/* Status stepper */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
         <h2 className="font-serif text-xl text-[#1E3A5F] mb-6">Status</h2>
 
         {needsInfo && (
           <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
             <p className="text-sm font-sans text-purple-800 font-medium">Aanvullende informatie nodig</p>
             <p className="text-sm font-sans text-purple-600 mt-1">
-              Wij hebben aanvullende documenten of informatie nodig om uw aanvraag te beoordelen. Bekijk de berichten hieronder of upload extra documenten.
+              Wij hebben aanvullende documenten of informatie nodig om uw aanvraag te beoordelen. U hoort per e-mail van ons wat er nodig is. Extra documenten kunt u hieronder uploaden.
             </p>
           </div>
         )}
@@ -337,7 +312,7 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
       {/* Full application overview — everything the applicant submitted. Admin-only
           data (background checks, AI analysis, internal notes) is never sent to
           this view; the API strips it server-side for non-admins. */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
         <h2 className="font-serif text-xl text-[#1E3A5F]">Aanvraag gegevens</h2>
 
         {/* Aanvrager */}
@@ -406,53 +381,9 @@ export function AanvraagDetail({ aanvraagId }: { aanvraagId: string }) {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <h2 className="font-serif text-xl text-[#1E3A5F] mb-4">Berichten</h2>
-
-        {berichten.length === 0 ? (
-          <p className="text-sm font-sans text-gray-400 py-4">Nog geen berichten.</p>
-        ) : (
-          <div className="space-y-3">
-            {berichten.map((b) => (
-              <div
-                key={b.id}
-                className={`rounded-xl p-4 ${
-                  b.type === "status_update"
-                    ? "bg-blue-50 border border-blue-100"
-                    : b.type === "document_upload"
-                    ? "bg-emerald-50 border border-emerald-100"
-                    : "bg-gray-50 border border-gray-100"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                    b.type === "status_update" ? "bg-blue-200" :
-                    b.type === "document_upload" ? "bg-emerald-200" : "bg-[#311E86]/10"
-                  }`}>
-                    {b.type === "status_update" ? <Clock size={14} className="text-blue-700" /> :
-                     b.type === "document_upload" ? <FileText size={14} className="text-emerald-700" /> :
-                     <Send size={14} className="text-[#311E86]" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-sans text-gray-800 whitespace-pre-wrap">{b.message}</p>
-                    <p className="text-xs font-sans text-gray-400 mt-1.5">
-                      {b.type === "admin_message" ? "Lange & Partners" :
-                       b.type === "document_upload" ? "Documenten" : "Statuswijziging"}
-                      {" - "}
-                      {formatDateTime(b.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Document upload */}
       {!isTerminal && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="font-serif text-xl text-[#1E3A5F] mb-2">Extra documenten uploaden</h2>
           <p className="text-sm font-sans text-gray-400 mb-4">
             Upload aanvullende documenten die bij uw aanvraag horen (PDF, afbeeldingen, Word, Excel).

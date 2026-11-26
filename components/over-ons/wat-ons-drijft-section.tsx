@@ -19,9 +19,6 @@ export function WatOnsDrijftSection() {
           <p className="text-gray-700 leading-relaxed">
             Die overtuiging vormt de basis van onze filosofie op het gebied van vermogensbeheer. Alles wat wij doen, doen wij vanuit het belang van de cliënt. Transparantie hoort daar vanzelfsprekend bij.
           </p>
-          <p className="text-gray-700 leading-relaxed">
-            Daarom hebben wij bewust gekozen voor een sterk aflopende tariefstructuur. Het tarief start bij 0,90% en daalt geleidelijk tot 0,35% bij een te beleggen vermogen van meer dan één miljoen euro. Voor grotere vermogens zijn wij daardoor vaak zeer voordelig.
-          </p>
         </div>
       </div>
     </section>

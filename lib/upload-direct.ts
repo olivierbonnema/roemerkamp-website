@@ -10,9 +10,13 @@ export interface DirectUploadResult {
   ok: boolean
   // The name as the user selected it (used to reconcile local UI state)…
   originalName: string
-  // …and as the server sanitized/stored it (used for berichten/bookkeeping).
+  // …and as the server sanitized/stored it (used for the bookkeeping).
   fileName: string
   error?: string
+  // Set when our own server refused to hand out the upload session: its HTTP
+  // status, so a caller can tell "this file will never be accepted" (400)
+  // from "try again later" (500). Not set for a failure on the way to Microsoft.
+  status?: number
   // The SharePoint item as Microsoft reports it after the last chunk. Only
   // there when that answer could be read; nothing may depend on it being set.
   itemId?: string
@@ -44,7 +48,7 @@ export async function uploadFileDirect(
     })
     if (!sessionRes.ok) {
       const data = await sessionRes.json().catch(() => ({}))
-      return { ok: false, originalName: file.name, fileName: file.name, error: data.error || "Upload voorbereiden mislukt." }
+      return { ok: false, originalName: file.name, fileName: file.name, error: data.error || "Upload voorbereiden mislukt.", status: sessionRes.status }
     }
     const session = await sessionRes.json()
     uploadUrl = session.uploadUrl

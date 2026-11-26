@@ -5,7 +5,7 @@ import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { FaqSchema } from "@/components/faq-schema"
 import { ArticleSchema } from "@/components/article-schema"
 import {
-  ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, UitDePraktijk, Faq, Vervolg, P,
+  ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, UitDePraktijk, Faq, MeerBerichten, Vervolg, P,
 } from "@/components/berichten/artikel"
 import { pageMetadata } from '@/lib/seo'
 
@@ -22,6 +22,7 @@ export const metadata: Metadata = pageMetadata({
   type: "article",
 })
 
+// Only questions the article itself does not answer.
 const faq = [
   {
     vraag: "Kan ik eerder aflossen als de verkoop sneller gaat dan gepland?",
@@ -32,11 +33,6 @@ const faq = [
     vraag: "Hoe lang kan een overbrugging lopen?",
     antwoord:
       "Doorgaans zes tot vierentwintig maanden. Korter dan zes maanden is zelden zinvol vanwege de eenmalige kosten. Langer dan twee jaar is meestal geen overbrugging meer, maar een financiering die om een andere opzet vraagt.",
-  },
-  {
-    vraag: "Wat als ik nog geen koper heb en ook nog geen bank die wil oversluiten?",
-    antwoord:
-      "Dan is er nog geen exit, en dan is een overbrugging niet het juiste middel. Wij kunnen wel meedenken over wat er nodig is om die exit alsnog haalbaar te maken, bijvoorbeeld een taxatie of een gesprek met de bank over de voorwaarden waaronder zij later wél financieren.",
   },
 ]
 
@@ -53,13 +49,13 @@ export default function OverbruggingDeExitPage() {
         description={OMSCHRIJVING}
         url={URL}
         datePublished="2026-09-30"
-        dateModified="2026-09-30"
+        dateModified="2026-11-25"
         authorName="Marco Lange"
       />
       <Header />
       <main>
         <ArtikelHero
-          categorie="Financiering"
+          categorie="Uitleg"
           titel="Overbruggingsfinanciering: het draait om de exit"
           intro="Bij een overbrugging is de lening zelf zelden het probleem. De vraag is hoe hij eindigt. Een investeerder beoordeelt een overbrugging op de exit, niet op de aanvraag."
           auteur="Marco Lange"
@@ -94,7 +90,7 @@ export default function OverbruggingDeExitPage() {
           </P>
           <P>
             Bij een <strong>oversluit-exit</strong> willen wij weten welke bank, en vooral welke eis nu niet gehaald
-            wordt en wanneer die wél gehaald wordt. "De bank doet het over een jaar wel" is geen exit. "De Rabobank
+            wordt en wanneer die wél gehaald wordt. "De bank doet het over een jaar wel" is geen exit. "De bank
             vraagt twee volledige jaarrekeningen, de tweede is in maart klaar, en de accountant heeft dit bevestigd"
             is er wel een. Hetzelfde geldt voor verhuur. Een getekend huurcontract weegt zwaarder dan een verwachting.
           </P>
@@ -162,6 +158,8 @@ export default function OverbruggingDeExitPage() {
         </Sectie>
 
         <Faq items={faq} />
+
+        <MeerBerichten huidig="overbruggingsfinanciering-de-exit" />
 
         <Vervolg
           kop="Een overbrugging nodig?"

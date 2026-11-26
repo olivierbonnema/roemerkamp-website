@@ -1,36 +1,42 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { BreadcrumbSchema } from '@/components/breadcrumb-schema'
-import { FaqSchema } from '@/components/faq-schema'
-import { ArticleSchema } from '@/components/article-schema'
-import { pageMetadata } from '@/lib/seo'
+import type { Metadata } from "next"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
+import { FaqSchema } from "@/components/faq-schema"
+import { ArticleSchema } from "@/components/article-schema"
+import {
+  ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, Faq, MeerBerichten, Vervolg, P, A,
+} from "@/components/berichten/artikel"
+import { KOSTEN, KOSTEN_FISCAAL } from "@/lib/product-content"
+import { pageMetadata } from "@/lib/seo"
+
+const SLUG = "kosten-non-bancaire-hypotheek"
+const TITEL = "Wat kost een zakelijke hypotheek zonder bank?"
+const OMSCHRIJVING =
+  "Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, behandelingskosten van 1% (minimaal €3.000) en de kosten van de notaris."
 
 export const metadata: Metadata = pageMetadata({
-  path: "/berichten/kosten-non-bancaire-hypotheek",
+  path: `/berichten/${SLUG}`,
   title: "Zakelijke hypotheek zonder bank: rente en kosten",
   brand: false,
-  description: "Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, behandelingskosten van 1% (minimaal €3.000) en de kosten van de notaris.",
+  description: OMSCHRIJVING,
   type: "article",
 })
 
+// The rate of a bank mortgage named in the first section is the one figure in
+// this article that dates. Source and day are named with it.
+const BRON_HYPOTHEEKRENTE = "https://www.vanbruggen.nl/actueel/nieuws/2026/rentebericht-week48"
+
+// Only questions the article itself does not answer.
 const faq = [
   {
-    vraag: 'Waarom is de rente hoger dan bij een bank?',
-    antwoord: 'Banken financieren met spaargeld en hebben toegang tot de kapitaalmarkt tegen lage tarieven. Non-bancaire financiers werken met privaat kapitaal van investeerders die een hoger rendement verwachten. Daarnaast biedt non-bancaire financiering meer flexibiliteit, snellere doorlooptijden en toegankelijkheid voor situaties die banken niet bedienen. Die meerwaarde vertaalt zich in een hogere rente.',
+    vraag: "Kan ik de rente fiscaal aftrekken?",
+    antwoord: KOSTEN_FISCAAL,
   },
   {
-    vraag: 'Zijn er verborgen kosten bij een non-bancaire hypotheek?',
-    antwoord: 'Bij Lange & Partners niet. Wij communiceren alle kosten vooraf. Dat zijn de rente, de behandelingskosten en de notariskosten. Er zijn geen tussentijdse vergoedingen of onduidelijke opslagen. U weet bij aanvang precies wat de financiering kost.',
-  },
-  {
-    vraag: 'Kan ik de rente fiscaal aftrekken?',
-    antwoord: 'Dat hangt af van de situatie. Hypotheekrente voor de eigen woning is onder voorwaarden fiscaal aftrekbaar, ook bij non-bancaire financiering. Voor zakelijke financieringen zijn de rentelasten doorgaans als bedrijfskosten aftrekbaar. Bespreek dit altijd met uw fiscalist.',
-  },
-  {
-    vraag: 'Wat gebeurt er als ik tussentijds wil aflossen?',
-    antwoord: 'Tussentijdse aflossing is in de meeste gevallen mogelijk, soms met een vergoeding. De voorwaarden worden vooraf vastgelegd in de leningsovereenkomst. Wij bespreken dit altijd bij de aanvraag zodat u niet voor verrassingen komt te staan.',
+    vraag: "Wat als de lening langer loopt dan gepland?",
+    antwoord:
+      "Dan kijken wij met de investeerder of de lening verlengd kan worden. Een verlenging is een nieuwe afspraak, waar opnieuw kosten aan verbonden zijn. Daarom is een looptijd met ruimte bijna altijd goedkoper dan een verlenging.",
   },
 ]
 
@@ -38,202 +44,151 @@ export default function KostenNonBancaireHypotheekPage() {
   return (
     <>
       <BreadcrumbSchema items={[
-        { name: 'Berichten', href: '/berichten' },
-        { name: 'Kosten zakelijke hypotheek zonder bank', href: '/berichten/kosten-non-bancaire-hypotheek' },
+        { name: "Berichten", href: "/berichten" },
+        { name: "Kosten zakelijke hypotheek zonder bank", href: `/berichten/${SLUG}` },
       ]} />
       <FaqSchema items={faq} />
       <ArticleSchema
-        headline="Wat kost een zakelijke hypotheek zonder bank?"
-        description="Wat kost een tijdelijke zakelijke hypotheek zonder bank? Rente vanaf 7%, behandelingskosten van 1% (minimaal €3.000) en de kosten van de notaris."
-        url="https://www.nonbancaireleningen.nl/berichten/kosten-non-bancaire-hypotheek"
+        headline={TITEL}
+        description={OMSCHRIJVING}
+        url={`https://www.nonbancaireleningen.nl/berichten/${SLUG}`}
         datePublished="2026-05-15"
-        dateModified="2026-11-03"
+        dateModified="2026-11-25"
         authorName="Marco Lange"
       />
       <Header />
       <main>
+        <ArtikelHero
+          categorie="Uitleg"
+          titel="Wat kost een zakelijke hypotheek zonder bank?"
+          intro="De rente is hoger dan bij een bank en er zijn eenmalige kosten. Wat u betaalt, wanneer u het betaalt en wanneer dat het waard is."
+          auteur="Marco Lange"
+          datumIso="2026-05-15"
+          datumTekst="15 mei 2026, bijgewerkt 25 november 2026"
+        />
 
-        {/* -- Hero -- */}
-        <section className="bg-[#1e3a5f] py-16 md:py-20">
-          <div className="max-w-screen-2xl mx-auto px-4">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-white/60 text-sm mb-6">
-                <Link href="/berichten" className="hover:text-white/80 transition-colors">Berichten</Link>
-                <span>/</span>
-                <span className="text-white/80">Kosten zakelijke hypotheek zonder bank</span>
-              </div>
-              <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-              <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-4 leading-tight">
-                Wat kost een zakelijke hypotheek zonder bank?
-              </h1>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Een overzicht van de rente en alle andere kosten van een tijdelijke zakelijke hypotheek buiten de bank.
-              </p>
-              <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
-                <span>Marco Lange</span>
-                <span>·</span>
-                <time dateTime="2026-05-15">15 mei 2026</time>
-              </div>
-            </div>
+        <TekstMetFoto kop="Waarom de rente hoger is dan bij een bank" foto="/images/nbl-villa.jpg" alt="Vrijstaande villa met een rieten dak">
+          <P>
+            Een zakelijke hypotheek zonder bank, ook wel non-bancaire hypotheek genoemd, is duurder dan een hypotheek
+            van de bank. Dat heeft een eenvoudige reden. Banken financieren met spaargeld en hebben toegang tot de
+            kapitaalmarkt. Een non-bancaire financiering wordt betaald met privaat kapitaal van investeerders die een
+            hoger rendement verwachten.
+          </P>
+          <P>
+            De rente is vanaf 7% per jaar. Ter vergelijking kost een hypotheek van de bank met tien jaar rentevast
+            eind november 2026{" "}
+            <A href={BRON_HYPOTHEEKRENTE}>gemiddeld ongeveer 4,3% met NHG en 4,7% zonder NHG</A>.
+          </P>
+          <P>
+            Daar staat tegenover dat wij het hele plaatje bekijken in plaats van langs een vaste norm te toetsen, dat
+            de doorlooptijd weken is in plaats van maanden en dat er ruimte is voor situaties die een bank niet
+            bedient.
+          </P>
+        </TekstMetFoto>
+
+        <Sectie kop="Wat de hoogte van de rente bepaalt" grijs>
+          <P>
+            Het tarief hangt af van de loan-to-value, dus de totale schuld op het pand tegenover de waarde, van het
+            type vastgoed, van de vraag of de lening een 1e of een opvolgend hypotheekrecht krijgt en van het
+            risicoprofiel van de casus als geheel.
+          </P>
+          <P>
+            Hoe lager de loan-to-value, hoe lager de rente. En een 1e hypotheekrecht is voordeliger dan een opvolgend
+            hypotheekrecht, omdat de eerste hypotheekhouder bij een gedwongen verkoop als eerste wordt betaald.
+            Waarom dat zoveel uitmaakt, staat in het bericht over{" "}
+            <A href="/berichten/tweede-hypotheek-en-ltv">de tweede hypotheek en de LTV</A>.
+          </P>
+        </Sectie>
+
+        <Rekenvoorbeeld
+          kop="De kosten op een rij"
+          toelichting="Naast de rente zijn er eenmalige kosten. Alles staat vooraf in de termsheet. Er komen geen opslagen achteraf bij."
+        >
+          <Tabel
+            donker
+            tekst
+            kolommen={["Kostenpost", "Hoogte en moment"]}
+            rijen={KOSTEN.map(([post, hoogte, wanneer]) => [
+              post,
+              <>
+                {hoogte}
+                <span className="block text-white/60">{wanneer}</span>
+              </>,
+            ])}
+          />
+          <DonkerTekst>
+            De opstartkosten komen er niet bovenop. Het is het deel van de behandelingskosten dat u betaalt bij
+            ondertekening van de termsheet, en dat bij het passeren wordt verrekend. Bij de notaris betaalt u ook de
+            kosten van de inschrijving bij het Kadaster.
+          </DonkerTekst>
+        </Rekenvoorbeeld>
+
+        <Sectie kop="Een rekenvoorbeeld">
+          <P>
+            Een beleggingspand met een marktwaarde van €1.200.000 en een bestaande bankhypotheek van €350.000. De
+            eigenaar leent €450.000 met een 2e hypotheekrecht, voor 24 maanden, tegen 8% per jaar. Het is een
+            fictief voorbeeld.
+          </P>
+          <div className="pt-2">
+            <Tabel
+              kolommen={["", "Bedrag"]}
+              rijen={[
+                ["Rente per maand", "€3.000"],
+                ["Rente over 24 maanden", "€72.000"],
+                ["Behandelingskosten, 1% van het leenbedrag", "€4.500"],
+                ["Rente en behandelingskosten samen", "€76.500"],
+              ]}
+              uitgelichtRij={3}
+            />
           </div>
-        </section>
+          <P>
+            De kosten van de notaris komen hier nog bij. Vervroegd aflossen is in de meeste gevallen mogelijk. De
+            voorwaarden daarvoor, en een eventuele vergoeding, staan vooraf in de leningsovereenkomst.
+          </P>
+        </Sectie>
 
-        {/* -- Article -- */}
-        <article className="py-16 bg-white">
-          <div className="max-w-screen-md mx-auto px-4 space-y-12">
+        <Sectie kop="Rente betalen, maandelijks of uit een rentedepot" grijs>
+          <P>
+            De rente betaalt u maandelijks, of vooraf via een rentedepot dat uit de lening wordt gevormd. Bij een
+            rentedepot leent u iets meer dan u nodig heeft, en wordt de rente daaruit betaald. U heeft dan tijdens de
+            looptijd geen maandlasten. Over het geld in het rentedepot wordt geen rente vergoed.
+          </P>
+          <P>
+            Een uitgewerkt voorbeeld staat in het bericht over{" "}
+            <A href="/berichten/overbruggingsfinanciering-de-exit">de exit bij een overbrugging</A>.
+          </P>
+        </Sectie>
 
-            {/* Intro */}
-            <div className="space-y-4">
-              <p className="text-gray-700 leading-relaxed text-lg">
-                De kosten van een zakelijke hypotheek zonder bank, ook wel non-bancaire hypotheek genoemd, zijn anders opgebouwd dan bij een bank. De rente is hoger, maar daar staat tegenover dat de financiering sneller beschikbaar is, flexibeler is en toegankelijk voor situaties die banken niet bedienen.
-              </p>
-              <p className="text-gray-700 leading-relaxed">
-                In dit artikel geven wij een helder overzicht van alle kostenposten, zodat u vooraf weet waar u aan toe bent.
-              </p>
-            </div>
+        <Sectie kop="Wanneer een hogere rente het waard is">
+          <P>
+            Een hogere rente is alleen te verantwoorden als de lening tijdelijk is en iets mogelijk maakt wat anders
+            niet kan.
+          </P>
+          <P>
+            Dat is het geval bij een aankoop die niet kan wachten op een beslissing van de bank, in de periode tot u
+            wel aan de normen van de bank voldoet, bijvoorbeeld tot het derde boekjaar is afgesloten, en bij een
+            overbrugging tot de verkoop van een pand.
+          </P>
+          <P>
+            De looptijd bepaalt wat u in totaal aan rente betaalt. De eenmalige kosten betaalt u één keer, ook bij
+            een korte looptijd. Daarom is een lening van minder dan zes maanden zelden zinvol.
+          </P>
+          <P>
+            En hoe de lening eindigt, bepaalt of de rekensom klopt. De hogere rente loopt tot de exit. Daarom
+            beoordelen wij bij elke aanvraag of die exit haalbaar en realistisch is.
+          </P>
+        </Sectie>
 
-            {/* Rente */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Rentetarieven</h2>
-              <p className="text-gray-700 leading-relaxed">
-                De rente op een zakelijke hypotheek zonder bank ligt doorgaans tussen de 7% en 12% per jaar. Het exacte tarief hangt af van meerdere factoren.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'Hoe lager de loan-to-value (LTV), hoe lager de rente',
-                  'Een kortere looptijd is doorgaans voordeliger',
-                  'Woningen kennen vaak een lagere rente dan commercieel vastgoed',
-                  'Een stabiele financiële positie van de aanvrager drukt de rente',
-                  'Een 1e hypotheekrecht is voordeliger dan een opvolgend hypotheekrecht',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                Ter vergelijking, bij een bank ligt de hypotheekrente momenteel rond de 4% tot 5%. Het verschil wordt verklaard door de flexibiliteit, snelheid en het feit dat non-bancaire financiers werken met privaat kapitaal.
-              </p>
-            </div>
+        <Faq items={faq} />
 
-            {/* Eenmalige kosten */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Eenmalige kosten bij afsluiting</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Naast de rente zijn er eenmalige kosten bij het afsluiten van de financiering. Deze zijn vergelijkbaar met de kosten bij een bancaire hypotheek.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'Behandelingskosten van 1% van het leenbedrag, met een minimum van €3.000, te betalen bij het passeren',
-                  'Opstartkosten, een deel van de behandelingskosten dat u betaalt bij ondertekening van de termsheet',
-                  'Notariskosten voor het passeren van de hypotheekakte',
-                  'Kadasterkosten voor de inschrijving van het hypotheekrecht',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#2596be] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                Alle kosten worden vooraf gecommuniceerd. Er zijn geen verborgen kosten of tussentijdse vergoedingen die u niet van tevoren kent.
-              </p>
-            </div>
+        <MeerBerichten huidig={SLUG} />
 
-            {/* Wanneer loont het */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Wanneer loont een hogere rente?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                De hogere rente is alleen verantwoord als de financiering waarde toevoegt die u bij de bank niet kunt krijgen. Dat is bijvoorbeeld het geval in de volgende situaties.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'U mist een vastgoedkans als u wacht op een bancaire hypotheek',
-                  'U heeft snel werkkapitaal nodig om uw onderneming draaiende te houden',
-                  'U kunt over 12 tot 24 maanden wel aan de bancaire normen voldoen',
-                  'Het alternatief is een veel duurdere ongedekte lening of persoonlijk krediet',
-                ].map((punt) => (
-                  <div key={punt} className="flex items-start gap-3">
-                    <span className="mt-1.5 w-2 h-2 rounded-full bg-[#f75d20] shrink-0" />
-                    <p className="text-gray-700 leading-relaxed">{punt}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                In al deze gevallen is de hogere rente een investering in snelheid, zekerheid of het grijpen van een kans die anders voorbijgaat.
-              </p>
-            </div>
-
-            {/* Vergelijking */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Kosten in perspectief</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Het is verleidelijk om alleen naar de rente te kijken, maar de totale kosten hangen af van meerdere factoren. Bij een kortere looptijd betaalt u minder rente in absolute zin. En de snelheid van beschikbaarheid kan financieel voordeliger zijn dan maanden wachten op een bancaire beslissing.
-              </p>
-              <p className="text-gray-700 leading-relaxed">
-                Wij maken bij elke aanvraag een volledig kostenplaatje, zodat u een weloverwogen beslissing kunt nemen. Geen verrassingen achteraf.
-              </p>
-            </div>
-
-            {/* Verwante pagina's */}
-            <div className="border-t border-gray-200 pt-8 space-y-4">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Meer informatie</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { href: '/vastgoedfinanciering-zonder-bank', titel: 'Vastgoedfinanciering zonder bank' },
-                  { href: '/berichten/wat-is-non-bancaire-financiering', titel: 'Wat is non-bancaire financiering?' },
-                  { href: '/hypotheek-ondernemer-afgewezen', titel: 'Afgewezen door de bank' },
-                  { href: '/financieringsaanvraag', titel: 'Aanvraag indienen' },
-                ].map((p) => (
-                  <Link
-                    key={p.href}
-                    href={p.href}
-                    className="block p-4 border border-gray-200 hover:border-[#311e86] transition-colors group"
-                  >
-                    <span className="font-semibold text-[#1e3a5f] group-hover:text-[#311e86] transition-colors">{p.titel}</span>
-                    <span className="text-[#f75d20] text-sm font-medium mt-2 inline-block">Meer lezen &rarr;</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* FAQ */}
-            <div className="border-t border-gray-200 pt-8 space-y-6">
-              <h2 className="text-2xl font-serif text-[#1e3a5f]">Veelgestelde vragen</h2>
-              {faq.map((item) => (
-                <div key={item.vraag}>
-                  <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
-                  <p className="text-gray-700 leading-relaxed">{item.antwoord}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="bg-gray-50 p-8 text-center space-y-4">
-              <h2 className="text-xl font-serif text-[#1e3a5f]">Wilt u weten wat een non-bancaire hypotheek voor u kost?</h2>
-              <p className="text-gray-700 leading-relaxed">
-                Neem vrijblijvend contact op voor een indicatief kostenplaatje. Bel (023) 517 31 00 of dien direct een aanvraag in.
-              </p>
-              <div className="flex gap-3 justify-center flex-wrap">
-                <Link
-                  href="/financieringsaanvraag"
-                  className="inline-block bg-[#f75d20] text-white px-6 py-3 text-sm font-medium rounded-full hover:bg-[#e04d10] transition-colors"
-                >
-                  Aanvraag indienen
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-block border border-gray-300 text-gray-700 px-6 py-3 text-sm font-medium rounded-full hover:border-[#311e86] hover:text-[#311e86] transition-colors"
-                >
-                  Contact opnemen
-                </Link>
-              </div>
-            </div>
-
-          </div>
-        </article>
-
+        <Vervolg
+          kop="Wilt u weten wat het in uw situatie kost?"
+          tekst="Leg uw casus aan ons voor. Kunnen wij er iets mee, dan ontvangt u een indicatie met het bedrag, de rente, de looptijd en de zekerheden die wij vragen."
+          knop={{ href: "/financieringsaanvraag", label: "Aanvraag indienen" }}
+          tweede={{ href: "/vastgoedfinanciering-zonder-bank", label: "Alle voorwaarden" }}
+        />
       </main>
       <Footer />
     </>

@@ -148,7 +148,7 @@ export const CASUSSEN: Casus[] = [
     slug: 'ouders-helpen-kind-huis-kopen',
     titel: 'Ouders helpen kind huis kopen tot het eigen geld vrijkomt',
     samenvatting:
-      'Een bedrijfsverkoop zou de woning van de dochter mee betalen, maar de verkoop liep uit. Een tijdelijke lening overbrugde de periode tot dat geld er was.',
+      'Ouders wilden hun dochter helpen een huis te kopen met geld uit een bedrijfsverkoop. Die liep vertraging op. Een tijdelijke lening overbrugde die periode.',
     situatie: '/overbruggingsfinanciering-verbouwing',
     situatieLabel: 'Overbrugging en verbouwing',
     perspectief: 'leningnemer',
@@ -190,7 +190,7 @@ export const CASUSSEN: Casus[] = [
     slug: 'hypotheek-nederland-vanuit-buitenland',
     titel: 'Wonen in het buitenland, vastgoed in Nederland financieren',
     samenvatting:
-      'Een stel dat in het buitenland werkt, kocht alvast een woning in Nederland. De bank telde het buitenlandse inkomen niet mee. Wij keken naar het geheel.',
+      'Een stel dat in het buitenland werkte, kocht alvast een woning voor de terugkeer naar Nederland. De bank telde het buitenlandse inkomen niet mee, wij wel.',
     situatie: '/hypotheek-ondernemer-afgewezen',
     situatieLabel: 'Afgewezen door de bank',
     perspectief: 'leningnemer',
@@ -204,8 +204,8 @@ export const CASUSSEN: Casus[] = [
       exit: 'Aflossing uit inkomen en eigen middelen, voor het einde van het contract in het buitenland',
     },
     aanleiding: [
-      'Een stel woont en werkt in het buitenland. Als het contract over ruim een jaar afloopt, komen ze terug naar Nederland. Omdat ze al regelmatig in Nederland zijn, kochten ze alvast een woning.',
-      'De bank wees af. Het inkomen kwam uit het buitenland, en bij een van beiden keek de bank al naar het pensioen in plaats van naar het huidige salaris.',
+      'Een stel woonde en werkte in het buitenland. Hun contract liep over ruim een jaar af en daarna zouden zij terugkeren naar Nederland. Omdat zij al regelmatig in Nederland waren, kochten zij alvast een woning.',
+      'De bank wees de hypotheek af, omdat het inkomen uit het buitenland kwam. Bij een van beiden rekende de bank bovendien al met het pensioen in plaats van met het huidige salaris.',
     ],
     beoordeling: [
       {

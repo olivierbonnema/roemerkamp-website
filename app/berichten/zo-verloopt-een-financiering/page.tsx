@@ -6,7 +6,7 @@ import { FaqSchema } from "@/components/faq-schema"
 import { ArticleSchema } from "@/components/article-schema"
 import { SectionHeading } from "@/components/section-heading"
 import {
-  ArtikelHero, Sectie, TekstMetFoto, Stappen, UitDePraktijk, Faq, Vervolg, P,
+  ArtikelHero, Sectie, TekstMetFoto, Stappen, UitDePraktijk, Faq, MeerBerichten, Vervolg, P,
 } from "@/components/berichten/artikel"
 import { pageMetadata } from '@/lib/seo'
 
@@ -23,12 +23,8 @@ export const metadata: Metadata = pageMetadata({
   type: "article",
 })
 
+// Only questions the article itself does not answer.
 const faq = [
-  {
-    vraag: "Wie is mijn aanspreekpunt, Lange & Partners of de investeerder?",
-    antwoord:
-      "Altijd Lange & Partners, van de aanvraag tot de laatste aflossing. De investeerder financiert, maar staat op afstand. Alle betalingen lopen via de onafhankelijke Stichting, en vragen over de lening stelt u aan ons.",
-  },
   {
     vraag: "Moet ik een taxatierapport hebben voordat ik een aanvraag doe?",
     antwoord:
@@ -54,7 +50,7 @@ export default function ZoVerlooptEenFinancieringPage() {
         description={OMSCHRIJVING}
         url={URL}
         datePublished="2026-09-30"
-        dateModified="2026-11-16"
+        dateModified="2026-11-25"
         authorName="Marco Lange"
       />
       <Header />
@@ -230,6 +226,8 @@ export default function ZoVerlooptEenFinancieringPage() {
         </Sectie>
 
         <Faq items={faq} />
+
+        <MeerBerichten huidig="zo-verloopt-een-financiering" />
 
         <Vervolg
           kop="Een aanvraag indienen?"

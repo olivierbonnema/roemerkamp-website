@@ -1,14 +1,14 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { BerichtenHeroSection } from "@/components/berichten/hero-section"
-import { ArticlesGridSection } from "@/components/berichten/articles-grid-section"
+import { ArticlesSection } from "@/components/berichten/articles-section"
 import type { Metadata } from 'next'
 import { pageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = pageMetadata({
   path: "/berichten",
   title: "Berichten over vastgoedfinanciering",
-  description: "Uitleg en praktijk over vastgoedfinanciering zonder bank, zoals de tweede hypotheek, overbrugging, de kosten en hoe een financiering verloopt.",
+  description: "Actueel nieuws over rente, woningmarkt en regels, en uitleg over vastgoedfinanciering zonder bank, zoals de tweede hypotheek, overbrugging en de kosten.",
 })
 
 export default function BerichtenPage() {
@@ -17,7 +17,7 @@ export default function BerichtenPage() {
       <Header />
       <main>
         <BerichtenHeroSection />
-        <ArticlesGridSection />
+        <ArticlesSection />
       </main>
       <Footer />
     </>

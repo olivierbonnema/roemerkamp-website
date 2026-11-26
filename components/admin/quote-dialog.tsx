@@ -40,6 +40,9 @@ interface Props {
   // Persists the quote (PATCH /api/admin/aanvragen/[id]); resolves to the stored
   // version with the server's savedAt/savedBy, or null when saving failed.
   onSave: (input: SavedQuoteInput) => Promise<SavedQuote | null>
+  // Removes the saved quote from the aanvraag; resolves to true when it is gone.
+  // Without it the dialog offers no "Verwijderen".
+  onDelete?: () => Promise<boolean>
   onClose: () => void
 }
 
@@ -244,7 +247,7 @@ function snapshot(d: QuoteData, text: string, textManual: boolean): string {
   return JSON.stringify({ d, text, textManual })
 }
 
-export default function QuoteDialog({ aanvraag, savedQuote, onSave, onClose }: Props) {
+export default function QuoteDialog({ aanvraag, savedQuote, onSave, onDelete, onClose }: Props) {
   // Open with the saved quote when there is one, otherwise with the aanvraag
   // defaults. A saved quote is merged over the defaults so an older saved
   // shape still opens.
@@ -301,9 +304,29 @@ export default function QuoteDialog({ aanvraag, savedQuote, onSave, onClose }: P
     }
   }
 
+  // ---- removing the saved quote ----
+  // Asked first in the footer, like closing with unsaved changes. Once it is
+  // gone the dialog closes: the card shows "Quote-mail" again.
+  const [deleteGuard, setDeleteGuard] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteFailed, setDeleteFailed] = useState(false)
+  const remove = async () => {
+    if (!onDelete || deleting) return
+    setDeleting(true)
+    setDeleteFailed(false)
+    try {
+      if (await onDelete()) onClose()
+      else setDeleteFailed(true)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   // Closing with unsaved changes asks first; a plain click outside the panel
   // used to throw the whole form away silently.
   const requestClose = () => {
+    if (deleting) return
+    setDeleteGuard(false)
     if (dirty) setCloseGuard(true)
     else onClose()
   }
@@ -312,7 +335,7 @@ export default function QuoteDialog({ aanvraag, savedQuote, onSave, onClose }: P
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dirty])
+  }, [dirty, deleting])
 
   // Copy as rich text so Outlook keeps the bold headings, with a plain-text
   // alternative in the same clipboard entry for editors that want it.
@@ -593,7 +616,14 @@ export default function QuoteDialog({ aanvraag, savedQuote, onSave, onClose }: P
         {/* Footer */}
         <div className="flex items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
           <div className="text-xs font-sans min-h-[1rem]">
-            {closeGuard ? (
+            {deleteGuard ? (
+              <span className="inline-flex items-center gap-3 text-red-700">
+                <AlertTriangle size={14} className="flex-none" />
+                <span>{deleteFailed ? "Verwijderen mislukt. Probeer het opnieuw." : "Deze opgeslagen quote-mail verwijderen? Dat kan niet ongedaan worden gemaakt."}</span>
+                <button type="button" onClick={remove} disabled={deleting} className="flex-none whitespace-nowrap font-medium underline hover:no-underline disabled:opacity-50">{deleting ? "Verwijderen..." : "Ja, verwijderen"}</button>
+                <button type="button" onClick={() => { setDeleteGuard(false); setDeleteFailed(false) }} disabled={deleting} className="flex-none text-gray-500 hover:text-gray-700 disabled:opacity-50">Annuleren</button>
+              </span>
+            ) : closeGuard ? (
               <span className="inline-flex items-center gap-3 text-amber-700">
                 <AlertTriangle size={14} className="flex-none" />
                 <span>Je hebt niet-opgeslagen wijzigingen.</span>
@@ -610,6 +640,15 @@ export default function QuoteDialog({ aanvraag, savedQuote, onSave, onClose }: P
             )}
           </div>
           <div className="flex gap-2 flex-none">
+            {onDelete && lastSaved && !deleteGuard && !closeGuard && (
+              <button
+                onClick={() => { setCloseGuard(false); setDeleteFailed(false); setDeleteGuard(true) }}
+                disabled={deleting || saving}
+                className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 text-gray-500 rounded-lg hover:border-red-300 hover:text-red-600 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+              >
+                <Trash2 size={14} /> Verwijderen
+              </button>
+            )}
             <button onClick={requestClose} className="px-4 py-2.5 text-sm font-medium font-sans border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Sluiten</button>
             <button
               onClick={save}

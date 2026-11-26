@@ -5,7 +5,7 @@ import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { FaqSchema } from "@/components/faq-schema"
 import { ArticleSchema } from "@/components/article-schema"
 import {
-  ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, UitDePraktijk, Faq, Vervolg, P,
+  ArtikelHero, Sectie, TekstMetFoto, Rekenvoorbeeld, Tabel, DonkerTekst, UitDePraktijk, Faq, MeerBerichten, Vervolg, P,
 } from "@/components/berichten/artikel"
 import { pageMetadata } from '@/lib/seo'
 
@@ -22,6 +22,7 @@ export const metadata: Metadata = pageMetadata({
   type: "article",
 })
 
+// Only questions the article itself does not answer.
 const faq = [
   {
     vraag: "Telt een aflossingsvrije eerste hypotheek anders mee dan een annuïtaire?",
@@ -32,11 +33,6 @@ const faq = [
     vraag: "Heb ik toestemming van de bank nodig voor een tweede hypotheek?",
     antwoord:
       "Meestal wel. De meeste bancaire hypotheekvoorwaarden bepalen dat u geen tweede hypotheek mag vestigen zonder toestemming van de bank. In de praktijk wordt die toestemming vaak gegeven, maar het kost tijd. Wij vragen er daarom bij de aanvraag direct naar, zodat het niet pas bij de notaris naar boven komt.",
-  },
-  {
-    vraag: "De inschrijving van de bank is hoger dan mijn schuld. Welk bedrag telt?",
-    antwoord:
-      "Wij rekenen met de werkelijke schuld, niet met de inschrijving. Maar dat kan alleen als vastligt dat die schuld niet stilletjes kan groeien. Daarom staat in onze termsheets dat de eerste hypotheek zonder uitdrukkelijke toestemming niet mag worden verhoogd. Zonder die afspraak zou de inschrijving het uitgangspunt moeten zijn, en dat pakt voor u ongunstiger uit.",
   },
 ]
 
@@ -53,13 +49,13 @@ export default function TweedeHypotheekEnLtvPage() {
         description={OMSCHRIJVING}
         url={URL}
         datePublished="2026-09-30"
-        dateModified="2026-09-30"
+        dateModified="2026-11-25"
         authorName="Marco Lange"
       />
       <Header />
       <main>
         <ArtikelHero
-          categorie="Financiering"
+          categorie="Uitleg"
           titel={<>Tweede hypotheek: waarom de LTV anders is dan u&nbsp;denkt</>}
           intro="Een tweede hypotheek klinkt als een lening erbij. Voor degene die het geld verstrekt is het iets anders, namelijk een plaats in de rij. Dat verandert de rekensom, en daarmee de rente."
           auteur="Marco Lange"
@@ -169,6 +165,8 @@ export default function TweedeHypotheekEnLtvPage() {
         </Sectie>
 
         <Faq items={faq} />
+
+        <MeerBerichten huidig="tweede-hypotheek-en-ltv" />
 
         <Vervolg
           kop="Een tweede hypotheek overwegen?"

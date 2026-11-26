@@ -78,6 +78,7 @@ const ACTION_LABELS: Record<string, string> = {
   background_check_created: "Achtergrondcheck gestart",
   aanvraag_assigned: "Behandelaar toegewezen",
   quote_saved: "Quote-mail opgeslagen",
+  quote_deleted: "Quote-mail verwijderd",
   invite_resent: "Uitnodiging opnieuw verstuurd",
   invite_link_created: "Uitnodigingslink gekopieerd",
   login: "Ingelogd",

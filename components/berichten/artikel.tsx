@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { SectionHeading } from "@/components/section-heading"
+import { STATIC_POSTS } from "@/lib/site-nav"
 
 // Building blocks for long-form articles under /berichten.
 //
@@ -9,7 +10,7 @@ import { SectionHeading } from "@/components/section-heading"
 // bullet list, repeated five times. That is the shape every generated article
 // has, and it is why they read as generated. These blocks follow the homepage
 // and the product pages instead: full-width sections, text beside a large
-// photograph, a dark band for the worked example, numbered steps — the same
+// photograph, a dark band for the worked example, numbered steps: the same
 // rhythm a visitor has just seen on the page they came from.
 
 /* ── Hero: identical to the product pages, so the site feels like one site ── */
@@ -39,7 +40,7 @@ export function ArtikelHero({
             <span className="text-white/80">{categorie}</span>
           </div>
           <div className="w-16 h-1.5 bg-[#f75d20] mb-4" />
-          <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-5 leading-tight">{titel}</h1>
+          <h1 className="text-[30px] md:text-[42px] font-serif font-normal text-white mb-5 leading-tight hyphens-auto [overflow-wrap:anywhere]">{titel}</h1>
           <p className="text-white/80 leading-relaxed text-lg">{intro}</p>
           <div className="flex items-center gap-3 mt-6 text-white/60 text-sm">
             <span>{auteur}</span>
@@ -56,6 +57,16 @@ export function ArtikelHero({
 
 export function P({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <p className={`text-gray-700 leading-relaxed ${className}`}>{children}</p>
+}
+
+/* ── A link inside running text: to a page of this site, or to a source elsewhere ── */
+
+export function A({ href, children }: { href: string; children: ReactNode }) {
+  const stijl = "text-[#311e86] underline underline-offset-2 decoration-[#311e86]/40 hover:decoration-[#311e86]"
+  if (href.startsWith("/")) {
+    return <Link href={href} className={stijl}>{children}</Link>
+  }
+  return <a href={href} target="_blank" rel="noopener noreferrer" className={stijl}>{children}</a>
 }
 
 /* ── A plain section: heading with the orange bar, text limited to a readable width ── */
@@ -133,7 +144,7 @@ export function Rekenvoorbeeld({
             <h2 className="text-xl md:text-2xl font-serif font-semibold text-white">{kop}</h2>
             {toelichting && <p className="text-white/70 leading-relaxed mt-4">{toelichting}</p>}
           </div>
-          <div className="space-y-6">{children}</div>
+          <div className="space-y-6 min-w-0">{children}</div>
         </div>
       </div>
     </section>
@@ -145,10 +156,13 @@ export function Tabel({
   rijen,
   donker = false,
   uitgelichtRij,
+  tekst: alleTekst = false,
 }: {
   kolommen: string[]
   rijen: ReactNode[][]
   donker?: boolean
+  /** Every column holds text, not amounts: align everything left. */
+  tekst?: boolean
   /** Index of the row that carries the conclusion; rendered in the accent colour. */
   uitgelichtRij?: number
 }) {
@@ -161,7 +175,7 @@ export function Tabel({
         <thead>
           <tr className={`border-b ${lijn}`}>
             {kolommen.map((k, i) => (
-              <th key={k} className={`py-2 pr-4 text-[11px] font-medium uppercase tracking-wide ${kop} ${i === 0 ? "text-left" : "text-right"}`}>
+              <th key={k} className={`py-2 pr-4 text-[11px] font-medium uppercase tracking-wide ${kop} ${i === 0 || alleTekst ? "text-left" : "text-right"}`}>
                 {k}
               </th>
             ))}
@@ -175,7 +189,7 @@ export function Tabel({
                 {rij.map((cel, c) => (
                   <td
                     key={c}
-                    className={`py-2.5 pr-4 ${c === 0 ? "text-left" : "text-right tabular-nums"} ${accent ? "text-[#f75d20]" : tekst}`}
+                    className={`py-2.5 pr-4 align-top ${c === 0 || alleTekst ? "text-left" : "text-right tabular-nums"} ${accent ? "text-[#f75d20]" : tekst}`}
                   >
                     {cel}
                   </td>
@@ -237,6 +251,87 @@ export function Faq({ items }: { items: { vraag: string; antwoord: string }[] })
               <h3 className="font-semibold text-[#1e3a5f] mb-2">{item.vraag}</h3>
               <P>{item.antwoord}</P>
             </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── Sources of an article about news: who published what, and when ── */
+
+export function Bronnen({
+  bronnen,
+  peildatum,
+}: {
+  bronnen: { uitgever: string; titel: string; datum: string; href: string }[]
+  /** The day the figures were checked, written out. */
+  peildatum: string
+}) {
+  return (
+    <section className="py-16 bg-white">
+      <div className="max-w-screen-2xl mx-auto px-4">
+        <SectionHeading>Bronnen</SectionHeading>
+        <ul className="mt-6 max-w-3xl border-t border-gray-200">
+          {bronnen.map((b) => (
+            <li key={b.href} className="border-b border-gray-200 py-3 text-sm leading-relaxed">
+              <span className="font-semibold text-[#1e3a5f]">{b.uitgever}</span>
+              <span className="text-gray-500">, {b.datum}. </span>
+              <a href={b.href} target="_blank" rel="noopener noreferrer" className="text-[#311e86] hover:underline">
+                {b.titel}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 max-w-3xl text-sm text-gray-500 leading-relaxed">
+          De cijfers in dit bericht zijn de stand van {peildatum}. Dit bericht is algemene informatie en geen advies.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* ── Three other articles, newest first, so a reader can go on ── */
+
+function datumTekst(iso: string) {
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+}
+
+export function MeerBerichten({ huidig }: { huidig: string }) {
+  const andere = STATIC_POSTS.filter((p) => p.slug !== huidig).slice(0, 3)
+  if (andere.length === 0) return null
+  return (
+    <section className="py-16 bg-white border-t border-gray-200">
+      <div className="max-w-screen-2xl mx-auto px-4">
+        <div className="flex items-end justify-between gap-4">
+          <SectionHeading>Meer berichten</SectionHeading>
+          <Link href="/berichten" className="text-[#311e86] text-sm font-medium hover:underline whitespace-nowrap">
+            Alle berichten
+            <span aria-hidden="true"> &rsaquo;</span>
+          </Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8 mt-10">
+          {andere.map((post) => (
+            <article key={post.slug} className="group">
+              <Link href={`/berichten/${post.slug}`} className="relative block h-[180px] mb-4 overflow-hidden" tabIndex={-1} aria-hidden="true">
+                <Image
+                  src={post.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  style={post.imageStyle}
+                />
+              </Link>
+              <p className="text-xs text-gray-500 mb-2">
+                <span className="font-medium uppercase tracking-wide text-[#c24a14] mr-2">{post.category}</span>
+                <time dateTime={post.date}>{datumTekst(post.date)}</time>
+              </p>
+              <h3 className="text-lg font-serif text-[#311e86] leading-snug">
+                <Link href={`/berichten/${post.slug}`} className="hover:underline">{post.title}</Link>
+              </h3>
+            </article>
           ))}
         </div>
       </div>
