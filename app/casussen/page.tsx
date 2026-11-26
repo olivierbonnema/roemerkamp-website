@@ -27,12 +27,13 @@ export default function CasussenPage() {
           intro="Financieringen die wij hebben verzorgd, van aanleiding tot exit. Per casus ziet u het bedrag, de loan-to-value, de looptijd en waarom de bank afhaakte."
           breadcrumbs={[{ label: 'Casussen', href: '/casussen' }]}
           hideBreadcrumbs
+          wide
           image={{ src: '/images/kantoor-hal.jpg', alt: 'De hal van het kantoor van Lange & Partners in Haarlem' }}
           primary={{ href: BORROWER_PAGE.href, label: 'Voor leningnemers' }}
           secondary={{ href: INVESTOR_PAGE.href, label: 'Voor investeerders' }}
         />
 
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-16">
+        <div className="max-w-screen-2xl mx-auto px-5 md:px-4 pt-10 md:pt-14 pb-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-x-14 items-start">
             <div className="artikel max-w-[720px] min-w-0">
               <ol className="list-none m-0 p-0">
@@ -100,7 +101,7 @@ export default function CasussenPage() {
           </div>
         </div>
 
-        <ContactSection text={CONTACT_TEKST} image={CONTACT_FOTO} />
+        <ContactSection text={CONTACT_TEKST} image={CONTACT_FOTO} wide />
       </main>
       <Footer />
     </>
