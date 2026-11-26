@@ -18,6 +18,10 @@ interface PageHeroProps {
   image?: { src: string; alt: string; position?: string }
   primary?: Cta
   secondary?: Cta
+  /** From tablet up: the width and the side margin of the home page instead of 1200 px. On a phone the margin stays 20 px, because tables run to the screen edge with -mx-5. */
+  wide?: boolean
+  /** Leave the visible "Home / ..." line out. The breadcrumb data for search engines is separate. */
+  hideBreadcrumbs?: boolean
 }
 
 /**
@@ -25,24 +29,26 @@ interface PageHeroProps {
  * De foto loopt op desktop door tot de rechterrand van het scherm, met een
  * donkerblauwe fade aan de linkerkant (zelfde opbouw als de homepage-hero).
  */
-export function PageHero({ title, intro, breadcrumbs, image, primary, secondary }: PageHeroProps) {
+export function PageHero({ title, intro, breadcrumbs, image, primary, secondary, wide = false, hideBreadcrumbs = false }: PageHeroProps) {
   return (
     <section className="relative overflow-hidden bg-[#1e3a5f] text-white">
-      <div className="relative z-10 max-w-[1200px] mx-auto px-5 md:px-10">
+      <div className={`relative z-10 mx-auto ${wide ? "max-w-screen-2xl px-5 md:px-4" : "max-w-[1200px] px-5 md:px-10"}`}>
         <div className="max-w-[600px] py-10 md:py-14">
-          <nav aria-label="Kruimelpad" className="text-[13px] text-[#c5cedb] mb-6">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            {breadcrumbs.map((c, i) => (
-              <span key={c.href}>
-                <span aria-hidden="true" className="mx-2">/</span>
-                {i === breadcrumbs.length - 1 ? (
-                  <span className="text-[#c5cedb]">{c.label}</span>
-                ) : (
-                  <Link href={c.href} className="hover:text-white transition-colors">{c.label}</Link>
-                )}
-              </span>
-            ))}
-          </nav>
+          {!hideBreadcrumbs && (
+            <nav aria-label="Kruimelpad" className="text-[13px] text-[#c5cedb] mb-6">
+              <Link href="/" className="hover:text-white transition-colors">Home</Link>
+              {breadcrumbs.map((c, i) => (
+                <span key={c.href}>
+                  <span aria-hidden="true" className="mx-2">/</span>
+                  {i === breadcrumbs.length - 1 ? (
+                    <span className="text-[#c5cedb]">{c.label}</span>
+                  ) : (
+                    <Link href={c.href} className="hover:text-white transition-colors">{c.label}</Link>
+                  )}
+                </span>
+              ))}
+            </nav>
+          )}
           <div className="w-14 h-[5px] bg-[#f75d20] mb-4" />
           <h1 className="font-serif font-normal text-white text-[30px] md:text-[42px] leading-[1.15]">
             {title}

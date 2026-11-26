@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 interface ArticleLayoutProps {
   children: ReactNode
   aside: ReactNode
+  /** From tablet up: the width and the side margin of the home page instead of 1200 px. On a phone the margin stays 20 px, because tables run to the screen edge with -mx-5. */
+  wide?: boolean
 }
 
 /**
@@ -10,9 +12,9 @@ interface ArticleLayoutProps {
  * 720 px en een vaste zijkolom (kerngegevens, contact, inhoudsopgave) die op
  * desktop meescrolt. Op telefoon komt de zijkolom onder de tekst.
  */
-export function ArticleLayout({ children, aside }: ArticleLayoutProps) {
+export function ArticleLayout({ children, aside, wide = false }: ArticleLayoutProps) {
   return (
-    <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-16">
+    <div className={`mx-auto pt-10 md:pt-14 pb-16 ${wide ? "max-w-screen-2xl px-5 md:px-4" : "max-w-[1200px] px-5 md:px-10"}`}>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-x-14 items-start">
         <article className="artikel max-w-[720px] min-w-0">{children}</article>
         {/* De kopregel is sticky (circa 104 px hoog op desktop); de zijkolom blijft daaronder
