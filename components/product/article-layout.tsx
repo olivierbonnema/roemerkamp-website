@@ -9,14 +9,14 @@ interface ArticleLayoutProps {
 
 /**
  * Tweekoloms opbouw voor informatieve pagina's: een leeskolom van maximaal
- * 720 px en een vaste zijkolom (kerngegevens, contact, inhoudsopgave) die op
+ * 720 px (840 px bij wide, zodat het gat naar de zijkolom kleiner is) en een vaste zijkolom (kerngegevens, contact, inhoudsopgave) die op
  * desktop meescrolt. Op telefoon komt de zijkolom onder de tekst.
  */
 export function ArticleLayout({ children, aside, wide = false }: ArticleLayoutProps) {
   return (
     <div className={`mx-auto pt-10 md:pt-14 pb-16 ${wide ? "max-w-screen-2xl px-5 md:px-4" : "max-w-[1200px] px-5 md:px-10"}`}>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-x-14 items-start">
-        <article className="artikel max-w-[720px] min-w-0">{children}</article>
+        <article className={`artikel min-w-0 ${wide ? "max-w-[840px]" : "max-w-[720px]"}`}>{children}</article>
         {/* De kopregel is sticky (circa 104 px hoog op desktop); de zijkolom blijft daaronder
             hangen. Past de zijkolom niet in het scherm, dan scrolt hij intern in plaats van
             afgesneden te worden. */}
