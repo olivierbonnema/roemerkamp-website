@@ -7,6 +7,8 @@ import { fmtEuro } from "@/lib/generators/docx-helpers"
 import { PITCH_DEFAULTS as PD, buildErpText } from "@/lib/generators/form-defaults"
 import type { PitchData } from "@/lib/generators/pitch-generator"
 import { HYPOTHEEK_RANKS, RANK_LABELS, buildPitchZekerheden, type ZekerheidObject } from "@/lib/generators/zekerheden"
+import { leningdelenTotal, type Leningdeel, type RepaymentType } from "@/lib/generators/leningdelen"
+import { pitchLeenvormRegels, pitchLeningdelen, repaymentTypeFromLeenvorm } from "@/lib/generators/pitch-leningdelen"
 
 // Vaste extra-zekerheden (checkboxes); volgorde bepaalt de volgorde in de tekst.
 const STANDARD_EXTRAS = [
@@ -154,6 +156,10 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
   const [leenvorm, setLeenvorm] = useState((d.leenvorm as string) || "Aflossingsvrij")
   const [annuiteitenTermijn, setAnnuiteitenTermijn] = useState<number>((d.annuiteitenTermijn as number) || 360)
   const [hoofdsom, setHoofdsom] = useState<number>((d.hoofdsom as number) || 0)
+  // Loan parts with their own repayment form, as on the termsheet. On: the
+  // hoofdsom is the total of the parts and the line "Leenvorm" lists them.
+  const [leningdelen, setLeningdelen] = useState<Leningdeel[]>(() => pitchLeningdelen(d as { leningdelen?: Leningdeel[] }))
+  const [splitMode, setSplitMode] = useState<boolean>(() => pitchLeningdelen(d as { leningdelen?: Leningdeel[] }).length > 0)
   const [loanDuration, setLoanDuration] = useState<number>((d.loanDuration as number) || 0)
   const [grossRate, setGrossRate] = useState<number>((d.grossRate as number) || 0)
   // Beheervergoeding is standaard 0,08% per maand.
@@ -350,6 +356,41 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loanDuration])
 
+  // With loan parts the hoofdsom is their total. Everything that depends on the
+  // hoofdsom (zekerheden, LTV, financieringsopzet) follows from there.
+  useEffect(() => {
+    if (!splitMode) return
+    const totaal = leningdelenTotal(leningdelen)
+    if (totaal > 0) setHoofdsom(totaal)
+  }, [splitMode, leningdelen])
+
+  const toggleSplit = (aan: boolean) => {
+    setSplitMode(aan)
+    // Turned on for the first time: the loan as it stands becomes part 1.
+    if (aan && leningdelen.length === 0) {
+      setLeningdelen([
+        { amount: hoofdsom, repaymentType: repaymentTypeFromLeenvorm(leenvorm), endDate: "" },
+        { amount: 0, repaymentType: "aflossingsvrij", endDate: "" },
+      ])
+    }
+  }
+  const updateDeel = (idx: number, updates: Partial<Leningdeel>) =>
+    setLeningdelen((prev) => prev.map((dl, i) => (i === idx ? { ...dl, ...updates } : dl)))
+  const removeDeel = (idx: number) => setLeningdelen((prev) => prev.filter((_, i) => i !== idx))
+  const addDeel = () => setLeningdelen((prev) => [...prev, { amount: 0, repaymentType: "annuïtair", endDate: "" }])
+  // What is saved and printed: only parts with an amount, and none when the choice is off.
+  const delenVoorPitch = useMemo<Leningdeel[]>(
+    () =>
+      splitMode
+        ? pitchLeningdelen({ leningdelen }).map((dl) => ({
+            amount: Number(dl.amount),
+            repaymentType: dl.repaymentType || "annuïtair",
+            ...(dl.endDate ? { endDate: dl.endDate } : {}),
+          }))
+        : [],
+    [splitMode, leningdelen],
+  )
+
   // "Gewenste financiering" volgt standaard het leenbedrag (hoofdsom), maar blijft
   // aanpasbaar: alleen meebewegen zolang de waarde nog gelijk was aan het leenbedrag.
   const prevHoofdsomRef = useRef(hoofdsom)
@@ -388,6 +429,9 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
         leenvorm,
         annuiteitenTermijn,
         hoofdsom,
+        // Always sent, also when empty: an empty list must replace parts that
+        // were saved before the choice was turned off.
+        leningdelen: delenVoorPitch,
         loanDuration,
         grossRate,
         managementFee,
@@ -644,31 +688,68 @@ const PitchForm = forwardRef<PitchFormHandle, Props>(({ initialData }, ref) => {
 
       {/* 6. Uitgangspunten */}
       <PitchSection id="uitgangspunten" title="Uitgangspunten van de Lening" isOpen={isSectionOpen("uitgangspunten")} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Leenvorm</label>
-            <select value={leenvorm} onChange={(e) => setLeenvorm(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
-              <option>Aflossingsvrij</option>
-              <option>Annuiteiten</option>
-              <option>Lineair</option>
-              <option>Combinatie</option>
-            </select>
-          </div>
-          {leenvorm === "Annuiteiten" && (
+        <label className="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer">
+          <input type="checkbox" checked={splitMode} onChange={(e) => toggleSplit(e.target.checked)} data-split-toggle />
+          Gesplitste leningdelen (verschillende aflossingsvormen)
+        </label>
+
+        {!splitMode ? (
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Aflossingstermijn</label>
-              <select value={annuiteitenTermijn} onChange={(e) => setAnnuiteitenTermijn(parseInt(e.target.value))} className="w-full border rounded px-2 py-1.5 text-sm">
-                <option value={360}>360 maanden (30 jr)</option>
-                <option value={240}>240 maanden (20 jr)</option>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Leenvorm</label>
+              <select value={leenvorm} onChange={(e) => setLeenvorm(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+                <option>Aflossingsvrij</option>
+                <option>Annuiteiten</option>
+                <option>Lineair</option>
+                <option>Combinatie</option>
               </select>
             </div>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Hoofdsom (€)</label>
-            <input type="number" value={hoofdsom || ""} onChange={(e) => setHoofdsom(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+            {leenvorm === "Annuiteiten" && (
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Aflossingstermijn</label>
+                <select value={annuiteitenTermijn} onChange={(e) => setAnnuiteitenTermijn(parseInt(e.target.value))} className="w-full border rounded px-2 py-1.5 text-sm">
+                  <option value={360}>360 maanden (30 jr)</option>
+                  <option value={240}>240 maanden (20 jr)</option>
+                </select>
+              </div>
+            )}
           </div>
+        ) : (
+          <div className="space-y-2" data-leningdelen>
+            <div className="grid grid-cols-[1fr_1.1fr_1fr_auto] gap-2 text-[10px] font-medium text-gray-400 px-1">
+              <span>Bedrag</span><span>Aflossingsvorm</span><span>Einddatum aflossing</span><span></span>
+            </div>
+            {leningdelen.map((dl, i) => (
+              <div key={i} className="grid grid-cols-[1fr_1.1fr_1fr_auto] gap-2 items-center" data-leningdeel>
+                <input type="number" placeholder="Bedrag" aria-label={`Bedrag leningdeel ${i + 1}`} value={dl.amount || ""} onChange={(e) => updateDeel(i, { amount: parseFloat(e.target.value) || 0 })} className="border rounded px-2 py-1.5 text-sm" />
+                <select aria-label={`Aflossingsvorm leningdeel ${i + 1}`} value={dl.repaymentType} onChange={(e) => updateDeel(i, { repaymentType: e.target.value as RepaymentType })} className="border rounded px-2 py-1.5 text-sm">
+                  <option value="annuïtair">Annuïtair</option>
+                  <option value="aflossingsvrij">Aflossingsvrij</option>
+                  <option value="lineair">Lineair</option>
+                </select>
+                <input type="date" aria-label={`Einddatum aflossing leningdeel ${i + 1}`} value={dl.endDate || ""} onChange={(e) => updateDeel(i, { endDate: e.target.value })} className="border rounded px-2 py-1.5 text-sm" />
+                <button type="button" onClick={() => removeDeel(i)} aria-label={`Leningdeel ${i + 1} verwijderen`} className="text-red-400 hover:text-red-600 text-lg">×</button>
+              </div>
+            ))}
+            <button type="button" onClick={addDeel} className="text-sm text-[#2E2060] hover:underline">+ Leningdeel toevoegen</button>
+            <div className="text-[11px] text-gray-600 bg-gray-50 border rounded p-2 space-y-1" data-leningdelen-preview>
+              <div><span className="text-gray-400">Hoofdsom (totaal van de leningdelen):</span> {delenVoorPitch.length > 0 ? fmtEuro(leningdelenTotal(delenVoorPitch)) : "vul een bedrag in"}</div>
+              {delenVoorPitch.length > 0 && (
+                <div>
+                  <span className="text-gray-400">Zo komt het in de pitch:</span>
+                  {pitchLeenvormRegels({ leningdelen: delenVoorPitch }).map((regel, i) => <p key={i}>{i === 0 ? `Leenvorm: ${regel}` : regel}</p>)}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          {!splitMode && (
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Hoofdsom (€)</label>
+              <input type="number" value={hoofdsom || ""} onChange={(e) => setHoofdsom(parseFloat(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+          )}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Looptijd (maanden)</label>
             <input type="number" value={loanDuration || ""} onChange={(e) => setLoanDuration(parseInt(e.target.value) || 0)} className="w-full border rounded px-2 py-1.5 text-sm" />

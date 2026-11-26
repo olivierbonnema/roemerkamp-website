@@ -9,7 +9,7 @@ import type { PitchData } from "./pitch-generator"
 import { buildPitchZekerheden, type ZekerheidObject } from "./zekerheden"
 import { cleanName, spouses } from "./termsheet-parties"
 import { PITCH_DEFAULTS } from "./form-defaults"
-import { loanPartsBaseTotal } from "./leningdelen"
+import { loanPartsBaseTotal, type Leningdeel } from "./leningdelen"
 import { LEGAL_NAME } from "../company"
 
 type FinRowType = "normal" | "aftrek" | "total" | "result"
@@ -35,6 +35,12 @@ function deriveLeenvorm(t: TermsheetData): string {
   if (a.includes("annu")) return "Annuïtair"
   if (a.includes("linea")) return "Lineair"
   return "Aflossingsvrij"
+}
+
+function leningdelenVoorPitch(t: TermsheetData): Leningdeel[] | undefined {
+  const delen = (t.leningdelen || []).filter((d) => d && Number(d.amount) > 0)
+  if (delen.length === 0) return undefined
+  return delen.map((d) => ({ amount: Number(d.amount), repaymentType: d.repaymentType || "annuïtair", ...(d.endDate ? { endDate: d.endDate } : {}) }))
 }
 
 function totalLoan(t: TermsheetData): number {
@@ -335,6 +341,9 @@ export function termsheetToPitch(termsheet: TermsheetData, aanvraag?: Record<str
     collateralObjects: collateralObjects.length > 0 ? collateralObjects : undefined,
     hoofdsom: hoofdsom || undefined,
     hypotheekBedrag: hoofdsom || undefined,
+    // Loan parts of the termsheet go to the pitch as they are, without the
+    // monthly amounts: the pitch does not print those.
+    leningdelen: leningdelenVoorPitch(termsheet),
     hypotheekRang,
     loanDuration: looptijd || undefined,
     grossRate: typeof termsheet.rentePct === "number" ? termsheet.rentePct : undefined,

@@ -1,5 +1,7 @@
 import * as docx from "docx"
 import { buildPitchLtvText, type WaardeType } from "@/lib/generators/pitch-waarde"
+import { pitchLeenvormRegels } from "@/lib/generators/pitch-leningdelen"
+import type { Leningdeel } from "@/lib/generators/leningdelen"
 import {
   MM,
   PAGE_W,
@@ -145,6 +147,10 @@ export interface PitchData {
   leenvorm?: string
   annuiteitenTermijn?: number
   hoofdsom?: number
+  // Loan parts with their own repayment form and end date, as on the termsheet.
+  // When there are parts, `hoofdsom` is their total and `leenvorm` is not
+  // printed (pitch-leningdelen.ts).
+  leningdelen?: Leningdeel[]
   loanDuration?: number
   grossRate?: number
   managementFee?: number
@@ -388,8 +394,6 @@ export async function generatePitch(
   ch.push(pitchSectionHead("Uitgangspunten van de lening"))
   ch.push(empty(0))
   {
-    const leenvorm = data.leenvorm || "Aflossingsvrij"
-    const hoofdsom = Number(data.hoofdsom) || 0
     const looptijd = Number(data.loanDuration) || 0
     const gross = Number(data.grossRate) || 0
     const fee = Number(data.managementFee) || 0
@@ -397,18 +401,17 @@ export async function generatePitch(
     // investor receives) = bruto - beheervergoeding * 12.
     const netto = parseFloat((gross - fee * 12).toFixed(3))
 
-    let leenvormTxt = leenvorm
-    if (leenvorm === "Annuiteiten" && data.annuiteitenTermijn) {
-      leenvormTxt = `Annuiteiten (${data.annuiteitenTermijn} maanden)`
-    }
-
     // "bij aanvang" wordt altijd toegevoegd.
     const suffix = " bij aanvang."
     const renteTxt = fee > 0
       ? `${fmtN(netto)}% per jaar (nominaal) netto (${fmtN(gross)}% per jaar bruto minus ${fmtN(fee)}% per maand aan beheervergoeding)${suffix}`
       : `${fmtN(gross)}% per jaar (nominaal)${suffix}`
 
-    ch.push(tabLine("Leenvorm", [tx(`${leenvormTxt}${hoofdsom > 0 ? ` ${fmtEuro(hoofdsom)}` : ""}`)]))
+    // With loan parts: the total behind the label, and a line per part under it,
+    // in the column of the values.
+    const [leenvormTxt, ...deelRegels] = pitchLeenvormRegels(data)
+    ch.push(tabLine("Leenvorm", [tx(leenvormTxt)]))
+    deelRegels.forEach((regel) => ch.push(new docx.Paragraph({ children: [tx(regel)], spacing: { before: 0, after: 0 }, indent: { left: MM(32) } })))
     ch.push(tabLine("Looptijd", [tx(`${looptijd} maanden`)]))
     ch.push(tabLine("Rente", [tx(renteTxt)]))
     ch.push(empty(0))
