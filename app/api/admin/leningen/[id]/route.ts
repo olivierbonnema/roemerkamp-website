@@ -47,8 +47,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   try {
-    const col = adminDb.collection(LENINGEN_COLLECTION)
-    const ref = col.doc(id)
+    const ref = adminDb.collection(LENINGEN_COLLECTION).doc(id)
     const doc = await ref.get()
     if (!doc.exists) return NextResponse.json({ error: "Lening niet gevonden." }, { status: 404 })
     const current = doc.data() || {}
@@ -61,16 +60,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       update.archivedAt = FieldValue.serverTimestamp()
     }
     if (moved && status === "actief") {
-      // Back on the overview: at the bottom of the list.
-      const active = await col.where("status", "==", "actief").get()
-      const last = active.docs.reduce((max, d) => {
-        const v = d.data()?.volgorde
-        return typeof v === "number" && Number.isFinite(v) ? Math.max(max, v) : max
-      }, 0)
       update.status = "actief"
-      update.volgorde = last + 1
       update.archivedAt = FieldValue.delete()
     }
+    // Rows of the first version: once the bruto rente or the date is saved from
+    // the form, what the board had (netto rente, the date as text) is dropped.
+    // See leningFromStored in lib/leningen.ts.
+    if (checked.fields.brutoRente !== undefined && current.nettoRente !== undefined) update.nettoRente = FieldValue.delete()
+    if (checked.fields.passeerDatum !== undefined && current.passeerdatum !== undefined) update.passeerdatum = FieldValue.delete()
     await ref.update(update)
 
     const project = String(checked.fields.project ?? current.project ?? "")
