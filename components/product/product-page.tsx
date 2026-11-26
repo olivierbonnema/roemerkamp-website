@@ -84,9 +84,11 @@ export function ProductPage({
       <FaqSchema items={faq} />
       <Header />
       <main>
-        <PageHero title={title} intro={intro} breadcrumbs={crumbs} image={image} primary={primary} secondary={secondary} />
+        {/* As wide as the home page, and without the visible "Home / ..." line (Olivier, 26 November 2026). */}
+        <PageHero title={title} intro={intro} breadcrumbs={crumbs} image={image} primary={primary} secondary={secondary} wide hideBreadcrumbs />
 
         <ArticleLayout
+          wide
           aside={
             <>
               <KeyFacts title={kerngegevensTitel} items={kerngegevens} />
@@ -104,7 +106,7 @@ export function ProductPage({
           </ArticleSection>
         </ArticleLayout>
 
-        <ContactSection title={contactTitel} text={contactTekst} image={CONTACT_FOTO} />
+        <ContactSection title={contactTitel} text={contactTekst} image={CONTACT_FOTO} wide />
       </main>
       <Footer />
     </>
