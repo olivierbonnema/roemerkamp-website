@@ -47,6 +47,33 @@ export const AFWIJS_LIMITS = { anders: 300, toelichting: 1000, naam: 80 }
 
 export const KANTOOR_TELEFOON = "(023) 517 31 00"
 
+// The signature of the office, as it stands under the mails from Outlook
+// (Olivier, 2026-11-27, with a mail of his own as the example: "Doe onze
+// handtekening eronder"). A mail sent through Microsoft Graph does not get the
+// signature of the mailbox by itself, so it is written out here.
+//
+// One line differs from the example on purpose: the example says "Lange
+// Financieel Advies" under the name, here it is "Lange & Partners", by the
+// naming rule of 2026-11-11. The legal text keeps the statutory name.
+export const HANDTEKENING = {
+  kantoor: "Lange & Partners",
+  // The letters before each line are those of the example.
+  regels: [
+    { letter: "A", tekst: "Wilhelminastraat 50, 2011 VN Haarlem", href: "" },
+    { letter: "T", tekst: "023 - 517 31 00", href: "" },
+    { letter: "W", tekst: "info@langefa.nl", href: "mailto:info@langefa.nl" },
+    { letter: "M", tekst: "www.langefa.nl", href: "http://www.langefa.nl/" },
+  ],
+  logo: { url: "https://www.nonbancaireleningen.nl/images/lange-logo.png", alt: "Lange & Partners", width: 170 },
+  disclaimer:
+    "De inhoud van dit bericht en de eventueel daarbij behorende bijlagen zijn persoonlijk gericht aan en derhalve uitsluitend bestemd voor de geadresseerde. " +
+    "Zij kunnen gegevens met betrekking tot een derde bevatten. De ontvanger die niet de geadresseerde is, noch bevoegd is dit bericht namens geadresseerde te ontvangen, " +
+    "wordt verzocht onmiddellijk Lange & Partners Financieel Advies B.V. telefonisch (+31 (0)23 5173100) op de hoogte te stellen van de ontvangst en het e-mailbericht te vernietigen. " +
+    "Elk gebruik van de inhoud van dit bericht en/of van de daarbij behorende bijlagen door een ander dan de geadresseerde is onrechtmatig jegens afzender respectievelijk de hiervoor bedoelde derde. " +
+    "Lange & Partners Financieel Advies B.V. staat niet in voor de juiste en volledige overbrenging van de inhoud van een verzonden e-mail, noch voor tijdige ontvangst daarvan, " +
+    "noch voor door haar daarbij overgebrachte virussen. Dit e-mailbericht brengt geen enkele contractuele gebondenheid voor Lange & Partners Financieel Advies B.V. tot stand.",
+}
+
 export interface AfwijzingInvoer {
   // Ids from AFWIJS_REDENEN, and REDEN_ANDERS.
   redenen: string[]
@@ -135,8 +162,9 @@ export interface AfwijzingMail {
 /**
  * The mail to the adviser. Written as a mail from one person to another (it
  * leaves from the colleague's own mailbox), so no banner and no button: plain
- * paragraphs in the font of an ordinary mail. Everything that was typed or
- * comes from the aanvraag is escaped.
+ * paragraphs in the font of an ordinary mail from the office, closed with the
+ * signature of the office. Everything that was typed or comes from the
+ * aanvraag is escaped.
  */
 export function buildAfwijzingMail(g: AfwijzingMailGegevens): AfwijzingMail {
   const klant = g.klantNaam.trim()
@@ -168,12 +196,29 @@ export function buildAfwijzingMail(g: AfwijzingMailGegevens): AfwijzingMail {
   }
   paragraphs.push(slot)
   html.push(p(esc(slot)))
-  paragraphs.push(`Met vriendelijke groet,\n\n${naam ? `${naam}\n` : ""}Lange & Partners`)
-  html.push(`<p style="margin:0;">Met vriendelijke groet,<br><br>${naam ? `${esc(naam)}<br>` : ""}Lange &amp; Partners</p>`)
+  // The signature: the name of the colleague, the office, the lines with the
+  // letters, the logo and the legal text, as under the mails from Outlook.
+  const paars = "color:#261243;"
+  const sig = HANDTEKENING
+  paragraphs.push(
+    `Met vriendelijke groet,\n\n${naam ? `${naam}\n` : ""}${sig.kantoor}\n\n` +
+    sig.regels.map((r) => `${r.letter} ${r.tekst}`).join("\n"),
+  )
+  paragraphs.push(sig.disclaimer)
+  html.push(
+    `<p style="margin:0 0 14px 0;">Met vriendelijke groet,</p>` +
+    `<p style="margin:0 0 14px 0;${paars}">${naam ? `<b>${esc(naam)}</b><br>` : ""}<b>${esc(sig.kantoor)}</b></p>` +
+    `<p style="margin:0 0 14px 0;">${sig.regels.map((r) => {
+      const tekst = r.href ? `<a href="${esc(r.href)}" style="color:#000000;text-decoration:none;">${esc(r.tekst)}</a>` : esc(r.tekst)
+      return `<b style="${paars}">${r.letter}</b>&nbsp;${tekst}`
+    }).join("<br>")}</p>` +
+    `<p style="margin:0 0 14px 0;"><img src="${esc(sig.logo.url)}" alt="${esc(sig.logo.alt)}" width="${sig.logo.width}" style="width:${sig.logo.width}px;height:auto;border:0;"></p>` +
+    `<p style="margin:0;font-size:8pt;line-height:1.35;color:#000000;">${esc(sig.disclaimer)}</p>`,
+  )
 
   return {
     subject,
-    html: `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1f2937;">${html.join("")}</div>`,
+    html: `<div style="font-family:Aptos,Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000000;">${html.join("")}</div>`,
     text: paragraphs.join("\n\n"),
   }
 }

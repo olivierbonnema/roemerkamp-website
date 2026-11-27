@@ -4,7 +4,7 @@
 // Run from the repo root:  npx tsx test/afwijzing/afwijzing.test.ts
 //
 // Fictitious names only.
-import { AFWIJS_REDENEN, REDEN_ANDERS, aanhefNaam, buildAfwijzingMail, naamUitEmail, redenZinnen, sanitizeAfwijzing } from "../../lib/afwijzing"
+import { AFWIJS_REDENEN, HANDTEKENING, REDEN_ANDERS, aanhefNaam, buildAfwijzingMail, naamUitEmail, redenZinnen, sanitizeAfwijzing } from "../../lib/afwijzing"
 
 let fails = 0
 const ok = (label: string, cond: boolean, extra = "") => {
@@ -67,11 +67,21 @@ eq("the whole mail with one reason", m.text, [
   "Dank voor de financieringsaanvraag die u namens Jan Voorbeeld heeft ingediend voor Teststraat 12, Teststad. Wij hebben de aanvraag beoordeeld en moeten u helaas laten weten dat wij hiervoor geen financiering kunnen aanbieden.",
   "De reden hiervoor is de volgende. Wij achten de aflossing aan het einde van de looptijd niet haalbaar.",
   "Heeft u vragen over deze beslissing, dan kunt u mij bereiken door deze mail te beantwoorden of via (023) 517 31 00.",
-  "Met vriendelijke groet,\n\nBea Beheer\nLange & Partners",
+  "Met vriendelijke groet,\n\nBea Beheer\nLange & Partners\n\nA Wilhelminastraat 50, 2011 VN Haarlem\nT 023 - 517 31 00\nW info@langefa.nl\nM www.langefa.nl",
+  HANDTEKENING.disclaimer,
 ].join("\n\n"))
 ok("one reason is a sentence, not a list", !m.html.includes("<ul") && m.html.includes("De reden hiervoor is de volgende. Wij achten de aflossing"))
-ok("the mail is a plain mail: no banner, no button, no image, no link", !/<img|<a |<table|background/i.test(m.html))
-ok("the company is called Lange & Partners", m.html.includes("Lange &amp; Partners") && !/Lange Financieel Advies|LFA/.test(m.html + m.text))
+ok("the mail is a plain mail: no banner, no button, no table", !/<table|background|<button/i.test(m.html))
+
+// The signature of the office, as under the mails from Outlook.
+const tail = m.html.slice(m.html.indexOf("Met vriendelijke groet,"))
+ok("the signature: name and office in bold, in the purple of the office", tail.includes('<b>Bea Beheer</b><br><b>Lange &amp; Partners</b>') && tail.includes("color:#261243;"))
+ok("the four lines with their letters, in the order of the example", ["A</b>&nbsp;Wilhelminastraat 50, 2011 VN Haarlem", "T</b>&nbsp;023 - 517 31 00", "W</b>&nbsp;<a href=\"mailto:info@langefa.nl\"", "M</b>&nbsp;<a href=\"http://www.langefa.nl/\""].every((x, n, all) => tail.includes(x) && (n === 0 || tail.indexOf(all[n - 1]) < tail.indexOf(x))))
+ok("the logo, once, from the site, with a text for when pictures are off", (m.html.match(/<img/g) || []).length === 1 && tail.includes('<img src="https://www.nonbancaireleningen.nl/images/lange-logo.png" alt="Lange &amp; Partners" width="170"'))
+ok("the legal text closes the mail, small", tail.includes("font-size:8pt") && m.html.trimEnd().endsWith("tot stand.</p></div>") && tail.indexOf("<img") < tail.indexOf("De inhoud van dit bericht"))
+ok("the only links are the two of the signature", (m.html.match(/<a /g) || []).length === 2)
+ok("the legal text names the company in full, three times, as in the example", (HANDTEKENING.disclaimer.match(/Lange & Partners Financieel Advies B\.V\./g) || []).length === 3)
+ok("the company is called Lange & Partners, not by its old name", m.html.includes("<b>Lange &amp; Partners</b>") && !/Lange Financieel Advies|LFA/.test(m.html + m.text))
 ok("no dash in the mail", !/\u2014|\u2013/.test(m.html + m.text + m.subject))
 
 m = buildAfwijzingMail({ ...base, invoer: { redenen: ["verhouding", "betaalbaarheid", "anders"], andersTekst: "De timing past ons niet", toelichting: "Eerste alinea\nmet een tweede regel.\n\nTweede alinea.", afzenderNaam: "Bea Beheer" } })
@@ -80,7 +90,7 @@ ok("as text the reasons are lines of their own", m.text.includes("De redenen hie
 ok("the remark comes after the reasons and before the closing line, as its own paragraphs", m.text.indexOf("De timing past ons niet.") < m.text.indexOf("Eerste alinea") && m.text.indexOf("Tweede alinea.") < m.text.indexOf("Heeft u vragen") && m.html.includes("Eerste alinea<br>met een tweede regel.") && m.html.includes(">Tweede alinea.</p>"))
 
 m = buildAfwijzingMail({ adviseurNaam: "", klantNaam: "", objectAdres: "", objectPlaats: "", invoer: { redenen: ["beleid"], andersTekst: "", toelichting: "", afzenderNaam: "" } })
-ok("without names it still reads as a mail", m.subject === "Uw financieringsaanvraag" && m.text.startsWith("Beste relatie,\n\nDank voor de financieringsaanvraag die u heeft ingediend. Wij hebben") && m.text.endsWith("Met vriendelijke groet,\n\nLange & Partners"), m.text)
+ok("without names it still reads as a mail", m.subject === "Uw financieringsaanvraag" && m.text.startsWith("Beste relatie,\n\nDank voor de financieringsaanvraag die u heeft ingediend. Wij hebben") && m.text.includes("Met vriendelijke groet,\n\nLange & Partners\n\nA Wilhelminastraat 50") && m.html.includes('<p style="margin:0 0 14px 0;color:#261243;"><b>Lange &amp; Partners</b></p>'), m.text)
 m = buildAfwijzingMail({ ...base, objectAdres: "", invoer: { redenen: ["beleid"], andersTekst: "", toelichting: "", afzenderNaam: "Bea" } })
 ok("with only a place, the place is named", m.text.includes("heeft ingediend voor Teststad. Wij"))
 
@@ -89,7 +99,7 @@ m = buildAfwijzingMail({
   adviseurNaam: "<b>Anna</b> Adviseur", klantNaam: "Voorbeeld & Zn <script>", objectAdres: "<img src=x>", objectPlaats: "Test\"stad",
   invoer: { redenen: ["anders"], andersTekst: "<script>alert(1)</script>", toelichting: "<a href=\"https://voorbeeld.test\">klik</a>", afzenderNaam: "Bea <i>Beheer</i>" },
 })
-ok("markup in names and texts is escaped", !/<script|<img|<a |<b>|<i>/.test(m.html) && m.html.includes("&lt;script&gt;alert(1)&lt;/script&gt;.") && m.html.includes("Voorbeeld &amp; Zn &lt;script&gt;") && m.html.includes("Test&quot;stad"))
+ok("markup in names and texts is escaped", !/<script|<img src=x|<a href="https:\/\/voorbeeld|<b>Anna|<i>/.test(m.html) && (m.html.match(/<img/g) || []).length === 1 && (m.html.match(/<a /g) || []).length === 2 && m.html.includes("&lt;script&gt;alert(1)&lt;/script&gt;.") && m.html.includes("Voorbeeld &amp; Zn &lt;script&gt;") && m.html.includes("Test&quot;stad"))
 
 console.log(fails === 0 ? "\nALL PASS" : `\n${fails} FAILED`)
 process.exit(fails === 0 ? 0 : 1)
