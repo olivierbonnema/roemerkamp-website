@@ -39,7 +39,8 @@ const call = (id: string, token: string | undefined, body: unknown, raw?: string
   }) as never, { params: Promise.resolve({ id }) })
 
 const stored = (id: string) => fakeDb.read("aanvragen", id) as Record<string, any> | undefined
-const logged = () => activity.filter((a) => a.action === "status_changed").map((a) => ({ ...a, details: (a.details ?? {}) as Record<string, unknown> }))
+type Logged = Record<string, unknown> & { details: Record<string, unknown> }
+const logged = (): Logged[] => activity.filter((a) => a.action === "status_changed").map((a) => ({ ...a, details: (a.details ?? {}) as Record<string, unknown> }))
 
 function seed(id: string, extra: Record<string, unknown> = {}) {
   fakeDb.collection("aanvragen").doc(id).set({
