@@ -32,6 +32,9 @@ const BAG_BASE = "https://api.bag.kadaster.nl/lvbag/individuelebevragingen/v2"
 // A lookup must never keep the page waiting for long.
 const TIMEOUT_MS = 8000
 
+// An address rarely has more than a few parcels; this only bounds the work.
+export const MAX_PERCELEN = 8
+
 export interface KadasterAdres {
   // "Dam 1, 1012JS Amsterdam"
   weergavenaam: string
@@ -101,6 +104,25 @@ async function getJson(url: string, headers: Record<string, string> = {}): Promi
   } finally {
     clearTimeout(timer)
   }
+}
+
+/* ---------- the onderpanden of an aanvraag ---------- */
+
+export interface Onderpand { adres: string; postcode: string; plaats: string }
+
+/**
+ * The onderpanden of an aanvraag: the list `objects`, or the flat fields of an
+ * aanvraag from before that list existed.
+ */
+export function onderpandenVan(a: Record<string, unknown>): Onderpand[] {
+  const listed = Array.isArray(a.objects) ? a.objects : []
+  const fromList = listed
+    .filter((o): o is Record<string, unknown> => !!o && typeof o === "object")
+    .map((o) => ({ adres: text(o.adres), postcode: text(o.postcode), plaats: text(o.plaats) }))
+    .filter((o) => o.adres || o.postcode)
+  if (fromList.length > 0) return fromList
+  const flat = { adres: text(a.objectAdres), postcode: text(a.objectPostcode), plaats: text(a.objectPlaats) }
+  return flat.adres || flat.postcode ? [flat] : []
 }
 
 /* ---------- the address (PDOK) ---------- */

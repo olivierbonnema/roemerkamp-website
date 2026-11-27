@@ -46,6 +46,9 @@ export type ActivityAction =
   | "lening_restored"
   | "lening_deleted"
   | "kadaster_opgevraagd"
+  | "kadaster_gekoppeld"
+  | "kadaster_product_gekocht"
+  | "kadaster_product_geopend"
 
 export interface LogEntry {
   action: ActivityAction
