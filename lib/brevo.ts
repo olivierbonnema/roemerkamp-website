@@ -147,3 +147,56 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     throw err
   }
 }
+
+/**
+ * Sends a mail from a colleague's OWN Microsoft 365 mailbox, so the adviser
+ * sees that colleague as the sender, a reply comes back to him, and the mail
+ * stands in his sent items. Used for the rejection of an aanvraag (Olivier,
+ * 2026-11-27: "vanuit de persoon die erop klikt", "Echt uit eigen mailbox").
+ *
+ * Same app registration as sendEmail. Whether Microsoft 365 lets the portal
+ * send from a personal mailbox is decided there (the app needs Mail.Send for
+ * that mailbox). When it does not, this throws and nothing is sent: the caller
+ * tells the colleague and offers the portal mailbox instead. It never falls
+ * back by itself.
+ *
+ * Kept apart from sendEmail on purpose, so nothing changes for the mails that
+ * already go out.
+ */
+export async function sendEmailFromMailbox(params: {
+  mailbox: string
+  to: string
+  subject: string
+  html: string
+  type?: string
+}): Promise<void> {
+  const mailbox = params.mailbox.trim()
+  const to = params.to.trim()
+  if (!mailbox || !to) throw new Error("mailbox and recipient are required")
+
+  try {
+    const token = await getMsToken()
+    const response = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(mailbox)}/sendMail`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        // No `from`: Microsoft fills in the mailbox and its own display name.
+        message: {
+          subject: params.subject,
+          body: { contentType: "HTML", content: params.html },
+          toRecipients: [{ emailAddress: { address: to } }],
+        },
+        saveToSentItems: true,
+      }),
+    })
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("[Email] Graph sendMail from own mailbox failed:", response.status, errorText)
+      throw new Error(`Graph sendMail error ${response.status}: ${errorText}`)
+    }
+    await logEmailSafe([to], params.subject, params.type || "", "sent")
+  } catch (err) {
+    await logEmailSafe([to], params.subject, params.type || "", "failed", err instanceof Error ? err.message : String(err))
+    throw err
+  }
+}

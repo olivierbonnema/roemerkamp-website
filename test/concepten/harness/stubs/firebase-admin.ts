@@ -14,6 +14,12 @@ export const adminAuth = {
     if (!account) throw new Error("invalid token")
     return account
   },
+  // The account by its uid, as far as the routes read it (the name on it).
+  async getUser(uid: string) {
+    const account = Object.values(ACCOUNTS).find((x) => x.uid === uid)
+    if (!account) throw new Error("no such user")
+    return { uid, email: account.email as string, displayName: (account.name as string | undefined) ?? undefined }
+  },
 }
 
 export const adminDb = fakeDb

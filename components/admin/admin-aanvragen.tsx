@@ -7,7 +7,8 @@ import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
 import QuoteDialog, { fmtSavedAt, shortUser } from "./quote-dialog"
 import { quoteSummaryLine, type SavedQuote, type SavedQuoteInput } from "@/lib/generators/quote-generator"
-import { Upload, X, Trash2, PlayCircle, StickyNote, Mail, Landmark } from "lucide-react"
+import { Upload, X, Trash2, PlayCircle, StickyNote, Mail, Landmark, Ban } from "lucide-react"
+import { AfwijzenDialog } from "@/components/admin/afwijzen-dialog"
 
 interface Aanvraag {
   id: string
@@ -212,6 +213,8 @@ export function AdminAanvragen() {
   // whether that row is on the overview or in its archive.
   const [opOverzicht, setOpOverzicht] = useState<Record<string, "actief" | "archief">>({})
   const [addingLening, setAddingLening] = useState<string | null>(null)
+  // The aanvraag whose rejection dialog is open (components/admin/afwijzen-dialog.tsx).
+  const [afwijzen, setAfwijzen] = useState<Aanvraag | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   // Aanvragen for which a "somebody works on this" signal is under way (see touch).
   const touching = useRef<Set<string>>(new Set())
@@ -1098,6 +1101,18 @@ export function AdminAanvragen() {
                 </a>
               )}
 
+              {/* Reject with reasons; the adviser gets a mail from the colleague who clicks.
+                  Not a touch(): the dialog sets the status itself, and only when it is confirmed. */}
+              {a.status !== "afgewezen" && (
+                <button
+                  onClick={() => setAfwijzen(a)}
+                  className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <Ban size={12} />
+                  Afwijzen
+                </button>
+              )}
+
               {/* Delete aanvraag */}
               <button
                 onClick={() => setDeleteModal(a.id)}
@@ -1110,6 +1125,15 @@ export function AdminAanvragen() {
           </div>
         )
       })}
+
+      {afwijzen && (
+        <AfwijzenDialog
+          aanvraagId={afwijzen.id}
+          naam={afwijzen.bedrijfsnaam || afwijzen.naam}
+          onClose={() => setAfwijzen(null)}
+          onRejected={(status) => setAanvragen(prev => prev.map(x => x.id === afwijzen.id ? { ...x, status } : x))}
+        />
+      )}
 
       {/* Scan error modal */}
       {scanErrorModal && (
