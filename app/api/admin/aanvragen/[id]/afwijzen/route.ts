@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { FieldValue } from "firebase-admin/firestore"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
-import { sendEmail, sendEmailFromMailbox } from "@/lib/brevo"
-import { buildAfwijzingMail, naamUitEmail, sanitizeAfwijzing } from "@/lib/afwijzing"
+import { mailboxDisplayName, sendEmail, sendEmailFromMailbox } from "@/lib/brevo"
+import { buildAfwijzingMail, isVolledigeNaam, naamUitEmail, sanitizeAfwijzing } from "@/lib/afwijzing"
 
 // Admin-only: reject an aanvraag with one or more reasons. The adviser who
 // submitted it gets a mail from the colleague who clicks (lib/afwijzing.ts).
@@ -88,9 +88,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const checked = sanitizeAfwijzing(body)
   if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 })
   const invoer = checked.invoer
-  // The signature always carries a name: what was typed, else the name of the
-  // account, else the first part of the address.
-  if (!invoer.afzenderNaam) invoer.afzenderNaam = text((admin as { name?: unknown }).name) || naamUitEmail(adminEmail)
+  // The signature carries the full name of the colleague. What was typed goes
+  // first. Otherwise the name on the account, when that is a first name and a
+  // surname; otherwise the name Microsoft 365 has for the mailbox. Only when
+  // neither is known, the first part of the address is shown, and the mail
+  // cannot leave until the colleague has filled in his full name.
+  if (!invoer.afzenderNaam) {
+    const accountNaam = text((admin as { name?: unknown }).name)
+    if (isVolledigeNaam(accountNaam)) invoer.afzenderNaam = accountNaam
+    else {
+      const mailboxNaam = await mailboxDisplayName(adminEmail)
+      invoer.afzenderNaam = isVolledigeNaam(mailboxNaam) ? mailboxNaam : accountNaam && !accountNaam.includes("@") ? accountNaam : naamUitEmail(adminEmail)
+    }
+  }
+  const naamVolledig = isVolledigeNaam(invoer.afzenderNaam)
 
   const ref = adminDb.collection("aanvragen").doc(id)
 
@@ -113,6 +124,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         naar: adviser?.email ?? null,
         van: adminEmail,
         afzenderNaam: invoer.afzenderNaam,
+        naamVolledig,
         subject: mail.subject,
         html: mail.html,
         alAfgewezen: !!(a.afwijzing && typeof a.afwijzing === "object"),
@@ -124,6 +136,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
     if (actie !== "geen" && !adviser) {
       return NextResponse.json({ error: "Deze aanvraag heeft geen adviseur om te mailen." }, { status: 400 })
+    }
+
+    if (actie !== "geen" && !naamVolledig) {
+      return NextResponse.json({ code: "naam", error: "Vul uw volledige naam in, met voor- en achternaam. Die komt onder de mail." }, { status: 400 })
     }
 
     // One rejection per aanvraag, and one send at a time: the claim keeps a

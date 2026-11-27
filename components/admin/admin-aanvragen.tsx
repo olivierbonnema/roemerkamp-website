@@ -269,7 +269,21 @@ export function AdminAanvragen() {
     }
   }
 
+  // The colleagues an aanvraag can be assigned to: everybody with an account
+  // on the office's own domain (/api/admin/staff). Should that route fail, the
+  // list is made as it was before, from the accounts in Beheer > Gebruikers.
   async function loadStaff() {
+    try {
+      const token = await getToken()
+      const res = await fetch("/api/admin/staff", { headers: { Authorization: `Bearer ${token}` } })
+      if (res.ok) {
+        const data = await res.json()
+        const list = (Array.isArray(data.staff) ? data.staff : [])
+          .filter((u: { uid?: string; email?: string }) => u.uid && u.email)
+          .map((u: { uid: string; email: string }) => ({ uid: u.uid, email: u.email }))
+        if (list.length > 0) { setStaff(list); return }
+      }
+    } catch {}
     try {
       const token = await getToken()
       const res = await fetch("/api/admin/list-users", { headers: { Authorization: `Bearer ${token}` } })

@@ -4,7 +4,7 @@
 // Run from the repo root:  npx tsx test/afwijzing/afwijzing.test.ts
 //
 // Fictitious names only.
-import { AFWIJS_GROEPEN, AFWIJS_REDENEN, HANDTEKENING, REDEN_ANDERS, aanhefNaam, buildAfwijzingMail, naamUitEmail, redenZinnen, sanitizeAfwijzing } from "../../lib/afwijzing"
+import { AFWIJS_GROEPEN, AFWIJS_REDENEN, HANDTEKENING, REDEN_ANDERS, aanhefNaam, isVolledigeNaam, buildAfwijzingMail, naamUitEmail, redenZinnen, sanitizeAfwijzing } from "../../lib/afwijzing"
 
 let fails = 0
 const ok = (label: string, cond: boolean, extra = "") => {
@@ -67,6 +67,8 @@ eq("and keeps its own ending when it has one", redenZinnen({ redenen: ["anders"]
 /* ---------- names ---------- */
 eq("the first name for the greeting", [aanhefNaam("Anna Adviseur"), aanhefNaam("  jan  de boer"), aanhefNaam(""), aanhefNaam(null), aanhefNaam("a@kantoor.test"), aanhefNaam("J")], ["Anna", "jan", "relatie", "relatie", "relatie", "relatie"])
 eq("a name from an address, as a last resort", [naamUitEmail("bea@beheer.test"), naamUitEmail("jan-willem.de.boer@beheer.test"), naamUitEmail("x")], ["Bea", "Jan Willem", "X"])
+
+eq("a full name is a first name and a surname", ["Bea Beheer", "Jan Willem de Boer", "  Bea   Beheer ", "Bea", "", "bea@beheer.test", "B Beheer", "Bea B", "bea beheer"].map(isVolledigeNaam), [true, true, true, false, false, false, false, false, true])
 
 /* ---------- the mail ---------- */
 const base = { adviseurNaam: "Anna Adviseur", klantNaam: "Jan Voorbeeld", objectAdres: "Teststraat 12", objectPlaats: "Teststad" }
