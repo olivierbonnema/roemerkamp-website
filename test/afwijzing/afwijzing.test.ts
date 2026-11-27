@@ -22,7 +22,7 @@ for (const r of AFWIJS_REDENEN) {
   // Vague on purpose: a judgement, no figures and no details of the file.
   ok(`"${r.id}" gives no figures`, !/\d|%|€/.test(r.zin))
   // The house rules for copy.
-  ok(`"${r.id}" keeps to the house rules`, !/geloofwaardig|denken mee|samen met u|—|–/i.test(r.zin + r.label))
+  ok(`"${r.id}" keeps to the house rules`, !/geloofwaardig|denken mee|samen met u|\u2014|\u2013/i.test(r.zin + r.label))
 }
 
 /* ---------- what the dialog sends ---------- */
@@ -72,7 +72,7 @@ eq("the whole mail with one reason", m.text, [
 ok("one reason is a sentence, not a list", !m.html.includes("<ul") && m.html.includes("De reden hiervoor is de volgende. Wij achten de aflossing"))
 ok("the mail is a plain mail: no banner, no button, no image, no link", !/<img|<a |<table|background/i.test(m.html))
 ok("the company is called Lange & Partners", m.html.includes("Lange &amp; Partners") && !/Lange Financieel Advies|LFA/.test(m.html + m.text))
-ok("no dash in the mail", !/—|–/.test(m.html + m.text + m.subject))
+ok("no dash in the mail", !/\u2014|\u2013/.test(m.html + m.text + m.subject))
 
 m = buildAfwijzingMail({ ...base, invoer: { redenen: ["verhouding", "betaalbaarheid", "anders"], andersTekst: "De timing past ons niet", toelichting: "Eerste alinea\nmet een tweede regel.\n\nTweede alinea.", afzenderNaam: "Bea Beheer" } })
 ok("several reasons are a list, in the order of the list of reasons", m.html.includes("<ul") && (m.html.match(/<li/g) || []).length === 3 && m.html.indexOf("verhouding tussen de lening") < m.html.indexOf("betaalbaarheid van de rente") && m.html.indexOf("betaalbaarheid van de rente") < m.html.indexOf("De timing past ons niet."))
