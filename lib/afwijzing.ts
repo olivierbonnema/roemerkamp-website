@@ -5,10 +5,11 @@
 // kunnen opgeven en dat er dan een gepersonaliseerde automatische mail wordt
 // verstuurd vanuit de persoon die erop klikt."
 //
-// About the reasons he said: "Doe meer opties maar hou het redelijk vaag. Zoals
-// wij bijvoorbeeld in optie 4 zouden zeggen: 'wij achten de aflossing aan het
-// einde van de looptijd niet haalbaar'". So every sentence states a judgement
-// and gives no figures and no details of the file.
+// About the reasons he first said: "Doe meer opties maar hou het redelijk vaag.
+// Zoals wij bijvoorbeeld in optie 4 zouden zeggen: 'wij achten de aflossing aan
+// het einde van de looptijd niet haalbaar'". So every sentence states a
+// judgement and gives no figures and no details of the file. What he said about
+// the wording after seeing the first list stands with the list below.
 //
 // The mail goes to the adviser who submitted the aanvraag, never to the client.
 // The text is fixed: the colleague picks reasons, may add a remark of his own,
@@ -19,26 +20,55 @@
 
 export interface AfwijsReden {
   id: string
+  // The heading it stands under in the dialog.
+  groep: string
   // Short, for the tick box in the dialog.
   label: string
   // The sentence in the mail.
   zin: string
 }
 
+// Olivier, 2026-11-27 12:40, on the first list: "zeg niet de heletijd 'wij
+// achten'. Maak het iets natuurlijker. en geef meer redenen. En realistische
+// redenen". So: reasons a lender really gives, each said the way one would say
+// it in a mail, and no two built the same way more often than needed. Still a
+// judgement in one sentence, without figures and without details of the file.
+//
+// The order here is the order in the dialog and in the mail.
 export const AFWIJS_REDENEN: AfwijsReden[] = [
-  { id: "verhouding", label: "Lening te hoog voor het onderpand", zin: "Wij achten de verhouding tussen de lening en de waarde van het onderpand te hoog." },
-  { id: "onderpand", label: "Onderpand past niet", zin: "Het onderpand past niet binnen onze voorwaarden." },
-  { id: "zekerheid", label: "Zekerheden onvoldoende", zin: "Wij achten de zekerheden die geboden kunnen worden onvoldoende." },
-  { id: "betaalbaarheid", label: "Betaalbaarheid onvoldoende", zin: "Wij achten de betaalbaarheid van de rente onvoldoende." },
-  { id: "aflossing", label: "Aflossing niet haalbaar", zin: "Wij achten de aflossing aan het einde van de looptijd niet haalbaar." },
-  { id: "samenhang", label: "Geheel onvoldoende", zin: "Wij achten het geheel van betaalbaarheid, onderpand en aflossing onvoldoende." },
-  { id: "bedrag", label: "Bedrag buiten ons bereik", zin: "Het gevraagde bedrag valt buiten wat wij financieren." },
-  { id: "looptijd", label: "Looptijd buiten ons bereik", zin: "De gevraagde looptijd valt buiten wat wij financieren." },
-  { id: "doel", label: "Doel past niet", zin: "Het doel van de financiering past niet binnen onze voorwaarden." },
-  { id: "beleid", label: "Past niet in ons acceptatiebeleid", zin: "De aanvraag past niet binnen ons acceptatiebeleid." },
-  { id: "investeerder", label: "Geen investeerder verwacht", zin: "Wij verwachten voor deze aanvraag geen investeerder te vinden." },
-  { id: "onvolledig", label: "Aanvraag onvolledig gebleven", zin: "De aanvraag is onvolledig gebleven, waardoor wij deze niet kunnen beoordelen." },
+  { id: "verhouding", groep: "Onderpand", label: "Lening te hoog voor het onderpand", zin: "De lening is te hoog in verhouding tot de waarde van het onderpand." },
+  { id: "waarde", groep: "Onderpand", label: "Waarde onvoldoende onderbouwd", zin: "De waarde van het onderpand is voor ons onvoldoende onderbouwd." },
+  { id: "onderpand", groep: "Onderpand", label: "Type onderpand past niet", zin: "Dit type onderpand past niet bij wat wij financieren." },
+  { id: "courant", groep: "Onderpand", label: "Onderpand moeilijk verkoopbaar", zin: "Het onderpand is naar ons oordeel te moeilijk verkoopbaar." },
+  { id: "staat", groep: "Onderpand", label: "Staat van het onderpand", zin: "De staat van het onderpand biedt ons te weinig zekerheid." },
+  { id: "zekerheid", groep: "Onderpand", label: "Er rust al een hypotheek op", zin: "Er rust al een hypotheek op het onderpand, waardoor wij te weinig zekerheid kunnen krijgen." },
+  { id: "juridisch", groep: "Onderpand", label: "Juridische situatie van het onderpand", zin: "De juridische situatie van het onderpand staat een financiering in de weg." },
+
+  { id: "betaalbaarheid", groep: "Betaalbaarheid", label: "Rente niet te dragen", zin: "Uit de stukken blijkt onvoldoende dat de rente tijdens de looptijd betaald kan worden." },
+  { id: "inkomen", groep: "Betaalbaarheid", label: "Inkomen onvoldoende onderbouwd", zin: "Het inkomen is met de aangeleverde stukken onvoldoende onderbouwd." },
+  { id: "positie", groep: "Betaalbaarheid", label: "Financiële positie van de aanvrager", zin: "De financiële positie van de aanvrager biedt te weinig ruimte voor deze lening." },
+  { id: "inbreng", groep: "Betaalbaarheid", label: "Eigen inbreng te laag", zin: "De eigen inbreng is te laag voor deze financiering." },
+
+  { id: "aflossing", groep: "Aflossing", label: "Aflossing niet haalbaar", zin: "De aflossing aan het einde van de looptijd is naar ons oordeel niet haalbaar." },
+  { id: "exitplan", groep: "Aflossing", label: "Plan voor de aflossing niet concreet", zin: "Het plan voor de aflossing, door verkoop of herfinanciering, is nog niet concreet genoeg." },
+
+  { id: "bedrag_laag", groep: "De aanvraag", label: "Bedrag te laag", zin: "Het gevraagde bedrag is lager dan wat wij financieren." },
+  { id: "bedrag_hoog", groep: "De aanvraag", label: "Bedrag te hoog", zin: "Het gevraagde bedrag is hoger dan wat wij kunnen financieren." },
+  { id: "looptijd", groep: "De aanvraag", label: "Looptijd past niet", zin: "De gevraagde looptijd past niet bij wat wij aanbieden." },
+  { id: "doel", groep: "De aanvraag", label: "Doel past niet", zin: "Het doel van de lening past niet bij wat wij financieren." },
+  { id: "plan", groep: "De aanvraag", label: "Bouw- of verbouwplan niet uitgewerkt", zin: "Het bouw- of verbouwplan is nog onvoldoende uitgewerkt." },
+  { id: "vergunning", groep: "De aanvraag", label: "Vergunning of bestemming ontbreekt", zin: "Voor het beoogde gebruik ontbreekt een vergunning of een passende bestemming." },
+  { id: "termijn", groep: "De aanvraag", label: "Termijn te kort", zin: "De termijn waarbinnen de financiering rond moet zijn, is voor ons te kort." },
+  { id: "onvolledig", groep: "De aanvraag", label: "Stukken niet compleet", zin: "Wij hebben niet alle stukken ontvangen die nodig zijn om de aanvraag te beoordelen." },
+
+  { id: "risico", groep: "Overig", label: "Risico te hoog", zin: "Het risico van deze financiering vinden wij te hoog." },
+  { id: "samenhang", groep: "Overig", label: "Geheel onvoldoende", zin: "Alles bij elkaar vinden wij betaalbaarheid, onderpand en aflossing samen onvoldoende." },
+  { id: "investeerder", groep: "Overig", label: "Geen investeerder", zin: "Wij verwachten voor deze lening geen investeerder te vinden." },
+  { id: "beleid", groep: "Overig", label: "Past niet in ons acceptatiebeleid", zin: "De aanvraag past niet binnen ons acceptatiebeleid." },
 ]
+
+/** The headings of the dialog, in the order of the list. */
+export const AFWIJS_GROEPEN: string[] = [...new Set(AFWIJS_REDENEN.map((r) => r.groep))]
 
 // The reason with a sentence of one's own.
 export const REDEN_ANDERS = "anders"

@@ -94,7 +94,7 @@ async function main() {
   ok("the preview answers with the mail", r.status === 200 && j.subject === "Financieringsaanvraag Jan Voorbeeld" && typeof j.html === "string")
   ok("to the adviser, from the colleague", j.naar === ADVISER_EMAIL && j.van === ADMIN_EMAIL && j.afzenderNaam === "Bea Beheer")
   ok("greeted by the first name on the adviser's account", j.html.includes("Beste Anna,"))
-  ok("with the reasons, the remark and the signature", j.html.includes("niet haalbaar.") && j.html.includes("te hoog.") && j.html.includes("Bij een lager bedrag kijken wij opnieuw.") && j.html.includes("<b>Bea Beheer</b><br><b>Lange &amp; Partners</b>") && j.html.includes("Wilhelminastraat 50, 2011 VN Haarlem"))
+  ok("with the reasons, the remark and the signature", j.html.includes("naar ons oordeel niet haalbaar.") && j.html.includes("De lening is te hoog in verhouding") && j.html.includes("Bij een lager bedrag kijken wij opnieuw.") && j.html.includes("<b>Bea Beheer</b><br><b>Lange &amp; Partners</b>") && j.html.includes("Wilhelminastraat 50, 2011 VN Haarlem"))
   ok("the client's own address is nowhere in it", !j.html.includes("jan.voorbeeld@klant.test") && j.naar !== "jan.voorbeeld@klant.test")
   ok("the preview sent nothing, stored nothing and logged nothing", mails.length === 0 && fakeDb.writes.length === 0 && activity.length === 0 && JSON.stringify(stored("A1")) === before)
   r = await call("A1", ADMIN, { redenen: ["beleid"], actie: "voorbeeld" })

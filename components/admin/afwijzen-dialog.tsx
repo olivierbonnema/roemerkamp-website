@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
-import { AFWIJS_LIMITS, AFWIJS_REDENEN, REDEN_ANDERS } from "@/lib/afwijzing"
+import { AFWIJS_GROEPEN, AFWIJS_LIMITS, AFWIJS_REDENEN, REDEN_ANDERS } from "@/lib/afwijzing"
 
 // Beheer > Aanvragen: reject an aanvraag with one or more reasons. The adviser
 // gets a mail from the colleague who clicks. The text of the mail is fixed
@@ -131,8 +131,8 @@ export function AfwijzenDialog({
 
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { if (!bezig) onClose() }}>
-      <div role="dialog" aria-modal="true" aria-labelledby="afwijzen-title" className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-5xl max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+      <div role="dialog" aria-modal="true" aria-labelledby="afwijzen-title" className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
           <h3 id="afwijzen-title" className="font-serif text-xl text-[#1E3A5F]">Aanvraag afwijzen</h3>
           <p className="text-sm font-sans text-gray-500 mt-1">{naam}</p>
         </div>
@@ -145,16 +145,30 @@ export function AfwijzenDialog({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2">
+          // The reasons and the mail scroll; the heading and the buttons stay in view.
+          <div className="grid grid-cols-1 lg:grid-cols-2 overflow-y-auto min-h-0">
             <div className="p-6 space-y-5 lg:border-r border-gray-100">
               <fieldset>
-                <legend className="text-[12px] font-medium font-sans text-gray-600 mb-2">Reden van de afwijzing, één of meer</legend>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                  {[...AFWIJS_REDENEN, { id: REDEN_ANDERS, label: "Anders, eigen tekst" }].map((r) => (
-                    <label key={r.id} className="inline-flex items-start gap-2 text-sm font-sans text-gray-700 cursor-pointer">
-                      <input type="checkbox" checked={redenen.includes(r.id)} onChange={() => toggle(r.id)} disabled={bezig} className="w-4 h-4 mt-0.5 accent-[#1E3A5F] shrink-0" />
-                      {r.label}
-                    </label>
+                <legend className="text-[12px] font-medium font-sans text-gray-600 mb-3">Reden van de afwijzing, één of meer</legend>
+                <div className="space-y-4">
+                  {AFWIJS_GROEPEN.map((groep) => (
+                    <div key={groep} role="group" aria-label={groep}>
+                      <p className="font-serif text-[15px] text-[#1E3A5F] mb-1.5">{groep}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+                        {AFWIJS_REDENEN.filter((r) => r.groep === groep).map((r) => (
+                          <label key={r.id} className="inline-flex items-start gap-2 text-[13px] font-sans text-gray-700 cursor-pointer">
+                            <input type="checkbox" checked={redenen.includes(r.id)} onChange={() => toggle(r.id)} disabled={bezig} className="w-4 h-4 mt-0.5 accent-[#1E3A5F] shrink-0" />
+                            {r.label}
+                          </label>
+                        ))}
+                        {groep === AFWIJS_GROEPEN[AFWIJS_GROEPEN.length - 1] && (
+                          <label className="inline-flex items-start gap-2 text-[13px] font-sans text-gray-700 cursor-pointer">
+                            <input type="checkbox" checked={redenen.includes(REDEN_ANDERS)} onChange={() => toggle(REDEN_ANDERS)} disabled={bezig} className="w-4 h-4 mt-0.5 accent-[#1E3A5F] shrink-0" />
+                            Anders, eigen tekst
+                          </label>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </fieldset>
@@ -209,7 +223,7 @@ export function AfwijzenDialog({
         )}
 
         {!klaar && (
-          <div className="px-6 py-4 border-t border-gray-100">
+          <div className="px-6 py-4 border-t border-gray-100 shrink-0">
             {fout && <p role="alert" className="text-sm font-sans text-red-600 mb-3">{fout}</p>}
             <div className="flex flex-wrap items-center justify-end gap-2">
               <button onClick={onClose} disabled={bezig} className="px-4 py-2 text-[13px] font-medium font-sans rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 disabled:opacity-50">
