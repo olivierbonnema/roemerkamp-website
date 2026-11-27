@@ -13,6 +13,8 @@ interface Voorbeeld {
   naar: string | null
   van: string
   afzenderNaam: string
+  // false: only a first name is known, the colleague has to fill in the rest.
+  naamVolledig: boolean
   subject: string
   html: string
   alAfgewezen: boolean
@@ -128,6 +130,8 @@ export function AfwijzenDialog({
   }
 
   const zonderAdviseur = voorbeeld !== null && voorbeeld.naar === null
+  // The signature needs a first name and a surname before a mail can leave.
+  const naamOnvolledig = compleet && !!voorbeeld?.html && voorbeeld.naamVolledig === false && !zonderAdviseur
 
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => { if (!bezig) onClose() }}>
@@ -187,8 +191,11 @@ export function AfwijzenDialog({
               </label>
 
               <label className="block">
-                <span className="block text-[12px] font-medium font-sans text-gray-600 mb-1">Uw naam onder de mail</span>
+                <span className="block text-[12px] font-medium font-sans text-gray-600 mb-1">Uw volledige naam onder de mail</span>
                 <input value={afzenderNaam} onChange={(e) => { setFout(""); setAfzenderNaam(e.target.value) }} maxLength={AFWIJS_LIMITS.naam} placeholder={voorbeeld?.afzenderNaam || ""} disabled={bezig} className={INPUT} />
+                {naamOnvolledig && (
+                  <span role="alert" className="block text-[12px] font-sans text-amber-700 mt-1">Vul uw voor- en achternaam in. Die komt onder de mail en wordt op deze computer onthouden.</span>
+                )}
               </label>
             </div>
 
@@ -236,11 +243,11 @@ export function AfwijzenDialog({
               ) : (
                 <>
                   {eigenGeweigerd && (
-                    <button onClick={() => verstuur("portaal")} disabled={bezig || !compleet} className="px-5 py-2 text-[13px] font-medium font-sans rounded-full border border-red-600 text-red-700 hover:bg-red-50 disabled:opacity-50">
+                    <button onClick={() => verstuur("portaal")} disabled={bezig || !compleet || naamOnvolledig} className="px-5 py-2 text-[13px] font-medium font-sans rounded-full border border-red-600 text-red-700 hover:bg-red-50 disabled:opacity-50">
                       {bezig ? "Bezig..." : "Versturen via de portaalmailbox"}
                     </button>
                   )}
-                  <button onClick={() => verstuur("eigen")} disabled={bezig || !compleet || !voorbeeld?.html || voorbeeld.alAfgewezen} className="px-5 py-2 text-[13px] font-medium font-sans rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                  <button onClick={() => verstuur("eigen")} disabled={bezig || !compleet || !voorbeeld?.html || voorbeeld.alAfgewezen || naamOnvolledig} className="px-5 py-2 text-[13px] font-medium font-sans rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
                     {bezig ? "Bezig..." : eigenGeweigerd ? "Opnieuw uit eigen mailbox" : "Afwijzen en mail versturen"}
                   </button>
                 </>

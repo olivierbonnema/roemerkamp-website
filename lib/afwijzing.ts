@@ -162,6 +162,15 @@ export function naamUitEmail(email: string): string {
   return first.split(/[-_]/).filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ")
 }
 
+/**
+ * Whether this is a first name and a surname. The signature carries the full
+ * name (Olivier, 2026-11-27: "zet bij de handtekening de volledige naam").
+ */
+export function isVolledigeNaam(naam: string): boolean {
+  const parts = naam.trim().split(/\s+/).filter(Boolean)
+  return parts.length >= 2 && !naam.includes("@") && parts[0].length >= 2 && parts[parts.length - 1].length >= 2
+}
+
 /** The first name for "Beste ...": the first word of the account's name, or "relatie". */
 export function aanhefNaam(naam: string | null | undefined): string {
   const first = (naam || "").trim().split(/\s+/)[0] || ""

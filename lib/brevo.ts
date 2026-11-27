@@ -200,3 +200,25 @@ export async function sendEmailFromMailbox(params: {
     throw err
   }
 }
+
+/**
+ * The name Microsoft 365 has for a mailbox ("Jan de Boer"), for the signature
+ * under a mail that leaves in a colleague's name. Returns "" when it cannot be
+ * read (the app may not be allowed to read the directory): the caller then asks
+ * the colleague for his name. Never throws.
+ */
+export async function mailboxDisplayName(mailbox: string): Promise<string> {
+  const address = mailbox.trim()
+  if (!address) return ""
+  try {
+    const token = await getMsToken()
+    const response = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(address)}?$select=displayName`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) return ""
+    const data = (await response.json()) as { displayName?: unknown }
+    return typeof data.displayName === "string" ? data.displayName.trim() : ""
+  } catch {
+    return ""
+  }
+}

@@ -14,6 +14,14 @@ export const adminAuth = {
     if (!account) throw new Error("invalid token")
     return account
   },
+  // Every account, as far as the routes read them. `disabled` and a missing
+  // e-mail can be set on an account to test those cases.
+  async listUsers(_max?: number, _pageToken?: string) {
+    return {
+      users: Object.values(ACCOUNTS).map((a) => ({ uid: a.uid as string, email: a.email as string | undefined, displayName: a.name as string | undefined, disabled: a.disabled === true })),
+      pageToken: undefined as string | undefined,
+    }
+  },
   // The account by its uid, as far as the routes read it (the name on it).
   async getUser(uid: string) {
     const account = Object.values(ACCOUNTS).find((x) => x.uid === uid)

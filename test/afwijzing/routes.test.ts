@@ -13,11 +13,13 @@
 //      only used when the colleague then asks for it.
 //   4. One rejection, one mail: a second click or a second colleague sends nothing.
 //   5. When the mail fails the aanvraag is not rejected.
+//   6. The signature carries a first name and a surname, or no mail leaves.
 // Fictitious names and addresses only.
 import "../concepten/harness/setup"
 import { fakeDb } from "../concepten/harness/fake-firestore"
 import { activity } from "../concepten/harness/stubs/activity-log"
-import { mails, refusingMailboxes, refusingRecipients } from "../concepten/harness/stubs/brevo"
+import { mailboxNames, mails, refusingMailboxes, refusingRecipients } from "../concepten/harness/stubs/brevo"
+import { ACCOUNTS } from "../concepten/harness/stubs/firebase-admin"
 import { POST as afwijzen } from "../../app/api/admin/aanvragen/[id]/afwijzen/route"
 
 let fails = 0
@@ -50,7 +52,7 @@ function seed(id: string, extra: Record<string, unknown> = {}) {
     ...extra,
   })
 }
-const reset = () => { fakeDb.reset(); activity.length = 0; mails.length = 0; refusingMailboxes.clear(); refusingRecipients.clear() }
+const reset = () => { fakeDb.reset(); activity.length = 0; mails.length = 0; refusingMailboxes.clear(); refusingRecipients.clear(); mailboxNames.clear() }
 
 async function main() {
   reset()
@@ -208,6 +210,47 @@ async function main() {
   reset(); seed("A11", { userId: "uid-onbekend" })
   r = await call("A11", ADMIN, { ...good, actie: "eigen" })
   ok("an adviser whose account has no name is greeted as 'relatie'", r.status === 200 && mails[0].html.includes("Beste relatie,"))
+
+  /* ---------- the full name under the mail ---------- */
+  // A colleague whose account only has his address for a name, as an account
+  // gets when it was made without one.
+  ACCOUNTS["tok-olaf"] = { uid: "uidOlaf", email: "olaf@beheer.test", name: "olaf@beheer.test" }
+  const OLAF = "tok-olaf"
+  const zonderNaam = { redenen: ["beleid"] }
+  reset(); seed("N1")
+  r = await call("N1", OLAF, { ...zonderNaam, actie: "voorbeeld" })
+  j = await r.json()
+  ok("no name known anywhere: the preview shows the first name from the address and says it is not complete", r.status === 200 && j.afzenderNaam === "Olaf" && j.naamVolledig === false)
+  for (const actie of ["eigen", "portaal"]) {
+    r = await call("N1", OLAF, { ...zonderNaam, actie })
+    j = await r.json()
+    ok(`without a full name no mail leaves (${actie})`, r.status === 400 && j.code === "naam" && /volledige naam/.test(j.error) && mails.length === 0 && stored("N1")?.status === "in_behandeling" && !("afwijzingBezig" in (stored("N1") || {})))
+  }
+  r = await call("N1", OLAF, { ...zonderNaam, afzenderNaam: "Olaf", actie: "eigen" })
+  ok("a typed first name alone is not enough either", r.status === 400 && mails.length === 0)
+
+  mailboxNames.set("olaf@beheer.test", "Olaf van Ons Kantoor")
+  r = await call("N1", OLAF, { ...zonderNaam, actie: "voorbeeld" })
+  j = await r.json()
+  ok("the name Microsoft 365 has for the mailbox is used when the account has none", j.afzenderNaam === "Olaf van Ons Kantoor" && j.naamVolledig === true && j.html.includes("<b>Olaf van Ons Kantoor</b>"))
+  r = await call("N1", OLAF, { ...zonderNaam, afzenderNaam: "Olaf Zelfgetypt", actie: "voorbeeld" })
+  j = await r.json()
+  ok("what the colleague types goes before both", j.afzenderNaam === "Olaf Zelfgetypt" && j.naamVolledig === true)
+  r = await call("N1", OLAF, { ...zonderNaam, actie: "eigen" })
+  ok("with a full name the mail leaves, signed with it", r.status === 200 && mails.length === 1 && mails[0].html.includes("<b>Olaf van Ons Kantoor</b>") && mails[0].mailbox === "olaf@beheer.test" && stored("N1")?.afwijzing.doorNaam === "Olaf van Ons Kantoor")
+
+  // A full name on the account goes before the mailbox, and is not looked up.
+  reset(); seed("N2")
+  mailboxNames.set(ADMIN_EMAIL, "Iemand Anders")
+  r = await call("N2", ADMIN, { ...zonderNaam, actie: "voorbeeld" })
+  j = await r.json()
+  ok("a full name on the account is used as it is", j.afzenderNaam === "Bea Beheer" && j.naamVolledig === true)
+
+  // An aanvraag without an adviser sends no mail, so it needs no signature.
+  reset(); seed("N3", { submittedByRole: "admin", userEmail: "collega@beheer.test", userId: "uidCollega", partnerOrgId: "" })
+  r = await call("N3", OLAF, { ...zonderNaam, actie: "geen" })
+  ok("rejecting without a mail does not ask for a full name", r.status === 200 && stored("N3")?.status === "afgewezen" && mails.length === 0)
+  delete ACCOUNTS["tok-olaf"]
 
   /* ---------- the database fails ---------- */
   reset(); seed("A12")

@@ -25,3 +25,10 @@ export async function sendEmailFromMailbox(params: { mailbox: string; to: string
   await new Promise((resolve) => setTimeout(resolve, 5))
   mails.push(params)
 }
+
+// What Microsoft 365 calls a mailbox (lib/brevo.ts mailboxDisplayName). An
+// address that is not in here has no name that can be read.
+export const mailboxNames = new Map<string, string>()
+export async function mailboxDisplayName(mailbox: string) {
+  return mailboxNames.get(mailbox) ?? ""
+}
