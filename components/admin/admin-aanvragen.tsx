@@ -7,8 +7,9 @@ import { AnalysisDetail } from "./analysis-detail"
 import { ScanResultView, SCAN_RESULT_LABELS, overallScan, type ScanResult, type SubjectResult } from "./scan-result-view"
 import QuoteDialog, { fmtSavedAt, shortUser } from "./quote-dialog"
 import { quoteSummaryLine, type SavedQuote, type SavedQuoteInput } from "@/lib/generators/quote-generator"
-import { Upload, X, Trash2, PlayCircle, StickyNote, Mail, Landmark, Ban } from "lucide-react"
+import { Upload, X, Trash2, PlayCircle, StickyNote, Mail, Landmark, Ban, MapPin } from "lucide-react"
 import { AfwijzenDialog } from "@/components/admin/afwijzen-dialog"
+import { KadasterDialog } from "@/components/admin/kadaster-dialog"
 
 interface Aanvraag {
   id: string
@@ -215,6 +216,8 @@ export function AdminAanvragen() {
   const [addingLening, setAddingLening] = useState<string | null>(null)
   // The aanvraag whose rejection dialog is open (components/admin/afwijzen-dialog.tsx).
   const [afwijzen, setAfwijzen] = useState<Aanvraag | null>(null)
+  // The aanvraag whose onderpand is being looked up at the Kadaster (components/admin/kadaster-dialog.tsx).
+  const [kadaster, setKadaster] = useState<Aanvraag | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   // Aanvragen for which a "somebody works on this" signal is under way (see touch).
   const touching = useRef<Set<string>>(new Set())
@@ -1101,6 +1104,15 @@ export function AdminAanvragen() {
                 </a>
               )}
 
+              {/* What the Kadaster knows about the onderpand: address, kadastrale aanduiding, building */}
+              <button
+                onClick={() => { touch(a); setKadaster(a) }}
+                className="px-4 py-1.5 text-xs font-medium font-sans rounded-full border border-[#1E3A5F] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white transition-colors inline-flex items-center gap-1.5"
+              >
+                <MapPin size={12} />
+                Kadaster
+              </button>
+
               {/* Reject with reasons; the adviser gets a mail from the colleague who clicks.
                   Not a touch(): the dialog sets the status itself, and only when it is confirmed. */}
               {a.status !== "afgewezen" && (
@@ -1125,6 +1137,10 @@ export function AdminAanvragen() {
           </div>
         )
       })}
+
+      {kadaster && (
+        <KadasterDialog aanvraagId={kadaster.id} naam={kadaster.bedrijfsnaam || kadaster.naam} onClose={() => setKadaster(null)} />
+      )}
 
       {afwijzen && (
         <AfwijzenDialog
