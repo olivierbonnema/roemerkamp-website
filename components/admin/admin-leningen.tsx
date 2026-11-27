@@ -5,12 +5,12 @@ import { Archive, Check, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { auth } from "@/lib/firebase"
 import {
   ADMINISTRATIEKOSTEN_PCT_PER_MAAND, BEHEERVERGOEDING_PCT_PER_MAAND, EMPTY_LENING, LENING_FASEN,
-  dagenTot, fmtBedrag, fmtBedragKort, fmtDagenTot, fmtDatum, fmtDuur, fmtPct, leningFase, leningTotals, parsePct,
+  dagenTot, faseTotals, fmtBedrag, fmtBedragKort, fmtDagenTot, fmtDatum, fmtDuur, fmtPct, leningFase, leningTotals, parsePct,
   passeerIsSchatting, renteLeningnemer, renteNetto, sortLeningen,
   type Lening, type LeningFase, type LeningStatus,
 } from "@/lib/leningen"
 
-// Beheer > Leningen: the whiteboard of the office on screen. One row per loan
+// Beheer > Dashboard: the whiteboard of the office on screen. One row per loan
 // that is being prepared, in three phases (termsheet afgegeven, quote verstuurd,
 // recent ontvangen), the nearest passeerdatum on top. Data: /api/admin/leningen.
 // How it works: lib/leningen.ts.
@@ -123,11 +123,19 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-function Total({ label, value }: { label: string; value: string }) {
+const leningenTekst = (n: number) => (n === 1 ? "1 lening" : `${n} leningen`)
+
+// A tile on top of the dashboard. `fase` gives it the dot of the phase below
+// that it is the sum of.
+function Total({ label, value, sub, fase }: { label: string; value: string; sub?: string; fase?: LeningFase }) {
   return (
-    <div className="border border-gray-200 rounded-xl bg-white px-5 py-4">
-      <p className="text-[12px] font-sans text-gray-500">{label}</p>
-      <p className="font-serif text-2xl text-[#1E3A5F] mt-1">{value}</p>
+    <div data-tegel={label} className="border border-gray-200 rounded-xl bg-white px-5 py-4">
+      <p className="text-[12px] font-sans text-gray-500 flex items-center gap-1.5">
+        {fase && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${FASE_DOT[fase]}`} aria-hidden="true" />}
+        {label}
+      </p>
+      <p className="font-serif text-2xl text-[#1E3A5F] mt-1 whitespace-nowrap">{value}</p>
+      {sub && <p className="text-[11px] font-sans text-gray-400 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -206,6 +214,7 @@ export function AdminLeningen() {
     .filter((l) => l.status === "archief")
     .sort((a, b) => String(b.archivedAt || "").localeCompare(String(a.archivedAt || "")))
   const totals = leningTotals(active)
+  const perFase = faseTotals(active)
 
   function openForm(l: Lening | null) {
     setForm(formFrom(l))
@@ -338,11 +347,14 @@ export function AdminLeningen() {
 
   return (
     <div>
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
-        <Total label="Leningen in voorbereiding" value={String(totals.aantal)} />
-        <Total label="Totale hoofdsom" value={fmtBedragKort(totals.hoofdsom)} />
-        <Total label="Gefund" value={fmtBedragKort(totals.gefund)} />
-        <Total label="Nog te funden" value={fmtBedragKort(totals.nogTeFunden)} />
+      {/* First the three steps a loan goes through, then the whole and the funding. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3 mb-6">
+        <Total label="Aanvragen ingediend" value={fmtBedragKort(perFase.ontvangen.hoofdsom)} sub={leningenTekst(perFase.ontvangen.aantal)} fase="ontvangen" />
+        <Total label="Uitstaande quotes" value={fmtBedragKort(perFase.quote.hoofdsom)} sub={leningenTekst(perFase.quote.aantal)} fase="quote" />
+        <Total label="Termsheet uitgebracht" value={fmtBedragKort(perFase.termsheet.hoofdsom)} sub={leningenTekst(perFase.termsheet.aantal)} fase="termsheet" />
+        <Total label="Totale hoofdsom" value={fmtBedragKort(totals.hoofdsom)} sub={leningenTekst(totals.aantal)} />
+        <Total label="Gefund" value={fmtBedragKort(totals.gefund)} sub={leningenTekst(active.filter((l) => l.gefund).length)} />
+        <Total label="Nog te funden" value={fmtBedragKort(totals.nogTeFunden)} sub={leningenTekst(active.filter((l) => !l.gefund).length)} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-5">

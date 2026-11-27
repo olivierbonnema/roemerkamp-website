@@ -4,7 +4,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
 import { LENINGEN_COLLECTION, sanitizeLening } from "@/lib/leningen"
 
-// Admin-only: one row of Beheer > Leningen (see lib/leningen.ts).
+// Admin-only: one row of the overview of loans on the dashboard of Beheer (see lib/leningen.ts).
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 

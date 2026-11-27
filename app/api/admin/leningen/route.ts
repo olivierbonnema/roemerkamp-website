@@ -4,7 +4,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
 import { EMPTY_LENING, LENINGEN_COLLECTION, leningFromAanvraag, leningFromStored, sanitizeLening, sortLeningen, type LeningFields } from "@/lib/leningen"
 
-// Admin-only: Beheer > Leningen, the overview of loans that are being prepared
+// Admin-only: the overview of loans on the dashboard of Beheer, the overview of loans that are being prepared
 // (see lib/leningen.ts). The rows live in a collection of their own. Nothing
 // here writes to an aanvraag.
 

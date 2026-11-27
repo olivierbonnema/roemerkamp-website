@@ -208,7 +208,7 @@ export function AdminAanvragen() {
   const [overviewId, setOverviewId] = useState<string | null>(null)
   const [noteText, setNoteText] = useState("")
   const [savingNote, setSavingNote] = useState(false)
-  // Aanvragen that have a row on Beheer > Leningen (lib/leningen.ts), and
+  // Aanvragen that have a row on the dashboard of Beheer (lib/leningen.ts), and
   // whether that row is on the overview or in its archive.
   const [opOverzicht, setOpOverzicht] = useState<Record<string, "actief" | "archief">>({})
   const [addingLening, setAddingLening] = useState<string | null>(null)
@@ -235,7 +235,7 @@ export function AdminAanvragen() {
     } catch {}
   }
 
-  // Puts the aanvraag on Beheer > Leningen. The server fills the row from the
+  // Puts the aanvraag on the overview of loans (the dashboard of Beheer). The server fills the row from the
   // saved quote-mail or from the aanvraag, and changes nothing on the aanvraag.
   async function addToLeningen(a: Aanvraag) {
     if (addingLening) return
@@ -1047,10 +1047,10 @@ export function AdminAanvragen() {
                 {a.quote?.savedAt ? "Quote-mail bewerken" : "Quote-mail"}
               </button>
 
-              {/* Beheer > Leningen: the overview of loans that are being prepared */}
+              {/* The overview of loans that are being prepared, on the dashboard of Beheer */}
               {opOverzicht[a.id] ? (
                 <a
-                  href="/admin/leningen"
+                  href="/admin"
                   className="px-4 py-1.5 text-xs font-medium font-sans rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors inline-flex items-center gap-1.5"
                 >
                   <Landmark size={12} />

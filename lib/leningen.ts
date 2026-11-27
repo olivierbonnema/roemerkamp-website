@@ -1,4 +1,4 @@
-// Beheer > Leningen: the overview of loans that are being prepared, the digital
+// Beheer > Dashboard: the overview of loans that are being prepared, the digital
 // version of the whiteboard at the office (Olivier, 2026-11-26: "Wij doen dit nu
 // op een whiteboard bij ons op kantoor maar willen dit digitaliseren").
 //
@@ -10,6 +10,9 @@
 // phases (termsheet afgegeven, quote verstuurd, recent ontvangen), only the
 // bruto rente is filled in and the other two rates follow from it, and the
 // passeerdatum is a real date the rows are sorted on.
+//
+// Since 2026-11-27 the overview is the dashboard of Beheer (`/admin`), no longer
+// a page of its own. The collection and the routes kept their name.
 //
 // This file has no server imports: the page and the routes both use it.
 
@@ -416,6 +419,26 @@ export function leningTotals(rows: Pick<Lening, "hoofdsom" | "gefund">[]): Lenin
   const hoofdsom = rows.reduce((sum, r) => sum + (r.hoofdsom || 0), 0)
   const gefund = rows.filter((r) => r.gefund).reduce((sum, r) => sum + (r.hoofdsom || 0), 0)
   return { aantal: rows.length, hoofdsom, gefund, nogTeFunden: hoofdsom - gefund }
+}
+
+/**
+ * Per phase: how many loans and for how much. These are the three amounts on
+ * top of the dashboard (Olivier, 2026-11-27): aanvragen ingediend is the phase
+ * "recent ontvangen", uitstaande quotes the phase "quote verstuurd", termsheet
+ * uitgebracht the phase "termsheet afgegeven". Together they are the total.
+ */
+export function faseTotals(rows: Pick<Lening, "hoofdsom" | "termsheet" | "quote">[]): Record<LeningFase, { aantal: number; hoofdsom: number }> {
+  const out: Record<LeningFase, { aantal: number; hoofdsom: number }> = {
+    termsheet: { aantal: 0, hoofdsom: 0 },
+    quote: { aantal: 0, hoofdsom: 0 },
+    ontvangen: { aantal: 0, hoofdsom: 0 },
+  }
+  for (const r of rows) {
+    const f = out[leningFase(r)]
+    f.aantal += 1
+    f.hoofdsom += r.hoofdsom || 0
+  }
+  return out
 }
 
 // The part of an aanvraag a new row is filled from. `quote` is the saved

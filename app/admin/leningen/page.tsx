@@ -1,17 +1,7 @@
-"use client"
+import { redirect } from "next/navigation"
 
-import { AdminLeningen } from "@/components/admin/admin-leningen"
-
+// The overview of loans moved to the dashboard (2026-11-27). This address was
+// live for a day, so a bookmark or an open tab still lands in the right place.
 export default function LeningenPage() {
-  return (
-    <div className="px-8 py-8">
-      <div className="mb-6">
-        <h1 className="font-serif text-2xl text-[#1E3A5F]">Leningen</h1>
-        <p className="text-sm text-gray-400 font-sans mt-1">
-          Leningen in voorbereiding, van termsheet tot de notaris
-        </p>
-      </div>
-      <AdminLeningen />
-    </div>
-  )
+  redirect("/admin")
 }

@@ -1,4 +1,4 @@
-// Beheer > Leningen: the real route handlers, run against the in-memory
+// the overview of loans on the dashboard of Beheer: the real route handlers, run against the in-memory
 // database of test/concepten/harness.
 //
 // Run from the repo root:
