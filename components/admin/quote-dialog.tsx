@@ -26,6 +26,7 @@ import {
   effectiveMaandbedrag,
   newQuoteObject,
   quoteDefaultsFromAanvraag,
+  QUOTE_GELDIG_DAGEN,
   quoteLtv,
   quoteTextToHtml,
   savedQuoteToData,
@@ -251,7 +252,7 @@ export default function QuoteDialog({ aanvraag, savedQuote, onSave, onDelete, on
   // Open with the saved quote when there is one, otherwise with the aanvraag
   // defaults. A saved quote is merged over the defaults so an older saved
   // shape still opens.
-  const [d, setD] = useState<QuoteData>(() => savedQuoteToData(savedQuote, quoteDefaultsFromAanvraag(aanvraag)))
+  const [d, setD] = useState<QuoteData>(() => savedQuoteToData(savedQuote, quoteDefaultsFromAanvraag(aanvraag, new Date())))
   const up = (patch: Partial<QuoteData>) => setD((prev) => ({ ...prev, ...patch }))
 
   const [editing, setEditing] = useState(false)
@@ -574,6 +575,17 @@ export default function QuoteDialog({ aanvraag, savedQuote, onSave, onDelete, on
                 {QUOTE_TEXT.stukkenSuggesties.filter((s) => !d.benodigdeStukken.includes(s)).map((s) => (
                   <button key={s} type="button" onClick={() => addStuk(s)} className="px-2.5 py-1 rounded-full border border-gray-200 bg-white text-xs font-sans text-gray-600 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition-colors">+ {s}</button>
                 ))}
+              </div>
+            </Section>
+
+            <Section n={7} title="Geldigheid" hint={`Een nieuwe quote is standaard ${QUOTE_GELDIG_DAGEN} dagen geldig. Leeg laten laat de regel uit de mail.`}>
+              <div className="flex flex-wrap items-end gap-4">
+                <Field label="Geldig tot en met">
+                  <input type="date" value={d.geldigTot} onChange={(e) => up({ geldigTot: e.target.value })} className={`${FULL} w-48`} />
+                </Field>
+                {d.geldigTot && (
+                  <div className="pb-2.5"><button type="button" onClick={() => up({ geldigTot: "" })} className={LINK}><X size={12} /> Geen vervaldatum</button></div>
+                )}
               </div>
             </Section>
           </div>
