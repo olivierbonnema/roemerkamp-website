@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
 import type { BagResultaat, KadasterAdres, KadasterPerceel } from "@/lib/kadaster"
+import { KadasterProducten } from "@/components/admin/kadaster-producten"
 
 // Beheer > Aanvragen: what the Kadaster knows about an onderpand. The address
-// as registered, the kadastrale aanduiding and the building. Read only.
+// as registered, the kadastrale aanduiding and the building: read only, free.
 // Route: /api/admin/aanvragen/[id]/kadaster. How it works: lib/kadaster.ts.
+// The owner and the mortgages are paid products, ordered from the block
+// "Eigendom en hypotheken" (components/admin/kadaster-producten.tsx).
 
 interface Antwoord {
   objecten: string[]
@@ -152,6 +155,8 @@ export function KadasterDialog({ aanvraagId, naam, onClose }: { aanvraagId: stri
                 )}
               </Blok>
 
+              <KadasterProducten aanvraagId={aanvraagId} object={object} adresId={adres.nummeraanduidingId} percelen={data.percelen} />
+
               <Blok titel="Pand">
                 {!bag || !bag.ok ? (
                   <p className="text-[13px] font-sans text-gray-600" data-bag-uitleg>{BAG_UITLEG[bag?.reden ?? "fout"]}</p>
@@ -172,7 +177,7 @@ export function KadasterDialog({ aanvraagId, naam, onClose }: { aanvraagId: stri
               </Blok>
 
               <p className="text-[12px] font-sans text-gray-400 leading-relaxed">
-                Bron: de Basisregistratie Adressen en Gebouwen en de kadastrale kaart van het Kadaster. De eigenaar en de ingeschreven hypotheken staan niet in deze gegevens.
+                Bron van het adres, de kadastrale aanduiding en het pand: de Basisregistratie Adressen en Gebouwen en de kadastrale kaart van het Kadaster.
               </p>
             </>
           )}

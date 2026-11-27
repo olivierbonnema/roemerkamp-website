@@ -50,6 +50,9 @@ const ACTION_LABELS: Record<string, string> = {
   lening_restored: "Lening terug op het overzicht",
   lening_deleted: "Lening verwijderd",
   kadaster_opgevraagd: "Kadaster opgevraagd",
+  kadaster_gekoppeld: "Ingelogd bij het Kadaster",
+  kadaster_product_gekocht: "Product van het Kadaster opgevraagd",
+  kadaster_product_geopend: "Product van het Kadaster geopend",
 }
 
 export default function ActiviteitPage() {

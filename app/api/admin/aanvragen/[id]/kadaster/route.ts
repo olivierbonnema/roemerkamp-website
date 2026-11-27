@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { logActivity } from "@/lib/activity-log"
-import { bagPand, zoekAdressen, zoekPerceel, zoekterm, type KadasterPerceel } from "@/lib/kadaster"
+import { bagPand, MAX_PERCELEN, onderpandenVan, zoekAdressen, zoekPerceel, zoekterm, type KadasterPerceel } from "@/lib/kadaster"
 
 // Admin-only: what the Kadaster knows about an onderpand of an aanvraag (the
 // address as registered, the kadastrale aanduiding, the building). See
@@ -13,9 +13,6 @@ import { bagPand, zoekAdressen, zoekPerceel, zoekterm, type KadasterPerceel } fr
 
 const ADMIN_DOMAIN = (process.env.ADMIN_DOMAIN || "").toLowerCase()
 
-// An address rarely has more than a few parcels; this only bounds the work.
-const MAX_PERCELEN = 8
-
 async function verifyAdmin(req: NextRequest) {
   const auth = req.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) return null
@@ -26,21 +23,6 @@ async function verifyAdmin(req: NextRequest) {
   } catch {
     return null
   }
-}
-
-const text = (v: unknown) => (typeof v === "string" ? v.trim() : "")
-
-// The onderpanden of an aanvraag: the list `objects`, or the flat fields of an
-// aanvraag from before that list existed.
-function objectsOf(a: Record<string, unknown>): { adres: string; postcode: string; plaats: string }[] {
-  const listed = Array.isArray(a.objects) ? a.objects : []
-  const fromList = listed
-    .filter((o): o is Record<string, unknown> => !!o && typeof o === "object")
-    .map((o) => ({ adres: text(o.adres), postcode: text(o.postcode), plaats: text(o.plaats) }))
-    .filter((o) => o.adres || o.postcode)
-  if (fromList.length > 0) return fromList
-  const flat = { adres: text(a.objectAdres), postcode: text(a.objectPostcode), plaats: text(a.objectPlaats) }
-  return flat.adres || flat.postcode ? [flat] : []
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -58,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const snap = await adminDb.collection("aanvragen").doc(id).get()
     if (!snap.exists) return NextResponse.json({ error: "Aanvraag niet gevonden." }, { status: 404 })
-    const objecten = objectsOf(snap.data() || {})
+    const objecten = onderpandenVan(snap.data() || {})
     const object = objecten[index]
     const lijst = objecten.map((o) => [o.adres, [o.postcode, o.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", "))
     if (!object) {
