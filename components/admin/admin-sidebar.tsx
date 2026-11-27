@@ -19,14 +19,12 @@ import {
   ShieldCheck,
   Receipt,
   FilePen,
-  Landmark,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: FolderOpen },
   { href: "/admin/concepten", label: "Concepten", icon: FilePen },
-  { href: "/admin/leningen", label: "Leningen", icon: Landmark },
   { href: "/admin/checks", label: "Checks", icon: ShieldCheck },
   // { href: "/admin/pipeline", label: "Pipeline", icon: Columns3 }, // hidden
   { href: "/admin/documenten", label: "Documenten", icon: FileText },

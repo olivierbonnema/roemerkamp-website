@@ -8,7 +8,7 @@ export function PortalDashboard() {
   const { user, isAdmin } = useAuth()
   const firstName = user?.displayName?.split(" ")[0] || null
 
-  // The look of the Beheer dashboard (components/admin/dashboard-stats.tsx):
+  // The look the Beheer dashboard had until 2026-11-27:
   // white cards with a small icon, a serif title and one line of text. Each
   // card keeps its own button, with the link it always had.
   const card = "bg-white rounded-xl border border-gray-200 p-6 flex flex-col"

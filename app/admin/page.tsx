@@ -1,23 +1,19 @@
 "use client"
 
-import { DashboardStats } from "@/components/admin/dashboard-stats"
-import { useAuth } from "@/contexts/auth-context"
+import { AdminLeningen } from "@/components/admin/admin-leningen"
 
+// The dashboard of Beheer is the overview of loans that are being prepared
+// (Olivier, 2026-11-27: "Maak van deze pagina het dashboard").
 export default function AdminDashboardPage() {
-  const { user } = useAuth()
-  const firstName = user?.email?.split("@")[0] ?? ""
-
   return (
     <div className="px-8 py-8">
-      <div className="mb-8">
-        <h1 className="font-serif text-2xl text-[#1E3A5F]">
-          Welkom{firstName ? `, ${firstName}` : ""}
-        </h1>
+      <div className="mb-6">
+        <h1 className="font-serif text-2xl text-[#1E3A5F]">Dashboard</h1>
         <p className="text-sm text-gray-400 font-sans mt-1">
-          Overzicht van het beheerportaal
+          Leningen in voorbereiding, van aanvraag tot de notaris
         </p>
       </div>
-      <DashboardStats />
+      <AdminLeningen />
     </div>
   )
 }

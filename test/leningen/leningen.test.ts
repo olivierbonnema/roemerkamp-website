@@ -1,4 +1,4 @@
-// Beheer > Leningen: reading amounts, percentages and durations as people write
+// the overview of loans on the dashboard of Beheer: reading amounts, percentages and durations as people write
 // them, checking what the form sends, the three rates, the phases, the
 // passeerdatum, the totals, and a row made from an aanvraag.
 //
@@ -6,7 +6,7 @@
 //
 // Fictitious names and amounts only.
 import {
-  EMPTY_LENING, dagenTot, fmtBedrag, fmtBedragKort, fmtDagenTot, fmtDatum, fmtDuur, fmtPct, isIsoDatum, leningFase,
+  EMPTY_LENING, dagenTot, faseTotals, fmtBedrag, fmtBedragKort, fmtDagenTot, fmtDatum, fmtDuur, fmtPct, isIsoDatum, leningFase,
   leningFromAanvraag, leningFromStored, leningTotals, parseBedrag, parseDuur, parsePct, passeerIsSchatting,
   renteLeningnemer, renteNetto, sanitizeLening, schatPasseerdatum, sortLeningen,
 } from "../../lib/leningen"
@@ -81,6 +81,16 @@ eq("the furthest step decides the phase", [
   leningFase({ termsheet: false, quote: false }), leningFase({ termsheet: false, quote: true }),
   leningFase({ termsheet: true, quote: false }), leningFase({ termsheet: true, quote: true }),
 ], ["ontvangen", "quote", "termsheet", "termsheet"])
+
+eq("the amounts per phase of an empty list", faseTotals([]), { termsheet: { aantal: 0, hoofdsom: 0 }, quote: { aantal: 0, hoofdsom: 0 }, ontvangen: { aantal: 0, hoofdsom: 0 } })
+const bord = [
+  { hoofdsom: 300000, termsheet: false, quote: false }, { hoofdsom: 120000, termsheet: false, quote: false },
+  { hoofdsom: 1000000, termsheet: false, quote: true }, { hoofdsom: 450000, termsheet: true, quote: true },
+  { hoofdsom: 215000, termsheet: true, quote: false }, { hoofdsom: 0, termsheet: false, quote: true },
+]
+eq("aanvragen ingediend, uitstaande quotes and termsheet uitgebracht", faseTotals(bord),
+  { termsheet: { aantal: 2, hoofdsom: 665000 }, quote: { aantal: 2, hoofdsom: 1000000 }, ontvangen: { aantal: 2, hoofdsom: 420000 } })
+ok("the three amounts add up to the total hoofdsom", Object.values(faseTotals(bord)).reduce((sum, f) => sum + f.hoofdsom, 0) === leningTotals(bord.map((b) => ({ ...b, gefund: false }))).hoofdsom)
 
 /* ---------- the passeerdatum ---------- */
 ok("a real date is a date", isIsoDatum("2026-12-01") && isIsoDatum("2028-02-29"))
