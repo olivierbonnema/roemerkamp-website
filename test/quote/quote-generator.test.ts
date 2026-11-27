@@ -9,6 +9,11 @@ import {
   quoteDefaultsFromAanvraag,
   quoteLtv,
   quoteSummaryLine,
+  fmtQuoteDatum,
+  isQuoteDatum,
+  QUOTE_GELDIG_DAGEN,
+  quoteGeldigTotVanaf,
+  quoteTextToHtml,
   sanitizeQuoteData,
   sanitizeQuoteInput,
   savedQuoteToData,
@@ -120,6 +125,26 @@ ok("round trip: data identical", JSON.stringify(reopened) === JSON.stringify(sav
 ok("round trip: same mail", buildQuoteEmail(reopened) === buildQuoteEmail(saved.data))
 ok("no saved quote: defaults", JSON.stringify(savedQuoteToData(null, d)) === JSON.stringify(d))
 ok("summary line", quoteSummaryLine({ ...d, rentePct: 8.16 }) === "8,16% · € 900.000 · 12 maanden", quoteSummaryLine({ ...d, rentePct: 8.16 }))
+
+// ---- the last day the indication stands (Olivier, 2026-11-27) ----
+ok("a quote made on a day stands for 14 days", QUOTE_GELDIG_DAGEN === 14 && quoteGeldigTotVanaf(new Date(2026, 10, 27)) === "2026-12-11")
+ok("across the end of a month and of a year", quoteGeldigTotVanaf(new Date(2026, 11, 24)) === "2027-01-07" && quoteGeldigTotVanaf(new Date(2028, 1, 20)) === "2028-03-05")
+ok("a new quote gets the date, the server default has none", quoteDefaultsFromAanvraag(aanvraag, new Date(2026, 10, 27)).geldigTot === "2026-12-11" && quoteDefaultsFromAanvraag(aanvraag).geldigTot === "")
+ok("the date as it is written in the mail", fmtQuoteDatum("2026-12-11") === "11 december 2026" && fmtQuoteDatum("2027-01-07") === "7 januari 2027" && fmtQuoteDatum("") === "")
+ok("what is no real day is no date", [undefined, null, 20261211, "", "11-12-2026", "2026-13-01", "2026-02-30", "2026-12-11T10:00", "1999-01-01"].every((v) => !isQuoteDatum(v)) && isQuoteDatum("2028-02-29"))
+const metDatum = buildQuoteEmail({ ...d, geldigTot: "2026-12-11" })
+const zonderDatum = buildQuoteEmail({ ...d, geldigTot: "" })
+ok("the mail names the last day, just before the disclaimer", metDatum.includes("\n\nGeldigheid:\nDeze indicatie is geldig tot en met 11 december 2026.\n\nDisclaimer:\n"))
+ok("without a date the section is left out, and nothing else changes", !zonderDatum.includes("Geldigheid") && metDatum.replace("Geldigheid:\nDeze indicatie is geldig tot en met 11 december 2026.\n\n", "") === zonderDatum)
+ok("a date that is no date never reaches the mail", !buildQuoteEmail({ ...d, geldigTot: "binnenkort" }).includes("Geldigheid"))
+ok("the heading is bold when the mail is copied", quoteTextToHtml(metDatum).includes("<div><strong>Geldigheid:</strong></div>"))
+ok("sanitizer: the date is kept, and anything else becomes none", sanitizeQuoteData({ ...d, geldigTot: "2026-12-11" }, base)!.geldigTot === "2026-12-11" && sanitizeQuoteData({ ...d, geldigTot: "<script>" }, base)!.geldigTot === "" && sanitizeQuoteData({ ...d, geldigTot: 5 }, base)!.geldigTot === "")
+const oud = JSON.parse(JSON.stringify(saved)) as SavedQuote
+delete (oud.data as unknown as Record<string, unknown>).geldigTot
+const oudOpen = savedQuoteToData(oud, quoteDefaultsFromAanvraag(aanvraag, new Date(2026, 10, 27)))
+ok("a quote saved before the date existed opens without one, and its mail is as it was", oudOpen.geldigTot === "" && !buildQuoteEmail(oudOpen).includes("Geldigheid"))
+const nieuw = savedQuoteToData({ ...saved, data: { ...saved.data, geldigTot: "2026-12-01" } }, quoteDefaultsFromAanvraag(aanvraag, new Date(2026, 10, 27)))
+ok("a saved date is not replaced by a new default on opening", nieuw.geldigTot === "2026-12-01")
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASS")
 process.exit(fails ? 1 : 0)

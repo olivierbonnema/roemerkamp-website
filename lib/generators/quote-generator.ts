@@ -93,6 +93,42 @@ export interface QuoteData {
   zekerhedenManual: boolean
   // One document per entry; rendered as bullets. Empty -> "Nader te bepalen."
   benodigdeStukken: string[]
+  // The last day the indication stands, as "YYYY-MM-DD". "" leaves the
+  // section Geldigheid out of the mail (Olivier, 2026-11-27: "Voeg ook in de
+  // quote mail een verval datum toe").
+  geldigTot: string
+}
+
+// How long a new quote stands by default. The date can be changed, or taken
+// out, per quote in the dialog.
+export const QUOTE_GELDIG_DAGEN = 14
+
+const MAANDEN = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"]
+
+/** Whether this is a real day written as "YYYY-MM-DD". */
+export function isQuoteDatum(v: unknown): v is string {
+  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
+  const [y, m, d] = v.split("-").map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  return y >= 2000 && y <= 2100 && date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d
+}
+
+/** "2026-12-11" -> "11 december 2026". "" when it is no date. */
+export function fmtQuoteDatum(iso: string): string {
+  if (!isQuoteDatum(iso)) return ""
+  const [y, m, d] = iso.split("-").map(Number)
+  return `${d} ${MAANDEN[m - 1]} ${y}`
+}
+
+/** The default last day for a quote made on `vandaag` (the local day of the colleague). */
+export function quoteGeldigTotVanaf(vandaag: Date, dagen = QUOTE_GELDIG_DAGEN): string {
+  const d = new Date(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate() + dagen)
+  const two = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}`
+}
+
+function geldigheidText(d: QuoteData): string {
+  return `Deze indicatie is geldig tot en met ${fmtQuoteDatum(d.geldigTot)}.`
 }
 
 export const QUOTE_TEXT = {
@@ -325,6 +361,7 @@ export const QUOTE_SECTION_LABELS = [
   "Bereidstellingsprovisie",
   "Zekerheden",
   "Benodigde stukken",
+  "Geldigheid",
   "Disclaimer",
 ]
 
@@ -368,6 +405,7 @@ export function buildQuoteEmail(d: QuoteData): string {
   sections.push(["Zekerheden", effectiveZekerheden(d) || "-"])
   const stukken = (d.benodigdeStukken || []).map((x) => x.trim()).filter(Boolean)
   sections.push(["Benodigde stukken", stukken.length ? stukken.map((x) => `• ${x}`).join("\n") : QUOTE_TEXT.benodigdeStukken])
+  if (isQuoteDatum(d.geldigTot)) sections.push(["Geldigheid", geldigheidText(d)])
   sections.push(["Disclaimer", QUOTE_TEXT.disclaimer])
 
   const body = sections.map(([title, txt]) => `${title}:\n${txt}`).join("\n\n")
@@ -402,7 +440,10 @@ export function newQuoteObject(partial: Partial<QuoteObject> = {}): QuoteObject 
   return { address: "", waarde: 0, noun: "de woning", hypotheekRank: "1e", priorLienholders: [], ...partial }
 }
 
-export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
+// `vandaag` is the day the quote is made: a new quote then stands for
+// QUOTE_GELDIG_DAGEN days. Without it (the server, and a quote saved before the
+// date existed) there is no last day.
+export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource, vandaag?: Date): QuoteData {
   const isPrive = a.aanvragerType === "Particulier"
   const geldnemers: QuoteParty[] = []
   if (!isPrive && a.bedrijfsnaam) geldnemers.push({ type: "bv", salut: "de heer", name: a.bedrijfsnaam })
@@ -464,6 +505,7 @@ export function quoteDefaultsFromAanvraag(a: QuoteAanvraagSource): QuoteData {
     zekerhedenText: "",
     zekerhedenManual: false,
     benodigdeStukken: [],
+    geldigTot: vandaag ? quoteGeldigTotVanaf(vandaag) : "",
   }
 }
 
@@ -579,6 +621,9 @@ export function sanitizeQuoteData(input: unknown, base: QuoteData): QuoteData | 
     benodigdeStukken: Array.isArray(v.benodigdeStukken)
       ? v.benodigdeStukken.slice(0, QUOTE_LIMITS.stukken).map((s) => str(s, 200)).filter(Boolean)
       : base.benodigdeStukken,
+    // A quote saved before the date existed has none, and gets none by itself:
+    // an indication that was sent without a last day does not grow one.
+    geldigTot: isQuoteDatum(v.geldigTot) ? v.geldigTot : "",
   }
 }
 
