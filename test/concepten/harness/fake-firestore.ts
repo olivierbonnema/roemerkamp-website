@@ -113,11 +113,18 @@ export class FakeDb {
     if (this.failures[key]) { this.failures[key]--; throw new Error(`simulated Firestore failure (${key})`) }
   }
   collection(path: string) { return new FakeCollection(this, path) }
+  // One transaction at a time, as the real SDK does for transactions that read
+  // the same document: the second one sees what the first one wrote.
+  private txQueue: Promise<unknown> = Promise.resolve()
   async runTransaction<T>(fn: (tx: FakeTx) => Promise<T>): Promise<T> {
-    const tx = new FakeTx()
-    const result = await fn(tx)
-    await Promise.all(tx.pending)
-    return result
+    const run = this.txQueue.then(async () => {
+      const tx = new FakeTx()
+      const result = await fn(tx)
+      await Promise.all(tx.pending)
+      return result
+    })
+    this.txQueue = run.catch(() => {})
+    return run
   }
   // helpers for the tests
   read(collectionPath: string, id: string): Data | undefined { return this.store.get(collectionPath)?.get(id) }
